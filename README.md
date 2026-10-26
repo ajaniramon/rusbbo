@@ -36,9 +36,11 @@ To check it against the corpus (needs the oracle's MariaDB container for the fix
 cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 ```
 
-Ported so far: the unencrypted Shockwave handshake, SSO login, `GET_INFO`, `GET_CREDITS` and the
-daily credits handout from the game tick. Corpus status: `login` passes; the rest pass up to the
-end of their login steps (35/78 steps).
+Ported so far: the unencrypted Shockwave handshake, SSO login, `GET_INFO`, `GET_CREDITS`, the
+daily credits handout from the game tick, and public rooms (entering, heightmap, furniture, users,
+walking with the Java pathfinder and the 500 ms room tick, chat, shout, wave, typing, leaving, AFK).
+Corpus status: `login`, `public-room` and `room-two-bots` pass; the rest pass up to the end of
+their login steps.
 
 ## Trace harness
 
@@ -111,8 +113,9 @@ on wall-clock time beyond what the masks cover.
 - Bots talk to the unencrypted transport only: they skip `GENERATEKEY`, so the RC4 layer the real
   Shockwave client negotiates is not covered yet. The Flash port (12323) is not covered either.
 - `OBJECTS_WORLD` (public room furniture) changes length between runs of the same scenario, so it is
-  checked by header only. The likely cause is iteration order of a hash map in the Java server; a
-  set-like comparison of its items would make it checkable.
+  checked by header only. The cause is the random id each item gets on room load
+  (`PublicItemParser`: a letter and 0-998, e.g. `r697` or `o2`); masking those ids would make the
+  rest (sprites, positions, order) checkable.
 - The oracle is built without `chesslib` (served only by jitpack.io, which this environment cannot
   reach): `oracle/no-jitpack.init.gradle` swaps `GameChess` for a stub, so chess does nothing.
 - `tools/migrations/aeyra-settings-20261025.sql` is not applied: its string literals lost their

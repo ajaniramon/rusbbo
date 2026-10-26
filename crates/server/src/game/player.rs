@@ -24,6 +24,9 @@ pub struct Player {
     /// Daily credits are due on the next game tick after `next_handout`.
     pub credits_eligible: bool,
     pub next_handout: i64,
+    /// The room the player is in (Java: `getRoomUser().getRoom()`). The presence itself (position,
+    /// statuses) lives in the room, see `game::room`.
+    pub room_id: Option<u32>,
 }
 
 impl Player {
@@ -148,6 +151,11 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
 
 /// Logs the player out after a disconnect or kick (Java: `Player.dispose`). Safe to call twice.
 pub fn dispose(world: &World, session: &Arc<Session>) {
+    // Java leaves the room first; done before taking the player's lock for the rest.
+    if session.player.lock().logged_in {
+        crate::game::room::leave_current_room(world, session, false);
+    }
+    // TODO(games): stop observing and leave the game.
     let mut p = session.player.lock();
     if !p.logged_in {
         return;
