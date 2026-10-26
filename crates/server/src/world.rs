@@ -10,6 +10,8 @@ use anyhow::Result;
 use havana_storage::{RoomCategory, Store};
 use parking_lot::{Mutex, RwLock};
 
+use crate::game::catalogue::CatalogueManager;
+use crate::game::item::ItemManager;
 use crate::game::pathfinder::Position;
 use crate::game::room::model::RoomModel;
 use crate::game::room::walkways::{self, WalkwayEntrance};
@@ -21,6 +23,10 @@ use crate::settings_defaults::{DEFAULTS, Value};
 pub struct World {
     pub store: Store,
     pub settings: RwLock<Settings>,
+    /// Item definitions (Java: `ItemManager`).
+    pub items: ItemManager,
+    /// Catalogue pages and items (Java: `CatalogueManager`).
+    pub catalogue: CatalogueManager,
     /// Logged-in sessions by connection id (Java: `PlayerManager.players`).
     players: Mutex<HashMap<u64, Arc<Session>>>,
     /// Loaded rooms (Java: `RoomManager.roomMap`). Never lock a room while holding this.
@@ -49,9 +55,13 @@ impl World {
             .map(|c| (c.id, c))
             .collect();
         let walkways = walkways::parse(&store.walkways()?);
+        let items = ItemManager::load(&store)?;
+        let catalogue = CatalogueManager::load(&store, &items)?;
         Ok(Self {
             store,
             settings: RwLock::new(settings),
+            items,
+            catalogue,
             players: Mutex::new(HashMap::new()),
             rooms: Mutex::new(HashMap::new()),
             room_models,

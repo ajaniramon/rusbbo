@@ -5,6 +5,7 @@ use std::sync::Arc;
 use havana_storage::User;
 use tracing::{error, info};
 
+use crate::game::inventory::Inventory;
 use crate::game::{fuserights, now, today_short};
 use crate::messages::outgoing;
 use crate::session::Session;
@@ -14,6 +15,8 @@ use crate::world::World;
 pub struct Player {
     /// The user row, once logged in.
     pub details: Option<User>,
+    /// The hand (Java: `Player.getInventory`), loaded at login.
+    pub inventory: Inventory,
     pub logged_in: bool,
     pub time_connected: i64,
     /// Token sent in `CRYPTO_PARAMETERS`; the key exchange will need it.
@@ -112,6 +115,8 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
         };
         now() + unit * settings.int("credits.scheduler.interval")
     };
+
+    p.inventory = Inventory::load(&world.store, &world.items, user.id);
 
     // TODO(statistics, badges, achievements, groups): loaded here in Java.
 

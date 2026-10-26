@@ -1,6 +1,8 @@
 //! Client → server handlers, registered by id as in `MessageHandler.java`.
 
+pub mod catalogue;
 pub mod handshake;
+pub mod inventory;
 pub mod rooms;
 pub mod rooms_user;
 pub mod user;
@@ -31,6 +33,10 @@ pub fn handler(header: u16) -> Option<Handler> {
         317 => rooms_user::start_typing,
         318 => rooms_user::cancel_typing,
         94 => rooms_user::wave,
+        100 => catalogue::grpc,
+        101 => catalogue::get_catalog_index,
+        102 => catalogue::get_catalogue_page,
+        65 | 404 => inventory::get_strip,
         _ => return None,
     })
 }

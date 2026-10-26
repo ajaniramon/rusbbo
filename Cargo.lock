@@ -495,6 +495,7 @@ dependencies = [
  "clap",
  "havana-storage",
  "mysql",
+ "serde_json",
 ]
 
 [[package]]
