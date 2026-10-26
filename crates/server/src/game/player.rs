@@ -5,6 +5,7 @@ use std::sync::Arc;
 use havana_storage::User;
 use tracing::{error, info};
 
+use crate::game::messenger::{Messenger, manager as messenger_manager};
 use crate::game::{fuserights, now, today_short};
 use crate::messages::outgoing;
 use crate::session::Session;
@@ -24,6 +25,8 @@ pub struct Player {
     /// Daily credits are due on the next game tick after `next_handout`.
     pub credits_eligible: bool,
     pub next_handout: i64,
+    /// Loaded at login (Java: `Player.messenger`).
+    pub messenger: Option<Messenger>,
 }
 
 impl Player {
@@ -74,6 +77,8 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     if settings.bool("reset.sso.after.login") {
         user.sso_ticket = None;
     }
+
+    p.messenger = Some(Messenger::load(&world.store, &settings, &user));
 
     // TODO(bans): kick banned users once the bans tables are ported (Java: details.isBanned()).
 
@@ -138,12 +143,17 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     session.send(outgoing::user::avatar_effects());
 
     // TODO(alerts): welcome message (welcome.message.enabled), maintenance notice.
-    // TODO(messenger): status update to friends. TODO(guides/tutorial): HELP_ITEMS when the
+    // TODO(guides/tutorial): HELP_ITEMS when the
     // users_statistics.has_tutorial flag is set and tutorial.enabled is on.
     // TODO(club): member days, badges, gifts.
 
     info!(user = user.id, name = %user.username, "logged in");
     p.details = Some(user);
+    drop(p);
+    drop(settings);
+    // Tell the online friends (Java: Messenger.sendStatusUpdate). Locks other players, so ours
+    // must be released first.
+    messenger_manager::send_status_update(world, session);
 }
 
 /// Logs the player out after a disconnect or kick (Java: `Player.dispose`). Safe to call twice.
@@ -173,4 +183,6 @@ pub fn dispose(world: &World, session: &Arc<Session>) {
         error!("saving players.online: {e}");
     }
     info!(user = user.id, "logged out");
+    drop(p);
+    messenger_manager::send_status_update(world, session);
 }

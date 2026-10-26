@@ -36,8 +36,8 @@ To check it against the corpus (needs the oracle's MariaDB container for the fix
 cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 ```
 
-Ported so far: the Shockwave handshake including the encrypted transport (`GENERATEKEY`), SSO login, `GET_INFO`, `GET_CREDITS` and the
-daily credits handout from the game tick. Corpus status: `login` passes; the rest pass up to the
+Ported so far: the messenger (console), the Shockwave handshake including the encrypted transport (`GENERATEKEY`), SSO login, `GET_INFO`, `GET_CREDITS` and the
+daily credits handout from the game tick. Corpus status: `login`, `login-encrypted` and `messenger` pass; the rest pass up to the
 end of their login steps (35/78 steps).
 
 ## Trace harness
