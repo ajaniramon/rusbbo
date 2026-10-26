@@ -10,6 +10,8 @@ use anyhow::Result;
 use havana_storage::Store;
 use parking_lot::{Mutex, RwLock};
 
+use crate::game::catalogue::CatalogueManager;
+use crate::game::item::ItemManager;
 use crate::session::Session;
 use crate::settings::Settings;
 use crate::settings_defaults::{DEFAULTS, Value};
@@ -17,6 +19,10 @@ use crate::settings_defaults::{DEFAULTS, Value};
 pub struct World {
     pub store: Store,
     pub settings: RwLock<Settings>,
+    /// Item definitions (Java: `ItemManager`).
+    pub items: ItemManager,
+    /// Catalogue pages and items (Java: `CatalogueManager`).
+    pub catalogue: CatalogueManager,
     /// Logged-in sessions by connection id (Java: `PlayerManager.players`).
     players: Mutex<HashMap<u64, Arc<Session>>>,
 }
@@ -24,9 +30,13 @@ pub struct World {
 impl World {
     pub fn new(store: Store) -> Result<Self> {
         let settings = Settings::new(load_settings(&store)?);
+        let items = ItemManager::load(&store)?;
+        let catalogue = CatalogueManager::load(&store, &items)?;
         Ok(Self {
             store,
             settings: RwLock::new(settings),
+            items,
+            catalogue,
             players: Mutex::new(HashMap::new()),
         })
     }

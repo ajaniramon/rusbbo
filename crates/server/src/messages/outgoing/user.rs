@@ -50,6 +50,11 @@ pub fn activity_points(pixels: i32, alert: PointAlert) -> Message {
     Message::new(438, ServerBody::new().int(pixels).int(code).build())
 }
 
+/// Java: `FILM` (`user/currencies`).
+pub fn film(film: i32) -> Message {
+    Message::new(4, ServerBody::new().int(film).build())
+}
+
 /// TODO(effects): list the user's effects; nobody has any until users_effects is ported.
 pub fn avatar_effects() -> Message {
     Message::new(460, ServerBody::new().int(0).build())

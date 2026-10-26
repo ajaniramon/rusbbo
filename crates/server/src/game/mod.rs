@@ -1,6 +1,10 @@
 //! Game logic (Java: `org.alexdev.havana.game`).
 
+pub mod catalogue;
+pub mod currency;
 pub mod fuserights;
+pub mod inventory;
+pub mod item;
 pub mod player;
 pub mod scheduler;
 
