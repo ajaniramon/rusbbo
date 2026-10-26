@@ -1,0 +1,43 @@
+name = "catalogue"
+description = "Catalogue index and pages, buy a window, check credits and hand"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOG_INDEX"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOGUE_PAGE"
+args = [1]
+note = "Frontpage"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOGUE_PAGE"
+args = [53]
+note = "Windows"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 653, "", false]
+settle_ms = 1500
+note = "window_70s_narrow, 3 credits"
+
+[[steps]]
+bot = "a"
+send = "GET_CREDITS"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Hand, view \"new\""

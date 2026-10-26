@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["crates/protocol", "crates/trace"]
+
+[workspace.package]
+edition = "2024"
+license = "AGPL-3.0-only"  # same licence as the Java Havana it is derived from
+rust-version = "1.85"

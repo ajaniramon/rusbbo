@@ -1,0 +1,42 @@
+name = "navigator"
+description = "Public and guest room categories, own rooms, flat categories and room search"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "NAVIGATE"
+args = [false, 3]
+note = "Public Rooms root category"
+
+[[steps]]
+bot = "a"
+send = "NAVIGATE"
+args = [false, 5]
+note = "Entertainment"
+
+[[steps]]
+bot = "a"
+send = "NAVIGATE"
+args = [true, 4]
+note = "Guest Rooms, hide full"
+
+[[steps]]
+bot = "a"
+send = "GETUSERFLATCATS"
+
+[[steps]]
+bot = "a"
+send = "SUSERF"
+note = "Own rooms (none yet)"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["lounge"]

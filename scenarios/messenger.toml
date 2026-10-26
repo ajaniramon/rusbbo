@@ -1,0 +1,54 @@
+name = "messenger"
+description = "Console: init, search, friend request, accept and private message between two bots"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "a"
+send = "FINDUSER"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "b"
+send = "MESSENGER_GETREQUESTS"
+
+[[steps]]
+bot = "b"
+send = "MESSENGER_ACCEPTBUDDY"
+args = [1, 1]
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_SENDMSG"
+args = [2, "hola amigo"]
+
+[[steps]]
+bot = "b"
+send = "FRIENDLIST_UPDATE"

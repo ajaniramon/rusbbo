@@ -1,0 +1,251 @@
+{
+  "format": 1,
+  "scenario": "catalogue",
+  "description": "Catalogue index and pages, buy a window, check credits and hand",
+  "runs": 3,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "726232434230765881470255\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#5E90BA50F0B94D48BD5EBAE26B4D49B2\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 101,
+      "name": "GET_CATALOG_INDEX",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "I",
+      "note": "Frontpage",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 127,
+              "name": "CATALOGUE_PAGE",
+              "body": "Ifrontpage3\u0002Jcatalog_frontpage_headline2_en\u0002topstory_habbo_beta\u0002RBServer is in beta!\u0002Please bare with us while we sort out the final kinks and hitches\u0002\u0002How do I get Credits easily?\u00021. Always ask permission from the bill payer first.\r\n2. Send HABBO in a UK SMS to 78881. You''ll get an SMS back with a voucher code and will be charged Ã?Â£3 plus your standard UK SMS rate, normally 10p.\r\n3. Enter the code below to redeem 35 Credits. For Habbo Credit options or to redeem a Wallie Voucher Card, simply click \"Get Credits >>\" below.\u0002Redeem a Habbo Voucher code here:\u0002\u0002#FAF8CC\u0002#FAF8CC\u0002scifi\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "QM",
+      "note": "Windows",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 127,
+              "name": "CATALOGUE_PAGE",
+              "body": "QMdefault_3x3\u0002Kctlg_windows_headline1_en\u0002ctlg_windows_teaser1_en\u0002catalog_special_txtbg2\u0002KLet some sunshine in! Our windows come in many styles to give a unique look to your room. Who said your room can't have a view?\u0002Click on the item you want for more information\u0002Ooh, new view!\u0002SCYcBwindow_70s_narrow\u0002KHIi\u0002YkD\u0002IMZcBwindow_70s_wide\u0002KHIi\u0002ZkD\u0002IM[cBwindow_basic\u0002KHIi\u0002[kD\u0002IMXdBwindow_chinese_narrow\u0002KHIi\u0002XlD\u0002IMYdBwindow_chinese_wide\u0002KHIi\u0002YlD\u0002IMZdBwindow_double_default\u0002KHIi\u0002ZlD\u0002IM[dBwindow_golden\u0002KHIi\u0002[lD\u0002IMXeBwindow_grunge\u0002KHIi\u0002XmD\u0002IMYeBwindow_romantic_narrow\u0002KHIi\u0002YmD\u0002IMZeBwindow_romantic_wide\u0002KHIi\u0002ZmD\u0002IM[eBwindow_single_default\u0002KHIi\u0002[mD\u0002IMXfBwindow_square\u0002KHIi\u0002XnD\u0002IMYfBwindow_triple\u0002KHIi\u0002YnD\u0002IMZfBwindow_skyscraper\u0002KHIi\u0002[[E\u0002IMZGwindow_skyscraper_deal5\u0002RAHIs\u0002XzB0\u0002QAM",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HYcB@@H",
+      "note": "window_70s_narrow, 3 credits",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1117",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 8,
+      "name": "GET_CREDITS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1117",
+              "check": "exact"
+            },
+            {
+              "header": 438,
+              "name": "ActivityPointNotification",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 65,
+      "name": "GETSTRIP",
+      "body": "K",
+      "note": "Hand, view \"new\"",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IIHI\u0002IYkDI0\u0002IIIMI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

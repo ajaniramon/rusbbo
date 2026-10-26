@@ -1,0 +1,59 @@
+name = "public-room"
+description = "Enter the Olympic Stadium (no NPCs), load the room, walk, chat, wave and leave"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [10, 10]
+settle_ms = 2500
+note = "Walk until the status updates stop"
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["hola desde el bot"]
+
+[[steps]]
+bot = "a"
+send = "SHOUT"
+args = ["HOLA"]
+
+[[steps]]
+bot = "a"
+send = "WAVE"
+settle_ms = 2500
+
+[[steps]]
+bot = "a"
+send = "QUIT"
