@@ -36,7 +36,7 @@ To check it against the corpus (needs the oracle's MariaDB container for the fix
 cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 ```
 
-Ported so far: the unencrypted Shockwave handshake, SSO login, `GET_INFO`, `GET_CREDITS` and the
+Ported so far: the Shockwave handshake including the encrypted transport (`GENERATEKEY`), SSO login, `GET_INFO`, `GET_CREDITS` and the
 daily credits handout from the game tick. Corpus status: `login` passes; the rest pass up to the
 end of their login steps (35/78 steps).
 
@@ -100,6 +100,7 @@ on wall-clock time beyond what the masks cover.
 | Trace | Covers |
 |---|---|
 | `login` | handshake, SSO login, user info, credits |
+| `login-encrypted` | the same with `GENERATEKEY`: Diffie-Hellman, then every message over the RC4 layer |
 | `navigator` | public/guest categories, flat categories, own rooms, search |
 | `public-room` | enter a public room, heightmap/objects/users, walk, chat, shout, wave, leave |
 | `room-two-bots` | two users seeing each other enter, talk, walk and leave |
@@ -108,8 +109,8 @@ on wall-clock time beyond what the masks cover.
 
 ## Known gaps
 
-- Bots talk to the unencrypted transport only: they skip `GENERATEKEY`, so the RC4 layer the real
-  Shockwave client negotiates is not covered yet. The Flash port (12323) is not covered either.
+- Only `login-encrypted` uses the RC4 layer (`encrypt = true` on a bot); every other scenario runs
+  unencrypted. The Flash port (12323) is not covered.
 - `OBJECTS_WORLD` (public room furniture) changes length between runs of the same scenario, so it is
   checked by header only. The likely cause is iteration order of a hash map in the Java server; a
   set-like comparison of its items would make it checkable.

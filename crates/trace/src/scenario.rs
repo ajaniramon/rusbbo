@@ -7,6 +7,7 @@
 //! [[bots]]
 //! name = "a"
 //! ticket = "trace-sso-1"
+//! encrypt = true             # optional: also GENERATEKEY, then talk over the RC4 layer
 //!
 //! [[steps]]
 //! bot = "a"
@@ -24,6 +25,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use havana_protocol::body::ClientBody;
+use havana_protocol::crypto::DiffieHellman;
 use havana_protocol::{escape, ids};
 use serde::Deserialize;
 
@@ -43,6 +45,21 @@ pub struct BotDef {
     pub name: String,
     /// SSO ticket from `oracle/seed.sql`; `"$ticket"` in args expands to it.
     pub ticket: String,
+    /// The `login` macro also negotiates the RC4 layer (`GENERATEKEY`), and everything after it
+    /// goes over the encrypted transport, like the real Shockwave client.
+    #[serde(default)]
+    pub encrypt: bool,
+}
+
+/// The private Diffie-Hellman key every encrypted bot uses. Fixed so that the `GENERATEKEY` body
+/// is the same in every run and a trace can store it like any other message body.
+pub const BOT_DH_PRIVATE: u64 = 0x5eed_c0de_1234_5679;
+
+/// The public key of [`BOT_DH_PRIVATE`], as a decimal string.
+pub fn bot_public_key() -> String {
+    DiffieHellman::new(BOT_DH_PRIVATE)
+        .expect("fixed key is not zero")
+        .public_key()
 }
 
 #[derive(Debug, Deserialize)]
@@ -134,10 +151,13 @@ impl Scenario {
             };
 
             if let Some(m) = &def.macro_name {
-                for (action, min_settle) in expand_macro(m, ticket)? {
+                for (action, min_settle, wait_for) in
+                    expand_macro(m, ticket, self.bots[bot].encrypt)?
+                {
                     let s = step(action);
                     out.push(Step {
                         settle_ms: s.settle_ms.max(min_settle),
+                        wait_for,
                         ..s
                     });
                 }
@@ -167,9 +187,16 @@ impl Scenario {
 /// so the step must outlast one tick to see them every time.
 const LOGIN_SETTLE_MS: u64 = 1500;
 
-/// Expands a macro into actions, each with the minimum quiet time its step needs.
-/// `login` is the handshake a Shockwave client does, minus `GENERATEKEY` (the bots stay unencrypted).
-fn expand_macro(name: &str, ticket: &str) -> Result<Vec<(Action, u64)>> {
+/// One expanded macro step: the action, the minimum quiet time of its step, and the server
+/// messages the step waits for.
+type MacroStep = (Action, u64, Vec<u16>);
+
+/// Expands a macro into actions.
+///
+/// `login` is the handshake a Shockwave client does. With `encrypted` it includes `GENERATEKEY`
+/// between `INIT_CRYPTO` and `UNIQUEID`, as the real client does, and waits for `SECRET_KEY` so the
+/// bot is switched to the encrypted transport before the next step sends.
+fn expand_macro(name: &str, ticket: &str, encrypted: bool) -> Result<Vec<MacroStep>> {
     let send = |name: &str, body: Vec<u8>| -> Result<Action> {
         Ok(Action::Send {
             header: ids::client_id(name).with_context(|| format!("no id for {name}"))?,
@@ -177,21 +204,33 @@ fn expand_macro(name: &str, ticket: &str) -> Result<Vec<(Action, u64)>> {
         })
     };
     match name {
-        "login" => Ok(vec![
-            (Action::Connect, 0),
-            (send("INIT_CRYPTO", vec![])?, 0),
-            (
+        "login" => {
+            let mut steps = vec![
+                (Action::Connect, 0, vec![]),
+                (send("INIT_CRYPTO", vec![])?, 0, vec![]),
+            ];
+            if encrypted {
+                let key = ClientBody::new()
+                    .string(bot_public_key().as_bytes())
+                    .build();
+                let secret_key = ids::server_id("SECRET_KEY").context("no id for SECRET_KEY")?;
+                steps.push((send("GENERATEKEY", key)?, 0, vec![secret_key]));
+            }
+            steps.push((
                 send(
                     "UNIQUEID",
                     ClientBody::new().string(b"trace-machine").build(),
                 )?,
                 0,
-            ),
-            (
+                vec![],
+            ));
+            steps.push((
                 send("SSO", ClientBody::new().string(ticket.as_bytes()).build())?,
                 LOGIN_SETTLE_MS,
-            ),
-        ]),
+                vec![],
+            ));
+            Ok(steps)
+        }
         other => bail!("unknown macro {other:?}"),
     }
 }

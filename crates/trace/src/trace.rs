@@ -24,6 +24,10 @@ pub struct Trace {
     /// How many recordings the expectations were derived from.
     pub runs: usize,
     pub bots: Vec<String>,
+    /// Bots that talk over the encrypted transport (`encrypt = true` in the scenario). Traces
+    /// recorded before this existed have none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub encrypted: Vec<String>,
     pub steps: Vec<TraceStep>,
 }
 
@@ -147,6 +151,12 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
         description: scenario.description.clone(),
         runs: runs.len(),
         bots: bot_names,
+        encrypted: scenario
+            .bots
+            .iter()
+            .filter(|b| b.encrypt)
+            .map(|b| b.name.clone())
+            .collect(),
         steps: trace_steps,
     }
 }
@@ -281,6 +291,14 @@ fn trace_action(action: &Action) -> TraceAction {
 }
 
 impl Trace {
+    /// Per bot, whether it uses the encrypted transport.
+    pub fn encrypted_flags(&self) -> Vec<bool> {
+        self.bots
+            .iter()
+            .map(|b| self.encrypted.contains(b))
+            .collect()
+    }
+
     /// Steps to replay this trace.
     pub fn steps(&self) -> anyhow::Result<Vec<Step>> {
         self.steps

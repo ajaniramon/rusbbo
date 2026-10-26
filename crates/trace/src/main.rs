@@ -4,6 +4,8 @@
 mod check;
 mod runner;
 mod scenario;
+#[cfg(test)]
+mod scenario_tests;
 mod trace;
 
 use std::path::{Path, PathBuf};
@@ -123,11 +125,11 @@ fn reset_server(cmd: Option<&str>) -> Result<()> {
 fn execute(
     target: &str,
     reset: Option<&str>,
-    bots: usize,
+    encrypted: &[bool],
     steps: &[Step],
 ) -> Result<Vec<StepOutput>> {
     reset_server(reset)?;
-    Runner::new(target, bots).run(steps)
+    Runner::new(target, encrypted).run(steps)
 }
 
 fn record(
@@ -139,10 +141,11 @@ fn record(
 ) -> Result<()> {
     let scenario = Scenario::load(path)?;
     let steps = scenario.compile()?;
+    let encrypted: Vec<bool> = scenario.bots.iter().map(|b| b.encrypt).collect();
     let mut outputs = Vec::new();
     for run in 1..=runs {
         eprintln!("[record] {} run {run}/{runs}", scenario.name);
-        let out = execute(target, reset, scenario.bots.len(), &steps)?;
+        let out = execute(target, reset, &encrypted, &steps)?;
         for (i, s) in out.iter().enumerate() {
             if !s.missing.is_empty() {
                 eprintln!(
@@ -190,7 +193,7 @@ fn load_trace(path: &Path) -> Result<Trace> {
 fn check_trace(path: &Path, target: &str, reset: Option<&str>) -> Result<bool> {
     let trace = load_trace(path)?;
     let steps = trace.steps()?;
-    let outputs = execute(target, reset, trace.bots.len(), &steps)?;
+    let outputs = execute(target, reset, &trace.encrypted_flags(), &steps)?;
     let mismatches = check::compare(&trace, &outputs);
     let failed_steps: std::collections::BTreeSet<usize> =
         mismatches.iter().map(|m| m.step).collect();

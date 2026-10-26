@@ -105,9 +105,23 @@ fixture from the same snapshot the Java oracle uses, so both servers start from 
 4. `UNIQUEID`, then `SSO` (ticket) or `TRY_LOGIN` (user/password) → `UniqueIDMessageEvent`,
    `RIGHTS`, `LOGIN`, `AVATAR_EFFECTS`.
 
-Block 2 implements 1, 2 and 4 unencrypted, which is what the bots use. Step 3 is needed for the
-real Shockwave client (block 3). Its test vectors come from running the Java `Cryptography` class
-from the oracle jar, since the traces cannot capture the encrypted path.
+Step 3 lives in `protocol::crypto` (pure, no I/O): `Cipher` (Java `Cryptography`), `DiffieHellman`
+(with `HugeInt15`'s limb decoding), `FrameEncoder`/`FrameDecoder` (the 6-byte encrypted header, the
+padding driven by the tx/rx counters seeded from the token) and `Crypto`, which has a server end and
+the mirror client end used by the bots. The server queues `SECRET_KEY` and then an `Encrypt` marker
+in the session's outgoing queue, so the writer task encrypts exactly the frames after it; the
+reader task switches to decrypting after the handler of `GENERATEKEY` returns.
+
+**`SECRET_KEY` is sent in plain text.** `GENERATEKEY` runs on the Netty event loop, where
+`writeAndFlush` passes the encoder pipeline synchronously, before `registerHandler` adds the cipher
+handlers (confirmed against the oracle with a raw socket: `@A<digits>\x01`). The first encrypted
+bytes are the server's answer to the next client message.
+
+Test vectors come from the real Java classes (`tools/crypto-vectors`, including the unmodified
+`EncryptionEncoder`/`EncryptionDecoder` in an `EmbeddedChannel`), and `login-encrypted` checks the
+whole path against the oracle with a bot that does what the client does. One deliberate deviation:
+Java's decoder re-decrypts a header when the body has not fully arrived, which garbles frames split
+across TCP reads; the Rust decoder remembers the header.
 
 SSO tickets: like Java, the server clears all tickets at startup and each ticket on use. Tickets
 are issued by the web layer; until it exists, `--dev-ticket <user_id>=<ticket>` sets one at startup

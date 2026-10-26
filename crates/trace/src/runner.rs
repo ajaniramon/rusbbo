@@ -3,13 +3,16 @@
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpStream};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
+use havana_protocol::crypto::{self, Crypto, DiffieHellman, Opener, Sealer};
 use havana_protocol::frame::{Decoder, Message, encode_client};
+use rand::RngExt;
 
-use crate::scenario::{Action, Step};
+use crate::scenario::{Action, BOT_DH_PRIVATE, Step};
 
 /// Longest a step may wait for its `wait_for` messages.
 const WAIT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -31,6 +34,55 @@ pub struct StepOutput {
     pub missing: Vec<u16>,
 }
 
+/// Client side of the key exchange, driven by what the server sends.
+struct Handshake {
+    enabled: bool,
+    token: Option<String>,
+    done: bool,
+}
+
+impl Handshake {
+    fn new(enabled: bool) -> Self {
+        Self {
+            enabled,
+            token: None,
+            done: false,
+        }
+    }
+
+    /// Looks at one plain server message. `CRYPTO_PARAMETERS` carries the token; `SECRET_KEY` the
+    /// server's public key, which completes the exchange and returns the cipher for the rest of
+    /// the connection.
+    fn observe(&mut self, msg: &Message) -> Result<Option<Crypto>> {
+        if !self.enabled || self.done {
+            return Ok(None);
+        }
+        match msg.header {
+            CRYPTO_PARAMETERS => {
+                self.token = crypto::token_from_crypto_parameters(&msg.body);
+                Ok(None)
+            }
+            SECRET_KEY => {
+                let token = self
+                    .token
+                    .as_deref()
+                    .context("SECRET_KEY before CRYPTO_PARAMETERS")?;
+                let dh = DiffieHellman::new(BOT_DH_PRIVATE).context("bot DH key")?;
+                let key = dh
+                    .shared_key(&msg.body)
+                    .context("deriving the shared key")?;
+                self.done = true;
+                Ok(Some(Crypto::client(&key, token)?))
+            }
+            _ => Ok(None),
+        }
+    }
+}
+
+/// Server message ids (`CRYPTO_PARAMETERS`, `SECRET_KEY`).
+const CRYPTO_PARAMETERS: u16 = 277;
+const SECRET_KEY: u16 = 1;
+
 enum Event {
     Msg(usize, Message),
     Closed(usize),
@@ -38,6 +90,11 @@ enum Event {
 
 struct Bot {
     stream: Option<TcpStream>,
+    /// Talks over the encrypted transport once `GENERATEKEY` is answered.
+    encrypted: bool,
+    /// Sending half of the current connection's cipher; filled in by the reader thread when
+    /// `SECRET_KEY` arrives.
+    sealer: Arc<Mutex<Option<Sealer>>>,
 }
 
 pub struct Runner {
@@ -48,11 +105,19 @@ pub struct Runner {
 }
 
 impl Runner {
-    pub fn new(target: &str, bot_count: usize) -> Self {
+    /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport.
+    pub fn new(target: &str, encrypted: &[bool]) -> Self {
         let (tx, rx) = channel();
         Self {
             target: target.to_string(),
-            bots: (0..bot_count).map(|_| Bot { stream: None }).collect(),
+            bots: encrypted
+                .iter()
+                .map(|&encrypted| Bot {
+                    stream: None,
+                    encrypted,
+                    sealer: Arc::new(Mutex::new(None)),
+                })
+                .collect(),
             tx,
             rx,
         }
@@ -75,11 +140,19 @@ impl Runner {
                 }
             }
             Action::Send { header, body } => {
-                let stream = self.bots[step.bot]
-                    .stream
-                    .as_mut()
-                    .context("bot is not connected")?;
-                stream.write_all(&encode_client(&Message::new(*header, body.clone())))?;
+                let bot = &mut self.bots[step.bot];
+                let stream = bot.stream.as_mut().context("bot is not connected")?;
+                let frame = encode_client(&Message::new(*header, body.clone()));
+                let frame = match bot.sealer.lock().unwrap().as_mut() {
+                    Some(sealer) => {
+                        let mut rng = rand::rng();
+                        sealer
+                            .encrypt(&frame, &mut |n| rng.random_range(0..n))
+                            .context("encrypting a frame")?
+                    }
+                    None => frame,
+                };
+                stream.write_all(&frame)?;
             }
         }
         Ok(self.collect(step))
@@ -94,8 +167,15 @@ impl Runner {
         stream.set_nodelay(true)?;
         let mut reader = stream.try_clone()?;
         let tx = self.tx.clone();
+        let encrypted = self.bots[bot].encrypted;
+        let sealer_slot = Arc::new(Mutex::new(None));
+        self.bots[bot].sealer = sealer_slot.clone();
         thread::spawn(move || {
             let mut decoder = Decoder::default();
+            // The client end of the handshake: token from CRYPTO_PARAMETERS, then the shared key
+            // from SECRET_KEY. Bytes up to and including SECRET_KEY are plain, as on the wire.
+            let mut handshake = Handshake::new(encrypted);
+            let mut opener: Option<Opener> = None;
             let mut buf = [0u8; 8192];
             loop {
                 match reader.read(&mut buf) {
@@ -104,8 +184,26 @@ impl Runner {
                         return;
                     }
                     Ok(n) => {
-                        decoder.push(&buf[..n]);
+                        match opener.as_mut() {
+                            None => decoder.push(&buf[..n]),
+                            Some(o) => match o.decrypt(&buf[..n]) {
+                                Ok(plain) => decoder.push(&plain),
+                                Err(e) => {
+                                    eprintln!("[runner] bot {bot}: cannot decrypt: {e}");
+                                    let _ = tx.send(Event::Closed(bot));
+                                    return;
+                                }
+                            },
+                        }
                         while let Some(msg) = decoder.next_server() {
+                            match handshake.observe(&msg) {
+                                Ok(Some(crypto)) => {
+                                    *sealer_slot.lock().unwrap() = Some(crypto.sealer);
+                                    opener = Some(crypto.opener);
+                                }
+                                Ok(None) => {}
+                                Err(e) => eprintln!("[runner] bot {bot}: {e:#}"),
+                            }
                             if tx.send(Event::Msg(bot, msg)).is_err() {
                                 return;
                             }
