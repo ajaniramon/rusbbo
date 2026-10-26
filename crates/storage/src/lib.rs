@@ -2,6 +2,12 @@
 //!
 //! All access goes through [`Store`] (or a [`Writer`] for multi-record transactions), which keeps
 //! the secondary index tables in step with the primary ones. See `docs/DESIGN.md`.
+//!
+//! Adding an area (rooms, catalogue...): put its records, table definitions and its own
+//! `impl Store` / `impl Writer` blocks in a module of its own (`rooms.rs`), with a
+//! `create_tables(&WriteTransaction)` called from [`Store::create`], so areas can be added in
+//! parallel without touching each other's code. Bump [`SCHEMA_VERSION`] only for changes to
+//! existing tables; new tables only need `create_tables`.
 
 mod records;
 
@@ -84,6 +90,7 @@ impl Store {
             tx.open_table(USERS_BY_NAME)?;
             tx.open_table(USERS_BY_SSO)?;
             tx.open_table(SETTINGS)?;
+            // Area modules: one `create_tables(&tx)?;` call each.
         }
         tx.commit()?;
         store.check_version()?;
