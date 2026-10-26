@@ -11,12 +11,34 @@ this directory answers that question automatically.
 
 | Path | What it is |
 |---|---|
+| `docs/DESIGN.md` | Architecture decisions: crates, concurrency model, redb data model, import, handshake |
 | `crates/protocol` | FUSE wire protocol: Base64/VL64 encodings, framing, body builders, message id tables |
+| `crates/storage` | redb storage: typed tables with their secondary indexes, schema version |
+| `crates/server` | `havana-server`: the game server (tokio). Mirrors the Java packages: `messages/incoming`, `messages/outgoing`, `game` |
+| `crates/import` | `havana-import`: copies a Java Havana MariaDB database into a redb file |
 | `crates/trace` | `havana-trace`: scripted bots that record the Java server's answers and check another server against them |
 | `scenarios/` | Bot scripts (TOML): what the bots send, step by step |
 | `traces/` | Recorded answers of the Java server (JSON). This is the conformance corpus |
 | `oracle/` | Runs the Java server + MariaDB as the reference (`oracle.sh`) |
-| `tools/gen_message_ids.py` | Regenerates `crates/protocol/src/ids.rs` from the Java sources |
+| `harness/target-rs.sh` | Runs the Rust server from the same data as the oracle, for `havana-trace check` |
+| `tools/gen_*.py` | Regenerate `ids.rs` (message ids) and `settings_defaults.rs` from the Java sources |
+
+## Rust server
+
+```sh
+cargo run -p havana-import -- --mysql mysql://user:pass@host:3306/havana --out havana.redb
+cargo run -p havana-server -- --db havana.redb --bind 127.0.0.1:12321
+```
+
+To check it against the corpus (needs the oracle's MariaDB container for the fixture):
+
+```sh
+cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
+```
+
+Ported so far: the unencrypted Shockwave handshake, SSO login, `GET_INFO`, `GET_CREDITS` and the
+daily credits handout from the game tick. Corpus status: `login` passes; the rest pass up to the
+end of their login steps (35/78 steps).
 
 ## Trace harness
 
