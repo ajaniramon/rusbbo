@@ -18,6 +18,12 @@ pub fn crypto_parameters(token: &str) -> Message {
     )
 }
 
+/// Java: `SECRET_KEY`. The body is the server's public Diffie-Hellman key in decimal, with no
+/// string terminator, as `response.write(String)` writes it.
+pub fn secret_key(public_key: &str) -> Message {
+    Message::new(1, ServerBody::new().raw(public_key.as_bytes()).build())
+}
+
 /// Java: `UniqueIDMessageEvent`.
 pub fn unique_id(machine_id: &str) -> Message {
     Message::new(439, ServerBody::new().string(machine_id.as_bytes()).build())

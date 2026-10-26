@@ -3,6 +3,7 @@
 use std::sync::Arc;
 
 use havana_protocol::body::ClientReader;
+use havana_protocol::crypto::{Crypto, DiffieHellman};
 use rand::RngExt;
 
 use crate::game::player;
@@ -31,6 +32,55 @@ pub fn init_crypto(
     let token = random_digits(24);
     session.send(outgoing::handshake::crypto_parameters(&token));
     p.crypto_token = Some(token);
+    Ok(())
+}
+
+/// Java: `GENERATEKEY`. The client sends its Diffie-Hellman public key; the server answers
+/// `SECRET_KEY` with its own, **in plain text**, and only then switches the connection to the
+/// encrypted transport (Java: `player.send(...)` runs on the Netty event loop, so the write passes
+/// the encoder pipeline before `setDecoder` adds the cipher handlers; confirmed against the oracle).
+/// The session queue keeps that order: `SECRET_KEY` is queued before the `Encrypt` marker.
+///
+/// TODO(parity): a second `GENERATEKEY` on an encrypted connection is ignored; Java answers it
+/// (encrypted) and then fails with a duplicate handler name.
+pub fn generate_key(
+    _: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let token = {
+        let p = session.player.lock();
+        if p.logged_in || session.is_encrypted() {
+            return Ok(());
+        }
+        // Without INIT_CRYPTO Java's counters stay at their default of 0.
+        p.crypto_token.clone().unwrap_or_else(|| "0000".to_string())
+    };
+    let client_public = reader.string().ok_or(Malformed)?;
+    // Java draws 64 random bits and retries on zero.
+    let mut rng = rand::rng();
+    let dh = loop {
+        if let Some(dh) = DiffieHellman::new(rng.random()) {
+            break dh;
+        }
+    };
+    let key = match dh.shared_key(client_public) {
+        Ok(key) => key,
+        Err(e) => {
+            // Java throws here, sends nothing and stays unencrypted.
+            tracing::warn!(conn = session.id, "GENERATEKEY: {e}");
+            return Ok(());
+        }
+    };
+    let crypto = match Crypto::server(&key, &token) {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::warn!(conn = session.id, "GENERATEKEY: {e}");
+            return Ok(());
+        }
+    };
+    session.send(outgoing::handshake::secret_key(&dh.public_key()));
+    session.enable_encryption(crypto);
     Ok(())
 }
 

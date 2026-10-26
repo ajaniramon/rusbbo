@@ -9,6 +9,7 @@ use super::Handler;
 pub fn handler(header: u16) -> Option<Handler> {
     Some(match header {
         206 => handshake::init_crypto,
+        2002 => handshake::generate_key,
         204 | 415 => handshake::sso,
         813 => handshake::unique_id,
         1170 => handshake::version_check,
