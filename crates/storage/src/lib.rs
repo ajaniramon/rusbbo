@@ -11,6 +11,7 @@
 
 mod catalogue;
 mod items;
+mod messenger;
 mod records;
 mod rooms;
 
@@ -23,6 +24,7 @@ use serde::de::DeserializeOwned;
 
 pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge};
 pub use items::{Item, ItemDefinition};
+pub use messenger::{MessengerCategory, MessengerMessage, SEARCH_LIMIT};
 pub use records::User;
 pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
 
@@ -100,6 +102,7 @@ impl Store {
             rooms::create_tables(&tx)?;
             catalogue::create_tables(&tx)?;
             items::create_tables(&tx)?;
+            messenger::create_tables(&tx)?;
         }
         tx.commit()?;
         store.check_version()?;

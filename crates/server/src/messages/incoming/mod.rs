@@ -3,6 +3,7 @@
 pub mod catalogue;
 pub mod handshake;
 pub mod inventory;
+pub mod messenger;
 pub mod rooms;
 pub mod rooms_user;
 pub mod user;
@@ -18,6 +19,16 @@ pub fn handler(header: u16) -> Option<Handler> {
         813 => handshake::unique_id,
         1170 => handshake::version_check,
         7 => user::get_info,
+        12 => messenger::messenger_init,
+        15 => messenger::friendlist_update,
+        32 => messenger::mark_read,
+        33 => messenger::send_message,
+        37 => messenger::accept_buddy,
+        38 => messenger::decline_buddy,
+        39 => messenger::request_buddy,
+        40 => messenger::remove_buddy,
+        41 => messenger::find_user,
+        233 => messenger::get_requests,
         8 => user::get_credits,
         // registerRoomPackets
         2 => rooms::room_directory,

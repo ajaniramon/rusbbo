@@ -183,6 +183,14 @@ impl World {
         self.players.lock().len()
     }
 
+    /// The session logged in as `user_id` (Java: `PlayerManager.getPlayerById`). Locks each
+    /// player in turn, so the caller must not hold a player lock.
+    pub fn player_by_id(&self, user_id: u32) -> Option<Arc<Session>> {
+        self.players()
+            .into_iter()
+            .find(|s| s.player.lock().user_id() == Some(user_id))
+    }
+
     /// Sessions logged in as `user_id`.
     pub fn sessions_of(&self, user_id: u32) -> Vec<Arc<Session>> {
         self.players()
