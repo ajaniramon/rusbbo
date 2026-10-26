@@ -9,6 +9,8 @@
 //! parallel without touching each other's code. Bump [`SCHEMA_VERSION`] only for changes to
 //! existing tables; new tables only need `create_tables`.
 
+mod catalogue;
+mod items;
 mod records;
 
 use std::collections::BTreeMap;
@@ -18,6 +20,8 @@ use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition, Writ
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge};
+pub use items::{Item, ItemDefinition};
 pub use records::User;
 
 /// Bump when a record layout or table changes, and add a migration in [`Store::open`].
@@ -91,6 +95,8 @@ impl Store {
             tx.open_table(USERS_BY_SSO)?;
             tx.open_table(SETTINGS)?;
             // Area modules: one `create_tables(&tx)?;` call each.
+            catalogue::create_tables(&tx)?;
+            items::create_tables(&tx)?;
         }
         tx.commit()?;
         store.check_version()?;
