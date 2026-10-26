@@ -1,0 +1,311 @@
+//! The room's collision map: tiles, their furniture and who stands on them (Java:
+//! `game/room/mapping/RoomMapping`, `RoomTile`).
+//!
+//! Entities are referred to by their instance id, which is unique within a room.
+
+use std::sync::Arc;
+
+use crate::game::pathfinder::{Position, Walker};
+use crate::game::room::items::{Behaviour, Interaction, Item};
+use crate::game::room::model::RoomModel;
+
+/// Pool tiles nobody blocks (Java: `RoomTile.ignorePoolTiles`).
+const IGNORE_POOL_TILES: [(i32, i32); 18] = [
+    (20, 28),
+    (19, 28),
+    (17, 21),
+    (17, 20),
+    (31, 10),
+    (31, 9),
+    (19, 19),
+    (18, 19),
+    (11, 11),
+    (10, 11),
+    (21, 28),
+    (22, 28),
+    (16, 22),
+    (16, 23),
+    (30, 11),
+    (30, 12),
+    (12, 11),
+    (13, 12),
+];
+
+/// Java: `RoomTile`.
+#[derive(Clone, Debug)]
+pub struct RoomTile {
+    pub position: Position,
+    /// Entities that block the tile.
+    pub entities: Vec<i32>,
+    /// Entities on the tiles around the door, which never block.
+    pub non_blocking: Vec<i32>,
+    /// Indexes into [`RoomMapping::items`], in the order Java's `ConcurrentHashMap<Integer, Item>`
+    /// iterates them: by `virtualId & 15`, then insertion order.
+    pub items: Vec<usize>,
+    pub tile_height: f64,
+    pub default_height: f64,
+    pub highest_item: Option<usize>,
+    #[allow(dead_code)] // TODO(items): stacking helpers read it.
+    pub chair_tile: bool,
+}
+
+impl RoomTile {
+    /// Java: `containsEntity`.
+    pub fn contains_entity(&self, instance_id: i32) -> bool {
+        self.entities.contains(&instance_id) || self.non_blocking.contains(&instance_id)
+    }
+
+    fn remove_entity(&mut self, instance_id: i32) {
+        self.entities.retain(|e| *e != instance_id);
+        self.non_blocking.retain(|e| *e != instance_id);
+    }
+}
+
+/// Java: `RoomMapping`, plus the room's items it indexes (Java keeps those on `Room`).
+pub struct RoomMapping {
+    pub model: Arc<RoomModel>,
+    pub items: Vec<Item>,
+    pub is_public: bool,
+    /// Walkway arrival tiles of this room (Java: `WalkwaysManager.getDestination`).
+    pub walkway_destinations: Vec<Position>,
+    /// Indexed `x * size_y + y`; empty until the first [`RoomMapping::regenerate`].
+    tiles: Vec<RoomTile>,
+}
+
+impl RoomMapping {
+    pub fn new(model: Arc<RoomModel>, is_public: bool) -> Self {
+        Self {
+            model,
+            items: Vec::new(),
+            is_public,
+            walkway_destinations: Vec::new(),
+            tiles: Vec::new(),
+        }
+    }
+
+    fn index(&self, x: i32, y: i32) -> Option<usize> {
+        if self.tiles.is_empty()
+            || x < 0
+            || y < 0
+            || x >= self.model.size_x
+            || y >= self.model.size_y
+            || !self.model.is_open(x, y)
+        {
+            return None;
+        }
+        Some((x * self.model.size_y + y) as usize)
+    }
+
+    /// Java: `getTile`: `None` outside the map, on closed tiles and before the map exists.
+    pub fn tile(&self, p: Position) -> Option<&RoomTile> {
+        self.index(p.x, p.y).map(|i| &self.tiles[i])
+    }
+
+    /// Java: `regenerateCollisionMap`. `entities` are the instance ids and positions of who is
+    /// in the room.
+    pub fn regenerate(&mut self, entities: &[(i32, Position)]) {
+        let model = self.model.clone();
+        self.tiles.clear();
+        for x in 0..model.size_x {
+            for y in 0..model.size_y {
+                let height = model.tile_height(x, y);
+                self.tiles.push(RoomTile {
+                    position: Position::new(x, y),
+                    entities: Vec::new(),
+                    non_blocking: Vec::new(),
+                    items: Vec::new(),
+                    tile_height: height,
+                    default_height: height,
+                    highest_item: None,
+                    chair_tile: false,
+                });
+            }
+        }
+        // Java sorts a copy by z (a stable sort) and adds each item to the tiles it covers.
+        let mut order: Vec<usize> = (0..self.items.len()).collect();
+        order.sort_by(|a, b| {
+            self.items[*a]
+                .position
+                .z
+                .total_cmp(&self.items[*b].position.z)
+        });
+        for i in order {
+            if self.items[i].has(Behaviour::WallItem) || self.tile(self.items[i].position).is_none()
+            {
+                continue;
+            }
+            for p in self.items[i].affected_tiles() {
+                if let Some(t) = self.index(p.x, p.y) {
+                    self.add_item(t, i);
+                }
+                // TODO(pool): PoolHandler.setupRedirections for PUBLIC_SPACE_OBJECT items.
+            }
+        }
+        for (id, position) in entities {
+            self.add_entity(*position, *id);
+        }
+        // TODO(items): refreshRoomItems (sound machine, moodlight, idol scoreboard).
+    }
+
+    /// Java: `RoomTile.addItem`.
+    fn add_item(&mut self, tile: usize, item: usize) {
+        let bucket = |i: usize| self.items[i].virtual_id & 15;
+        let b = bucket(item);
+        let pos = self.tiles[tile]
+            .items
+            .iter()
+            .position(|other| bucket(*other) > b)
+            .unwrap_or(self.tiles[tile].items.len());
+        self.tiles[tile].items.insert(pos, item);
+        if self.items[item].total_height() < self.tiles[tile].tile_height {
+            return;
+        }
+        self.reset_highest_item(tile);
+    }
+
+    /// Java: `RoomTile.resetHighestItem`.
+    fn reset_highest_item(&mut self, tile: usize) {
+        let t = &mut self.tiles[tile];
+        t.highest_item = None;
+        t.tile_height = t.default_height;
+        let mut chair = None;
+        for &i in &t.items {
+            let item = &self.items[i];
+            if item.has(Behaviour::CanSitOnTop)
+                || item.has(Behaviour::Teleporter)
+                || item.has(Behaviour::DoorTeleporter)
+            {
+                chair = Some(i);
+            }
+            let height = item.total_height();
+            if height < t.tile_height {
+                continue;
+            }
+            t.highest_item = Some(i);
+            t.tile_height = height;
+        }
+        if let Some(chair) = chair {
+            // Java compares database ids, which are all 0 for public items, so this never
+            // applies to them.
+            let chair_item = &self.items[chair];
+            let covered = t.items.iter().any(|&i| {
+                self.items[i].database_id != chair_item.database_id
+                    && self.items[i].position.z > chair_item.position.z
+            });
+            if covered {
+                t.chair_tile = true;
+                t.highest_item = Some(chair);
+                t.tile_height = chair_item.total_height();
+            }
+        }
+    }
+
+    /// Java: `RoomTile.addEntity`.
+    pub fn add_entity(&mut self, p: Position, instance_id: i32) {
+        let Some(t) = self.index(p.x, p.y) else {
+            return;
+        };
+        let here = Position::new(p.x, p.y);
+        let door = self.model.door_location();
+        if here == door {
+            return;
+        }
+        if self.is_public {
+            if self.walkway_destinations.contains(&here) {
+                return;
+            }
+            let name = &self.model.name;
+            if (name == "pool_a" || name == "pool_b" || name == "md_a")
+                && IGNORE_POOL_TILES.contains(&(here.x, here.y))
+            {
+                return;
+            }
+            if self.tiles[t]
+                .highest_item
+                .is_some_and(|i| self.items[i].interaction == Interaction::WsJoinQueue)
+            {
+                return;
+            }
+        }
+        // TODO(games): game arenas skip the door-front rule.
+        let front = door.square_in_front();
+        if here == front || here == front.square_left() || here == front.square_right() {
+            self.tiles[t].non_blocking.push(instance_id);
+            return;
+        }
+        self.tiles[t].entities.push(instance_id);
+    }
+
+    /// Java: `RoomTile.removeEntity`.
+    pub fn remove_entity(&mut self, p: Position, instance_id: i32) {
+        if let Some(t) = self.index(p.x, p.y) {
+            self.tiles[t].remove_entity(instance_id);
+        }
+    }
+
+    /// Java: `RoomTile.getWalkingHeight`.
+    pub fn walking_height(&self, tile: &RoomTile) -> f64 {
+        let mut height = tile.tile_height;
+        if let Some(i) = tile.highest_item {
+            let item = &self.items[i];
+            if item.has(Behaviour::CanSitOnTop) || item.has(Behaviour::CanLayOnTop) {
+                height -= item.positive_top_height();
+            }
+        }
+        height
+    }
+
+    /// The highest item of the tile at `p` (Java: `getTile(p).getHighestItem()`).
+    pub fn highest_item(&self, p: Position) -> Option<&Item> {
+        self.tile(p)
+            .and_then(|t| t.highest_item)
+            .map(|i| &self.items[i])
+    }
+}
+
+/// Java: `RoomTile.isValidTile`; `walker` is the entity, or `None` for Java's `null`.
+pub fn is_valid_tile(map: &RoomMapping, walker: Option<&Walker>, p: Position) -> bool {
+    let Some(tile) = map.tile(p) else {
+        return false;
+    };
+    let highest = tile.highest_item.map(|i| &map.items[i]);
+    if let Some(walker) = walker {
+        // TODO(infobus): park_a blocks the bus door while it is closed.
+        if let Some(item) = highest {
+            if item.sprite == "poolExit" && item.position == Position::new(19, 19) {
+                return walker.swimming;
+            }
+        }
+    }
+    if !tile.entities.is_empty() {
+        if highest.is_some_and(|i| i.has(Behaviour::Teleporter)) {
+            return true;
+        }
+        return walker.is_none_or(|w| tile.contains_entity(w.instance_id));
+    }
+    let walkable = highest.is_none_or(|i| i.is_walkable(walker.is_some(), tile.position));
+    if !walkable {
+        return match walker {
+            Some(w) => highest.is_some_and(|i| i.position == w.position),
+            None => false,
+        };
+    }
+    true
+}
+
+/// Java: `RoomTile.isValidDiagonalTile`.
+pub fn is_valid_diagonal_tile(map: &RoomMapping, walker: Option<&Walker>, p: Position) -> bool {
+    let Some(tile) = map.tile(p) else {
+        return false;
+    };
+    if !tile.entities.is_empty() {
+        return walker.is_none_or(|w| tile.contains_entity(w.instance_id));
+    }
+    if let Some(i) = tile.highest_item {
+        let item = &map.items[i];
+        if item.has(Behaviour::CanSitOnTop) || !item.is_walkable(walker.is_some(), p) {
+            return false;
+        }
+    }
+    true
+}

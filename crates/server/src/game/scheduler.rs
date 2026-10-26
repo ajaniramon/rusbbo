@@ -1,4 +1,4 @@
-//! The 1 s game tick (Java: `game/GameScheduler.java`). Only the daily credits handout so far.
+//! The 1 s game tick (Java: `game/GameScheduler.java`): sleep and AFK in rooms, daily credits.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -18,6 +18,16 @@ pub async fn run(world: Arc<World>) {
 }
 
 fn tick(world: &World) {
+    // Java checks sleep and AFK per player in a room; here per room, one room lock at a time.
+    for room in world.loaded_rooms() {
+        let deferred = {
+            let mut r = room.lock();
+            r.afk_tick(world);
+            r.take_deferred()
+        };
+        crate::game::room::run_deferred(world, deferred);
+    }
+
     let daily_credits = world.settings.read().int("daily.credits.amount") as i32;
     // TODO(afk, pixels, catalogue index refresh, ...): the other per-tick jobs in GameScheduler.
     for session in world.players() {

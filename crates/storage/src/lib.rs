@@ -10,6 +10,7 @@
 //! existing tables; new tables only need `create_tables`.
 
 mod records;
+mod rooms;
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -19,6 +20,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 pub use records::User;
+pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
 
 /// Bump when a record layout or table changes, and add a migration in [`Store::open`].
 pub const SCHEMA_VERSION: u32 = 1;
@@ -91,6 +93,7 @@ impl Store {
             tx.open_table(USERS_BY_SSO)?;
             tx.open_table(SETTINGS)?;
             // Area modules: one `create_tables(&tx)?;` call each.
+            rooms::create_tables(&tx)?;
         }
         tx.commit()?;
         store.check_version()?;

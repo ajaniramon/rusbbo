@@ -10,7 +10,6 @@ mod world;
 
 use std::net::SocketAddr;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
@@ -65,7 +64,7 @@ async fn main() -> Result<()> {
         cli.db.display()
     );
 
-    let world = Arc::new(World::new(store)?);
+    let world = World::new(store)?.into_arc();
     tokio::spawn(game::scheduler::run(world.clone()));
     net::serve(world, cli.bind).await
 }
