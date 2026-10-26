@@ -500,6 +500,9 @@ dependencies = [
 [[package]]
 name = "havana-protocol"
 version = "0.1.0"
+dependencies = [
+ "num-bigint",
+]
 
 [[package]]
 name = "havana-server"
@@ -536,6 +539,7 @@ dependencies = [
  "anyhow",
  "clap",
  "havana-protocol",
+ "rand",
  "serde",
  "serde_json",
  "toml",
