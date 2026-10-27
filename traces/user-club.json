@@ -1,0 +1,347 @@
+{
+  "format": 1,
+  "scenario": "user-club",
+  "description": "Habbo Club purchase: GET_CLUB, the three subscription choices (credits and days), invalid choices, extending",
+  "runs": 3,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "819195898087991748113104\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#CEE8905E22BF489DAE06F92A69CF94B0\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 26,
+      "name": "GET_CLUB",
+      "body": "",
+      "note": "not a member",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002HHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboH",
+      "note": "invalid choice: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboPA",
+      "note": "invalid choice: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboI",
+      "note": "1 month: 25 credits, 31 days",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1095",
+              "check": "exact"
+            },
+            {
+              "header": 437,
+              "name": "ACHIEVEMENT_NOTIFICATION",
+              "body": "HHHC1\u0002\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 280,
+              "name": "CLUB_GIFT",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002SGHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 26,
+      "name": "GET_CLUB",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 280,
+              "name": "CLUB_GIFT",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002SGHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboJ",
+      "note": "3 months: 60 credits, 93 days, added to the running subscription",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1035",
+              "check": "exact"
+            },
+            {
+              "header": 280,
+              "name": "CLUB_GIFT",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002SGHKI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboK",
+      "note": "6 months: 105 credits, 186 days",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "930",
+              "check": "exact"
+            },
+            {
+              "header": 280,
+              "name": "CLUB_GIFT",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002SGHQBI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 26,
+      "name": "GET_CLUB",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 280,
+              "name": "CLUB_GIFT",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002SGHQBI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 8,
+      "name": "GET_CREDITS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "930",
+              "check": "exact"
+            },
+            {
+              "header": 438,
+              "name": "ActivityPointNotification",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

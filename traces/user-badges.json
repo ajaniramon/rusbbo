@@ -1,0 +1,288 @@
+{
+  "format": 1,
+  "scenario": "user-badges",
+  "description": "Badge list and wearing badges: the list is sent once per login, SETBADGE rules (slots, unknown codes, replacing), GETSELECTEDBADGES outside a room",
+  "runs": 3,
+  "bots": [
+    "c"
+  ],
+  "steps": [
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "523492526956687989091644\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-3",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#B34E72BF17C74CDBA1040DAE1A4C61B4\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "KIXDNJMIXDNJMJXDNIM",
+              "check": "exact"
+            },
+            {
+              "header": 352,
+              "name": "HELP_ITEMS",
+              "body": "PBIJKPAQARASAPB",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 157,
+      "name": "GETAVAILABLEBADGES",
+      "body": "",
+      "note": "first call after login: list, then achievement processing",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "PATB1\u0002TB2\u0002TB3\u0002TB4\u0002IKTB2\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 437,
+              "name": "ACHIEVEMENT_NOTIFICATION",
+              "body": "HIACH_TraderPass1\u0002\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 157,
+      "name": "GETAVAILABLEBADGES",
+      "body": "",
+      "note": "second call: Java answers nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 159,
+      "name": "GETINSTANCELIST/GETSELECTEDBADGES",
+      "body": "K",
+      "note": "outside a room: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 158,
+      "name": "SETBADGE",
+      "body": "I@CTB1J@CTB3",
+      "note": "wear two",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "QATB1\u0002TB2\u0002TB3\u0002TB4\u0002ACH_TraderPass1\u0002JITB1\u0002JTB3\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 158,
+      "name": "SETBADGE",
+      "body": "I@CTB4QA@CTB1RA@CTB2H@CTB3",
+      "note": "slot 6 and 0 are ignored; wearing replaces everything",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "QATB1\u0002TB2\u0002TB3\u0002TB4\u0002ACH_TraderPass1\u0002JQATB1\u0002ITB4\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 158,
+      "name": "SETBADGE",
+      "body": "J@DNOPEK@Ctb2PA@@",
+      "note": "unknown code ignored, code match is case-insensitive, empty code ignored",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "QATB1\u0002TB2\u0002TB3\u0002TB4\u0002ACH_TraderPass1\u0002IKTB2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 158,
+      "name": "SETBADGE",
+      "body": "I@CTB1I@CTB2",
+      "note": "two badges in one slot",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "QATB1\u0002TB2\u0002TB3\u0002TB4\u0002ACH_TraderPass1\u0002JITB1\u0002ITB2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 158,
+      "name": "SETBADGE",
+      "body": "",
+      "note": "take everything off",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "QATB1\u0002TB2\u0002TB3\u0002TB4\u0002ACH_TraderPass1\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 157,
+      "name": "GETAVAILABLEBADGES",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

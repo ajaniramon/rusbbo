@@ -1,0 +1,99 @@
+name = "user-ignore"
+description = "Ignore list: the list stored for the user, IGNORE_USER and UNIGNORE_USER (name matching is case-sensitive in the list), and GET_IGNORE_LIST staying silent once the list is loaded"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-3"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "c"
+macro = "login"
+
+[[steps]]
+bot = "c"
+send = "GET_IGNORE_LIST"
+note = "stored mutes: the nonexistent user 999 is skipped"
+
+[[steps]]
+bot = "c"
+send = "GET_IGNORE_LIST"
+note = "the list is loaded: no answer"
+
+[[steps]]
+bot = "c"
+send = "UNIGNORE_USER"
+args = ["tracebot1"]
+
+[[steps]]
+bot = "c"
+send = "UNIGNORE_USER"
+args = ["tracebot1"]
+note = "not in the list any more: no answer"
+
+[[steps]]
+bot = "c"
+send = "IGNORE_USER"
+args = ["tracebot1"]
+
+[[steps]]
+bot = "c"
+send = "IGNORE_USER"
+args = ["tracebot1"]
+note = "already ignored: no answer"
+
+[[steps]]
+bot = "c"
+send = "IGNORE_USER"
+args = ["TraceBot4"]
+note = "the name is stored as typed"
+
+[[steps]]
+bot = "c"
+send = "UNIGNORE_USER"
+args = ["tracebot4"]
+note = "different case: not found, no answer"
+
+[[steps]]
+bot = "c"
+send = "UNIGNORE_USER"
+args = ["TraceBot4"]
+
+[[steps]]
+bot = "c"
+send = "IGNORE_USER"
+args = ["nobody"]
+note = "unknown user is accepted too"
+
+[[steps]]
+bot = "c"
+send = "UNIGNORE_USER"
+args = ["nobody"]
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GET_IGNORE_LIST"
+note = "empty list"
+
+[[steps]]
+bot = "a"
+send = "GET_IGNORE_LIST"
+note = "empty list again: queried again"
+
+[[steps]]
+bot = "a"
+send = "IGNORE_USER"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "a"
+send = "GET_IGNORE_LIST"
+note = "not empty: no answer"
+

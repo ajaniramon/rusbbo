@@ -1,3 +1,3 @@
 -- Run after the server has started: Havana clears every SSO ticket on startup (Havana.java),
 -- and again on each login.
-UPDATE users SET sso_ticket = CONCAT('trace-sso-', id) WHERE id IN (1, 2);
+UPDATE users SET sso_ticket = CONCAT('trace-sso-', id) WHERE id IN (1, 2, 3, 4);

@@ -1,0 +1,489 @@
+{
+  "format": 1,
+  "scenario": "user-ignore",
+  "description": "Ignore list: the list stored for the user, IGNORE_USER and UNIGNORE_USER (name matching is case-sensitive in the list), and GET_IGNORE_LIST staying silent once the list is loaded",
+  "runs": 3,
+  "bots": [
+    "c",
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "532647090869627051490988\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-3",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#6D779377C9E543448DFA10B563F85879\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "KIXDNJMIXDNJMJXDNIM",
+              "check": "exact"
+            },
+            {
+              "header": 352,
+              "name": "HELP_ITEMS",
+              "body": "PBIJKPAQARASAPB",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 360,
+      "name": "GET_IGNORE_LIST",
+      "body": "",
+      "note": "stored mutes: the nonexistent user 999 is skipped",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 420,
+              "name": "IGNORED_LIST",
+              "body": "Jtracebot2\u0002tracebot1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 360,
+      "name": "GET_IGNORE_LIST",
+      "body": "",
+      "note": "the list is loaded: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 322,
+      "name": "UNIGNORE_USER",
+      "body": "@Itracebot1",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "K",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 322,
+      "name": "UNIGNORE_USER",
+      "body": "@Itracebot1",
+      "note": "not in the list any more: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 319,
+      "name": "IGNORE_USER",
+      "body": "@Itracebot1",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 319,
+      "name": "IGNORE_USER",
+      "body": "@Itracebot1",
+      "note": "already ignored: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 319,
+      "name": "IGNORE_USER",
+      "body": "@ITraceBot4",
+      "note": "the name is stored as typed",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 322,
+      "name": "UNIGNORE_USER",
+      "body": "@Itracebot4",
+      "note": "different case: not found, no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 322,
+      "name": "UNIGNORE_USER",
+      "body": "@ITraceBot4",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "K",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 319,
+      "name": "IGNORE_USER",
+      "body": "@Fnobody",
+      "note": "unknown user is accepted too",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 322,
+      "name": "UNIGNORE_USER",
+      "body": "@Fnobody",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "K",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "768598078765972558065849\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#0526C04A05AD4FFBB0AF8D868A1D6F7F\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 360,
+      "name": "GET_IGNORE_LIST",
+      "body": "",
+      "note": "empty list",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 420,
+              "name": "IGNORED_LIST",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 360,
+      "name": "GET_IGNORE_LIST",
+      "body": "",
+      "note": "empty list again: queried again",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 420,
+              "name": "IGNORED_LIST",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 319,
+      "name": "IGNORE_USER",
+      "body": "@Itracebot2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 419,
+              "name": "IGNORE_USER_RESULT",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 360,
+      "name": "GET_IGNORE_LIST",
+      "body": "",
+      "note": "not empty: no answer",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

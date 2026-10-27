@@ -1,0 +1,322 @@
+{
+  "format": 1,
+  "scenario": "user-club-member",
+  "description": "Club state at login: an expired club is dropped on GET_CLUB (RIGHTS again), too few credits to subscribe, active members get club rights and the HC badge",
+  "runs": 3,
+  "bots": [
+    "c",
+    "d"
+  ],
+  "steps": [
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "996431565677292104072227\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-3",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#5AABDDA48B7F4EE1A5836506E50C6026\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "KIXDNJMIXDNJMJXDNIM",
+              "check": "exact"
+            },
+            {
+              "header": 352,
+              "name": "HELP_ITEMS",
+              "body": "PBIJKPAQARASAPB",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 26,
+      "name": "GET_CLUB",
+      "body": "",
+      "note": "expired subscription: club_expiration is reset and RIGHTS sent again",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002HHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 190,
+      "name": "SUBSCRIBE_CLUB",
+      "body": "@Jclub_habboI",
+      "note": "20 credits are not enough: no answer",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 8,
+      "name": "GET_CREDITS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            },
+            {
+              "header": 438,
+              "name": "ActivityPointNotification",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "d",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "d": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "d",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "d": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "507232358455937562181746\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "d",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "d",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-4",
+      "settle_ms": 1500,
+      "received": {
+        "d": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#170AD8828C814B9EB00CF039B77A1C96\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_priority_access\u0002fuse_use_special_room_layouts\u0002fuse_use_club_outfits\u0002fuse_use_club_outfits_default\u0002fuse_use_club_badge\u0002fuse_use_club_dance\u0002fuse_habbo_chooser\u0002fuse_furni_chooser\u0002fuse_extended_buddylist\u0002fuse_room_queue_club\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "d",
+      "action": "send",
+      "header": 157,
+      "name": "GETAVAILABLEBADGES",
+      "body": "",
+      "note": "the HC1 badge is granted while achievements are processed",
+      "settle_ms": 300,
+      "received": {
+        "d": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 229,
+              "name": "AVAILABLE_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 438,
+              "name": "ActivityPointNotification",
+              "body": "PYM",
+              "check": "exact"
+            },
+            {
+              "header": 437,
+              "name": "ACHIEVEMENT_NOTIFICATION",
+              "body": "HIHC1\u0002\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 437,
+              "name": "ACHIEVEMENT_NOTIFICATION",
+              "body": "HIACH_TraderPass1\u0002\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
