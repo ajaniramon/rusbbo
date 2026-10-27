@@ -360,7 +360,11 @@ impl CatalogueManager {
             if def.record.rental_time > 0 {
                 linked_draft.expire_time = now + i64::from(def.record.rental_time);
             }
-            Some(w.insert_item(&linked_draft, now)?)
+            let linked = w.insert_item(&linked_draft, now)?;
+            // Java: TeleporterDao.addPair both ways.
+            w.add_teleporter_link(linked.id, created.id)?;
+            w.add_teleporter_link(created.id, linked.id)?;
+            Some(linked)
         } else {
             None
         };
@@ -372,7 +376,6 @@ impl CatalogueManager {
             return Ok(None);
         };
         if let Some(linked) = linked.and_then(|l| items.make_item(l)) {
-            // TODO(teleporters): items_teleporter_links must pair `linked` and `item`.
             player.inventory.add_item(linked);
         }
         player.inventory.add_item(item);

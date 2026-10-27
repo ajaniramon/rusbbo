@@ -263,7 +263,7 @@ impl Room {
         self.data.visitors_now = self.players();
 
         self.try_initialise(world);
-        // TODO(effects): Abigail.Ryan's ghost effect. TODO(items): teleporter arrival.
+        // TODO(effects): Abigail.Ryan's ghost effect. The teleporter arrival is in `enter_room`.
         // TODO(messenger): sendStatusUpdate so friends see the room.
         self.save_visitors(world);
     }
@@ -876,6 +876,33 @@ impl Room {
         self.try_dispose(world);
     }
 
+    /// Java: `RoomEntity.warp(position, instantUpdate, sendUserObject)` with both set: the user
+    /// jumps to `position` (with its height and rotation), the room sees `USER_OBJECTS` and
+    /// `USER_STATUSES`, then the item there is worked out again with its own status update.
+    pub fn warp(&mut self, idx: usize, position: Position) {
+        let (old, instance_id, next) = {
+            let e = &self.entities[idx];
+            (e.position, e.instance_id, e.next_position)
+        };
+        self.mapping.remove_entity(old, instance_id);
+        if let Some(next) = next {
+            self.mapping.remove_entity(next, instance_id);
+        }
+        self.entities[idx].position = position;
+        self.update_new_height(idx);
+        self.mapping.add_entity(position, instance_id);
+        let model = self.model.name.clone();
+        self.send(out_user::user_objects([&self.entities[idx]], &model));
+        self.send(out_user::user_statuses([&self.entities[idx]], &model));
+        if self.mapping.tile(old).is_some() {
+            self.invoke_item(idx, true);
+        }
+        // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
+        // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
+        // what the oracle sends.
+        self.entities[idx].needs_update = true;
+    }
+
     /// Java's `getRoomUser().getCurrentItem()`.
     pub fn current_item(&self, idx: usize) -> Option<&items::Item> {
         self.mapping.highest_item(self.entities[idx].position)
@@ -964,8 +991,9 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                 }
             }
             Deferred::ClearAuthentication { session } => {
-                // TODO(items): also the teleporter authentications.
-                session.player.lock().authenticate_id = None;
+                let mut p = session.player.lock();
+                p.authenticate_id = None;
+                p.authenticate_teleporter = None;
             }
         }
     }
@@ -1017,11 +1045,17 @@ pub fn enter_room(
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;
-        details
+        // Java resets both teleporter authentications after the arrival.
+        let teleporter = p.authenticate_teleporter.take();
+        (details, teleporter)
     };
+    let (details, teleporter) = details;
     let deferred = {
         let mut r = room.lock();
         r.add_entity(world, session, details, destination);
+        if let Some((teleporter_id, _)) = teleporter {
+            crate::game::item::interactors::teleport::arrive(world, &mut r, session.id, teleporter_id);
+        }
         if send_entry {
             session.send(out_rooms::room_ready(r.id(), &r.model.name));
             session.send(out_rooms::flat_property("landscape", &r.data.landscape));

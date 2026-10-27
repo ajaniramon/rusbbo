@@ -311,6 +311,22 @@ impl Room {
         self.save_item(world, idx);
     }
 
+    /// The room item with this database id (Java: `RoomItemManager.getByDatabaseId`).
+    pub fn item_by_database_id(&self, database_id: u64) -> Option<usize> {
+        self.mapping
+            .items
+            .iter()
+            .position(|i| i.flat.as_ref().is_some_and(|f| f.record.id == database_id))
+    }
+
+    /// Java: `item.setCustomData(data); item.updateStatus()`: the room sees the new state; it is
+    /// not saved.
+    pub fn set_item_status(&mut self, idx: usize, data: &str) {
+        self.mapping.items[idx].custom_data = data.to_string();
+        let msg = out::stuff_data_update(&self.mapping.items[idx]);
+        self.send(msg);
+    }
+
     /// Java: `DELETEFLAT`'s `item.delete()` for each room item. They stay in the loaded room
     /// until it is disposed, as in Java.
     pub fn delete_flat_items(&self, world: &World) {

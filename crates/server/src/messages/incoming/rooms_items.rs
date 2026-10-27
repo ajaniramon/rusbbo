@@ -12,7 +12,8 @@ use super::latin1;
 use crate::game::now;
 use crate::game::pathfinder::Position;
 use crate::game::room::furniture::blocks_interaction;
-use crate::game::room::items::{Behaviour, Item, is_numeric};
+use crate::game::item::interactors::teleport;
+use crate::game::room::items::{Behaviour, Interaction, Item, is_numeric};
 use crate::game::room::mapping::is_valid_tile;
 use crate::game::catalogue::CatalogueManager;
 use crate::game::player::Player;
@@ -655,6 +656,7 @@ pub fn use_furniture(
     };
     let item_id = reader.int().ok_or(Malformed)?;
     let _status = reader.int().ok_or(Malformed)?;
+    let teleporting = session.player.lock().authenticate_teleporter.is_some();
     let mut r = room.lock();
     let Some(idx) = r.mapping.item_index(item_id) else {
         return Ok(());
@@ -685,6 +687,14 @@ pub fn use_furniture(
         }
     }
     // TODO(commands): the item debug alert (":debugfurniture").
+    if r.mapping.items[idx].interaction == Interaction::Teleport {
+        let travel = teleport::on_interact(world, session, &mut r, idx, teleporting);
+        drop(r);
+        if travel.is_some() {
+            session.player.lock().authenticate_teleporter = travel;
+        }
+        return Ok(());
+    }
     r.interact(world, idx);
     Ok(())
 }
