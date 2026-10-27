@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "819195898087991748113104\u0002I",
+              "body": "370766900553014896450050\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#CEE8905E22BF489DAE06F92A69CF94B0\u0002",
+              "body": "#922BDF57C59D4428931C1E39A8FEA717\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -155,7 +155,7 @@
       "name": "SUBSCRIBE_CLUB",
       "body": "@Jclub_habboI",
       "note": "1 month: 25 credits, 31 days",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {
         "a": {
           "ordered": true,
@@ -195,7 +195,7 @@
       "header": 26,
       "name": "GET_CLUB",
       "body": "",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {
         "a": {
           "ordered": true,
@@ -224,7 +224,7 @@
       "name": "SUBSCRIBE_CLUB",
       "body": "@Jclub_habboJ",
       "note": "3 months: 60 credits, 93 days, added to the running subscription",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {
         "a": {
           "ordered": true,
@@ -259,7 +259,7 @@
       "name": "SUBSCRIBE_CLUB",
       "body": "@Jclub_habboK",
       "note": "6 months: 105 credits, 186 days",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {
         "a": {
           "ordered": true,
@@ -293,7 +293,7 @@
       "header": 26,
       "name": "GET_CLUB",
       "body": "",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {
         "a": {
           "ordered": true,

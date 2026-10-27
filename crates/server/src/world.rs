@@ -10,6 +10,7 @@ use anyhow::Result;
 use havana_storage::{RoomCategory, Store};
 use parking_lot::{Mutex, RwLock};
 
+use crate::game::achievements::AchievementManager;
 use crate::game::catalogue::CatalogueManager;
 use crate::game::item::ItemManager;
 use crate::game::pathfinder::Position;
@@ -27,6 +28,10 @@ pub struct World {
     pub items: ItemManager,
     /// Catalogue pages and items (Java: `CatalogueManager`).
     pub catalogue: CatalogueManager,
+    /// Java: `AchievementManager`, loaded at startup.
+    pub achievements: AchievementManager,
+    /// Effect lengths in seconds by effect id (Java: `EffectsManager`, from `settings_effects`).
+    pub effect_durations: std::collections::BTreeMap<i32, i32>,
     /// Logged-in sessions by connection id (Java: `PlayerManager.players`).
     players: Mutex<HashMap<u64, Arc<Session>>>,
     /// Loaded rooms (Java: `RoomManager.roomMap`). Never lock a room while holding this.
@@ -57,11 +62,15 @@ impl World {
         let walkways = walkways::parse(&store.walkways()?);
         let items = ItemManager::load(&store)?;
         let catalogue = CatalogueManager::load(&store, &items)?;
+        let achievements = AchievementManager::new(store.achievements()?);
+        let effect_durations = store.effect_durations()?;
         Ok(Self {
             store,
             settings: RwLock::new(settings),
             items,
             catalogue,
+            achievements,
+            effect_durations,
             players: Mutex::new(HashMap::new()),
             rooms: Mutex::new(HashMap::new()),
             room_models,

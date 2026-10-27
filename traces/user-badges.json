@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "523492526956687989091644\u0002I",
+              "body": "817105142874356366755525\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#B34E72BF17C74CDBA1040DAE1A4C61B4\u0002",
+              "body": "#75883E85D3DC4F648DDFBCB995805CF0\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },

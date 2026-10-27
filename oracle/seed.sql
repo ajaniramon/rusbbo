@@ -39,3 +39,12 @@ INSERT INTO users_mutes (user_id, muted_id) VALUES (3, 1), (3, 2), (3, 999);
 
 INSERT INTO users_effects (effect_id, user_id, expiry_date, activated)
 VALUES (1, 3, 0, 0), (1, 3, 0, 0), (2, 3, 0, 0), (3, 3, 1, 1);
+
+-- No happy hour: the ACH_HappyHour achievement is processed when a client asks for its badges, and
+-- would otherwise appear in traces recorded or checked between 17:00 and 18:00 (12:00-13:00 on
+-- weekends). With start = end, "after start and before end" is never true.
+-- (The settings table is empty until a server starts and fills in its defaults, which leave rows
+-- that exist alone.)
+REPLACE INTO settings (setting, value)
+VALUES ('happy.hour.weekday.start', '00:00:00'), ('happy.hour.weekday.end', '00:00:00'),
+       ('happy.hour.weekend.start', '00:00:00'), ('happy.hour.weekend.end', '00:00:00');

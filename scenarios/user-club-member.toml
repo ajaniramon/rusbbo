@@ -21,7 +21,8 @@ note = "expired subscription: club_expiration is reset and RIGHTS sent again"
 [[steps]]
 bot = "c"
 send = "SUBSCRIBE_CLUB"
-args = ['club_habbo', 1]
+args = ["club_habbo", 1]
+settle_ms = 60
 note = "20 credits are not enough: no answer"
 
 [[steps]]

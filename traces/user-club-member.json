@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "996431565677292104072227\u0002I",
+              "body": "581360778666981583875303\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#5AABDDA48B7F4EE1A5836506E50C6026\u0002",
+              "body": "#9663224B8E8948A19889FE95288E4B87\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -148,7 +148,7 @@
       "name": "SUBSCRIBE_CLUB",
       "body": "@Jclub_habboI",
       "note": "20 credits are not enough: no answer",
-      "settle_ms": 300,
+      "settle_ms": 60,
       "received": {}
     },
     {
@@ -213,7 +213,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "507232358455937562181746\u0002I",
+              "body": "096031868127518621487557\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -245,7 +245,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#170AD8828C814B9EB00CF039B77A1C96\u0002",
+              "body": "#9FDF3433F4C6404B98D7BAF133469309\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },

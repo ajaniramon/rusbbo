@@ -21,6 +21,26 @@ pub fn quit(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Resu
     Ok(())
 }
 
+/// Java: `SET_SOUND_SETTING`.
+pub fn set_sound_setting(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let enabled = reader.bool().ok_or(Malformed)?;
+    let mut p = session.player.lock();
+    if let Some(details) = p.details.as_mut() {
+        details.sound_enabled = enabled;
+        if let Err(e) = world
+            .store
+            .update_user(details.id, |u| u.sound_enabled = enabled)
+        {
+            tracing::error!(user = details.id, "saving sound setting: {e}");
+        }
+    }
+    Ok(())
+}
+
 /// Java: `WALK`.
 pub fn walk(
     world: &World,
