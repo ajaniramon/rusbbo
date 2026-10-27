@@ -1,6 +1,7 @@
 //! Game logic (Java: `org.alexdev.havana.game`).
 
 pub mod fuserights;
+pub mod navigator;
 pub mod pathfinder;
 pub mod player;
 pub mod room;

@@ -5,6 +5,8 @@
 //! Records keep the MariaDB columns the Java server reads. Nullable integer columns are stored as
 //! the value JDBC `getInt` returns for them (0 for NULL); nullable text columns stay `Option`.
 
+use std::cmp::Reverse;
+
 use redb::{ReadableTable, TableDefinition, WriteTransaction};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +16,12 @@ const ROOMS: TableDefinition<u32, &[u8]> = TableDefinition::new("rooms");
 const ROOM_MODELS: TableDefinition<u32, &[u8]> = TableDefinition::new("rooms_models");
 const ROOM_CATEGORIES: TableDefinition<u32, &[u8]> = TableDefinition::new("rooms_categories");
 const PUBLIC_ITEMS: TableDefinition<u32, &[u8]> = TableDefinition::new("public_items");
+/// `rooms` by `(owner_id, id)`: Java's `owner_id` index (`RoomDao.getRoomsByUserId`, search by owner).
+const ROOMS_BY_OWNER: TableDefinition<(u32, u32), ()> = TableDefinition::new("rooms_by_owner");
+/// `rooms` by `(category, id)`: Java's `idx_category_visitors` (`NavigatorDao.getRecentRooms`,
+/// `getRoomsByCategory`, `getRoomCountByCategory`).
+const ROOMS_BY_CATEGORY: TableDefinition<(i32, u32), ()> =
+    TableDefinition::new("rooms_by_category");
 /// `public_items` by `(room_model, id)`: the Java DAO only ever queries by model.
 const PUBLIC_ITEMS_BY_MODEL: TableDefinition<(&str, u32), ()> =
     TableDefinition::new("public_items_by_model");
@@ -22,6 +30,8 @@ const WALKWAYS: TableDefinition<u32, &[u8]> = TableDefinition::new("public_roomw
 
 pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
     tx.open_table(ROOMS)?;
+    tx.open_table(ROOMS_BY_OWNER)?;
+    tx.open_table(ROOMS_BY_CATEGORY)?;
     tx.open_table(ROOM_MODELS)?;
     tx.open_table(ROOM_CATEGORIES)?;
     tx.open_table(PUBLIC_ITEMS)?;
@@ -144,6 +154,94 @@ impl Store {
         table.get(id)?.map(|v| decode(v.value())).transpose()
     }
 
+    /// The rooms of one owner in id order; owner 0 is the public rooms (Java:
+    /// `RoomDao.getRoomsByUserId`).
+    pub fn rooms_by_owner(&self, owner_id: u32) -> Result<Vec<Room>> {
+        let tx = self.db.begin_read()?;
+        let index = tx.open_table(ROOMS_BY_OWNER)?;
+        let rooms = tx.open_table(ROOMS)?;
+        let mut out = Vec::new();
+        for entry in index.range((owner_id, 0)..=(owner_id, u32::MAX))? {
+            let (key, _) = entry?;
+            if let Some(v) = rooms.get(key.value().1)? {
+                out.push(decode(v.value())?);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Every room of a category in id order (Java: `NavigatorDao.getRoomsByCategory`).
+    pub fn rooms_by_category(&self, category: i32) -> Result<Vec<Room>> {
+        let tx = self.db.begin_read()?;
+        let index = tx.open_table(ROOMS_BY_CATEGORY)?;
+        let rooms = tx.open_table(ROOMS)?;
+        let mut out = Vec::new();
+        for entry in index.range((category, 0)..=(category, u32::MAX))? {
+            let (key, _) = entry?;
+            if let Some(v) = rooms.get(key.value().1)? {
+                out.push(decode(v.value())?);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Java: `NavigatorDao.getRoomCountByCategory`.
+    pub fn room_count_by_category(&self, category: i32) -> Result<usize> {
+        let tx = self.db.begin_read()?;
+        let index = tx.open_table(ROOMS_BY_CATEGORY)?;
+        let mut count = 0;
+        for entry in index.range((category, 0)..=(category, u32::MAX))? {
+            entry?;
+            count += 1;
+        }
+        Ok(count)
+    }
+
+    /// Java: `NavigatorDao.getRecentRooms`: private rooms of a category, most visited first, then
+    /// best rated. Ties come out by descending id, which is what MariaDB's backwards scan of
+    /// `idx_category_visitors` (category, visitors_now, rating, primary key) returns.
+    pub fn recent_rooms(&self, category: i32, limit: usize) -> Result<Vec<Room>> {
+        let mut rooms = self.rooms_by_category(category)?;
+        rooms.retain(|r| r.owner_id > 0);
+        rooms.reverse();
+        rooms.sort_by_key(|r| (Reverse(r.visitors_now), Reverse(r.rating)));
+        rooms.truncate(limit);
+        Ok(rooms)
+    }
+
+    /// Java: `RoomDao.searchRooms`. The SQL is
+    /// `... FROM rooms INNER JOIN users ON rooms.owner_id = users.id WHERE <owner_id = ? AND |
+    /// users.username LIKE ? OR> rooms.name LIKE ? ORDER BY visitors_now DESC, rating DESC LIMIT ?`
+    /// with `%query%` as the patterns. `owner` is the id from the `owner:` tag, or `<= 0` when there
+    /// is none (then the query also matches the owner's name, and `OR` has no parentheses, as in
+    /// Java). A blank query without an owner (`-1`) finds nothing. Rooms are scanned: `LIKE
+    /// '%..%'` cannot use an index in MariaDB either. Ties come out by ascending id.
+    pub fn search_rooms(&self, query: &str, owner: i32, limit: usize) -> Result<Vec<Room>> {
+        if query.trim().is_empty() && owner == -1 {
+            return Ok(Vec::new());
+        }
+        let pattern = format!("%{query}%");
+        let mut found = Vec::new();
+        for room in all::<Room>(self, ROOMS)? {
+            // INNER JOIN users: rooms whose owner row is missing (public rooms) never match.
+            let Some(user) = self.user(room.owner_id)? else {
+                continue;
+            };
+            let name_matches = like(&pattern, &room.name);
+            let hit = if owner > 0 {
+                room.owner_id == owner as u32 && name_matches
+            } else {
+                like(&pattern, &user.username) || name_matches
+            };
+            if hit {
+                found.push(room);
+            }
+        }
+        found.sort_by_key(|r| (Reverse(r.visitors_now), Reverse(r.rating)));
+        found.truncate(limit);
+        Ok(found)
+    }
+
     /// Reads, changes and writes back one room in a single transaction.
     pub fn update_room(&self, id: u32, change: impl FnOnce(&mut Room)) -> Result<Option<Room>> {
         let mut w = self.write()?;
@@ -194,7 +292,23 @@ impl Writer {
         table.get(id)?.map(|v| decode(v.value())).transpose()
     }
 
+    /// Inserts or replaces a room and keeps the by-owner and by-category indexes in step.
     pub fn put_room(&mut self, room: &Room) -> Result<()> {
+        let old = self.room(room.id)?;
+        if old.as_ref().map(|o| o.owner_id) != Some(room.owner_id) {
+            let mut index = self.tx.open_table(ROOMS_BY_OWNER)?;
+            if let Some(old) = &old {
+                index.remove((old.owner_id, old.id))?;
+            }
+            index.insert((room.owner_id, room.id), ())?;
+        }
+        if old.as_ref().map(|o| o.category) != Some(room.category) {
+            let mut index = self.tx.open_table(ROOMS_BY_CATEGORY)?;
+            if let Some(old) = &old {
+                index.remove((old.category, old.id))?;
+            }
+            index.insert((room.category, room.id), ())?;
+        }
         let bytes = encode(room)?;
         self.tx
             .open_table(ROOMS)?
@@ -246,6 +360,59 @@ impl Writer {
         table.insert(next, bytes.as_slice())?;
         Ok(())
     }
+}
+
+/// SQL `LIKE` as MariaDB evaluates it with the `utf8mb4_uca1400_ai_ci` collation of the Java
+/// schema: `%` and `_` are wildcards, `\` escapes the next character, and the comparison ignores
+/// case. TODO(collation): accent insensitivity (`e` = `é`) is not reproduced.
+pub(crate) fn like(pattern: &str, text: &str) -> bool {
+    enum Tok {
+        Any,
+        One,
+        Lit(char),
+    }
+    fn fold(s: &str) -> Vec<char> {
+        s.chars().flat_map(char::to_lowercase).collect()
+    }
+    let mut toks = Vec::new();
+    let mut chars = fold(pattern).into_iter();
+    while let Some(c) = chars.next() {
+        toks.push(match c {
+            '%' => Tok::Any,
+            '_' => Tok::One,
+            '\\' => Tok::Lit(chars.next().unwrap_or('\\')),
+            c => Tok::Lit(c),
+        });
+    }
+    let text = fold(text);
+    // Backtracking match that remembers the last `%`.
+    let (mut t, mut p) = (0, 0);
+    let mut star: Option<(usize, usize)> = None;
+    while t < text.len() {
+        match toks.get(p) {
+            Some(Tok::Any) => {
+                star = Some((p, t));
+                p += 1;
+            }
+            Some(Tok::One) => {
+                p += 1;
+                t += 1;
+            }
+            Some(Tok::Lit(c)) if *c == text[t] => {
+                p += 1;
+                t += 1;
+            }
+            _ => match star {
+                Some((sp, st)) => {
+                    p = sp + 1;
+                    t = st + 1;
+                    star = Some((sp, st + 1));
+                }
+                None => return false,
+            },
+        }
+    }
+    toks[p..].iter().all(|t| matches!(t, Tok::Any))
 }
 
 #[cfg(test)]
@@ -310,5 +477,84 @@ mod tests {
         w.commit().unwrap();
         assert_eq!(store.public_items("ballroom").unwrap().len(), 1);
         assert_eq!(store.public_items("pub_a").unwrap().len(), 2);
+    }
+
+    #[test]
+    fn room_indexes_and_search() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::create(&dir.path().join("t.redb")).unwrap();
+        for (id, name) in [(1, "alice"), (2, "bob")] {
+            store
+                .put_user(&crate::User {
+                    id,
+                    username: name.into(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        let mut w = store.write().unwrap();
+        for (id, owner, category, name, now, rating) in [
+            (1, 0, 3, "Lounge", 0, 0),
+            (10, 1, 112, "Alice Place", 2, 0),
+            (11, 1, 112, "Chill Zone", 5, 1),
+            (12, 2, 112, "Bob's lounge", 5, 3),
+            (13, 2, 114, "100% fun", 0, 0),
+        ] {
+            w.put_room(&Room {
+                id,
+                owner_id: owner,
+                category,
+                name: name.into(),
+                visitors_now: now,
+                rating,
+                ..Default::default()
+            })
+            .unwrap();
+        }
+        w.commit().unwrap();
+        let ids = |rooms: Vec<Room>| rooms.iter().map(|r| r.id).collect::<Vec<_>>();
+
+        assert_eq!(ids(store.rooms_by_owner(0).unwrap()), [1]);
+        assert_eq!(ids(store.rooms_by_owner(1).unwrap()), [10, 11]);
+        assert_eq!(store.room_count_by_category(112).unwrap(), 3);
+        // Most visitors, then best rating.
+        assert_eq!(ids(store.recent_rooms(112, 30).unwrap()), [12, 11, 10]);
+        assert_eq!(ids(store.recent_rooms(112, 2).unwrap()), [12, 11]);
+
+        // Without an owner the query matches room names and owner names.
+        assert_eq!(ids(store.search_rooms("lounge", -1, 100).unwrap()), [12]);
+        assert_eq!(ids(store.search_rooms("ALICE", -1, 100).unwrap()), [11, 10]);
+        // With an owner both conditions must hold.
+        assert_eq!(ids(store.search_rooms("", 2, 100).unwrap()), [12, 13]);
+        assert!(store.search_rooms("zone", 2, 100).unwrap().is_empty());
+        assert!(store.search_rooms("", -1, 100).unwrap().is_empty());
+        // An unknown owner (0) with no text is `LIKE '%%'`: every room that has an owner.
+        assert_eq!(store.search_rooms("", 0, 100).unwrap().len(), 4);
+        // Wildcards of the query are live, as in SQL.
+        assert_eq!(ids(store.search_rooms("100%", -1, 100).unwrap()), [13]);
+
+        // Changing owner and category moves the index entries.
+        store
+            .update_room(11, |r| {
+                r.owner_id = 2;
+                r.category = 114;
+            })
+            .unwrap();
+        assert_eq!(ids(store.rooms_by_owner(1).unwrap()), [10]);
+        assert_eq!(ids(store.rooms_by_owner(2).unwrap()), [11, 12, 13]);
+        assert_eq!(store.room_count_by_category(112).unwrap(), 2);
+        assert_eq!(store.room_count_by_category(114).unwrap(), 2);
+    }
+
+    #[test]
+    fn like_matching() {
+        assert!(like("%lou%", "Lounge"));
+        assert!(like("l_unge", "LOUNGE"));
+        assert!(!like("lounge", "lounges"));
+        assert!(like("%", ""));
+        assert!(like("a%b%c", "a-b-b-c"));
+        assert!(!like("a%b%c", "a-b-b"));
+        assert!(like("100\\%", "100%"));
+        assert!(!like("100\\%", "1000"));
     }
 }
