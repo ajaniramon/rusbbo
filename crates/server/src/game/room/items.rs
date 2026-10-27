@@ -12,6 +12,7 @@ use rand::RngExt;
 use tracing::warn;
 
 use crate::game::item::base::{DEFAULT_TOP_HEIGHT, ItemDefinition};
+use crate::game::item::roller::RollingData;
 use crate::game::pathfinder::{Position, affected_tiles};
 
 pub use crate::game::item::base::{InteractionType as Interaction, ItemBehaviour as Behaviour};
@@ -50,6 +51,10 @@ pub struct Item {
     pub swim_to: Option<Position>,
     /// `None` for public room furniture.
     pub flat: Option<FlatItem>,
+    /// Java: `rollingData`, while a roller moves the item (until `RollerCompleteTask`).
+    pub rolling: Option<RollingData>,
+    /// Java: `isCurrentRollBlocked`: the item stays put during this roll.
+    pub current_roll_blocked: bool,
 }
 
 impl Item {
@@ -86,6 +91,8 @@ impl Item {
             teleport_to: None,
             swim_to: None,
             flat: Some(FlatItem { record, definition }),
+            rolling: None,
+            current_roll_blocked: false,
         }
     }
 
@@ -277,6 +284,8 @@ pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<
             teleport_to: parse_target(row.teleport_to.as_deref()),
             swim_to: parse_target(row.swim_to.as_deref()),
             flat: None,
+            rolling: None,
+            current_roll_blocked: false,
         };
         let trigger = match sprite.as_str() {
             "poolEnter" | "poolExit" => Some(Interaction::PoolLadder),

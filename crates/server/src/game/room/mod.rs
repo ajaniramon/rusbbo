@@ -98,6 +98,8 @@ pub struct Room {
     counter: i32,
     /// The tick task (Java: `RoomTaskManager`'s EntityTask and StatusTask).
     task: Option<tokio::task::AbortHandle>,
+    /// Java: `RoomTaskManager`'s RollerTask, private rooms only.
+    roller_task: Option<tokio::task::AbortHandle>,
     /// Bumped on every dispose request, so only the latest one runs.
     dispose_generation: u64,
     self_ref: Weak<RoomHandle>,
@@ -140,6 +142,7 @@ impl Room {
                 active: false,
                 counter: 0,
                 task: None,
+                roller_task: None,
                 dispose_generation: 0,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
@@ -336,22 +339,30 @@ impl Room {
     /// runs from the second one, 500 ms later. Restarting replaces the running ones, as Java's
     /// `scheduleTask` does.
     fn start_tasks(&mut self, world: &World) {
-        if let Some(task) = self.task.take() {
-            task.abort();
-        }
+        self.stop_tasks();
         let Some(world) = world.arc() else {
             return; // Unit tests build rooms without a running world.
         };
         let Ok(rt) = tokio::runtime::Handle::try_current() else {
             return;
         };
-        // TODO(flats): RollerTask for private rooms.
         let handle = rt.spawn(tasks::run(Arc::downgrade(&world), self.self_ref.clone()));
         self.task = Some(handle.abort_handle());
+        // Only private rooms run rollers.
+        if !self.is_public() {
+            let handle = rt.spawn(tasks::run_rollers(
+                Arc::downgrade(&world),
+                self.self_ref.clone(),
+            ));
+            self.roller_task = Some(handle.abort_handle());
+        }
     }
 
     fn stop_tasks(&mut self) {
         if let Some(task) = self.task.take() {
+            task.abort();
+        }
+        if let Some(task) = self.roller_task.take() {
             task.abort();
         }
     }
@@ -393,6 +404,7 @@ impl Room {
         e.is_sleeping = false;
         e.walking_allowed = true;
         e.being_kicked = false;
+        e.rolling = None;
         e.instance_id = -1;
         e.is_typing = false;
         e.needs_update = true;
@@ -591,8 +603,9 @@ impl Room {
         });
         if item.is_none() || !can_sit || !can_lay {
             let e = &mut self.entities[idx];
-            // TODO(items): rollers ("isRolling") keep the sit.
-            if e.statuses.contains(StatusType::Sit) || e.statuses.contains(StatusType::Lay) {
+            if e.rolling.is_none()
+                && (e.statuses.contains(StatusType::Sit) || e.statuses.contains(StatusType::Lay))
+            {
                 e.statuses.remove(StatusType::Sit);
                 e.statuses.remove(StatusType::Lay);
             }
@@ -623,13 +636,19 @@ impl Room {
             let item = &self.mapping.items[item];
             (item.top_height, item.position.rotation())
         };
+        let is_rolling = self.entities[idx].rolling.is_some();
+        let head_rotation = self.entities[idx].position.head_rotation;
         self.entities[idx].position.set_rotation(rotation);
         self.dance(idx, 0);
         let e = &mut self.entities[idx];
         e.statuses
             .set(StatusType::Sit, crate::game::format_decimal(top_height));
         e.needs_update = true;
-        // TODO(items): rolling keeps the head rotation. TODO(effects): re-send the effect.
+        // A user rolled onto a chair keeps looking where they looked.
+        if is_rolling && e.look_timer > -1 {
+            e.position.head_rotation = head_rotation;
+        }
+        // TODO(effects): re-send the effect.
     }
 
     /// Java: `RoomEntity.dance`.

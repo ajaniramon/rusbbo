@@ -2,6 +2,7 @@
 
 pub mod base;
 pub mod interactors;
+pub mod roller;
 mod manager;
 mod owned;
 

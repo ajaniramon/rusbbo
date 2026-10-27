@@ -580,7 +580,12 @@ pub fn move_stuff(
     let y = reader.int().ok_or(Malformed)?;
     let rotation = reader.int().ok_or(Malformed)?;
     let old = r.mapping.items[idx].position;
-    // TODO(rollers): rolling items cannot be rotated.
+    if old == Position::new(x, y)
+        && old.rotation() != rotation
+        && r.mapping.items[idx].rolling.is_some()
+    {
+        return Ok(()); // No rotating while rolling.
+    }
     let unchanged = old.x == x && old.y == y && old.rotation() == rotation;
     if unchanged || !r.is_valid_move(world, &r.mapping.items[idx], x, y, rotation) {
         // Sent even though nothing moved, "otherwise the client will be confused".

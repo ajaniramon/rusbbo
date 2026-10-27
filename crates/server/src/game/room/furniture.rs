@@ -52,8 +52,11 @@ pub fn reset_extra_data(item: &mut Item, _room_load: bool) -> bool {
             return true;
         }
     }
-    // TODO(rollers): isCurrentRollBlocked; TODO(items): requiresUpdate of the wheel of fortune,
-    // vending machines and love randomizers.
+    // TODO(items): requiresUpdate of the wheel of fortune, vending machines and love
+    // randomizers.
+    if item.current_roll_blocked {
+        item.current_roll_blocked = false;
+    }
     false
 }
 
@@ -240,8 +243,16 @@ impl Room {
                     }
                 }
             }
-            // TODO(rollers): items placed on rolling items sit on the roller.
-            self.mapping.items[idx].position.z = height;
+            // An item put down on something rolling lands on the roller.
+            let rolling_on = tile
+                .highest_item
+                .and_then(|h| self.mapping.items[h].rolling)
+                .and_then(|r| self.mapping.item_index(r.roller))
+                .map(|r| {
+                    let roller = &self.mapping.items[r];
+                    roller.position.z + roller.positive_top_height()
+                });
+            self.mapping.items[idx].position.z = rolling_on.unwrap_or(height);
         }
         let limit = stack_height_limit(world);
         let item = &mut self.mapping.items[idx];
@@ -378,12 +389,20 @@ pub fn is_valid_move(
     if map.tile(Position::new(x, y)).is_none() {
         return false;
     }
-    // TODO(rollers): the rolling data's next and previous positions also count.
-    let is_rotation = item.position.rotation() != rotation && Position::new(x, y) == item.position;
-    if is_rotation && item.length <= 1 && item.width <= 1 {
-        return true;
-    }
     let target = Position::new(x, y);
+    let is_rotation = item.position.rotation() != rotation
+        && (target == item.position
+            || item
+                .rolling
+                .is_some_and(|r| target == r.next || target == r.from));
+    if is_rotation {
+        if item.rolling.is_some() {
+            return false; // No rotating while rolling.
+        }
+        if item.length <= 1 && item.width <= 1 {
+            return true;
+        }
+    }
     for p in item.affected_tiles_at(x, y, rotation) {
         let Some(tile) = map.tile(p) else {
             return false;
@@ -431,7 +450,9 @@ fn can_place_on_top(item: &Item, other: &Item, target: Position) -> bool {
     {
         return false;
     }
-    // TODO(rollers): an item that is rolling can be placed on.
+    if other.rolling.is_some() {
+        return true; // Something rolling can be placed on.
+    }
     if (other.has(Behaviour::Solid) || other.has(Behaviour::SolidSingleTile))
         && !other.has(Behaviour::CanStackOnTop)
     {
