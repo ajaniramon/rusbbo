@@ -119,6 +119,54 @@ impl CatalogueManager {
         self.items.iter().find(|i| i.id == id)
     }
 
+    /// Java: `getCatalogueItem(String saleCode)`: the first item with that sale code.
+    pub fn item_by_sale_code(&self, sale_code: &str) -> Option<&CatalogueItem> {
+        self.items.iter().find(|i| i.sale_code == sale_code)
+    }
+
+    /// Java: `ItemManager.createGift`: a present wrapping `sale_code` for `owner_id`, in a random
+    /// `present_gen` sprite. Its custom data is `catalogue id|from|label|extra data|time`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_gift(
+        &self,
+        store: &Store,
+        items: &ItemManager,
+        owner_id: u32,
+        received_from: &str,
+        sale_code: &str,
+        label: &str,
+        extra_data: &str,
+        now: i64,
+    ) -> anyhow::Result<Option<crate::game::item::Item>> {
+        use rand::RngExt;
+        let present_id = rand::rng().random_range(0..7);
+        let sprite = if present_id > 0 {
+            format!("present_gen{present_id}")
+        } else {
+            "present_gen".to_string()
+        };
+        let (Some(def), Some(catalogue_item)) = (
+            items.definition_by_sprite(&sprite),
+            self.item_by_sale_code(sale_code),
+        ) else {
+            // Java throws a NullPointerException here.
+            anyhow::bail!("no {sprite} definition or no catalogue item {sale_code}");
+        };
+        let custom_data = format!(
+            "{}|{}|{}|{}|{}",
+            catalogue_item.id,
+            received_from,
+            label.replace('|', ""),
+            extra_data.replace('|', ""),
+            now
+        );
+        let draft = havana_storage::Item::with_defaults(owner_id, def.record.id, custom_data, now);
+        let mut w = store.write()?;
+        let created = w.insert_item(&draft, now)?;
+        w.commit()?;
+        Ok(items.make_item(created))
+    }
+
     /// Java: `getSeasonalItems`: the items on sale today, at their seasonal prices.
     pub fn seasonal_items(&self) -> Vec<CatalogueItem> {
         self.items

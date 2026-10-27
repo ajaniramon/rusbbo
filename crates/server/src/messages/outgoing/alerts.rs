@@ -15,6 +15,11 @@ pub fn localised_error(error_code: i32) -> Message {
     Message::new(33, ServerBody::new().int(error_code).build())
 }
 
+/// Java: `NO_USER_FOUND`: the name, raw.
+pub fn no_user_found(username: &str) -> Message {
+    Message::new(76, ServerBody::new().raw(&latin1(username)).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

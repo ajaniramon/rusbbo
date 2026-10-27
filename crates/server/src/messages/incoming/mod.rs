@@ -76,8 +76,12 @@ pub fn handler(header: u16) -> Option<Handler> {
         67 => rooms_items::add_strip_item,
         392 => rooms_items::use_furniture,
         393 => rooms_items::use_wall_item,
-        // TODO(items): REMOVEITEM (85), G_IDATA, SETITEMDATA, dice, presents, wheel of fortune,
-        // one-way doors and the other item packets.
+        232 => rooms_items::enter_oneway_door,
+        83 => rooms_items::g_idata,
+        84 => rooms_items::set_item_data,
+        85 => rooms_items::remove_item,
+        78 => rooms_items::present_open,
+        // TODO(items): dice, wheel of fortune and the other item packets.
         98 => rooms_moderation::let_user_in,
         // registerRoomSettingsPackets
         21 => rooms_settings::get_flat_info,

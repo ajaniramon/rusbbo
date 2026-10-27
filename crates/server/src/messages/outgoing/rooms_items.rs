@@ -5,6 +5,7 @@ use havana_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 use super::rooms::{floor_item, wall_item};
+use crate::game::format_decimal;
 use crate::game::room::items::{Behaviour, Item};
 
 /// Java: `PLACE_FLOORITEM`.
@@ -56,6 +57,56 @@ pub fn stuff_data_update(item: &Item) -> Message {
                 .build(),
         )
     }
+}
+
+/// Java: `CHANGESTATUS`: a one-way door opening (1) or closing (0).
+pub fn change_status(item_id: i32, status: i32) -> Message {
+    Message::new(312, ServerBody::new().int(item_id).int(status).build())
+}
+
+/// Java: `IDATA`: a post-it's colour and text, or any other wall item's custom data.
+pub fn idata(item: &Item, colour: &str, text: &str) -> Message {
+    let body = ServerBody::new().string(item.virtual_id.to_string().as_bytes());
+    let body = if item.has(Behaviour::PostIt) {
+        body.raw(&latin1(colour)).raw(b" ").string(&latin1(text))
+    } else {
+        body.string(&latin1(&format!("{} {}", item.virtual_id, item.custom_data)))
+    };
+    Message::new(48, body.build())
+}
+
+/// One item or user moved by a roller (Java: `RollingData`): its id and its heights before and
+/// after the roll.
+pub struct Slide {
+    pub id: i32,
+    pub from_z: f64,
+    pub to_z: f64,
+}
+
+/// Java: `SLIDEOBJECTBUNDLE`: what one roller moves, with the user as `entity` (its `to_z` is the
+/// display height).
+pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide>) -> Message {
+    let front = roller.position.square_in_front();
+    let mut body = ServerBody::new()
+        .int(roller.position.x)
+        .int(roller.position.y)
+        .int(front.x)
+        .int(front.y)
+        .int(items.len() as i32);
+    for item in items {
+        body = body
+            .int(item.id)
+            .string(format_decimal(item.from_z).as_bytes())
+            .string(format_decimal(item.to_z).as_bytes());
+    }
+    body = body.int(roller.virtual_id).int(if entity.is_some() { 2 } else { 0 });
+    if let Some(e) = entity {
+        body = body
+            .int(e.id)
+            .string(format_decimal(e.from_z).as_bytes())
+            .string(format_decimal(e.to_z).as_bytes());
+    }
+    Message::new(230, body.build())
 }
 
 #[cfg(test)]

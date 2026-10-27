@@ -160,6 +160,34 @@ impl Room {
         std::mem::take(&mut self.deferred)
     }
 
+    /// A scheduler timer on this room (Java: `GameScheduler...schedule` with a lambda that uses
+    /// the room): after `delay`, locks the room, runs `task` and then what it deferred. Nothing
+    /// runs if the room was unloaded meanwhile. The task must not lock a player.
+    pub fn schedule(
+        &self,
+        world: &World,
+        delay: std::time::Duration,
+        task: impl FnOnce(&World, &mut Room) + Send + 'static,
+    ) {
+        let room = self.self_ref.clone();
+        crate::game::scheduler::schedule(world, delay, move |world| {
+            let Some(room) = room.upgrade() else {
+                return;
+            };
+            let deferred = {
+                let mut r = room.lock();
+                task(world, &mut r);
+                r.take_deferred()
+            };
+            run_deferred(world, deferred);
+        });
+    }
+
+    /// The registry handle of this room, while it exists.
+    pub fn handle(&self) -> Option<RoomRef> {
+        self.self_ref.upgrade()
+    }
+
     /// Java: `Room.send`: to every player in the room.
     pub fn send(&self, msg: Message) {
         for e in &self.entities {

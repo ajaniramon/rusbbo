@@ -38,6 +38,15 @@ impl ItemManager {
             .and_then(|id| self.definitions.get(&id).cloned())
     }
 
+    /// Java: `getDefinitionBySprite`. The sprites the server looks up (`present_gen*`) are
+    /// unique, so the map's order does not matter.
+    pub fn definition_by_sprite(&self, sprite: &str) -> Option<Arc<ItemDefinition>> {
+        self.definitions
+            .values()
+            .find(|d| d.sprite() == sprite)
+            .cloned()
+    }
+
     /// Java: `Item.assignVirtualId`.
     pub fn next_virtual_id(&self) -> i32 {
         self.virtual_id_counter.fetch_add(1, Ordering::Relaxed) + 1

@@ -141,6 +141,28 @@ pub fn no_credits(not_enough_credits: bool, not_enough_pixels: bool) -> Message 
     )
 }
 
+/// Java: `DELIVER_PRESENT`: what an opened present held.
+pub fn deliver_present(definition: &crate::game::item::base::ItemDefinition, custom_data: &str) -> Message {
+    let kind: &[u8] = if definition.has_behaviour(ItemBehaviour::WallItem) {
+        b"i"
+    } else {
+        b"s"
+    };
+    let sprite = if definition.sprite() == "poster" {
+        format!("{} {}", definition.sprite(), custom_data)
+    } else {
+        definition.sprite().to_string()
+    };
+    Message::new(
+        129,
+        ServerBody::new()
+            .string(kind)
+            .int(definition.record.sprite_id)
+            .string(&latin1(&sprite))
+            .build(),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

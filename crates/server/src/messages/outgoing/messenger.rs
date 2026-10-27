@@ -162,6 +162,11 @@ pub fn messenger_search(friends: &[SearchEntry], others: &[SearchEntry]) -> Mess
     Message::new(435, body.build())
 }
 
+/// Java: `ROOMFORWARD`: tells the client to go to a room (a teleporter to another flat).
+pub fn room_forward(is_public: bool, room_id: i32) -> Message {
+    Message::new(286, ServerBody::new().bool(is_public).int(room_id).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

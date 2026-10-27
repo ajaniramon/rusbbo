@@ -3,11 +3,16 @@
 use std::sync::Arc;
 
 use havana_protocol::body::ClientReader;
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 
-use crate::game::catalogue::CatalogueManager;
-use crate::game::currency;
-use crate::game::now;
+use super::rooms_items::trade_ban_alert;
+use crate::game::catalogue::{CatalogueItem, CatalogueManager};
+use crate::game::item::Item;
+use crate::game::item::base::ItemBehaviour;
+use crate::game::player::Player;
+use crate::game::room::filter_input;
+use crate::game::room::items::is_numeric;
+use crate::game::{currency, fuserights, now};
 use crate::messages::{Malformed, outgoing};
 use crate::session::Session;
 use crate::world::World;
@@ -146,10 +151,28 @@ pub fn grpc(
         return Ok(());
     }
 
-    let extra_data = latin1_to_string(reader.string().ok_or(Malformed)?);
+    let mut extra_data = latin1_to_string(reader.string().ok_or(Malformed)?);
     let is_gift = reader.bool().ok_or(Malformed)?;
     if is_gift {
-        debug!("gifts are not ported, ignoring the purchase");
+        let Some(present) = buy_gift(world, session, p, &item, &mut extra_data, reader)? else {
+            return Ok(());
+        };
+        if let Some(details) = p.details.as_mut() {
+            charge(world, session, details, price_coins, price_pixels);
+        }
+        drop(guard);
+        // Java: the receiver gets the present at once if online. Locked after the buyer is
+        // released (never two players at once), so another receiver's hand updates after the
+        // buyer's messages; a present to oneself was delivered by `buy_gift`.
+        let Some(present) = present else {
+            return Ok(());
+        };
+        if let Some(receiver) = world.player_by_id(present.record.user_id.unwrap_or(0)) {
+            let mut rp = receiver.player.lock();
+            rp.inventory.add_item(present);
+            let hand = rp.inventory.get_view(&world.store, "new");
+            receiver.send(outgoing::inventory::inventory(&hand));
+        }
         return Ok(());
     }
     if let Some(what) = CatalogueManager::unsupported(&item) {
@@ -185,6 +208,18 @@ pub fn grpc(
     let Some(details) = p.details.as_mut() else {
         return Ok(());
     };
+    charge(world, session, details, price_coins, price_pixels);
+    Ok(())
+}
+
+/// The end of Java's `GRPC`: takes the price and tells the client.
+fn charge(
+    world: &World,
+    session: &Session,
+    details: &mut havana_storage::User,
+    price_coins: i32,
+    price_pixels: i32,
+) {
     if price_coins > 0 {
         currency::decrease_credits(&world.store, details, price_coins);
         session.send(outgoing::user::credit_balance(details.credits));
@@ -196,5 +231,106 @@ pub fn grpc(
             outgoing::user::PointAlert::Sound,
         ));
     }
-    Ok(())
+}
+
+/// The gift part of Java's `GRPC`: reads the receiver and the note, checks them and wraps the
+/// item in a present for the receiver. `None` when nothing is bought; otherwise the present
+/// still to hand to another (possibly online) receiver, or `Some(None)` when the buyer gave it to
+/// themselves and already has it.
+///
+/// TODO(trade): a `REDEEMABLE` gift to another user on the same IP trade-bans the buyer.
+/// TODO(transactions): the two "Gift purchase from ..." transactions.
+fn buy_gift(
+    world: &World,
+    session: &Session,
+    p: &mut Player,
+    item: &CatalogueItem,
+    extra_data: &mut String,
+    reader: &mut ClientReader,
+) -> Result<Option<Option<Item>>, Malformed> {
+    let Some(user) = p.details.clone() else {
+        return Ok(None);
+    };
+    let gifted_user = latin1_to_string(reader.string().ok_or(Malformed)?);
+    let t = now();
+    if user.rank < fuserights::rank::MODERATOR
+        && !gifted_user.eq_ignore_ascii_case(&user.username)
+        && p.last_gift_time + 60 > t
+    {
+        session.send(outgoing::alerts::alert(
+            "Not so fast! Please wait until you can send a gift again.",
+        ));
+        return Ok(None);
+    }
+    let receiver = match world.store.user_by_name(&gifted_user) {
+        Ok(Some(receiver)) => receiver,
+        Ok(None) => {
+            session.send(outgoing::alerts::no_user_found(&gifted_user));
+            return Ok(None);
+        }
+        Err(e) => {
+            error!("looking up a gift receiver: {e}");
+            return Ok(None);
+        }
+    };
+    if !p.has_fuse("fuse_mute")
+        && receiver.id != user.id
+        && user.trade_ban_expiration > 0
+        && user.trade_ban_expiration > t
+    {
+        session.send(outgoing::alerts::alert(&trade_ban_alert(
+            user.trade_ban_expiration,
+        )));
+        return Ok(None);
+    }
+    if item
+        .definition
+        .as_ref()
+        .is_some_and(|d| d.has_behaviour(ItemBehaviour::Effect))
+    {
+        return Ok(None);
+    }
+    let note = reader.string().map(latin1_to_string).unwrap_or_default();
+    *extra_data = extra_data.replace('|', "");
+    let note = note.replace('|', "");
+    if !item.item_special_id.trim().is_empty() && is_numeric(&item.item_special_id) {
+        *extra_data = item.item_special_id.clone();
+    }
+    let note: String = filter_input(&note.chars().map(|c| c as u8).collect::<Vec<u8>>())
+        .iter()
+        .map(|&b| char::from(b))
+        .collect();
+    let present = match world.catalogue.create_gift(
+        &world.store,
+        &world.items,
+        receiver.id,
+        &user.username,
+        &item.sale_code,
+        &note,
+        extra_data,
+        t,
+    ) {
+        Ok(Some(present)) => present,
+        Ok(None) => return Ok(None),
+        Err(e) => {
+            error!("creating a gift: {e}");
+            return Ok(None);
+        }
+    };
+    let to_self = receiver.id == user.id;
+    let present = if to_self {
+        p.inventory.add_item(present);
+        let hand = p.inventory.get_view(&world.store, "new");
+        session.send(outgoing::inventory::inventory(&hand));
+        None
+    } else {
+        Some(present)
+    };
+    session.send(outgoing::alerts::alert(
+        &world
+            .text("successfully_purchase_gift_for")
+            .replace("%user%", &receiver.username),
+    ));
+    p.last_gift_time = t;
+    Ok(Some(present))
 }

@@ -3,6 +3,7 @@
 //! Handlers that touch the hand lock the player first and the room second (the lock order).
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use havana_protocol::body::ClientReader;
 use tracing::error;
@@ -13,9 +14,13 @@ use crate::game::pathfinder::Position;
 use crate::game::room::furniture::blocks_interaction;
 use crate::game::room::items::{Behaviour, Item, is_numeric};
 use crate::game::room::mapping::is_valid_tile;
-use crate::game::room::{RoomRef, current_room};
+use crate::game::catalogue::CatalogueManager;
+use crate::game::player::Player;
+use crate::game::room::{Room, RoomRef, current_room};
 use crate::messages::Malformed;
-use crate::messages::outgoing::{alerts, inventory as out_inventory, rooms_items as out};
+use crate::messages::outgoing::{
+    alerts, catalogue as out_catalogue, inventory as out_inventory, rooms_items as out,
+};
 use crate::session::Session;
 use crate::world::World;
 
@@ -110,7 +115,7 @@ pub fn place_stuff(
             return Ok(()); // Java's substring throws.
         };
         if item.has(Behaviour::PostIt) {
-            // TODO(post-its): a new sticky item is created from the pad, whose count goes down.
+            place_sticky(world, &mut p, &mut r, item_id, wall_position);
             return Ok(());
         }
         if let Some(flat) = item.flat.as_mut() {
@@ -160,8 +165,383 @@ pub fn place_stuff(
     Ok(())
 }
 
+/// Java: `ENTER_ONEWAY_DOOR`: from the square in front of a one-way door, open it, walk through to
+/// the square behind and close it again a second later (on a scheduler timer).
+pub fn enter_oneway_door(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    let mut r = room.lock();
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    if !r.mapping.items[idx].has(Behaviour::OneWayGate) {
+        return Ok(());
+    }
+    let Some(e) = r.entity_index(session.id) else {
+        return Ok(());
+    };
+    let door = r.mapping.items[idx].position;
+    if door.square_in_front() != r.entities[e].position {
+        return Ok(());
+    }
+    let destination = door.square_behind();
+    let walker = r.walker(e);
+    if !is_valid_tile(&r.mapping, Some(&walker), destination) {
+        return Ok(());
+    }
+    r.send(out::change_status(item_id, 1));
+    r.mapping.items[idx].custom_data = "1".into();
+    r.walk_to(e, destination.x, destination.y);
+    if !r.entities[e].is_walking {
+        return Ok(());
+    }
+    r.entities[e].enable_walking_on_stop = true;
+    r.schedule(world, Duration::from_secs(1), move |_, r| {
+        r.send(out::change_status(item_id, 0));
+        if let Some(idx) = r.mapping.item_index(item_id) {
+            r.mapping.items[idx].custom_data = "0".into();
+        }
+    });
+    Ok(())
+}
+
+/// Java: the post-it part of `PLACESTUFF`: a new yellow sticky owned by the room owner goes on
+/// the wall, and the pad (`pad_id`, its custom data the stickies left) loses one; at 0 it is
+/// deleted.
+fn place_sticky(world: &World, p: &mut Player, r: &mut Room, pad_id: i32, wall_position: &str) {
+    let Some(pad) = p.inventory.item(pad_id) else {
+        return;
+    };
+    let mut draft = havana_storage::Item::with_defaults(
+        r.data.owner_id,
+        pad.definition.record.id,
+        "FFFF33".into(),
+        now(),
+    );
+    draft.room_id = r.id() as i32;
+    let created = world.store.write().and_then(|mut w| {
+        let created = w.insert_item(&draft, now())?;
+        w.commit()?;
+        Ok(created)
+    });
+    let mut sticky = match created {
+        Ok(created) => match world.items.make_item(created) {
+            Some(sticky) => sticky,
+            None => return,
+        },
+        Err(e) => {
+            error!("creating a sticky: {e}");
+            return;
+        }
+    };
+    sticky.record.wall_position = wall_position.to_string();
+    r.add_flat_item(world, Item::from_owned(sticky));
+
+    let Some(pad) = p.inventory.item_mut(pad_id) else {
+        return;
+    };
+    if !is_numeric(&pad.record.custom_data) {
+        pad.record.custom_data = "1".into();
+    }
+    let total = pad.record.custom_data.parse::<i64>().unwrap_or(1) - 1;
+    if total <= 0 {
+        let id = pad.record.id;
+        p.inventory.take_item(pad_id);
+        if let Err(e) = world.store.delete_items(&[id]) {
+            error!(item = id, "deleting a sticky pad: {e}");
+        }
+    } else {
+        pad.record.custom_data = total.to_string();
+        if let Err(e) = world.store.update_item(&pad.record) {
+            error!(item = pad.record.id, "saving a sticky pad: {e}");
+        }
+    }
+}
+
+/// Java: `G_IDATA`: a wall item's data; for a post-it its colour and text.
+pub fn g_idata(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    let r = room.lock();
+    let Some(item) = r.mapping.item_index(item_id).map(|i| &r.mapping.items[i]) else {
+        return Ok(());
+    };
+    if item.has(Behaviour::PostIt) {
+        // Java's substring(0, 6) throws on shorter data.
+        let Some(colour) = item.custom_data.get(..6) else {
+            return Ok(());
+        };
+        let text = item.custom_data.get(6..).unwrap_or("");
+        session.send(out::idata(item, colour, text));
+    } else {
+        session.send(out::idata(item, "", ""));
+    }
+    Ok(())
+}
+
+/// The post-it colours `SETITEMDATA` accepts.
+const POST_IT_COLOURS: [&str; 5] = ["FFFFFF", "FFFF33", "FF9CFF", "9CFF9C", "9CCEFF"];
+
+/// Java: `StringUtil.filterInput(input, false)`: like [`crate::game::room::filter_input`] but
+/// keeping carriage returns. TODO(settings): `normalise.input.strings`.
+fn filter_input_keep_newlines(input: &str) -> String {
+    input
+        .chars()
+        .map(|c| match c {
+            '\u{1}' | '\u{2}' | '\t' | '\n' | '\u{c}' => ' ',
+            c => c,
+        })
+        .collect()
+}
+
+/// Java: `SETITEMDATA`: writes a post-it, `"<colour> <text>"`. Without rights the text may only
+/// grow; only the owner may change the colour.
+pub fn set_item_data(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let (user_id, is_mod, any_controller) = {
+        let p = session.player.lock();
+        let Some(user_id) = p.user_id() else {
+            return Ok(());
+        };
+        (
+            user_id,
+            p.has_fuse("fuse_mod"),
+            p.has_fuse("fuse_any_room_controller"),
+        )
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    let contents = latin1(reader.string().ok_or(Malformed)?);
+    // Java's substring(0, 6) and substring(7) throw on shorter contents.
+    let (Some(colour), Some(message)) = (contents.get(..6), contents.get(7..)) else {
+        return Err(Malformed);
+    };
+    let mut message = filter_input_keep_newlines(message);
+    if !POST_IT_COLOURS.contains(&colour) {
+        return Ok(());
+    }
+    let mut r = room.lock();
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    let item = &r.mapping.items[idx];
+    if !item.has(Behaviour::PostIt) {
+        return Ok(());
+    }
+    let (old_colour, old_text) = match (item.custom_data.get(..6), item.custom_data.get(6..)) {
+        (Some(colour), Some(text)) => (colour.to_string(), text.to_string()),
+        _ => ("FFFFFF".to_string(), String::new()),
+    };
+    if !r.has_rights(user_id, true) && !is_mod && !old_text.is_empty() && !message.starts_with(&old_text)
+    {
+        return Ok(());
+    }
+    if !r.is_owner(user_id) && !any_controller && old_colour != colour {
+        return Ok(());
+    }
+    if message.chars().count() > 684 {
+        message = message.chars().take(684).collect();
+    }
+    r.mapping.items[idx].custom_data = format!("{colour}{message}");
+    let msg = out::stuff_data_update(&r.mapping.items[idx]);
+    r.send(msg);
+    r.save_item(world, idx);
+    Ok(())
+}
+
+/// Java: `REMOVEITEM`: the owner (or a moderator with the fuse for it) deletes a post-it or
+/// photo from the wall.
+pub fn remove_item(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let (user_id, remove_photos, remove_stickies) = {
+        let p = session.player.lock();
+        let Some(user_id) = p.user_id() else {
+            return Ok(());
+        };
+        (
+            user_id,
+            p.has_fuse("fuse_remove_photos"),
+            p.has_fuse("fuse_remove_stickies"),
+        )
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    let mut r = room.lock();
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    let item = &r.mapping.items[idx];
+    let allowed = r.is_owner(user_id)
+        || (item.has(Behaviour::Photo) && remove_photos)
+        || (item.has(Behaviour::PostIt) && remove_stickies);
+    if !allowed {
+        return Ok(());
+    }
+    // TODO(items): the current item's onEntityLeave trigger.
+    let removed = r.remove_flat_item(world, idx);
+    if let Some(flat) = removed.flat.as_ref() {
+        if let Err(e) = world.store.delete_items(&[flat.record.id]) {
+            error!(item = flat.record.id, "deleting an item: {e}");
+        }
+    }
+    // TODO(flash): Flash clients get the hand again (getView("new")).
+    if let Some(e) = r.entity_index(session.id) {
+        r.reset_room_timer(world, e);
+    }
+    Ok(())
+}
+
+/// Java: `PRESENTOPEN`: the owner opens a present. Ordinary furniture keeps the present's item
+/// (and virtual id) with the wrapped definition; the rest is bought anew and the present deleted.
+/// TODO(ecotron): `ECO_BOX` boxes and their `FLAG:` prizes.
+pub fn present_open(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let mut p = session.player.lock();
+    let Some(user_id) = p.user_id() else {
+        return Ok(());
+    };
+    let any_controller = p.has_fuse("fuse_any_room_controller");
+    let mut r = room.lock();
+    if !r.is_owner(user_id) && !any_controller {
+        return Ok(());
+    }
+    let item_id = reader.int().ok_or(Malformed)?;
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    if !r.mapping.items[idx].has(Behaviour::Present) {
+        return Ok(());
+    }
+    let data: Vec<String> = r.mapping.items[idx]
+        .custom_data
+        .split('|')
+        .map(str::to_string)
+        .collect();
+    // Java indexes the array and parses the id; anything missing throws.
+    let (Some(sale_code), Some(received_from), Some(extra_data)) = (
+        data.first().and_then(|s| s.parse::<i32>().ok()),
+        data.get(1),
+        data.get(3),
+    ) else {
+        return Err(Malformed);
+    };
+    let timestamp = data
+        .get(4)
+        .and_then(|s| s.parse::<i64>().ok())
+        .unwrap_or_else(now);
+    let _ = (received_from, timestamp); // TODO(trophies): the giver and date of a trophy.
+    let Some(catalogue_item) = world.catalogue.item(sale_code).cloned() else {
+        let present = r.remove_flat_item(world, idx);
+        if let Some(flat) = present.flat.as_ref() {
+            if let Err(e) = world.store.delete_items(&[flat.record.id]) {
+                error!(item = flat.record.id, "deleting a present: {e}");
+            }
+        }
+        return Ok(());
+    };
+    let reuse = match catalogue_item.definition.as_ref() {
+        Some(def) if !catalogue_item.is_package => {
+            !def.has_behaviour(Behaviour::PrizeTrophy)
+                && !def.has_behaviour(Behaviour::Teleporter)
+                && def.interaction_type != crate::game::item::base::InteractionType::PetNest
+                && !def.has_behaviour(Behaviour::Roomdimmer)
+                && !def.has_behaviour(Behaviour::Decoration)
+                && !def.has_behaviour(Behaviour::PostIt)
+                && !def.sprite().eq_ignore_ascii_case("film")
+        }
+        _ => false,
+    };
+    if reuse {
+        let Some(def) = catalogue_item.definition.clone() else {
+            return Ok(());
+        };
+        let Some(mut owned) = r.remove_flat_item(world, idx).to_owned() else {
+            return Ok(());
+        };
+        owned.record.definition_id = def.record.id;
+        owned.record.custom_data = extra_data.clone();
+        owned.definition = def;
+        if let Err(e) = world.store.update_item(&owned.record) {
+            error!(item = owned.record.id, "saving an opened present: {e}");
+        }
+        session.send(out_catalogue::deliver_present(
+            &owned.definition,
+            &owned.record.custom_data,
+        ));
+        p.inventory.add_item(owned);
+    } else {
+        if CatalogueManager::unsupported(&catalogue_item).is_some() {
+            return Ok(()); // Nothing this port can create; leave the present closed.
+        }
+        let bought = match world.catalogue.purchase(
+            &world.store,
+            &world.items,
+            session,
+            &mut p,
+            &catalogue_item,
+            extra_data,
+            now(),
+        ) {
+            Ok(bought) => bought,
+            Err(e) => {
+                error!("opening a present: {e}");
+                return Ok(());
+            }
+        };
+        if let Some(first) = bought
+            .first()
+            .and_then(|id| p.inventory.item_by_database_id(*id))
+        {
+            session.send(out_catalogue::deliver_present(
+                &first.definition,
+                &first.record.custom_data,
+            ));
+            let hand = p.inventory.get_view(&world.store, "new");
+            session.send(out_inventory::inventory(&hand));
+        }
+        let present = r.remove_flat_item(world, idx);
+        if let Some(flat) = present.flat.as_ref() {
+            if let Err(e) = world.store.delete_items(&[flat.record.id]) {
+                error!(item = flat.record.id, "deleting a present: {e}");
+            }
+        }
+        return Ok(());
+    }
+    let hand = p.inventory.get_view(&world.store, "new");
+    session.send(out_inventory::inventory(&hand));
+    Ok(())
+}
+
 /// Java: `RoomTradeManager.showTradeBanAlert`.
-fn trade_ban_alert(expiration: i64) -> String {
+pub(crate) fn trade_ban_alert(expiration: i64) -> String {
     let uptime = (expiration - now()) * 1000;
     let days = uptime / (1000 * 60 * 60 * 24);
     let hours = (uptime - days * (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
