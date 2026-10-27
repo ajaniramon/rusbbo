@@ -1,139 +1,28 @@
-//! Room furniture as the room engine sees it (Java: `game/item/Item`, `ItemDefinition`,
-//! `ItemBehaviour`, `publicrooms/PublicItemParser`).
+//! Room furniture as the room engine sees it (Java: `game/item/Item` while it is in a room, with
+//! its `ItemDefinition`, and `publicrooms/PublicItemParser`).
 //!
-//! Only public room furniture is loaded so far. TODO(items): flat furniture (`ItemDao.getRoomItems`,
-//! `items_definitions`), which also lands in `room.items` and goes out in `ACTIVE_OBJECTS`.
+//! Public room furniture comes from `public_items`; flat furniture is a user's item placed in a
+//! room ([`FlatItem`]: the stored row and its definition, Java's `databaseId` and
+//! `definitionId`). A flat item moves between the hand ([`crate::game::item::Item`]) and a room
+//! with [`Item::from_owned`] and [`Item::to_owned`], keeping its virtual id as in Java.
+
+use std::sync::Arc;
 
 use rand::RngExt;
 use tracing::warn;
 
+use crate::game::item::base::{DEFAULT_TOP_HEIGHT, ItemDefinition};
 use crate::game::pathfinder::{Position, affected_tiles};
 
-/// Java: `ItemDefinition.DEFAULT_TOP_HEIGHT`.
-pub const DEFAULT_TOP_HEIGHT: f64 = 0.001;
+pub use crate::game::item::base::{InteractionType as Interaction, ItemBehaviour as Behaviour};
 
-/// Java: `ItemBehaviour`. Only the ones the room engine tests are named; the rest parse to
-/// [`Behaviour::Other`] so a public item's behaviour list never fails to load.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Behaviour {
-    Solid,
-    SolidSingleTile,
-    CanNotStackOnTop,
-    CanSitOnTop,
-    CanStandOnTop,
-    CanLayOnTop,
-    PublicSpaceObject,
-    ExtraParameter,
-    Teleporter,
-    DoorTeleporter,
-    Gate,
-    OneWayGate,
-    WallItem,
-    Invisible,
-    PrivateFurniture,
-    NoHeadTurn,
-    Other,
-}
-
-const BEHAVIOUR_NAMES: &[&str] = &[
-    "SOLID",
-    "SOLID_SINGLE_TILE",
-    "CAN_STACK_ON_TOP",
-    "CAN_NOT_STACK_ON_TOP",
-    "CAN_SIT_ON_TOP",
-    "CAN_STAND_ON_TOP",
-    "CAN_LAY_ON_TOP",
-    "CUSTOM_DATA_NUMERIC_ON_OFF",
-    "REQUIRES_TOUCHING_FOR_INTERACTION",
-    "CUSTOM_DATA_TRUE_FALSE",
-    "PUBLIC_SPACE_OBJECT",
-    "EXTRA_PARAMETER",
-    "DICE",
-    "CUSTOM_DATA_ON_OFF",
-    "CUSTOM_DATA_NUMERIC_STATE",
-    "TELEPORTER",
-    "DOOR_TELEPORTER",
-    "REQUIRES_RIGHTS_FOR_INTERACTION",
-    "GATE",
-    "ONE_WAY_GATE",
-    "PRIZE_TROPHY",
-    "ROLLER",
-    "REDEEMABLE",
-    "SOUND_MACHINE",
-    "SOUND_MACHINE_SAMPLE_SET",
-    "JUKEBOX",
-    "WALL_ITEM",
-    "POST_IT",
-    "DECORATION",
-    "WHEEL_OF_FORTUNE",
-    "ROOMDIMMER",
-    "PRESENT",
-    "PHOTO",
-    "PLACE_ROLLER_ON_TOP",
-    "INVISIBLE",
-    "EFFECT",
-    "SONG_DISK",
-    "PRIVATE_FURNITURE",
-    "REDIRECT_ROTATION_0",
-    "REDIRECT_ROTATION_2",
-    "REDIRECT_ROTATION_4",
-    "NO_HEAD_TURN",
-    "ECO_BOX",
-    "PET_WATER_BOWL",
-    "PET_FOOD",
-    "PET_CAT_FOOD",
-    "PET_DOG_FOOD",
-    "PET_CROC_FOOD",
-    "PET_TOY",
-];
-
-impl Behaviour {
-    /// Java: `ItemBehaviour.valueOf(name.toUpperCase())`; `None` where Java would throw.
-    pub fn parse(name: &str) -> Option<Self> {
-        let upper = name.to_uppercase();
-        if !BEHAVIOUR_NAMES.contains(&upper.as_str()) {
-            return None;
-        }
-        Some(match upper.as_str() {
-            "SOLID" => Self::Solid,
-            "SOLID_SINGLE_TILE" => Self::SolidSingleTile,
-            "CAN_NOT_STACK_ON_TOP" => Self::CanNotStackOnTop,
-            "CAN_SIT_ON_TOP" => Self::CanSitOnTop,
-            "CAN_STAND_ON_TOP" => Self::CanStandOnTop,
-            "CAN_LAY_ON_TOP" => Self::CanLayOnTop,
-            "PUBLIC_SPACE_OBJECT" => Self::PublicSpaceObject,
-            "EXTRA_PARAMETER" => Self::ExtraParameter,
-            "TELEPORTER" => Self::Teleporter,
-            "DOOR_TELEPORTER" => Self::DoorTeleporter,
-            "GATE" => Self::Gate,
-            "ONE_WAY_GATE" => Self::OneWayGate,
-            "WALL_ITEM" => Self::WallItem,
-            "INVISIBLE" => Self::Invisible,
-            "PRIVATE_FURNITURE" => Self::PrivateFurniture,
-            "NO_HEAD_TURN" => Self::NoHeadTurn,
-            _ => Self::Other,
-        })
-    }
-}
-
-/// Java: `InteractionType`, the ones public room furniture can have.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Interaction {
-    Default,
-    Chair,
-    // TODO(pool, games): their triggers (PoolInteractor, the game hall interactors, Wobble
-    // Squabble tiles). Until then they behave like Default.
-    PoolLadder,
-    PoolLift,
-    PoolBooth,
-    PoolQueue,
-    GameTicTacToe,
-    GameChess,
-    GameBattleships,
-    GamePoker,
-    WsJoinQueue,
-    WsQueueTile,
-    WsTileStart,
+/// The parts of a flat item that public items do not have.
+#[derive(Clone, Debug)]
+pub struct FlatItem {
+    /// The `items` row. Position and custom data live on [`Item`] while the item is in the room
+    /// and are copied back by [`Item::sync_record`].
+    pub record: havana_storage::Item,
+    pub definition: Arc<ItemDefinition>,
 }
 
 /// A piece of furniture in a room (Java: `Item` with its `ItemDefinition`).
@@ -143,7 +32,7 @@ pub struct Item {
     pub virtual_id: i32,
     /// Java: `databaseId`; 0 for public items.
     pub database_id: i64,
-    /// Public items: the random id the client keys them by.
+    /// Public items: the random id the client keys them by. Flat items: the custom data.
     pub custom_data: String,
     pub sprite: String,
     pub top_height: f64,
@@ -159,6 +48,8 @@ pub struct Item {
     pub teleport_to: Option<Position>,
     #[allow(dead_code)] // TODO(pool): diving deck and lido triggers.
     pub swim_to: Option<Position>,
+    /// `None` for public room furniture.
+    pub flat: Option<FlatItem>,
 }
 
 impl Item {
@@ -171,6 +62,88 @@ impl Item {
         self.behaviours.push(behaviour);
     }
 
+    /// A hand item placed in a room (Java keeps the same `Item` object).
+    pub fn from_owned(owned: crate::game::item::Item) -> Self {
+        let record = owned.record;
+        let definition = owned.definition;
+        let def = &definition.record;
+        let mut position = Position::new(record.x, record.y);
+        position.z = record.z;
+        position.set_rotation(record.rotation);
+        Item {
+            virtual_id: owned.virtual_id,
+            database_id: record.id as i64,
+            custom_data: record.custom_data.clone(),
+            sprite: def.sprite.clone(),
+            top_height: def.top_height,
+            length: def.length,
+            width: def.width,
+            behaviours: definition.behaviours().to_vec(),
+            interaction: definition.interaction_type,
+            position,
+            current_program: String::new(),
+            current_program_value: String::new(),
+            teleport_to: None,
+            swim_to: None,
+            flat: Some(FlatItem { record, definition }),
+        }
+    }
+
+    /// Copies the room state (position, custom data) into the stored row.
+    pub fn sync_record(&mut self) {
+        let Some(flat) = self.flat.as_mut() else {
+            return;
+        };
+        flat.record.x = self.position.x;
+        flat.record.y = self.position.y;
+        flat.record.z = self.position.z;
+        flat.record.rotation = self.position.rotation();
+        flat.record.custom_data = self.custom_data.clone();
+    }
+
+    /// The item as a hand item, with its row up to date; `None` for public items.
+    pub fn to_owned(&self) -> Option<crate::game::item::Item> {
+        let mut item = self.clone();
+        item.sync_record();
+        let flat = item.flat?;
+        Some(crate::game::item::Item {
+            record: flat.record,
+            definition: flat.definition,
+            virtual_id: self.virtual_id,
+        })
+    }
+
+    pub fn definition(&self) -> Option<&ItemDefinition> {
+        self.flat.as_ref().map(|f| &*f.definition)
+    }
+
+    /// Java: `getDefinition().getSpriteId()`; public items have none (-1).
+    pub fn sprite_id(&self) -> i32 {
+        self.definition().map_or(-1, |d| d.record.sprite_id)
+    }
+
+    /// Java: `getDefinition().getMaxStatus()`.
+    pub fn max_status(&self) -> i32 {
+        self.definition().map_or(0, |d| d.record.max_status)
+    }
+
+    /// Java: `getDefinition().getAllowedRotations()`.
+    pub fn allowed_rotations(&self) -> &[i32] {
+        self.definition().map_or(&[], |d| &d.allowed_rotations)
+    }
+
+    /// Java: `getWallPosition`.
+    pub fn wall_position(&self) -> &str {
+        self.flat
+            .as_ref()
+            .map_or("", |f| f.record.wall_position.as_str())
+    }
+
+    /// Java: `getExpireTime`; -1 when it never expires.
+    pub fn expire_time(&self) -> i64 {
+        self.flat.as_ref().map_or(-1, |f| f.record.expire_time)
+    }
+
     /// Java: `getDefinition().getPositiveTopHeight()`.
     pub fn positive_top_height(&self) -> f64 {
         if self.top_height < 0.0 {
@@ -180,10 +153,24 @@ impl Item {
         }
     }
 
-    /// Java: `getTotalHeight`. TODO(items): `MULTI_HEIGHT` furniture.
+    /// Java: `getTotalHeight`. Java also resets a `MULTI_HEIGHT` item's out of range state to "0"
+    /// here; this only reads it as 0.
     pub fn total_height(&self) -> f64 {
         let z = if self.top_height < 0.0 {
             self.position.z + DEFAULT_TOP_HEIGHT
+        } else if self.interaction == Interaction::MultiHeight {
+            let heights = self.definition().map_or(&[][..], |d| &d.heights[..]);
+            if heights.is_empty() {
+                self.top_height
+            } else {
+                let state = if is_numeric(&self.custom_data) {
+                    self.custom_data.parse::<usize>().unwrap_or(0)
+                } else {
+                    0
+                };
+                let state = if state + 1 > heights.len() { 0 } else { state };
+                heights[state] + self.top_height
+            }
         } else {
             self.top_height
         };
@@ -191,6 +178,7 @@ impl Item {
     }
 
     /// Java: `isWalkable(entity, selectedPosition)`; `with_entity` is `entity != null`.
+    /// TODO(flash): Flash clients may not walk onto idol scoreboards and vote chairs.
     pub fn is_walkable(&self, with_entity: bool, selected: Position) -> bool {
         if !with_entity && self.has(Behaviour::CanNotStackOnTop) {
             return false;
@@ -205,8 +193,8 @@ impl Item {
             return true;
         }
         if self.has(Behaviour::Teleporter) {
-            // TODO(items): teleporter custom data (TeleportInteractor.TELEPORTER_OPEN).
-            return self.has(Behaviour::DoorTeleporter);
+            // TeleportInteractor.TELEPORTER_OPEN
+            return self.custom_data == "1" || self.has(Behaviour::DoorTeleporter);
         }
         if self.has(Behaviour::Gate) || self.has(Behaviour::OneWayGate) {
             return self.is_gate_open();
@@ -224,14 +212,18 @@ impl Item {
 
     /// Java: `AffectedTile.getAffectedTiles(item)`.
     pub fn affected_tiles(&self) -> Vec<Position> {
-        affected_tiles(
-            self.length,
-            self.width,
-            self.position.x,
-            self.position.y,
-            self.position.rotation(),
-        )
+        self.affected_tiles_at(self.position.x, self.position.y, self.position.rotation())
     }
+
+    /// Java: `AffectedTile.getAffectedTiles(item, x, y, rotation)`.
+    pub fn affected_tiles_at(&self, x: i32, y: i32, rotation: i32) -> Vec<Position> {
+        affected_tiles(self.length, self.width, x, y, rotation)
+    }
+}
+
+/// Java: `StringUtil.isNumeric`: non-empty and only digits.
+pub fn is_numeric(value: &str) -> bool {
+    !value.is_empty() && value.bytes().all(|c| c.is_ascii_digit())
 }
 
 /// Parses `x,y,z,rotation` (Java: `teleport_to` / `swim_to` handling in `PublicItemParser`).
@@ -284,6 +276,7 @@ pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<
             current_program_value: String::new(),
             teleport_to: parse_target(row.teleport_to.as_deref()),
             swim_to: parse_target(row.swim_to.as_deref()),
+            flat: None,
         };
         let trigger = match sprite.as_str() {
             "poolEnter" | "poolExit" => Some(Interaction::PoolLadder),
@@ -330,8 +323,103 @@ pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
+
+    /// A definition as `items_definitions` has it in the golden snapshot.
+    pub fn definition(
+        (id, sprite, sprite_id): (u32, &str, i32),
+        (length, width, top_height): (i32, i32, f64),
+        max_status: i32,
+        behaviour: &str,
+        interactor: &str,
+        allowed_rotations: &str,
+    ) -> Arc<ItemDefinition> {
+        Arc::new(
+            ItemDefinition::new(havana_storage::ItemDefinition {
+                id,
+                sprite: sprite.into(),
+                sprite_id,
+                length,
+                width,
+                top_height,
+                max_status,
+                behaviour: behaviour.into(),
+                interactor: interactor.into(),
+                allowed_rotations: allowed_rotations.into(),
+                is_tradable: true,
+                is_recyclable: true,
+                ..Default::default()
+            })
+            .unwrap(),
+        )
+    }
+
+    /// The four items of `traces/flat-furni.json` (virtual ids 1-4 in purchase order).
+    pub fn chair_plasto() -> Arc<ItemDefinition> {
+        definition(
+            (443, "chair_plasto", 371),
+            (1, 1, 1.0),
+            0,
+            "can_sit_on_top",
+            "chair",
+            "0,2,4,6",
+        )
+    }
+
+    pub fn lamp_armas() -> Arc<ItemDefinition> {
+        definition(
+            (29, "lamp_armas", 330),
+            (1, 1, 0.0),
+            2,
+            "solid,custom_data_numeric_on_off,requires_rights_for_interaction",
+            "default",
+            "0",
+        )
+    }
+
+    pub fn bench_armas() -> Arc<ItemDefinition> {
+        definition(
+            (24, "bench_armas", 323),
+            (2, 1, 1.2),
+            0,
+            "can_sit_on_top",
+            "chair",
+            "0,2,4,6",
+        )
+    }
+
+    pub fn torch() -> Arc<ItemDefinition> {
+        definition(
+            (248, "torch", 259),
+            (0, 0, 0.0),
+            2,
+            "wall_item,custom_data_numeric_on_off,requires_rights_for_interaction",
+            "default",
+            "2,4",
+        )
+    }
+
+    /// A hand item of `definition` turned into a room item at `x,y` facing `rotation`.
+    pub fn flat_item(
+        virtual_id: i32,
+        definition: Arc<ItemDefinition>,
+        (x, y, rotation): (i32, i32, i32),
+    ) -> Item {
+        let mut item = Item::from_owned(crate::game::item::Item {
+            record: havana_storage::Item {
+                id: virtual_id as u64,
+                custom_data: "0".into(),
+                expire_time: -1,
+                ..Default::default()
+            },
+            definition,
+            virtual_id,
+        });
+        item.position = Position::new(x, y);
+        item.position.set_rotation(rotation);
+        item
+    }
 
     #[test]
     fn parses_public_items() {
@@ -364,5 +452,38 @@ mod tests {
         assert!(items[1].has(Behaviour::Invisible));
         let id = &items[0].custom_data;
         assert!(id.len() >= 2 && id.as_bytes()[0].is_ascii_lowercase());
+    }
+
+    #[test]
+    fn flat_items_round_trip_through_the_hand() {
+        let mut lamp = flat_item(2, lamp_armas(), (6, 5, 0));
+        assert_eq!(lamp.sprite_id(), 330);
+        assert_eq!(lamp.max_status(), 2);
+        assert_eq!(lamp.allowed_rotations(), [0]);
+        assert!(lamp.has(Behaviour::Solid));
+        assert!(!lamp.is_walkable(true, Position::new(6, 5)));
+        lamp.custom_data = "1".into();
+        let owned = lamp.to_owned().unwrap();
+        assert_eq!(
+            (owned.virtual_id, owned.record.x, owned.record.y),
+            (2, 6, 5)
+        );
+        assert_eq!(owned.record.custom_data, "1");
+
+        let chair = flat_item(1, chair_plasto(), (7, 3, 4));
+        assert_eq!(chair.interaction, Interaction::Chair);
+        assert_eq!(chair.total_height(), 1.0);
+        assert!(chair.is_walkable(true, Position::new(7, 3)));
+
+        let sofa = flat_item(3, bench_armas(), (8, 8, 2));
+        let tiles: Vec<(i32, i32)> = sofa.affected_tiles().iter().map(|p| (p.x, p.y)).collect();
+        assert_eq!(tiles, [(8, 8), (8, 9)]);
+        let tiles: Vec<(i32, i32)> = sofa
+            .affected_tiles_at(6, 5, 4)
+            .iter()
+            .map(|p| (p.x, p.y))
+            .collect();
+        assert_eq!(tiles, [(6, 5), (7, 5)]);
+        assert!(is_numeric("201") && !is_numeric("") && !is_numeric("-1"));
     }
 }

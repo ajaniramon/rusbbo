@@ -8,6 +8,7 @@ pub mod inventory;
 pub mod messenger;
 pub mod navigator;
 pub mod rooms;
+pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;

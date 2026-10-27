@@ -3,14 +3,16 @@
 use std::sync::Arc;
 
 use havana_protocol::body::ClientReader;
-use tracing::warn;
+use tracing::{error, warn};
 
 use super::latin1;
 use crate::game::fuserights;
-use crate::game::room::items::Behaviour;
+use crate::game::item::base::ItemBehaviour;
+use crate::game::room::items::{Behaviour, is_numeric};
 use crate::game::room::{self, current_room};
 use crate::messages::Malformed;
 use crate::messages::outgoing::alerts;
+use crate::messages::outgoing::inventory as out_inventory;
 use crate::messages::outgoing::rooms::{self as out, ConnectError};
 use crate::messages::outgoing::rooms_user as out_user;
 use crate::session::Session;
@@ -337,5 +339,65 @@ pub fn g_stat(
     // TODO(pool): SHOWPROGRAM for items with a program value. TODO(items): dice and wheel updates.
     // TODO(groups): GROUP_BADGES of the user's favourite group. TODO(badges): rooms_entry_badges.
     // TODO(inventory): drop hand items that are in the room.
+    Ok(())
+}
+
+/// Java: `FLATPROPBYITEM`: the owner applies a wallpaper, floor or landscape from the hand. The
+/// value is the item's custom data (the purchase's extra data); the item is used up.
+pub fn flat_prop_by_item(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let mut p = session.player.lock();
+    let Some(user_id) = p.user_id() else {
+        return Ok(());
+    };
+    let any_controller = p.has_fuse("fuse_any_room_controller");
+    let mut r = room.lock();
+    if !r.is_owner(user_id) && !any_controller {
+        return Ok(());
+    }
+    let item_id = reader.int().ok_or(Malformed)?;
+    let Some(item) = p.inventory.item(item_id) else {
+        return Ok(());
+    };
+    if !item.is_visible() || !item.has_behaviour(ItemBehaviour::Decoration) {
+        return Ok(());
+    }
+    let property = item.definition.sprite().to_string();
+    let value = item.record.custom_data.clone();
+    let database_id = item.record.id;
+    // Java: StringUtil.isNumeric, then Integer.parseInt (which throws on overflow).
+    let number = is_numeric(&value)
+        .then(|| value.parse::<i32>().ok())
+        .flatten();
+    match property.as_str() {
+        "wallpaper" | "floor" if number.is_none() => return Ok(()),
+        "wallpaper" => r.data.wallpaper = number.unwrap_or(0),
+        "floor" => r.data.floor = number.unwrap_or(0),
+        "landscape" => r.data.landscape = value.clone(),
+        _ => {}
+    }
+    if let Err(e) = world.store.delete_items(&[database_id]) {
+        error!(item = database_id, "deleting decoration: {e}");
+    }
+    // Java: RoomDao.saveDecorations.
+    let (wallpaper, floor, landscape) = (r.data.wallpaper, r.data.floor, r.data.landscape.clone());
+    if let Err(e) = world.store.update_room(r.id(), |row| {
+        row.wallpaper = wallpaper;
+        row.floor = floor;
+        row.landscape = landscape;
+    }) {
+        error!(room = r.id(), "saving decorations: {e}");
+    }
+    r.send(out::flat_property(&property, &value));
+    drop(r);
+    p.inventory.take_item(item_id);
+    let hand = p.inventory.get_view(&world.store, "new");
+    session.send(out_inventory::inventory(&hand));
     Ok(())
 }

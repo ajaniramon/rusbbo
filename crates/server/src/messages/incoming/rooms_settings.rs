@@ -346,8 +346,8 @@ pub fn delete(world: &World, room_id: i32, user_id: u32) {
         if !r.is_owner(user_id) {
             return;
         }
-        // TODO(furniture): Java deletes every item of the room here (`item.delete()` for each of
-        // `room.getItems()`, i.e. `r.mapping.items`); they are not returned to the hand.
+        // Java: `item.delete()` for each room item; they are not returned to the hand.
+        r.delete_flat_items(world);
         let sessions: Vec<Arc<Session>> = r.entities.iter().map(|e| e.session.clone()).collect();
         for s in &sessions {
             r.remove_user(world, s, true);

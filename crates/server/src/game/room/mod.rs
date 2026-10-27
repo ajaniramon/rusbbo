@@ -8,11 +8,11 @@
 //! lock order "player before room, never two rooms" holds.
 //!
 //! Private rooms ("flats") keep their rights list and votes here too (Java: `Room.rights`,
-//! `Room.votes`), loaded when the room is initialised. Their furniture is not loaded yet: see
-//! [`Room::try_initialise`] (TODO(furniture)). TODO(bots): `rooms_bots` NPCs; rooms that have
-//! them simply show none.
+//! `Room.votes`), loaded when the room is initialised together with their furniture (see
+//! [`furniture`]). TODO(bots): `rooms_bots` NPCs; rooms that have them simply show none.
 
 pub mod entity;
+pub mod furniture;
 pub mod items;
 pub mod mapping;
 pub mod model;
@@ -190,7 +190,7 @@ impl Room {
         self.entities.len() as i32
     }
 
-    fn walker(&self, idx: usize) -> Walker {
+    pub fn walker(&self, idx: usize) -> Walker {
         let e = &self.entities[idx];
         Walker {
             instance_id: e.instance_id,
@@ -266,11 +266,7 @@ impl Room {
         } else {
             self.load_rights_and_votes(world);
         }
-        // TODO(furniture): this is where Java adds `ItemDao.getRoomItems(roomData)` (the room's
-        // floor and wall items, with fresh virtual ids) to `Room.items` and then runs
-        // `RoomItemManager.resetItemStates`. Push them onto `self.mapping.items`: the collision
-        // map below, `G_USRS` (`ACTIVE_OBJECTS`, floor items) and `G_ITEMS` (`ITEMS`, wall
-        // items) all read that list.
+        self.load_flat_items(world);
         let entities: Vec<(i32, Position)> = self
             .entities
             .iter()
@@ -411,8 +407,8 @@ impl Room {
             if r.dispose_generation != generation || r.players() > 0 {
                 return;
             }
-            // TODO(events): remove the room's event. TODO(items): resetItemStates.
-            // TODO(pets): save pet coordinates.
+            // TODO(events): remove the room's event. TODO(pets): save pet coordinates.
+            r.reset_item_states(&world);
             r.counter = 0;
             r.active = false;
             r.stop_tasks();

@@ -110,6 +110,18 @@ impl Inventory {
         }
     }
 
+    /// Java: `getItem(itemId)`: by virtual id.
+    pub fn item(&self, virtual_id: i32) -> Option<&Item> {
+        self.items.iter().find(|i| i.virtual_id == virtual_id)
+    }
+
+    /// Java: `getItems().remove(item)`, by virtual id. The strip is rebuilt by the next
+    /// [`Inventory::get_view`].
+    pub fn take_item(&mut self, virtual_id: i32) -> Option<Item> {
+        let index = self.items.iter().position(|i| i.virtual_id == virtual_id)?;
+        Some(self.items.remove(index))
+    }
+
     /// Java: `addItem`: the newest item goes first.
     pub fn add_item(&mut self, item: Item) {
         self.items.retain(|i| i.record.id != item.record.id);
