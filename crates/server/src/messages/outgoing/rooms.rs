@@ -4,6 +4,7 @@
 use havana_protocol::Message;
 use havana_protocol::body::ServerBody;
 
+use super::catalogue::latin1;
 use crate::game::room::items::{Behaviour, Item};
 
 /// Java: `OPEN_CONNECTION`.
@@ -53,6 +54,12 @@ pub fn heightmap(heightmap: &str) -> Message {
     Message::new(31, heightmap.as_bytes().to_vec())
 }
 
+/// Java: `HEIGHTMAP_UPDATE`: the walking heights of the open tiles (see
+/// `RoomMapping::heightmap_update`), sent before furniture is placed, moved or picked up.
+pub fn heightmap_update(map: &str) -> Message {
+    Message::new(219, ServerBody::new().string(map.as_bytes()).build())
+}
+
 /// Java: `Item.serialise` for public space objects.
 fn public_item(body: ServerBody, item: &Item) -> ServerBody {
     let has_dimensions = item.has(Behaviour::ExtraParameter);
@@ -82,20 +89,42 @@ pub fn objects_world<'a>(items: impl IntoIterator<Item = &'a Item>) -> Message {
 }
 
 /// Java: `Item.serialise` for floor items. Public rooms only have the pool queue tiles here,
-/// whose sprite id is -1 so the sprite name follows. TODO(items): flat furniture (sprite ids,
-/// rollers, presents, trophies, eco boxes, rentals).
-fn floor_item(body: ServerBody, item: &Item) -> ServerBody {
+/// whose sprite id is -1 so the sprite name follows.
+pub(crate) fn floor_item(body: ServerBody, item: &Item) -> ServerBody {
     let body = body
         .int(item.virtual_id)
-        .int(-1)
+        .int(item.sprite_id())
         .int(item.position.x)
         .int(item.position.y)
         .int(item.position.rotation())
         .string(crate::game::format_decimal(item.position.z).as_bytes())
-        .int(0)
-        .string(item.custom_data.as_bytes())
-        .int(-1);
-    body.string(item.sprite.as_bytes())
+        // Rollers need 2 to animate.
+        .int(if item.has(Behaviour::Roller) { 2 } else { 0 });
+    let data = if item.has(Behaviour::Present) {
+        let parts: Vec<&str> = item.custom_data.split('|').collect();
+        format!("!{}", parts.get(2).copied().unwrap_or(""))
+    } else if item.has(Behaviour::EcoBox) {
+        let created = item.flat.as_ref().map_or(0, |f| f.record.created_at);
+        crate::game::format_local(created, "%d-%m-%Y")
+    } else if item.has(Behaviour::Redeemable) {
+        item.sprite.split('_').nth(1).unwrap_or("").to_string()
+    } else {
+        // TODO(trophies): PRIZE_TROPHY shows the giver's name, date and message
+        // (TrophyExtraData) instead.
+        item.custom_data.clone()
+    };
+    let expire = item.expire_time();
+    let minutes = if expire > -1 {
+        ((expire - crate::game::now()) / 60) as i32
+    } else {
+        -1
+    };
+    let body = body.string(&latin1(&data)).int(minutes);
+    if item.sprite_id() < 0 {
+        body.string(item.sprite.as_bytes())
+    } else {
+        body
+    }
 }
 
 /// Java: `ACTIVE_OBJECTS(room)`: the floor items that are not public space objects.
@@ -127,14 +156,17 @@ pub fn items<'a>(wall_items: impl IntoIterator<Item = &'a Item>) -> Message {
 }
 
 /// Java: `Item.serialise` for wall items: the id as text, the sprite id, the wall position and
-/// the custom data (only the colour of a post-it). TODO(furniture): `Item` has no sprite id or
-/// wall position yet; no room has wall items until flat furniture is loaded
-/// (`Room::try_initialise`), so this is never reached with an item.
-fn wall_item(body: ServerBody, item: &Item) -> ServerBody {
+/// the custom data (only the colour of a post-it).
+pub(crate) fn wall_item(body: ServerBody, item: &Item) -> ServerBody {
+    let data = if item.has(Behaviour::PostIt) {
+        item.custom_data.chars().take(6).collect()
+    } else {
+        item.custom_data.clone()
+    };
     body.string(item.virtual_id.to_string().as_bytes())
-        .int(-1)
-        .string(b"")
-        .string(item.custom_data.as_bytes())
+        .int(item.sprite_id())
+        .string(&latin1(item.wall_position()))
+        .string(&latin1(&data))
 }
 
 /// Java: `ROOMAD`: a billboard image and its link, or an empty string for none.
@@ -257,6 +289,7 @@ mod tests {
             current_program_value: String::new(),
             teleport_to: None,
             swim_to: None,
+            flat: None,
         };
         // From traces/public-room.json: "QNH" + "r697\x02broom_bench1\x02PAHPAPA" ...
         assert_eq!(

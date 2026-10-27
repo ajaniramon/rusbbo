@@ -2,6 +2,10 @@
 # the Java oracle). Add a trace here in the same change that makes it pass.
 catalogue
 flat-create
+flat-decor
+flat-delete
+flat-furni
+flat-visit
 login
 login-encrypted
 messenger

@@ -163,6 +163,98 @@ impl RoomMapping {
         self.reset_highest_item(tile);
     }
 
+    /// The room item with this virtual id (Java: `RoomItemManager.getById`).
+    pub fn item_index(&self, virtual_id: i32) -> Option<usize> {
+        self.items.iter().position(|i| i.virtual_id == virtual_id)
+    }
+
+    /// Adds `item` to every tile it covers (the loop in Java's `RoomMapping.addItem` and
+    /// `moveItem`).
+    pub fn add_item_tiles(&mut self, item: usize) {
+        for p in self.items[item].affected_tiles() {
+            if let Some(t) = self.index(p.x, p.y) {
+                self.add_item(t, item);
+            }
+        }
+    }
+
+    /// Takes `item` off the tiles it covers (Java: `RoomTile.removeItem` for each affected tile).
+    pub fn remove_item_tiles(&mut self, item: usize) {
+        for p in self.items[item].affected_tiles() {
+            let Some(t) = self.index(p.x, p.y) else {
+                continue;
+            };
+            self.tiles[t].items.retain(|i| *i != item);
+            if self.tiles[t].highest_item == Some(item) {
+                self.reset_highest_item(t);
+            }
+        }
+    }
+
+    /// Removes the item at `item` from the room's list once it is off its tiles (see
+    /// [`RoomMapping::remove_item_tiles`]), keeping the tiles' indexes valid.
+    pub fn take_item(&mut self, item: usize) -> Item {
+        let removed = self.items.remove(item);
+        let shift = |i: &mut usize| {
+            if *i > item {
+                *i -= 1;
+            }
+        };
+        for tile in &mut self.tiles {
+            tile.items.retain(|i| *i != item);
+            tile.items.iter_mut().for_each(shift);
+            if tile.highest_item == Some(item) {
+                tile.highest_item = None;
+            }
+            if let Some(h) = tile.highest_item.as_mut() {
+                shift(h);
+            }
+        }
+        removed
+    }
+
+    /// Java: `RoomTile.getEntireEntities` (blocking ones first) of the tile at `p`.
+    pub fn entire_entities(&self, p: Position) -> Vec<i32> {
+        self.tile(p).map_or_else(Vec::new, |t| {
+            t.entities
+                .iter()
+                .chain(t.non_blocking.iter())
+                .copied()
+                .collect()
+        })
+    }
+
+    /// Java: `HEIGHTMAP_UPDATE`'s map: each open tile of the model's heightmap as its walking
+    /// height rounded (0 outside 0..=8), `x` for the rest, every row followed by `\r`.
+    pub fn heightmap_update(&self) -> String {
+        let mut out = String::new();
+        for (y, line) in self.model.heightmap.split('\r').enumerate() {
+            if y as i32 >= self.model.size_y {
+                break;
+            }
+            let chars: Vec<char> = line.chars().collect();
+            for x in 0..self.model.size_x {
+                let c = chars.get(x as usize).copied().unwrap_or('x');
+                if c.is_ascii_digit() {
+                    // Java skips the character when the tile is missing.
+                    let Some(tile) = self.tile(Position::new(x, y as i32)) else {
+                        continue;
+                    };
+                    // Java: (int) Math.round(walkingHeight).
+                    let mut height = (self.walking_height(tile) + 0.5).floor() as i64;
+                    if !(0..=8).contains(&height) {
+                        height = 0;
+                    }
+                    out.push_str(&height.to_string());
+                } else {
+                    out.push('x');
+                }
+            }
+            out.push('\r');
+        }
+        out
+    }
+
     /// Java: `RoomTile.resetHighestItem`.
     fn reset_highest_item(&mut self, tile: usize) {
         let t = &mut self.tiles[tile];

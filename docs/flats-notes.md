@@ -12,7 +12,8 @@ traces stay the spec.
   stays in `RoomManager` and the database is not re-read. After `DELETEFLAT`, `GETFLATINFO 1000`
   still returns the deleted room and `TRYFLAT` still answers `FLAT_LETIN` (flat-delete records this).
   flat-decor's re-entry also relies on the room still being loaded.
-- `Item.save()`/`delete()` go through a GameScheduler queue flushed every 5-10 s.
+- `Item.save()`/`delete()` go through a GameScheduler queue flushed every 5-10 s. The Rust port
+  writes at once; no trace can tell, and a save never brings back a deleted row.
 - Walking and kicking emit one `USER_STATUSES` per 500 ms room tick; rights statuses after
   `ASSIGNRIGHTS`/`REMOVERIGHTS` follow the same tick.
 

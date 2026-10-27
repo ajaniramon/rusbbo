@@ -197,12 +197,35 @@ impl InteractionType {
     }
 }
 
+/// Java: `ItemDefinition.DEFAULT_TOP_HEIGHT`.
+pub const DEFAULT_TOP_HEIGHT: f64 = 0.001;
+
+fn split_list<T: std::str::FromStr>(value: &str, definition: u32) -> Vec<T> {
+    if value.is_empty() {
+        return Vec::new();
+    }
+    value
+        .split(',')
+        .filter_map(|v| match v.trim().parse() {
+            Ok(v) => Some(v),
+            Err(_) => {
+                warn!(definition, "bad list entry {v:?}");
+                None
+            }
+        })
+        .collect()
+}
+
 /// Java: `ItemDefinition`. Wraps the stored row with its parsed behaviours.
 #[derive(Debug)]
 pub struct ItemDefinition {
     pub record: Record,
     behaviours: Vec<ItemBehaviour>,
     pub interaction_type: InteractionType,
+    /// Java: `allowedRotations`, from the comma separated `allowed_rotations` column.
+    pub allowed_rotations: Vec<i32>,
+    /// Java: `heights` (`MULTI_HEIGHT` furniture).
+    pub heights: Vec<f64>,
 }
 
 impl ItemDefinition {
@@ -228,11 +251,22 @@ impl ItemDefinition {
             );
             return None;
         };
+        // Java parses both lists with parseInt/parseDouble and fails the whole definition load on
+        // a bad entry; a bad entry is skipped here.
+        let allowed_rotations = split_list(&record.allowed_rotations, record.id);
+        let heights = split_list(record.heights.as_deref().unwrap_or(""), record.id);
         Some(Self {
             record,
             behaviours,
             interaction_type,
+            allowed_rotations,
+            heights,
         })
+    }
+
+    /// The parsed behaviours, in column order.
+    pub fn behaviours(&self) -> &[ItemBehaviour] {
+        &self.behaviours
     }
 
     pub fn id(&self) -> i32 {

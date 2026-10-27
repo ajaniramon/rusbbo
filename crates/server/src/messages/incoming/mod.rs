@@ -6,6 +6,7 @@ pub mod inventory;
 pub mod messenger;
 pub mod navigator;
 pub mod rooms;
+pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;
@@ -54,6 +55,15 @@ pub fn handler(header: u16) -> Option<Handler> {
         61 => rooms::g_usrs,
         64 => rooms::g_stat,
         63 => rooms::g_items,
+        66 => rooms::flat_prop_by_item,
+        // registerItemPackets
+        90 => rooms_items::place_stuff,
+        73 => rooms_items::move_stuff,
+        67 => rooms_items::add_strip_item,
+        392 => rooms_items::use_furniture,
+        393 => rooms_items::use_wall_item,
+        // TODO(items): REMOVEITEM (85), G_IDATA, SETITEMDATA, dice, presents, wheel of fortune,
+        // one-way doors and the other item packets.
         98 => rooms_moderation::let_user_in,
         // registerRoomSettingsPackets
         21 => rooms_settings::get_flat_info,

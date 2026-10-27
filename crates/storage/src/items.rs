@@ -1,4 +1,4 @@
-//! Item tables: definitions and the items users own.
+//! Item tables: definitions and the items users own or have placed in rooms.
 //!
 //! Records mirror the MariaDB columns `ItemDao` reads (`items_definitions`, `items`). Item ids
 //! follow the table's `AUTO_INCREMENT` counter, which the importer copies, so a purchase gets the
@@ -13,6 +13,9 @@ const ITEMS_DEFINITIONS: TableDefinition<u32, &[u8]> = TableDefinition::new("ite
 const ITEMS: TableDefinition<u64, &[u8]> = TableDefinition::new("items");
 /// Secondary index: (owner, item id) -> (). Rows with a NULL `user_id` have no entry.
 const ITEMS_BY_USER: TableDefinition<(u32, u64), ()> = TableDefinition::new("items_by_user");
+/// Secondary index: (room id, item id) -> (), for items with a non-zero `room_id` (Java:
+/// `ItemDao.getRoomItems`, `WHERE room_id = ?`).
+const ITEMS_BY_ROOM: TableDefinition<(i32, u64), ()> = TableDefinition::new("items_by_room");
 /// Counters of this area; for now only `items_auto_increment`.
 const ITEMS_META: TableDefinition<&str, u64> = TableDefinition::new("items_meta");
 const AUTO_INCREMENT: &str = "items_auto_increment";
@@ -92,6 +95,7 @@ pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
     tx.open_table(ITEMS_DEFINITIONS)?;
     tx.open_table(ITEMS)?;
     tx.open_table(ITEMS_BY_USER)?;
+    tx.open_table(ITEMS_BY_ROOM)?;
     let mut meta = tx.open_table(ITEMS_META)?;
     if meta.get(AUTO_INCREMENT)?.is_none() {
         meta.insert(AUTO_INCREMENT, 1)?;
@@ -145,6 +149,46 @@ impl Store {
         w.put_item(item)?;
         w.commit()
     }
+
+    /// Java: `ItemDao.getRoomItems`: `SELECT * FROM items WHERE room_id = ?`, in id order (the
+    /// order MariaDB returns them in from the primary key).
+    pub fn room_items(&self, room_id: i32) -> Result<Vec<Item>> {
+        let tx = self.db.begin_read()?;
+        let items = tx.open_table(ITEMS)?;
+        let mut out = Vec::new();
+        for entry in tx
+            .open_table(ITEMS_BY_ROOM)?
+            .range((room_id, 0)..=(room_id, u64::MAX))?
+        {
+            let id = entry?.0.value().1;
+            if let Some(bytes) = items.get(id)? {
+                out.push(decode(bytes.value())?);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Writes an item only if its row still exists, like Java's `UPDATE items ... WHERE id = ?`
+    /// (`ItemDao.updateItems`, `updateItemOwnership`): an item deleted meanwhile stays deleted.
+    /// Returns whether the row existed.
+    pub fn update_item(&self, item: &Item) -> Result<bool> {
+        let mut w = self.write()?;
+        if w.item_in_tx(item.id)?.is_none() {
+            return Ok(false);
+        }
+        w.put_item(item)?;
+        w.commit()?;
+        Ok(true)
+    }
+
+    /// Java: `ItemDao.deleteItems`.
+    pub fn delete_items(&self, ids: &[u64]) -> Result<()> {
+        let mut w = self.write()?;
+        for &id in ids {
+            w.delete_item(id)?;
+        }
+        w.commit()
+    }
 }
 
 impl Writer {
@@ -173,11 +217,35 @@ impl Writer {
             if let Some(owner) = item.user_id {
                 by_user.insert((owner, item.id), ())?;
             }
+            let mut by_room = self.tx.open_table(ITEMS_BY_ROOM)?;
+            if let Some(old) = old.as_ref().filter(|o| o.room_id != 0) {
+                by_room.remove((old.room_id, item.id))?;
+            }
+            if item.room_id != 0 {
+                by_room.insert((item.room_id, item.id), ())?;
+            }
         }
         let bytes = encode(item)?;
         self.tx
             .open_table(ITEMS)?
             .insert(item.id, bytes.as_slice())?;
+        Ok(())
+    }
+
+    /// Deletes an item and its index entries; a missing item is not an error.
+    pub fn delete_item(&mut self, id: u64) -> Result<()> {
+        let Some(old) = self.item_in_tx(id)? else {
+            return Ok(());
+        };
+        if let Some(owner) = old.user_id {
+            self.tx.open_table(ITEMS_BY_USER)?.remove((owner, id))?;
+        }
+        if old.room_id != 0 {
+            self.tx
+                .open_table(ITEMS_BY_ROOM)?
+                .remove((old.room_id, id))?;
+        }
+        self.tx.open_table(ITEMS)?.remove(id)?;
         Ok(())
     }
 
@@ -253,6 +321,45 @@ mod tests {
         placed.room_id = 3;
         store.put_item(&placed).unwrap();
         assert_eq!(store.inventory_items(7).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn room_index_follows_moves_and_deletes() {
+        let (_dir, store) = temp_store();
+        let mut w = store.write().unwrap();
+        for id in [3u64, 1, 2] {
+            let mut item = Item::with_defaults(1, 1, "0".into(), 0);
+            item.id = id;
+            item.room_id = if id == 2 { 0 } else { 1000 };
+            w.put_item(&item).unwrap();
+        }
+        w.commit().unwrap();
+        let ids = |store: &Store| -> Vec<u64> {
+            store
+                .room_items(1000)
+                .unwrap()
+                .iter()
+                .map(|i| i.id)
+                .collect()
+        };
+        assert_eq!(ids(&store), [1, 3]);
+
+        // Picked up: back in the hand, out of the room.
+        let mut one = store.item(1).unwrap().unwrap();
+        one.room_id = 0;
+        assert!(store.update_item(&one).unwrap());
+        assert_eq!(ids(&store), [3]);
+        assert_eq!(store.inventory_items(1).unwrap().len(), 2);
+
+        store.delete_items(&[3]).unwrap();
+        assert!(ids(&store).is_empty());
+        assert!(store.item(3).unwrap().is_none());
+        // Updating a deleted row does not bring it back.
+        let mut three = Item::with_defaults(1, 1, "0".into(), 0);
+        three.id = 3;
+        three.room_id = 1000;
+        assert!(!store.update_item(&three).unwrap());
+        assert!(store.item(3).unwrap().is_none());
     }
 
     #[test]
