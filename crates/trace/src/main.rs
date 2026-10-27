@@ -235,6 +235,10 @@ fn show(trace: &Trace) {
             _ => String::new(),
         };
         println!("{i:>3} {} > {}{body}", step.bot, step_label(&step.action));
+        if !step.header_only.is_empty() {
+            let names: Vec<String> = step.header_only.iter().map(|h| check::label(*h)).collect();
+            println!("      (header only by design: {})", names.join(", "));
+        }
         for (bot, recv) in &step.received {
             let order = if recv.ordered { "" } else { " (any order)" };
             let closed = match recv.closed {

@@ -1,0 +1,337 @@
+name = "trade"
+description = "Trading in a flat of the Trade floor category: a trade with a user who has trading disabled, TRADE_ALREADY_OPEN, offering and taking back items, accept/unaccept, confirm and the swap, then a cancelled trade"
+
+# Flat 1000 belongs to e and is moved to category 113 'Trade floor' (allow_trading = 1).
+# e = tracebot5 and f = tracebot6 have trade_enabled = 1; a = tracebot1 has it off.
+# Instance ids in the flat follow the entry order: e 0, f 1, a 2.
+# Item ids are virtual ids from purchase order: 1 chair_plasto (e), 2 lamp_armas (e), 3 bench_armas (f).
+# TRADE_UNACCEPT is sent with id 68 (the Shockwave client); TRADE_OPEN, TRADE_ADDITEM and
+# TRADE_REMOVE_ITEM take VL64 ints (instance id, item id).
+
+[[bots]]
+name = "e"
+ticket = "trace-sso-5"
+
+[[bots]]
+name = "f"
+ticket = "trace-sso-6"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "e"
+macro = "login"
+
+[[steps]]
+bot = "f"
+macro = "login"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "e"
+send = "GRPC"
+args = [0, 518, "", false]
+note = "chair_plasto: item 1"
+
+[[steps]]
+bot = "e"
+send = "GRPC"
+args = [0, 123, "", false]
+note = "lamp_armas: item 2"
+
+[[steps]]
+bot = "f"
+send = "GRPC"
+args = [0, 116, "", false]
+note = "bench_armas: item 3"
+
+[[steps]]
+bot = "e"
+send = "CREATEFLAT"
+args = ["Trade Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "e"
+send = "SETFLATCAT"
+args = [1000, 113]
+note = "Trade floor: trading allowed"
+
+[[steps]]
+bot = "e"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "e"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "e"
+send = "G_HMAP"
+
+[[steps]]
+bot = "e"
+send = "G_USRS"
+
+[[steps]]
+bot = "e"
+send = "G_OBJS"
+
+[[steps]]
+bot = "e"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "e"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "f"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "f"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "f"
+send = "G_HMAP"
+
+[[steps]]
+bot = "f"
+send = "G_USRS"
+
+[[steps]]
+bot = "f"
+send = "G_OBJS"
+
+[[steps]]
+bot = "f"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "f"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+# --- Trading with someone who has trading disabled ---
+
+[[steps]]
+bot = "a"
+send = "TRADE_OPEN"
+args = [0]
+settle_ms = 800
+note = "Both get TRADEOPEN with each side's flag; one side enabled is enough to start the trade (trd status)"
+
+[[steps]]
+bot = "a"
+send = "TRADE_ACCEPT"
+note = "a has trading disabled: ignored"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ACCEPT"
+note = "Ignored too: the partner has trading disabled"
+
+[[steps]]
+bot = "a"
+send = "TRADE_CLOSE"
+settle_ms = 800
+note = "TRADE_CLOSE and the hand to both, trd status removed"
+
+# --- A complete trade ---
+
+[[steps]]
+bot = "e"
+send = "TRADE_OPEN"
+args = [1]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "TRADE_OPEN"
+args = [0]
+note = "e is busy: TRADE_ALREADY_OPEN"
+
+[[steps]]
+bot = "e"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "f"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "e"
+send = "TRADE_ADDITEM"
+args = [1]
+note = "TRADE_ITEMS to both"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ADDITEM"
+args = [1]
+note = "Already offered: ignored"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ADDITEM"
+args = [3]
+note = "Not in e's hand: ignored"
+
+[[steps]]
+bot = "f"
+send = "TRADE_ADDITEM"
+args = [3]
+
+[[steps]]
+bot = "e"
+send = "TRADE_ACCEPT"
+
+[[steps]]
+bot = "e"
+send = 68
+note = "TRADE_UNACCEPT (68) before both accepted: TRADEACCEPT false to both"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ACCEPT"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ADDITEM"
+args = [2]
+note = "A new offer resets the accepts without a TRADEACCEPT"
+
+[[steps]]
+bot = "e"
+send = "TRADE_REMOVE_ITEM"
+args = [2]
+
+[[steps]]
+bot = "f"
+send = "TRADE_ACCEPT"
+note = "f accepts alone"
+
+[[steps]]
+bot = "e"
+send = "TRADE_ACCEPT"
+note = "Both accepted: TRADECONFIRM to both"
+
+[[steps]]
+bot = "f"
+send = "TRADE_ADDITEM"
+args = [3]
+note = "Offers are locked while confirming"
+
+[[steps]]
+bot = "e"
+send = "TRADE_CONFIRM_ACCEPT"
+
+[[steps]]
+bot = "f"
+send = "TRADE_CONFIRM_ACCEPT"
+settle_ms = 1000
+note = "TRADE_COMPLETED, items swap hands, both hands sent, trd status removed"
+
+[[steps]]
+bot = "e"
+send = "GETSTRIP"
+args = [3]
+note = "e has the sofa and the lamp"
+
+[[steps]]
+bot = "f"
+send = "GETSTRIP"
+args = [3]
+note = "f has the chair"
+
+# --- A cancelled trade ---
+
+[[steps]]
+bot = "f"
+send = "TRADE_OPEN"
+args = [0]
+settle_ms = 800
+
+[[steps]]
+bot = "f"
+send = "TRADE_ADDITEM"
+args = [1]
+
+[[steps]]
+bot = "e"
+send = "TRADE_ADDITEM"
+args = [2]
+
+[[steps]]
+bot = "e"
+send = "TRADE_CLOSE"
+settle_ms = 800
+note = "Cancel: nothing changes hands"
+
+[[steps]]
+bot = "f"
+send = "GETSTRIP"
+args = [3]
+note = "The chair is still f's"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "f"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "e"
+send = "QUIT"
+settle_ms = 600

@@ -41,6 +41,9 @@ pub struct TraceStep {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub wait_for: Vec<u16>,
     pub settle_ms: u64,
+    /// Server messages recorded header-only on purpose (`header_only` in the scenario).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub header_only: Vec<u16>,
     /// Per bot; bots that received nothing (and were not disconnected) are left out.
     #[serde(default)]
     pub received: BTreeMap<String, BotTrace>,
@@ -133,7 +136,14 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 if seqs.iter().all(|s| s.is_empty()) && closed == Some(false) {
                     continue;
                 }
-                received.insert(name.clone(), calibrate_bot(&seqs, closed));
+                let mut bot = calibrate_bot(&seqs, closed);
+                for m in &mut bot.messages {
+                    if step.header_only.contains(&m.header) {
+                        m.check = Check::Header;
+                        m.mask = None;
+                    }
+                }
+                received.insert(name.clone(), bot);
             }
             TraceStep {
                 bot: bot_names[step.bot].clone(),
@@ -141,6 +151,7 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 note: step.note.clone(),
                 wait_for: step.wait_for.clone(),
                 settle_ms: step.settle_ms,
+                header_only: step.header_only.clone(),
                 received,
             }
         })
@@ -323,6 +334,7 @@ impl Trace {
                     action,
                     wait_for: s.wait_for.clone(),
                     settle_ms: s.settle_ms,
+                    header_only: s.header_only.clone(),
                     note: s.note.clone(),
                 })
             })
@@ -364,6 +376,34 @@ mod tests {
         assert_eq!(e.check, Check::Mask);
         assert!(e.matches(435, b"x\x0201-01-2027 09:00:00\x02"));
         assert!(!e.matches(435, b"y\x0201-01-2027 09:00:00\x02"));
+    }
+
+    #[test]
+    fn header_only_messages_ignore_identical_bodies() {
+        let text = "name = \"t\"\n[[bots]]\nname = \"a\"\nticket = \"x\"\n\
+                    [[steps]]\nbot = \"a\"\nconnect = true\nheader_only = [\"CREDIT_BALANCE\"]\n";
+        let scenario: Scenario = toml::from_str(text).unwrap();
+        let steps = scenario.compile().unwrap();
+        assert_eq!(steps[0].header_only, [6]);
+        let msg = |header, body: &[u8]| havana_protocol::Message {
+            header,
+            body: body.to_vec(),
+        };
+        let run = || {
+            vec![StepOutput {
+                bots: vec![crate::runner::BotOutput {
+                    messages: vec![msg(6, b"1000"), msg(0, b"")],
+                    closed: false,
+                }],
+                missing: vec![],
+            }]
+        };
+        let trace = calibrate(&scenario, &steps, &[run(), run()]);
+        let received = &trace.steps[0].received["a"].messages;
+        assert_eq!(received[0].check, Check::Header);
+        assert_eq!(received[1].check, Check::Exact);
+        assert_eq!(trace.steps[0].header_only, [6]);
+        assert_eq!(trace.steps().unwrap()[0].header_only, [6]);
     }
 
     #[test]

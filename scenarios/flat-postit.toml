@@ -1,0 +1,195 @@
+name = "flat-postit"
+description = "Post-its: a pad of 20 placed on the wall (a new sticky, the pad keeps 19), reading and writing it as the owner and as a visitor without rights (append only, same colour), deleting it"
+
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits without rights.
+# Catalogue item 150 ('A2 tlp 20', post.it) is item 1 with custom data 20. Placing it creates a
+# new item (the sticky, item 2) with colour FFFF33 and no text.
+# SETITEMDATA: VL64 item id, then one string: 6-char colour, one separator char, the text.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 150, "", false]
+note = "Post-it pad: item 1"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Note Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "The pad, custom data 20"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 :w=6,1 l=12,40 r"]
+note = "The sticky appears on the wall for both"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "The pad has 19 left"
+
+[[steps]]
+bot = "a"
+send = "G_IDATA"
+args = [2]
+note = "Yellow, empty"
+
+[[steps]]
+bot = "a"
+send = "SETITEMDATA"
+args = [2, "9CCEFF Remember the milk"]
+note = "Owner writes and recolours: wall item update to the room"
+
+[[steps]]
+bot = "b"
+send = "G_IDATA"
+args = [2]
+
+[[steps]]
+bot = "b"
+send = "SETITEMDATA"
+args = [2, "9CCEFF Remember the milk and eggs"]
+note = "Without rights: appending is allowed"
+
+[[steps]]
+bot = "b"
+send = "SETITEMDATA"
+args = [2, "9CCEFF Forget it"]
+note = "Without rights: replacing the text is not"
+
+[[steps]]
+bot = "b"
+send = "SETITEMDATA"
+args = [2, "FF9CFF Remember the milk and eggs!"]
+note = "Without rights: changing the colour is not"
+
+[[steps]]
+bot = "a"
+send = "SETITEMDATA"
+args = [2, "123456 Bad colour"]
+note = "Unknown colour: ignored"
+
+[[steps]]
+bot = "a"
+send = "G_IDATA"
+args = [2]
+
+[[steps]]
+bot = "a"
+send = "USEWALLITEM"
+args = [2]
+note = "Post-its cannot be toggled"
+
+[[steps]]
+bot = "b"
+send = "REMOVEITEM"
+args = [2]
+note = "Only the owner can delete it"
+
+[[steps]]
+bot = "a"
+send = "REMOVEITEM"
+args = [2]
+note = "Deleted, not back in the hand"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

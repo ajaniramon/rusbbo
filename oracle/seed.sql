@@ -32,6 +32,23 @@ VALUES
 
 INSERT INTO users_statistics (user_id, has_tutorial, is_guidable) VALUES (3, 1, 0), (4, 0, 0);
 
+-- Users for the trading and chat-filter scenarios. Created in 2099 for the same reason as above.
+--   tracebot5: trading enabled, Habbo Club until the year 2100 and 100 pixels (the club-only One
+--              Way Gates page, whose doors cost 15 credits and 30 pixels).
+--   tracebot6: trading enabled, word filter switched off (sees other users' chat unfiltered).
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning,
+                   trade_enabled, wordfilter_enabled, club_expiration, pixels)
+VALUES
+  (5, 'tracebot5', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'trace bot five',
+   'bot5@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-5', 1, 0,
+   1, 1, 4102444800, 100),
+  (6, 'tracebot6', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'trace bot six',
+   'bot6@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-6', 1, 0,
+   1, 0, 0, 0);
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable) VALUES (5, 0, 0), (6, 0, 0);
+
 INSERT INTO users_badges (user_id, badge, equipped, slot_id)
 VALUES (3, 'TB1', 0, 0), (3, 'TB2', 1, 3), (3, 'TB3', 0, 0), (3, 'TB4', 0, 0);
 
@@ -48,3 +65,6 @@ VALUES (1, 3, 0, 0), (1, 3, 0, 0), (2, 3, 0, 0), (3, 3, 1, 1);
 REPLACE INTO settings (setting, value)
 VALUES ('happy.hour.weekday.start', '00:00:00'), ('happy.hour.weekday.end', '00:00:00'),
        ('happy.hour.weekend.start', '00:00:00'), ('happy.hour.weekend.end', '00:00:00');
+
+-- All bots connect from 127.0.0.1; the default of 2 connections per IP would turn a third bot away.
+REPLACE INTO settings (setting, value) VALUES ('max.connections.per.ip', '10');

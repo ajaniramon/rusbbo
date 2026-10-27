@@ -19,6 +19,9 @@
 //! args = [true, 1, 0]        # ints/bools -> VL64, strings -> client strings, {raw = ".."} -> bytes
 //! wait_for = ["ROOM_READY"]  # optional: server messages that must arrive before settling
 //! settle_ms = 400            # optional: quiet time that ends the step
+//! header_only = ["INVENTORY"] # optional: server messages of this step whose body is random in
+//!                            # the reference server (e.g. a gift's random wrapping): only their
+//!                            # header is recorded, even when the recordings happen to agree
 //! ```
 
 use std::path::Path;
@@ -80,6 +83,9 @@ pub struct StepDef {
     pub wait_for: Vec<MsgRef>,
     #[serde(default)]
     pub settle_ms: Option<u64>,
+    /// Server messages whose bodies are only checked by header (see the module docs).
+    #[serde(default)]
+    pub header_only: Vec<MsgRef>,
     #[serde(default)]
     pub note: Option<String>,
 }
@@ -107,6 +113,8 @@ pub struct Step {
     pub action: Action,
     pub wait_for: Vec<u16>,
     pub settle_ms: u64,
+    /// Server message ids recorded with a header-only check.
+    pub header_only: Vec<u16>,
     pub note: Option<String>,
 }
 
@@ -142,11 +150,17 @@ impl Scenario {
                 .map(server_id)
                 .collect::<Result<Vec<_>>>()?;
             let settle_ms = def.settle_ms.unwrap_or(DEFAULT_SETTLE_MS);
+            let header_only = def
+                .header_only
+                .iter()
+                .map(server_id)
+                .collect::<Result<Vec<_>>>()?;
             let step = |action| Step {
                 bot,
                 action,
                 wait_for: vec![],
                 settle_ms,
+                header_only: header_only.clone(),
                 note: def.note.clone(),
             };
 

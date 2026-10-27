@@ -1,0 +1,115 @@
+name = "flat-present"
+description = "Buying a present for another user (unknown user, success, too soon again), the receiver placing it in a flat and opening it"
+
+# tracebot1 (a) buys catalogue item 518 (chair_plasto) as a gift for tracebot2 (b). The present is
+# b's item 1. Java wraps it in a random present_gen sprite (ThreadLocalRandom, 0-6), so the messages
+# that show the wrapped present (b's hand, PLACE_FLOORITEM) are recorded header-only on purpose.
+# Once opened it is the chair again, with the same item id.
+# GRPC as a gift: page, catalogue item, extra data, true, receiver name, note.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 518, "", true, "nobody123", "Hi"]
+note = "Unknown receiver: NO_USER_FOUND, nothing charged"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 518, "", true, "tracebot2", "Happy birthday"]
+header_only = ["INVENTORY"]
+note = "ALERT and credits for a; b's hand updates at once"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 518, "", true, "tracebot2", "Another one"]
+note = "Second gift within a minute: ALERT, nothing bought"
+
+[[steps]]
+bot = "b"
+send = "CREATEFLAT"
+args = ["Gift Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "GETSTRIP"
+args = [3]
+header_only = ["INVENTORY"]
+note = "The wrapped present"
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["1 6 6 0"]
+header_only = ["PLACE_FLOORITEM"]
+
+[[steps]]
+bot = "b"
+send = "PRESENTOPEN"
+args = [1]
+note = "DELIVER_PRESENT with the chair; the present leaves the floor; the chair is in the hand"
+
+[[steps]]
+bot = "b"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["1 6 6 0"]
+note = "It is an ordinary chair now"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600

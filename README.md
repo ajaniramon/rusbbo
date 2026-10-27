@@ -63,7 +63,7 @@ oracle/oracle.sh start
 bots' SSO tickets (Havana clears all tickets on startup and on each login). It takes ~2-3 s and runs
 before every recording, so every scenario starts from the same state.
 
-The bots are the users in `oracle/seed.sql` (`tracebot1`/`tracebot2`, tickets `trace-sso-1`/`trace-sso-2`).
+The bots are the users in `oracle/seed.sql` (`tracebot1`-`tracebot6`, tickets `trace-sso-1`-`trace-sso-6`).
 
 ### 2. Record
 
@@ -101,7 +101,19 @@ are the Java class names (`ROOM_DIRECTORY`, `CHAT`...). Use `settle_ms` when the
 after a request (walking, anything driven by the 1 s game tick).
 
 Keep scenarios deterministic: avoid rooms with NPCs (they wander randomly) and anything that depends
-on wall-clock time beyond what the masks cover.
+on wall-clock time beyond what the masks cover. In particular:
+
+- Java sends `PING` 60 s after a connection opens and drops it 60 s later without a `PONG`; the
+  bots do not answer (a `PONG` runs the achievement check, whose output depends on the clock), so
+  keep each bot's part of a scenario well under 60 s.
+- Chat and `LOOKTO` start a look timer (6 s, in whole seconds): one more `USER_STATUSES` follows
+  6-7 s later. Give the step after which it falls a long `settle_ms` (8 s) so it always lands there.
+- When the Java server picks something at random (a gift's wrapping), list the affected server
+  messages in the step's `header_only`; they are then recorded header-only even when the
+  recordings happen to agree.
+
+The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what each one is for.
+`docs/flats-notes.md` and `docs/social-trade-items-notes.md` collect the Java behaviour the traces show.
 
 ## Current corpus
 
@@ -119,6 +131,16 @@ on wall-clock time beyond what the masks cover.
 | `flat-visit` | two users: doorbell (refused, then let in), live furni updates for both, rights given/removed, password room (wrong, right), kick |
 | `flat-delete` | deleting a room with a visitor and furni inside: both sent to the hotel view, furni gone, navigator no longer lists it |
 | `flat-decor` | buying wallpaper and floor, applying them (`FLATPROPBYITEM`), seeing them on re-entry |
+| `social-actions` | whispers (to a user, to someone ignoring you, to nobody), chat and the ignore list, `LOOKTO`, typing, `GOAWAY` |
+| `social-dance-carry` | dancing (club styles refused to non-club users), `STOP`, `CARRYDRINK`/`CARRYITEM`, dancing drops the drink |
+| `chat-filter` | word filter per receiver (filterable words) and for everyone (mandatory words) on chat, shout and whisper |
+| `chat-commands` | the rank-1 chat commands (`:about`, `:commands`/`:help`, `:givedrink`, `:dropdrink`, `:sit`, `:afk`, `:guidestatus`), a command above one's rank and an unknown one |
+| `trade` | trading in a Trade floor flat: a partner with trading disabled, `TRADE_ALREADY_OPEN`, offering/removing items, accept/unaccept, confirm and the swap, a cancelled trade |
+| `flat-teleport` | a teleporter pair inside one flat, a second pair between two flats (`ROOMFORWARD`, arriving on the far teleporter), seen by a second user |
+| `flat-roller` | a roller moving a user and an item (`SLIDEOBJECTBUNDLE`), `:pickall` |
+| `flat-postit` | post-it pad placed on the wall, read and written by the owner and a visitor without rights, deleted |
+| `flat-gates` | a gate (solid while closed) and a one-way door (`ENTER_ONEWAY_DOOR`) |
+| `flat-present` | buying a gift for another user (unknown user, too soon again), placing and opening it (`PRESENTOPEN`, `DELIVER_PRESENT`) |
 
 ## Known gaps
 
