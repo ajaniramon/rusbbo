@@ -37,6 +37,12 @@ pub struct Player {
     /// `RoomPlayer.authenticateId`, -1 for `None`). Set by `CREATEFLAT`, `TRYFLAT` and
     /// `LETUSERIN`, cleared on entry, `QUIT` and kick.
     pub authenticate_id: Option<u32>,
+    /// The teleporter the player is travelling to and its room (Java:
+    /// `RoomPlayer.authenticateTelporterId` / `authenticateTelporterRoomId`, -1 for `None`). Set
+    /// by `TeleportInteractor`, used by the arrival in `GOTOFLAT`.
+    pub authenticate_teleporter: Option<(u64, i32)>,
+    /// Java: `RoomPlayer.lastGiftTime`, when the player last bought a gift.
+    pub last_gift_time: i64,
     /// Loaded at login (Java: `Player.messenger`).
     pub messenger: Option<Messenger>,
     /// Java: `Player.badgeManager`, loaded at login.

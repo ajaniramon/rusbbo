@@ -13,11 +13,14 @@ use std::time::Duration;
 
 use havana_protocol::Message;
 
+use crate::game::item::roller;
 use crate::game::now;
 use crate::game::pathfinder::{Position, walk_direction};
 use crate::game::room::entity::{RoomEntity, StatusType};
+use crate::game::room::items::Behaviour;
 use crate::game::room::mapping::is_valid_tile;
 use crate::game::room::{Room, RoomHandle, run_deferred};
+use crate::messages::outgoing::rooms_items::{self as out_items, Slide};
 use crate::messages::outgoing::rooms_user as out_user;
 use crate::world::World;
 
@@ -268,6 +271,184 @@ impl Room {
             if t > self.entities[idx].afk_timer {
                 self.kick(world, idx, true, false);
             }
+        }
+    }
+}
+
+/// One roller's share of a roll (Java: `RollerEntry`): the items and the user it moves.
+struct RollerEntry {
+    roller: usize,
+    items: Vec<usize>,
+    entity: Option<i32>,
+}
+
+/// Java: `RollerTask`, every `roller.tick.default` ms in private rooms, starting 250 ms after
+/// the room's tasks: each roller moves the items on it, and the first user on it, one square on
+/// (`SLIDEOBJECTBUNDLE`); `RollerCompleteTask` finishes the roll 800 ms later.
+pub async fn run_rollers(world: Weak<World>, room: Weak<RoomHandle>) {
+    let period = match world.upgrade() {
+        Some(w) => w.settings.read().int("roller.tick.default").max(1) as u64,
+        None => return,
+    };
+    let period = Duration::from_millis(period);
+    let start = tokio::time::Instant::now() + Duration::from_millis(250);
+    let mut interval = tokio::time::interval_at(start, period);
+    loop {
+        interval.tick().await;
+        let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
+            return;
+        };
+        room.lock().roller_tick(&world);
+    }
+}
+
+impl Room {
+    /// Rebuilds the collision map from the items and who stands where (Java:
+    /// `RoomMapping.regenerateCollisionMap`).
+    pub fn regenerate_map(&mut self) {
+        let entities: Vec<(i32, Position)> = self
+            .entities
+            .iter()
+            .map(|e| (e.instance_id, e.position))
+            .collect();
+        self.mapping.regenerate(&entities);
+    }
+
+    /// Java: `RollerTask.run`.
+    pub fn roller_tick(&mut self, world: &World) {
+        if !self.mapping.items.iter().any(|i| i.has(Behaviour::Roller)) {
+            return;
+        }
+        self.regenerate_map();
+        let stack_limit = world.settings.read().int("stack.height.limit");
+        // In insertion order, like Java's LinkedHashMaps.
+        let mut items_rolling: Vec<(usize, Position)> = Vec::new();
+        let mut entities_rolling: Vec<(i32, usize, Position)> = Vec::new();
+        let mut entries: Vec<RollerEntry> = Vec::new();
+
+        for roller in 0..self.mapping.items.len() {
+            let roller_position = self.mapping.items[roller].position;
+            let Some(roller_tile) = self.mapping.tile(roller_position) else {
+                continue;
+            };
+            if !self.mapping.items[roller].has(Behaviour::Roller) {
+                continue;
+            }
+            let tile_items = roller::items_by_height(self, roller_tile);
+            let tile_entities = self.mapping.entire_entities(roller_position);
+            let mut entry = RollerEntry {
+                roller,
+                items: Vec::new(),
+                entity: None,
+            };
+            for item in tile_items {
+                let it = &self.mapping.items[item];
+                if it.position != roller_position
+                    || it.has(Behaviour::Roller)
+                    || items_rolling.iter().any(|(i, _)| *i == item)
+                {
+                    continue;
+                }
+                if let Some(next) = roller::item_can_roll(self, item, roller, stack_limit) {
+                    items_rolling.push((item, next));
+                    entry.items.push(item);
+                }
+            }
+            if let Some(&instance_id) = tile_entities.first() {
+                if entities_rolling.iter().any(|(i, _, _)| *i == instance_id) {
+                    continue; // Java's `continue` skips this roller's entry too.
+                }
+                if let Some(e) = self.entity_by_instance(instance_id) {
+                    if let Some(next) = roller::entity_can_roll(self, e, roller, stack_limit) {
+                        entities_rolling.push((instance_id, roller, next));
+                        entry.entity = Some(instance_id);
+                    }
+                }
+            }
+            if entry.entity.is_some() || !entry.items.is_empty() {
+                entries.push(entry);
+            }
+        }
+
+        for &(instance_id, roller, next) in &entities_rolling {
+            if let Some(e) = self.entity_by_instance(instance_id) {
+                roller::entity_do_roll(self, e, roller, next);
+            }
+        }
+        for &(item, next) in &items_rolling {
+            if !self.mapping.items[item].current_roll_blocked {
+                roller::item_do_roll(self, item, next);
+            }
+            self.save_item(world, item);
+        }
+        for entry in &entries {
+            let slides: Vec<Slide> = entry
+                .items
+                .iter()
+                .map(|&i| &self.mapping.items[i])
+                .filter(|i| !i.current_roll_blocked)
+                .filter_map(|i| {
+                    i.rolling.map(|r| Slide {
+                        id: i.virtual_id,
+                        from_z: r.from.z,
+                        to_z: r.next.z,
+                    })
+                })
+                .collect();
+            let entity = entry
+                .entity
+                .and_then(|id| self.entity_by_instance(id))
+                .and_then(|e| {
+                    let e = &self.entities[e];
+                    e.rolling.map(|r| Slide {
+                        id: e.instance_id,
+                        from_z: r.from.z,
+                        to_z: r.display_height,
+                    })
+                });
+            let msg = out_items::slide_object_bundle(
+                &self.mapping.items[entry.roller],
+                &slides,
+                entity.as_ref(),
+            );
+            self.send(msg);
+        }
+        if items_rolling.is_empty() && entities_rolling.is_empty() {
+            return;
+        }
+        self.regenerate_map();
+        let items: Vec<i32> = items_rolling
+            .iter()
+            .map(|(i, _)| self.mapping.items[*i].virtual_id)
+            .collect();
+        let entities: Vec<i32> = entities_rolling.iter().map(|(i, _, _)| *i).collect();
+        self.schedule(world, Duration::from_millis(800), move |_, r| {
+            r.roller_complete(&items, &entities)
+        });
+    }
+
+    /// Java: `RollerCompleteTask.run`: the rolled items may roll again; the rolled users get
+    /// their status worked out on the square they arrived at.
+    fn roller_complete(&mut self, items: &[i32], entities: &[i32]) {
+        for &id in items {
+            if let Some(i) = self.mapping.item_index(id) {
+                let item = &mut self.mapping.items[i];
+                if item.rolling.is_none() {
+                    continue;
+                }
+                item.current_roll_blocked = false;
+                item.rolling = None;
+            }
+        }
+        for &id in entities {
+            let Some(e) = self.entity_by_instance(id) else {
+                continue;
+            };
+            if self.entities[e].rolling.is_none() {
+                continue;
+            }
+            self.invoke_item(e, true);
+            self.entities[e].rolling = None;
         }
     }
 }

@@ -162,6 +162,11 @@ pub fn messenger_search(friends: &[SearchEntry], others: &[SearchEntry]) -> Mess
     Message::new(435, body.build())
 }
 
+/// Java: `ROOMFORWARD`: tells the client to go to a room (a teleporter to another flat).
+pub fn room_forward(is_public: bool, room_id: i32) -> Message {
+    Message::new(286, ServerBody::new().bool(is_public).int(room_id).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -169,6 +174,13 @@ mod tests {
 
     const FIGURE_1: &str = "hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61";
     const FIGURE_2: &str = "hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33";
+
+    /// traces/flat-teleport.json: the teleporter to flat 1001.
+    #[test]
+    fn room_forward_matches_trace() {
+        let msg = room_forward(false, 1001);
+        assert_eq!((msg.header, msg.body.as_slice()), (286, &b"HYzC"[..]));
+    }
 
     fn user(id: u32, name: &str, motto: &str, figure: &str, male: bool) -> FriendView {
         FriendView {

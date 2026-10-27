@@ -19,6 +19,8 @@ const ITEMS_BY_ROOM: TableDefinition<(i32, u64), ()> = TableDefinition::new("ite
 /// Counters of this area; for now only `items_auto_increment`.
 const ITEMS_META: TableDefinition<&str, u64> = TableDefinition::new("items_meta");
 const AUTO_INCREMENT: &str = "items_auto_increment";
+/// `items_teleporter_links`: item id -> the id of the teleporter it leads to.
+const TELEPORTER_LINKS: TableDefinition<u64, u64> = TableDefinition::new("items_teleporter_links");
 
 /// A row of `items_definitions`. `behaviour` and `interactor` are kept as text, parsed by the
 /// server (Java: `ItemDefinition` constructor).
@@ -96,6 +98,7 @@ pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
     tx.open_table(ITEMS)?;
     tx.open_table(ITEMS_BY_USER)?;
     tx.open_table(ITEMS_BY_ROOM)?;
+    tx.open_table(TELEPORTER_LINKS)?;
     let mut meta = tx.open_table(ITEMS_META)?;
     if meta.get(AUTO_INCREMENT)?.is_none() {
         meta.insert(AUTO_INCREMENT, 1)?;
@@ -179,6 +182,13 @@ impl Store {
         w.put_item(item)?;
         w.commit()?;
         Ok(true)
+    }
+
+    /// Java: `TeleporterDao.getTeleporterId`: the teleporter `item_id` leads to.
+    pub fn teleporter_link(&self, item_id: u64) -> Result<Option<u64>> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(TELEPORTER_LINKS)?;
+        Ok(table.get(item_id)?.map(|v| v.value()))
     }
 
     /// Java: `ItemDao.deleteItems`.
@@ -275,6 +285,15 @@ impl Writer {
         Ok(id)
     }
 
+    /// Java: `TeleporterDao.addPair`: `item_id` leads to `linked_id`. Like the table's unique
+    /// key, an item has one link.
+    pub fn add_teleporter_link(&mut self, item_id: u64, linked_id: u64) -> Result<()> {
+        self.tx
+            .open_table(TELEPORTER_LINKS)?
+            .insert(item_id, linked_id)?;
+        Ok(())
+    }
+
     /// Sets the next id `insert_item` hands out (the importer copies the table's counter).
     pub fn set_item_auto_increment(&mut self, next: u64) -> Result<()> {
         self.tx
@@ -321,6 +340,18 @@ mod tests {
         placed.room_id = 3;
         store.put_item(&placed).unwrap();
         assert_eq!(store.inventory_items(7).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn teleporters_link_both_ways() {
+        let (_dir, store) = temp_store();
+        let mut w = store.write().unwrap();
+        w.add_teleporter_link(2, 1).unwrap();
+        w.add_teleporter_link(1, 2).unwrap();
+        w.commit().unwrap();
+        assert_eq!(store.teleporter_link(1).unwrap(), Some(2));
+        assert_eq!(store.teleporter_link(2).unwrap(), Some(1));
+        assert_eq!(store.teleporter_link(3).unwrap(), None);
     }
 
     #[test]

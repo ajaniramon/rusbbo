@@ -532,6 +532,11 @@ fn import_items(conn: &mut mysql::PooledConn, store: &Store) -> Result<(usize, u
         .unwrap_or(1)
         .max(max.flatten().map_or(1, |m| m + 1));
     w.set_item_auto_increment(next)?;
+    let links: Vec<(u64, u64)> =
+        conn.query("SELECT item_id, linked_id FROM items_teleporter_links ORDER BY item_id")?;
+    for (item_id, linked_id) in links {
+        w.add_teleporter_link(item_id, linked_id)?;
+    }
     w.commit()?;
     Ok((definitions.len(), items.len()))
 }

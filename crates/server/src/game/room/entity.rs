@@ -265,6 +265,8 @@ pub struct RoomEntity {
     pub being_kicked: bool,
     pub needs_update: bool,
     pub enable_walking_on_stop: bool,
+    /// Java: `rollingData`, while a roller moves the user (until `RollerCompleteTask`).
+    pub rolling: Option<crate::game::item::roller::RollingData>,
     pub dance_id: i32,
     pub effect_id: i32,
     pub is_sleeping: bool,
@@ -311,6 +313,7 @@ impl RoomEntity {
             being_kicked: false,
             needs_update: true,
             enable_walking_on_stop: false,
+            rolling: None,
             dance_id: 0,
             effect_id: 0,
             is_sleeping: false,

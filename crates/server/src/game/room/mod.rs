@@ -70,6 +70,8 @@ pub enum Deferred {
     /// The user was kicked: forget which rooms they may enter (Java: `RoomPlayer.kick` resets
     /// `authenticateId`).
     ClearAuthentication { session: Arc<Session> },
+    /// The user no longer travels to a teleporter (Java: `setAuthenticateTelporterId(-1)`).
+    StopTeleporting { session: Arc<Session> },
     /// A trade was cancelled: send both hands, then release the offered items.
     TradeClosed { sides: [trade::TradeSide; 2] },
     /// A trade completed: the offered items change hands, then both hands are sent.
@@ -113,6 +115,8 @@ pub struct Room {
     counter: i32,
     /// The tick task (Java: `RoomTaskManager`'s EntityTask and StatusTask).
     task: Option<tokio::task::AbortHandle>,
+    /// Java: `RoomTaskManager`'s RollerTask, private rooms only.
+    roller_task: Option<tokio::task::AbortHandle>,
     /// Bumped on every dispose request, so only the latest one runs.
     dispose_generation: u64,
     self_ref: Weak<RoomHandle>,
@@ -155,6 +159,7 @@ impl Room {
                 active: false,
                 counter: 0,
                 task: None,
+                roller_task: None,
                 dispose_generation: 0,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
@@ -173,6 +178,34 @@ impl Room {
 
     pub fn take_deferred(&mut self) -> Vec<Deferred> {
         std::mem::take(&mut self.deferred)
+    }
+
+    /// A scheduler timer on this room (Java: `GameScheduler...schedule` with a lambda that uses
+    /// the room): after `delay`, locks the room, runs `task` and then what it deferred. Nothing
+    /// runs if the room was unloaded meanwhile. The task must not lock a player.
+    pub fn schedule(
+        &self,
+        world: &World,
+        delay: std::time::Duration,
+        task: impl FnOnce(&World, &mut Room) + Send + 'static,
+    ) {
+        let room = self.self_ref.clone();
+        crate::game::scheduler::schedule(world, delay, move |world| {
+            let Some(room) = room.upgrade() else {
+                return;
+            };
+            let deferred = {
+                let mut r = room.lock();
+                task(world, &mut r);
+                r.take_deferred()
+            };
+            run_deferred(world, deferred);
+        });
+    }
+
+    /// The registry handle of this room, while it exists.
+    pub fn handle(&self) -> Option<RoomRef> {
+        self.self_ref.upgrade()
     }
 
     /// Java: `Room.send`: to every player in the room.
@@ -250,7 +283,7 @@ impl Room {
         self.data.visitors_now = self.players();
 
         self.try_initialise(world);
-        // TODO(effects): Abigail.Ryan's ghost effect. TODO(items): teleporter arrival.
+        // TODO(effects): Abigail.Ryan's ghost effect. The teleporter arrival is in `enter_room`.
         // TODO(messenger): sendStatusUpdate so friends see the room.
         self.save_visitors(world);
     }
@@ -323,22 +356,30 @@ impl Room {
     /// runs from the second one, 500 ms later. Restarting replaces the running ones, as Java's
     /// `scheduleTask` does.
     fn start_tasks(&mut self, world: &World) {
-        if let Some(task) = self.task.take() {
-            task.abort();
-        }
+        self.stop_tasks();
         let Some(world) = world.arc() else {
             return; // Unit tests build rooms without a running world.
         };
         let Ok(rt) = tokio::runtime::Handle::try_current() else {
             return;
         };
-        // TODO(flats): RollerTask for private rooms.
         let handle = rt.spawn(tasks::run(Arc::downgrade(&world), self.self_ref.clone()));
         self.task = Some(handle.abort_handle());
+        // Only private rooms run rollers.
+        if !self.is_public() {
+            let handle = rt.spawn(tasks::run_rollers(
+                Arc::downgrade(&world),
+                self.self_ref.clone(),
+            ));
+            self.roller_task = Some(handle.abort_handle());
+        }
     }
 
     fn stop_tasks(&mut self) {
         if let Some(task) = self.task.take() {
+            task.abort();
+        }
+        if let Some(task) = self.roller_task.take() {
             task.abort();
         }
     }
@@ -383,6 +424,7 @@ impl Room {
         e.is_sleeping = false;
         e.walking_allowed = true;
         e.being_kicked = false;
+        e.rolling = None;
         e.instance_id = -1;
         e.is_typing = false;
         e.needs_update = true;
@@ -599,8 +641,9 @@ impl Room {
         });
         if item.is_none() || !can_sit || !can_lay {
             let e = &mut self.entities[idx];
-            // TODO(items): rollers ("isRolling") keep the sit.
-            if e.statuses.contains(StatusType::Sit) || e.statuses.contains(StatusType::Lay) {
+            if e.rolling.is_none()
+                && (e.statuses.contains(StatusType::Sit) || e.statuses.contains(StatusType::Lay))
+            {
                 e.statuses.remove(StatusType::Sit);
                 e.statuses.remove(StatusType::Lay);
             }
@@ -631,13 +674,19 @@ impl Room {
             let item = &self.mapping.items[item];
             (item.top_height, item.position.rotation())
         };
+        let is_rolling = self.entities[idx].rolling.is_some();
+        let head_rotation = self.entities[idx].position.head_rotation;
         self.entities[idx].position.set_rotation(rotation);
         self.dance(idx, 0);
         let e = &mut self.entities[idx];
         e.statuses
             .set(StatusType::Sit, crate::game::format_decimal(top_height));
         e.needs_update = true;
-        // TODO(items): rolling keeps the head rotation. TODO(effects): re-send the effect.
+        // A user rolled onto a chair keeps looking where they looked.
+        if is_rolling && e.look_timer > -1 {
+            e.position.head_rotation = head_rotation;
+        }
+        // TODO(effects): re-send the effect.
     }
 
     /// Java: `RoomEntity.dance`.
@@ -937,6 +986,33 @@ impl Room {
         self.try_dispose(world);
     }
 
+    /// Java: `RoomEntity.warp(position, instantUpdate, sendUserObject)` with both set: the user
+    /// jumps to `position` (with its height and rotation), the room sees `USER_OBJECTS` and
+    /// `USER_STATUSES`, then the item there is worked out again with its own status update.
+    pub fn warp(&mut self, idx: usize, position: Position) {
+        let (old, instance_id, next) = {
+            let e = &self.entities[idx];
+            (e.position, e.instance_id, e.next_position)
+        };
+        self.mapping.remove_entity(old, instance_id);
+        if let Some(next) = next {
+            self.mapping.remove_entity(next, instance_id);
+        }
+        self.entities[idx].position = position;
+        self.update_new_height(idx);
+        self.mapping.add_entity(position, instance_id);
+        let model = self.model.name.clone();
+        self.send(out_user::user_objects([&self.entities[idx]], &model));
+        self.send(out_user::user_statuses([&self.entities[idx]], &model));
+        if self.mapping.tile(old).is_some() {
+            self.invoke_item(idx, true);
+        }
+        // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
+        // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
+        // what the oracle sends.
+        self.entities[idx].needs_update = true;
+    }
+
     /// Java's `getRoomUser().getCurrentItem()`.
     pub fn current_item(&self, idx: usize) -> Option<&items::Item> {
         self.mapping.highest_item(self.entities[idx].position)
@@ -1026,9 +1102,13 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
             }
             Deferred::TradeClosed { sides } => trade::run_closed(world, sides),
             Deferred::TradeFinished { sides } => trade::run_finished(world, sides),
+            Deferred::StopTeleporting { session } => {
+                session.player.lock().authenticate_teleporter = None;
+            }
             Deferred::ClearAuthentication { session } => {
-                // TODO(items): also the teleporter authentications.
-                session.player.lock().authenticate_id = None;
+                let mut p = session.player.lock();
+                p.authenticate_id = None;
+                p.authenticate_teleporter = None;
             }
         }
     }
@@ -1083,11 +1163,22 @@ pub fn enter_room(
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;
-        details
+        // Java resets both teleporter authentications after the arrival.
+        let teleporter = p.authenticate_teleporter.take();
+        (details, teleporter)
     };
+    let (details, teleporter) = details;
     let deferred = {
         let mut r = room.lock();
         r.add_entity(world, session, details, destination);
+        if let Some((teleporter_id, _)) = teleporter {
+            crate::game::item::interactors::teleport::arrive(
+                world,
+                &mut r,
+                session.id,
+                teleporter_id,
+            );
+        }
         if send_entry {
             session.send(out_rooms::room_ready(r.id(), &r.model.name));
             session.send(out_rooms::flat_property("landscape", &r.data.landscape));
@@ -1121,6 +1212,56 @@ pub fn enter_room(
         r.take_deferred()
     };
     run_deferred(world, deferred);
+}
+
+#[cfg(test)]
+impl Room {
+    /// A loaded room for unit tests: no world, no tasks.
+    pub(crate) fn for_test(owner_id: u32, model: Arc<RoomModel>, items: Vec<items::Item>) -> Room {
+        let data = havana_storage::Room {
+            id: 1000,
+            owner_id,
+            ..Default::default()
+        };
+        let mut mapping = RoomMapping::new(model.clone(), owner_id == 0);
+        mapping.items = items;
+        let mut room = Room {
+            data,
+            model,
+            mapping,
+            rights: Vec::new(),
+            votes: Vec::new(),
+            first_tick: None,
+            entities: Vec::new(),
+            active: true,
+            counter: 0,
+            task: None,
+            roller_task: None,
+            dispose_generation: 0,
+            self_ref: Weak::new(),
+            deferred: Vec::new(),
+        };
+        room.regenerate_map();
+        room
+    }
+
+    /// Puts a user at `position` and returns its index and the receiving end of its messages.
+    pub(crate) fn add_test_user(
+        &mut self,
+        position: Position,
+    ) -> (
+        usize,
+        tokio::sync::mpsc::UnboundedReceiver<crate::session::Outgoing>,
+    ) {
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        let session = Arc::new(Session::new(self.counter as u64 + 1, tx));
+        let mut e = RoomEntity::new(session, EntityDetails::default(), self.counter);
+        self.counter += 1;
+        e.position = position;
+        self.mapping.add_entity(position, e.instance_id);
+        self.entities.push(e);
+        (self.entities.len() - 1, rx)
+    }
 }
 
 #[cfg(test)]

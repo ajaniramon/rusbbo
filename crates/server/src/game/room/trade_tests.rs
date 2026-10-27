@@ -45,6 +45,7 @@ fn room() -> Room {
         active: true,
         counter: 0,
         task: None,
+        roller_task: None,
         dispose_generation: 0,
         self_ref: std::sync::Weak::new(),
         deferred: Vec::new(),

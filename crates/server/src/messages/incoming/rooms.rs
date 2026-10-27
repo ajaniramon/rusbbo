@@ -189,8 +189,15 @@ pub fn try_flat(
             }
         }
     }
-    // TODO(items): a user who switched rooms loses the teleporter authentication.
-    session.player.lock().authenticate_id = Some(room.id);
+    let mut p = session.player.lock();
+    // A user who goes elsewhere than where their teleporter leads stops teleporting.
+    if p.authenticate_teleporter
+        .is_some_and(|(_, room_id)| room_id != room.id as i32)
+    {
+        p.authenticate_teleporter = None;
+    }
+    p.authenticate_id = Some(room.id);
+    drop(p);
     session.send(out::flat_letin());
     Ok(())
 }

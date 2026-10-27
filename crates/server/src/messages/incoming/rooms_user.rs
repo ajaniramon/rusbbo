@@ -24,8 +24,8 @@ pub fn quit(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Resu
             return Ok(());
         }
         p.authenticate_id = None;
+        p.authenticate_teleporter = None;
     }
-    // TODO(items): clear the teleporter authentication.
     room::leave_current_room(world, session, false);
     Ok(())
 }

@@ -144,6 +144,16 @@ impl Inventory {
         Some(self.items.remove(index))
     }
 
+    /// [`Inventory::item`], to change it in place.
+    pub fn item_mut(&mut self, virtual_id: i32) -> Option<&mut Item> {
+        self.items.iter_mut().find(|i| i.virtual_id == virtual_id)
+    }
+
+    /// Java: `getItemByDatabaseId`.
+    pub fn item_by_database_id(&self, id: u64) -> Option<&Item> {
+        self.items.iter().find(|i| i.record.id == id)
+    }
+
     /// Java: `getItems().remove(item)`, by virtual id. The strip is rebuilt by the next
     /// [`Inventory::get_view`].
     pub fn take_item(&mut self, virtual_id: i32) -> Option<Item> {

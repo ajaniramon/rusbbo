@@ -54,3 +54,21 @@ fn tick(world: &World) {
         }
     }
 }
+
+/// Java: `GameScheduler.getInstance().getService().schedule(task, delay)`: runs `task` once after
+/// `delay` on the runtime. The task takes its locks itself, briefly, following the lock order.
+/// Does nothing outside a runtime (unit tests).
+pub fn schedule(world: &World, delay: Duration, task: impl FnOnce(&World) + Send + 'static) {
+    let (Some(world), Ok(rt)) = (world.arc(), tokio::runtime::Handle::try_current()) else {
+        return;
+    };
+    let world = Arc::downgrade(&world);
+    rt.spawn(async move {
+        if !delay.is_zero() {
+            tokio::time::sleep(delay).await;
+        }
+        if let Some(world) = world.upgrade() {
+            task(&world);
+        }
+    });
+}
