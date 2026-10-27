@@ -9,8 +9,8 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use havana_storage::{
     CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
-    MessengerCategory, MessengerMessage, PublicItem, Room, RoomCategory, RoomModel, Store, User,
-    Walkway,
+    MessengerCategory, MessengerMessage, PublicItem, Room, RoomCategory, RoomModel, RoomVote,
+    Store, User, Walkway,
 };
 use mysql::prelude::Queryable;
 use mysql::{Opts, Pool, Row};
@@ -52,11 +52,14 @@ fn main() -> Result<()> {
     let pages = import_catalogue(&mut conn, &store)?;
     let (definitions, items) = import_items(&mut conn, &store)?;
     let messenger = import_messenger(&mut conn, &store)?;
+    let room_rights = import_room_rights(&mut conn, &store)?;
+    let texts = import_texts(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
-         {messenger} messenger rows",
+         {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
+         {texts} external texts",
         cli.out.display()
     );
     Ok(())
@@ -192,6 +195,59 @@ fn import_rooms(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
         };
         w.put_room(&room)
             .with_context(|| format!("room {}", room.id))?;
+    }
+    // The next id the Java INSERT (room kiosk) would hand out.
+    if let Some(next) = auto_increment(conn, "rooms")? {
+        w.set_room_auto_increment(u32::try_from(next).context("rooms AUTO_INCREMENT")?)?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// The table's `AUTO_INCREMENT` counter, if it has one.
+fn auto_increment(conn: &mut mysql::PooledConn, table: &str) -> Result<Option<u64>> {
+    let next: Option<Option<u64>> = conn.exec_first(
+        "SELECT AUTO_INCREMENT FROM information_schema.TABLES \
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+        (table,),
+    )?;
+    Ok(next.flatten())
+}
+
+/// `rooms_rights`, `rooms_bans` and `users_room_votes` (Java: `RoomRightsDao`, `RoomBanDao`,
+/// `RoomVoteDao`). Returns the number of rows copied.
+fn import_room_rights(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let mut w = store.write()?;
+    let rights: Vec<(u32, u32)> = conn.query("SELECT room_id, user_id FROM rooms_rights")?;
+    for (room_id, user_id) in &rights {
+        w.put_room_rights(*room_id, *user_id)?;
+    }
+    let bans: Vec<(u32, u32, i64)> =
+        conn.query("SELECT room_id, user_id, expire_at FROM rooms_bans")?;
+    for (room_id, user_id, expire_at) in &bans {
+        w.put_room_ban(*room_id, *user_id, *expire_at)?;
+    }
+    let votes: Vec<(u32, u32, i32, i64)> =
+        conn.query("SELECT user_id, room_id, vote, expire_time FROM users_room_votes")?;
+    for (user_id, room_id, vote, expire_time) in &votes {
+        w.put_room_vote(&RoomVote {
+            user_id: *user_id,
+            room_id: *room_id,
+            vote: *vote,
+            expire_time: *expire_time,
+        })?;
+    }
+    w.commit()?;
+    Ok(rights.len() + bans.len() + votes.len())
+}
+
+/// `external_texts` (Java: `SettingsDao.getTexts`), in table order so the last row of an entry
+/// wins, as in Java's map.
+fn import_texts(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<(String, String)> = conn.query("SELECT entry, text FROM external_texts")?;
+    let mut w = store.write()?;
+    for (entry, text) in &rows {
+        w.put_external_text(entry, text)?;
     }
     w.commit()?;
     Ok(rows.len())

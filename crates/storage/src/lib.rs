@@ -13,7 +13,9 @@ mod catalogue;
 mod items;
 mod messenger;
 mod records;
+mod room_rights;
 mod rooms;
+mod texts;
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -26,6 +28,7 @@ pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSal
 pub use items::{Item, ItemDefinition};
 pub use messenger::{MessengerCategory, MessengerMessage, SEARCH_LIMIT};
 pub use records::User;
+pub use room_rights::RoomVote;
 pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
 
 /// Bump when a record layout or table changes, and add a migration in [`Store::open`].
@@ -103,6 +106,8 @@ impl Store {
             catalogue::create_tables(&tx)?;
             items::create_tables(&tx)?;
             messenger::create_tables(&tx)?;
+            room_rights::create_tables(&tx)?;
+            texts::create_tables(&tx)?;
         }
         tx.commit()?;
         store.check_version()?;

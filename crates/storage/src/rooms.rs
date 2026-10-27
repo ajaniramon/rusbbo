@@ -1,6 +1,9 @@
 //! Rooms area: `rooms`, `rooms_models`, `rooms_categories`, `public_items` and
 //! `public_roomwalkways` (Java: `RoomDao`, `RoomModelDao`, `NavigatorDao` categories,
-//! `PublicRoomsDao`).
+//! `PublicRoomsDao`). Rights, bans and votes are in `room_rights.rs`.
+//!
+//! Room ids follow the table's `AUTO_INCREMENT` counter, which the importer copies, so a room
+//! made with the room kiosk gets the id the Java server's `INSERT INTO rooms` would produce.
 //!
 //! Records keep the MariaDB columns the Java server reads. Nullable integer columns are stored as
 //! the value JDBC `getInt` returns for them (0 for NULL); nullable text columns stay `Option`.
@@ -27,6 +30,9 @@ const PUBLIC_ITEMS_BY_MODEL: TableDefinition<(&str, u32), ()> =
     TableDefinition::new("public_items_by_model");
 /// `public_roomwalkways` has no key in MariaDB; rows are kept in import order.
 const WALKWAYS: TableDefinition<u32, &[u8]> = TableDefinition::new("public_roomwalkways");
+/// Counters of this area; for now only `rooms_auto_increment`.
+const ROOMS_META: TableDefinition<&str, u32> = TableDefinition::new("rooms_meta");
+const AUTO_INCREMENT: &str = "rooms_auto_increment";
 
 pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
     tx.open_table(ROOMS)?;
@@ -37,6 +43,10 @@ pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
     tx.open_table(PUBLIC_ITEMS)?;
     tx.open_table(PUBLIC_ITEMS_BY_MODEL)?;
     tx.open_table(WALKWAYS)?;
+    let mut meta = tx.open_table(ROOMS_META)?;
+    if meta.get(AUTO_INCREMENT)?.is_none() {
+        meta.insert(AUTO_INCREMENT, 1)?;
+    }
     Ok(())
 }
 
@@ -254,6 +264,29 @@ impl Store {
         Ok(Some(room))
     }
 
+    /// Inserts a new room under the next auto-increment id and returns that id (Java:
+    /// `NavigatorDao.createRoom`, which reads `getGeneratedKeys`).
+    pub fn create_room(&self, room: &Room) -> Result<u32> {
+        let mut w = self.write()?;
+        let id = w.insert_room(room)?;
+        w.commit()?;
+        Ok(id)
+    }
+
+    /// Java: `RoomDao.delete`: removes the row (and its index entries) only; rights, votes and
+    /// items of the room stay, as in Java.
+    pub fn delete_room(&self, id: u32) -> Result<()> {
+        let mut w = self.write()?;
+        if let Some(old) = w.room(id)? {
+            w.tx.open_table(ROOMS_BY_OWNER)?
+                .remove((old.owner_id, old.id))?;
+            w.tx.open_table(ROOMS_BY_CATEGORY)?
+                .remove((old.category, old.id))?;
+            w.tx.open_table(ROOMS)?.remove(id)?;
+        }
+        w.commit()
+    }
+
     /// Every room model, by id (Java: `RoomModelDao.getModels`).
     pub fn room_models(&self) -> Result<Vec<RoomModel>> {
         all(self, ROOM_MODELS)
@@ -313,6 +346,35 @@ impl Writer {
         self.tx
             .open_table(ROOMS)?
             .insert(room.id, bytes.as_slice())?;
+        // Like AUTO_INCREMENT, never hand out an id at or below one that was used.
+        let mut meta = self.tx.open_table(ROOMS_META)?;
+        let next = meta.get(AUTO_INCREMENT)?.map(|v| v.value()).unwrap_or(1);
+        if room.id >= next {
+            meta.insert(AUTO_INCREMENT, room.id + 1)?;
+        }
+        Ok(())
+    }
+
+    /// Inserts `room` under the next auto-increment id (its own `id` is ignored) and returns the
+    /// id.
+    pub fn insert_room(&mut self, room: &Room) -> Result<u32> {
+        let id = {
+            let mut meta = self.tx.open_table(ROOMS_META)?;
+            let id = meta.get(AUTO_INCREMENT)?.map(|v| v.value()).unwrap_or(1);
+            meta.insert(AUTO_INCREMENT, id + 1)?;
+            id
+        };
+        let mut created = room.clone();
+        created.id = id;
+        self.put_room(&created)?;
+        Ok(id)
+    }
+
+    /// Sets the next id `insert_room` hands out (the importer copies the table's counter).
+    pub fn set_room_auto_increment(&mut self, next: u32) -> Result<()> {
+        self.tx
+            .open_table(ROOMS_META)?
+            .insert(AUTO_INCREMENT, next)?;
         Ok(())
     }
 
@@ -544,6 +606,37 @@ mod tests {
         assert_eq!(ids(store.rooms_by_owner(2).unwrap()), [11, 12, 13]);
         assert_eq!(store.room_count_by_category(112).unwrap(), 2);
         assert_eq!(store.room_count_by_category(114).unwrap(), 2);
+    }
+
+    #[test]
+    fn created_rooms_follow_auto_increment() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::create(&dir.path().join("t.redb")).unwrap();
+        let mut w = store.write().unwrap();
+        w.put_room(&Room {
+            id: 7,
+            ..Default::default()
+        })
+        .unwrap();
+        w.set_room_auto_increment(1000).unwrap();
+        w.commit().unwrap();
+        let new = Room {
+            owner_id: 1,
+            category: 2,
+            name: "Trace Flat".into(),
+            ..Default::default()
+        };
+        assert_eq!(store.create_room(&new).unwrap(), 1000);
+        assert_eq!(store.create_room(&new).unwrap(), 1001);
+        assert_eq!(store.room(1000).unwrap().unwrap().name, "Trace Flat");
+        assert_eq!(store.rooms_by_owner(1).unwrap().len(), 2);
+
+        // Deleting removes the index entries; ids are not reused.
+        store.delete_room(1001).unwrap();
+        assert!(store.room(1001).unwrap().is_none());
+        assert_eq!(store.rooms_by_owner(1).unwrap().len(), 1);
+        assert_eq!(store.room_count_by_category(2).unwrap(), 1);
+        assert_eq!(store.create_room(&new).unwrap(), 1002);
     }
 
     #[test]
