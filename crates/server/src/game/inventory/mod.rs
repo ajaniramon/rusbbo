@@ -55,7 +55,8 @@ impl Inventory {
             if !item.is_visible() {
                 continue;
             }
-            // TODO(trade): skip the items in the player's trade window.
+            // Java also skips the items in the player's trade window; those have `is_trading`
+            // set, which `is_visible` covers.
             if item.record.order_id != order_id {
                 item.record.order_id = order_id;
                 if let Err(e) = store.put_item(&item.record) {
@@ -113,6 +114,27 @@ impl Inventory {
     /// Java: `getItem(itemId)`: by virtual id.
     pub fn item(&self, virtual_id: i32) -> Option<&Item> {
         self.items.iter().find(|i| i.virtual_id == virtual_id)
+    }
+
+    /// Java: `ItemDao.updateTradeStates(items, in_trade)` for the items of the hand with these
+    /// row ids: puts them in or takes them out of a trade window.
+    pub fn set_trading(&mut self, store: &Store, record_ids: &[u64], trading: bool) {
+        for item in self
+            .items
+            .iter_mut()
+            .filter(|i| record_ids.contains(&i.record.id))
+        {
+            item.record.is_trading = trading;
+            if let Err(e) = store.update_item(&item.record) {
+                error!(item = item.record.id, "saving trade state: {e}");
+            }
+        }
+    }
+
+    /// Takes an item out of the hand by its row id (a trade moves items between hands).
+    pub fn take_record(&mut self, record_id: u64) -> Option<Item> {
+        let index = self.items.iter().position(|i| i.record.id == record_id)?;
+        Some(self.items.remove(index))
     }
 
     /// Java: `getItems().remove(item)`, by virtual id. The strip is rebuilt by the next

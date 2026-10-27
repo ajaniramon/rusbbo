@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use crate::game::now;
 use crate::game::pathfinder::Position;
+use crate::game::room::trade::TradeState;
 use crate::session::Session;
 
 /// Java: `StatusType`.
@@ -221,6 +222,10 @@ pub struct EntityDetails {
     pub club_expiration: i64,
     /// Java: `PlayerDetails.getMachineId`, for `Room.hasVoted`.
     pub machine_id: String,
+    /// Java: `PlayerDetails.isTradeEnabled`. TODO(rcon): changes while the player is in a room.
+    pub trade_enabled: bool,
+    /// Java: `PlayerDetails.getTradeBanExpiration`.
+    pub trade_ban_expiration: i64,
 }
 
 impl EntityDetails {
@@ -261,6 +266,15 @@ pub struct RoomEntity {
     pub afk_timer: i64,
     pub sleep_timer: i64,
     pub chat_bubble_timer: i64,
+    /// Java: `RoomPlayer`'s trade fields.
+    pub trade: TradeState,
+}
+
+impl EntityDetails {
+    /// Java: `PlayerDetails.isTradeBanned`.
+    pub fn is_trade_banned(&self) -> bool {
+        self.trade_ban_expiration > 0 && self.trade_ban_expiration > now()
+    }
 }
 
 impl RoomEntity {
@@ -295,6 +309,7 @@ impl RoomEntity {
             afk_timer: 0,
             sleep_timer: 0,
             chat_bubble_timer: -1,
+            trade: TradeState::default(),
         }
     }
 

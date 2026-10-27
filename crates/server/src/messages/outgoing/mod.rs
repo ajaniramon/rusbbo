@@ -12,5 +12,6 @@ pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;
+pub mod trade;
 pub mod user;
 pub mod user_badges;

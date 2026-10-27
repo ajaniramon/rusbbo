@@ -12,6 +12,7 @@ pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;
+pub mod trade;
 pub mod user;
 
 use super::Handler;
@@ -104,6 +105,14 @@ pub fn handler(header: u16) -> Option<Handler> {
         101 => catalogue::get_catalog_index,
         102 => catalogue::get_catalogue_page,
         65 | 404 => inventory::get_strip,
+        // registerTradePackets
+        71 => trade::trade_open,
+        72 => trade::trade_add_item,
+        70 => trade::trade_close,
+        69 => trade::trade_accept,
+        68 | 403 => trade::trade_unaccept,
+        402 => trade::trade_confirm_accept,
+        405 => trade::trade_remove_item,
         _ => return None,
     })
 }

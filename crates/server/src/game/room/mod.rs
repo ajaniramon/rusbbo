@@ -17,6 +17,9 @@ pub mod items;
 pub mod mapping;
 pub mod model;
 pub mod tasks;
+pub mod trade;
+#[cfg(test)]
+mod trade_tests;
 pub mod walkways;
 
 use std::sync::{Arc, Weak};
@@ -66,6 +69,10 @@ pub enum Deferred {
     /// The user was kicked: forget which rooms they may enter (Java: `RoomPlayer.kick` resets
     /// `authenticateId`).
     ClearAuthentication { session: Arc<Session> },
+    /// A trade was cancelled: send both hands, then release the offered items.
+    TradeClosed { sides: [trade::TradeSide; 2] },
+    /// A trade completed: the offered items change hands, then both hands are sent.
+    TradeFinished { sides: [trade::TradeSide; 2] },
 }
 
 /// Java: `VoteData`, a stored vote with what `hasVoted` compares.
@@ -354,6 +361,9 @@ impl Room {
         self.data.visitors_now = self.players();
         self.send(out_user::logout(e.instance_id));
         self.try_dispose(world);
+        // Java: RoomPlayer.reset() closes the trade window.
+        let trade = std::mem::take(&mut e.trade);
+        self.close_trade_of(&e.session.clone(), e.details.user_id, trade);
 
         // Java: RoomEntity.reset() + RoomPlayer.reset().
         e.statuses.clear();
@@ -935,6 +945,8 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                     enter_room(world, &session, target, destination, true);
                 }
             }
+            Deferred::TradeClosed { sides } => trade::run_closed(world, sides),
+            Deferred::TradeFinished { sides } => trade::run_finished(world, sides),
             Deferred::ClearAuthentication { session } => {
                 // TODO(items): also the teleporter authentications.
                 session.player.lock().authenticate_id = None;
@@ -986,6 +998,8 @@ pub fn enter_room(
             rank: user.rank,
             club_expiration: user.club_expiration,
             machine_id: user.machine_id.clone(),
+            trade_enabled: user.trade_enabled,
+            trade_ban_expiration: user.trade_ban_expiration,
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;

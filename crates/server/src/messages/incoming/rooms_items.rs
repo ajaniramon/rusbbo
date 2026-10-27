@@ -13,6 +13,7 @@ use crate::game::pathfinder::Position;
 use crate::game::room::furniture::blocks_interaction;
 use crate::game::room::items::{Behaviour, Item, is_numeric};
 use crate::game::room::mapping::is_valid_tile;
+use crate::game::room::trade::show_trade_ban_alert;
 use crate::game::room::{RoomRef, current_room};
 use crate::messages::Malformed;
 use crate::messages::outgoing::{alerts, inventory as out_inventory, rooms_items as out};
@@ -84,7 +85,9 @@ pub fn place_stuff(
             return Ok(());
         }
         if user.trade_ban_expiration > 0 && user.trade_ban_expiration > now() {
-            session.send(alerts::alert(&trade_ban_alert(user.trade_ban_expiration)));
+            session.send(alerts::alert(&show_trade_ban_alert(
+                user.trade_ban_expiration,
+            )));
             return Ok(());
         }
     }
@@ -158,17 +161,6 @@ pub fn place_stuff(
         r.reset_room_timer(world, idx);
     }
     Ok(())
-}
-
-/// Java: `RoomTradeManager.showTradeBanAlert`.
-fn trade_ban_alert(expiration: i64) -> String {
-    let uptime = (expiration - now()) * 1000;
-    let days = uptime / (1000 * 60 * 60 * 24);
-    let hours = (uptime - days * (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
-    format!(
-        "You are temporarily banned from trading.<br>The ban will expire in {days} day(s) and \
-         {hours} hours(s)"
-    )
 }
 
 /// Java: `MOVESTUFF`: id, x, y and rotation of a floor item.
