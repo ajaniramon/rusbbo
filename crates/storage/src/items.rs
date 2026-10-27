@@ -343,6 +343,18 @@ mod tests {
     }
 
     #[test]
+    fn teleporters_link_both_ways() {
+        let (_dir, store) = temp_store();
+        let mut w = store.write().unwrap();
+        w.add_teleporter_link(2, 1).unwrap();
+        w.add_teleporter_link(1, 2).unwrap();
+        w.commit().unwrap();
+        assert_eq!(store.teleporter_link(1).unwrap(), Some(2));
+        assert_eq!(store.teleporter_link(2).unwrap(), Some(1));
+        assert_eq!(store.teleporter_link(3).unwrap(), None);
+    }
+
+    #[test]
     fn room_index_follows_moves_and_deletes() {
         let (_dir, store) = temp_store();
         let mut w = store.write().unwrap();

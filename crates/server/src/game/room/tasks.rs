@@ -16,11 +16,11 @@ use havana_protocol::Message;
 use crate::game::item::roller;
 use crate::game::now;
 use crate::game::pathfinder::{Position, walk_direction};
-use crate::game::room::items::Behaviour;
-use crate::messages::outgoing::rooms_items::{self as out_items, Slide};
 use crate::game::room::entity::{RoomEntity, StatusType};
+use crate::game::room::items::Behaviour;
 use crate::game::room::mapping::is_valid_tile;
 use crate::game::room::{Room, RoomHandle, run_deferred};
+use crate::messages::outgoing::rooms_items::{self as out_items, Slide};
 use crate::messages::outgoing::rooms_user as out_user;
 use crate::world::World;
 

@@ -409,6 +409,64 @@ pub(crate) mod tests {
         )
     }
 
+    /// The interactor traces' items (`flat-roller`, `flat-gates`, `flat-teleport`,
+    /// `flat-postit`), as the golden snapshot defines them.
+    pub fn queue_tile1() -> Arc<ItemDefinition> {
+        definition(
+            (1566, "queue_tile1", 465),
+            (1, 1, 0.45),
+            3,
+            "can_stand_on_top,can_stack_on_top,roller",
+            "default",
+            "0,2,4,6",
+        )
+    }
+
+    pub fn exe_gate() -> Arc<ItemDefinition> {
+        definition(
+            (526, "exe_gate", 10067),
+            (1, 1, 0.0),
+            2,
+            "solid,requires_rights_for_interaction,gate",
+            "default",
+            "0,2",
+        )
+    }
+
+    pub fn one_way_door() -> Arc<ItemDefinition> {
+        definition(
+            (1273, "one_way_door*1", 9800),
+            (1, 1, 0.0),
+            2,
+            "one_way_gate",
+            "default",
+            "0,2,4,6",
+        )
+    }
+
+    pub fn door() -> Arc<ItemDefinition> {
+        definition(
+            (100, "door", 535),
+            (1, 1, 0.0),
+            3,
+            "solid,requires_touching_for_interaction,custom_data_true_false,teleporter,\
+             redirect_rotation_2",
+            "teleport",
+            "2,4",
+        )
+    }
+
+    pub fn post_it() -> Arc<ItemDefinition> {
+        definition(
+            (244, "post.it", 97),
+            (0, 0, 0.0),
+            2,
+            "wall_item,requires_rights_for_interaction,post_it",
+            "default",
+            "",
+        )
+    }
+
     /// A hand item of `definition` turned into a room item at `x,y` facing `rotation`.
     pub fn flat_item(
         virtual_id: i32,

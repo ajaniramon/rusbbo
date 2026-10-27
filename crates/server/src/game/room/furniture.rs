@@ -125,7 +125,8 @@ impl Room {
             flat.record.user_id = Some(owner);
             flat.record.order_id = -1;
         }
-        // TODO(rollers): rolling data. TODO(items): lastPlacedTime.
+        item.rolling = None;
+        // TODO(items): lastPlacedTime.
         reset_extra_data(&mut item, false);
         let wall = item.has(Behaviour::WallItem);
         if item.has(Behaviour::Teleporter) {
@@ -161,7 +162,8 @@ impl Room {
             item.position.x = x;
             item.position.y = y;
             item.position.set_rotation(rotation);
-            // TODO(rollers): rolling data. TODO(items): lastPlacedTime.
+            item.rolling = None;
+            // TODO(items): lastPlacedTime.
             reset_extra_data(item, false);
         }
         let wall = self.mapping.items[idx].has(Behaviour::WallItem);
@@ -171,7 +173,18 @@ impl Room {
             self.send_map();
             self.send(out::move_flooritem(&self.mapping.items[idx]));
         }
-        // TODO(teleporters): moving a teleporter resets the users teleporting with it.
+        if !is_rotation && self.mapping.items[idx].has(Behaviour::Teleporter) {
+            // Whoever stood in the teleporter stops teleporting. (Java also compares the
+            // player's target teleporter, a database id, with this item's virtual id.)
+            for e in 0..self.entities.len() {
+                if self.entities[e].position == old {
+                    self.entities[e].walking_allowed = true;
+                    let session = self.entities[e].session.clone();
+                    self.deferred
+                        .push(super::Deferred::StopTeleporting { session });
+                }
+            }
+        }
         if !wall {
             let tiles = self.mapping.items[idx].affected_tiles();
             self.update_entities(&old_tiles, &tiles);
@@ -277,7 +290,7 @@ impl Room {
 
     /// Java: `InteractionType.getTrigger().onInteract(player, room, item, status)` for the
     /// ported interactors: `DefaultInteractor` (also what `ChairInteractor` and `BedInteractor`
-    /// do). TODO(items): teleporters, vending machines, lert, scoreboards, fortune wheel, pets,
+    /// do); teleporters are `game::item::interactors::teleport`. TODO(items): vending machines, lert, scoreboards, fortune wheel, pets,
     /// pool, games, totems, idol, step light, love randomizer and multi height interactors.
     pub fn interact(&mut self, world: &World, idx: usize) {
         match self.mapping.items[idx].interaction {
@@ -583,6 +596,75 @@ mod tests {
         map.add_item_tiles(sofa);
         assert!(map.highest_item(Position::new(9, 10)).is_none());
         assert_eq!(map.highest_item(Position::new(5, 9)).unwrap().virtual_id, 3);
+    }
+
+    /// traces/flat-gates.json: a gate at (6,3) and a one-way door at (6,9) facing east.
+    #[test]
+    fn gates_are_solid_while_closed() {
+        use crate::game::item::roller::tests::model_a;
+        use crate::game::room::items::tests::{exe_gate, one_way_door};
+
+        let items = vec![
+            flat_item(2, exe_gate(), (6, 3, 0)),
+            flat_item(1, one_way_door(), (6, 9, 2)),
+        ];
+        let mut map = RoomMapping::new(model_a(), false);
+        map.items = items;
+        map.regenerate(&[]);
+        let walker = |x, y| Walker {
+            instance_id: 0,
+            position: Position::new(x, y),
+            swimming: false,
+            has_pool_figure: false,
+        };
+        // Closed gate: no path onto it.
+        assert!(!is_valid_tile(
+            &map,
+            Some(&walker(3, 5)),
+            Position::new(6, 3)
+        ));
+        map.items[0].custom_data = "1".into();
+        assert!(map.items[0].is_gate_open());
+        assert!(is_valid_tile(
+            &map,
+            Some(&walker(3, 5)),
+            Position::new(6, 3)
+        ));
+        let path: Vec<(i32, i32)> = make_path(
+            &map,
+            &walker(3, 5),
+            Position::new(3, 5),
+            Position::new(6, 3),
+        )
+        .iter()
+        .map(|p| (p.x, p.y))
+        .collect();
+        assert_eq!(path, [(4, 4), (5, 3), (6, 3)]);
+
+        // The one-way door is entered from (7,9) and left at (5,9).
+        let door = map.items[1].position;
+        assert_eq!(door.square_in_front(), Position::new(7, 9));
+        assert_eq!(door.square_behind(), Position::new(5, 9));
+        // Closed, the way back from behind goes around it.
+        let from = walker(5, 9);
+        assert!(!is_valid_tile(&map, Some(&from), door));
+        let path: Vec<(i32, i32)> = make_path(&map, &from, from.position, Position::new(7, 9))
+            .iter()
+            .map(|p| (p.x, p.y))
+            .collect();
+        assert_eq!(path, [(6, 10), (7, 9)]);
+        // Open, it can be walked through.
+        map.items[1].custom_data = "1".into();
+        let path: Vec<(i32, i32)> = make_path(
+            &map,
+            &walker(7, 9),
+            Position::new(7, 9),
+            door.square_behind(),
+        )
+        .iter()
+        .map(|p| (p.x, p.y))
+        .collect();
+        assert_eq!(path, [(6, 9), (5, 9)]);
     }
 
     #[test]

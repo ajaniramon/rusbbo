@@ -89,12 +89,16 @@ fn front_roller(room: &Room, items: &[usize]) -> Option<usize> {
     items
         .iter()
         .copied()
-        .filter(|&i| room.mapping.items[i].has(Behaviour::Roller))
-        .last()
+        .rfind(|&i| room.mapping.items[i].has(Behaviour::Roller))
 }
 
 /// Java: `ItemRollingAnalysis.canRoll(item, roller, room)`.
-pub fn item_can_roll(room: &mut Room, item: usize, roller: usize, stack_limit: i64) -> Option<Position> {
+pub fn item_can_roll(
+    room: &mut Room,
+    item: usize,
+    roller: usize,
+    stack_limit: i64,
+) -> Option<Position> {
     let roller_item = &room.mapping.items[roller];
     room.mapping.tile(roller_item.position)?;
     let it = &room.mapping.items[item];
@@ -171,7 +175,12 @@ pub fn item_can_roll(room: &mut Room, item: usize, roller: usize, stack_limit: i
 }
 
 /// Java: `EntityRollingAnalysis.canRoll(entity, roller, room)`.
-pub fn entity_can_roll(room: &mut Room, e: usize, roller: usize, stack_limit: i64) -> Option<Position> {
+pub fn entity_can_roll(
+    room: &mut Room,
+    e: usize,
+    roller: usize,
+    stack_limit: i64,
+) -> Option<Position> {
     let entity = &room.entities[e];
     let position = entity.position;
     let tile = room.mapping.tile(position)?;
@@ -208,7 +217,8 @@ pub fn entity_can_roll(room: &mut Room, e: usize, roller: usize, stack_limit: i6
                 if front_item.position.z < front_roller_item.position.z {
                     continue;
                 }
-                if current.is_some_and(|c| room.mapping.items[c].virtual_id == front_item.virtual_id)
+                if current
+                    .is_some_and(|c| room.mapping.items[c].virtual_id == front_item.virtual_id)
                 {
                     continue;
                 }
@@ -295,4 +305,85 @@ pub fn entity_do_roll(room: &mut Room, e: usize, roller: usize, mut next: Positi
     entity.position.z = next.z;
     room.mapping.remove_entity(from, instance_id);
     room.mapping.add_entity(next, instance_id);
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::sync::Arc;
+
+    use super::*;
+    use crate::game::room::items::tests::{chair_plasto, flat_item, queue_tile1};
+    use crate::game::room::model::RoomModel;
+
+    pub const MODEL_A: &str = "xxxxxxxxxxxx|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxxxxxxxxxx|xxxxxxxxxxxx";
+
+    pub fn model_a() -> Arc<RoomModel> {
+        Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+            model_id: "model_a".into(),
+            model_name: "model_a".into(),
+            door_x: 3,
+            door_y: 5,
+            door_dir: 2,
+            heightmap: MODEL_A.into(),
+            ..Default::default()
+        }))
+    }
+
+    /// traces/flat-roller.json: the roller at (6,6) facing south.
+    fn roller_flat(chair: bool) -> Room {
+        let mut items = vec![flat_item(1, queue_tile1(), (6, 6, 4))];
+        if chair {
+            let mut chair = flat_item(2, chair_plasto(), (6, 6, 0));
+            chair.position.z = 0.45;
+            items.push(chair);
+        }
+        Room::for_test(1, model_a(), items)
+    }
+
+    #[test]
+    fn a_user_on_the_roller_rolls_one_square_on() {
+        let mut room = roller_flat(false);
+        let mut at = Position::new(6, 6);
+        at.z = 0.45;
+        at.set_rotation(2);
+        let (e, _rx) = room.add_test_user(at);
+        let next = entity_can_roll(&mut room, e, 0, 8).unwrap();
+        assert_eq!((next.x, next.y, next.z), (6, 7, 0.0));
+        entity_do_roll(&mut room, e, 0, next);
+        let user = &room.entities[e];
+        assert_eq!((user.position.x, user.position.y), (6, 7));
+        assert_eq!(user.position.rotation(), 2);
+        let rolling = user.rolling.unwrap();
+        assert_eq!((rolling.from.z, rolling.display_height), (0.45, 0.0));
+        assert_eq!(rolling.roller, 1);
+        assert_eq!(room.mapping.entire_entities(Position::new(6, 7)), [0]);
+        assert!(room.mapping.entire_entities(Position::new(6, 6)).is_empty());
+    }
+
+    #[test]
+    fn walking_users_and_users_off_the_roller_stay() {
+        let mut room = roller_flat(false);
+        let (e, _rx) = room.add_test_user(Position::new(6, 6));
+        room.entities[e].is_walking = true;
+        assert!(entity_can_roll(&mut room, e, 0, 8).is_none());
+        let (e, _rx) = room.add_test_user(Position::new(7, 6));
+        assert!(entity_can_roll(&mut room, e, 0, 8).is_none());
+    }
+
+    #[test]
+    fn an_item_on_the_roller_rolls_unless_someone_is_in_front() {
+        let mut room = roller_flat(true);
+        let next = item_can_roll(&mut room, 1, 0, 8).unwrap();
+        assert_eq!((next.x, next.y, next.z), (6, 7, 0.0));
+        assert!(room.mapping.items[1].rolling.is_some());
+        item_do_roll(&mut room, 1, next);
+        assert_eq!(room.mapping.items[1].position, Position::new(6, 7));
+
+        let mut room = roller_flat(true);
+        let (_, _rx) = room.add_test_user(Position::new(6, 7));
+        assert!(item_can_roll(&mut room, 1, 0, 8).is_none());
+        assert!(room.mapping.items[1].rolling.is_none());
+        // The roller never rolls itself.
+        assert!(item_can_roll(&mut room, 0, 0, 8).is_none());
+    }
 }

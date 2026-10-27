@@ -2,9 +2,9 @@
 
 pub mod base;
 pub mod interactors;
-pub mod roller;
 mod manager;
 mod owned;
+pub mod roller;
 
 pub use manager::ItemManager;
 pub use owned::{DEFAULT_ROOMDIMMER_CUSTOM_DATA, Item};

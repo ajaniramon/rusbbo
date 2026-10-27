@@ -86,7 +86,6 @@ pub fn get_catalogue_page(
 /// Java: `GRPC` (purchase). The first int is ignored, the second is the catalogue item id.
 ///
 /// TODO(maintenance): `PlayerManager.isMaintenance` answers `INFO_HOTEL_CLOSING`.
-/// TODO(gifts): `isGift` purchases (gift note, `createGift`, receiver delivery).
 /// TODO(collectables): collectable prices and page rules.
 /// TODO(transactions): `TransactionDao.createTransaction` for every purchase.
 /// TODO(badges): `catalogue_sale_badges` rewards via the badge manager.

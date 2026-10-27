@@ -290,6 +290,8 @@ mod tests {
             teleport_to: None,
             swim_to: None,
             flat: None,
+            rolling: None,
+            current_roll_blocked: false,
         };
         // From traces/public-room.json: "QNH" + "r697\x02broom_bench1\x02PAHPAPA" ...
         assert_eq!(

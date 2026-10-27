@@ -9,14 +9,14 @@ use havana_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;
+use crate::game::catalogue::CatalogueManager;
+use crate::game::item::interactors::teleport;
 use crate::game::now;
 use crate::game::pathfinder::Position;
+use crate::game::player::Player;
 use crate::game::room::furniture::blocks_interaction;
-use crate::game::item::interactors::teleport;
 use crate::game::room::items::{Behaviour, Interaction, Item, is_numeric};
 use crate::game::room::mapping::is_valid_tile;
-use crate::game::catalogue::CatalogueManager;
-use crate::game::player::Player;
 use crate::game::room::{Room, RoomRef, current_room};
 use crate::messages::Malformed;
 use crate::messages::outgoing::{
@@ -350,7 +350,10 @@ pub fn set_item_data(
         (Some(colour), Some(text)) => (colour.to_string(), text.to_string()),
         _ => ("FFFFFF".to_string(), String::new()),
     };
-    if !r.has_rights(user_id, true) && !is_mod && !old_text.is_empty() && !message.starts_with(&old_text)
+    if !r.has_rights(user_id, true)
+        && !is_mod
+        && !old_text.is_empty()
+        && !message.starts_with(&old_text)
     {
         return Ok(());
     }
@@ -599,6 +602,9 @@ pub fn move_stuff(
     if let Some(e) = r.entity_index(session.id) {
         r.reset_room_timer(world, e);
     }
+    let deferred = r.take_deferred();
+    drop(r);
+    crate::game::room::run_deferred(world, deferred);
     Ok(())
 }
 

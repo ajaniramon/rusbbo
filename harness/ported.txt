@@ -5,6 +5,10 @@ flat-create
 flat-decor
 flat-delete
 flat-furni
+flat-gates
+flat-postit
+flat-present
+flat-teleport
 flat-visit
 login
 login-encrypted

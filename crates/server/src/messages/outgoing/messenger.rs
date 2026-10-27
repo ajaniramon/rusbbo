@@ -175,6 +175,13 @@ mod tests {
     const FIGURE_1: &str = "hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61";
     const FIGURE_2: &str = "hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33";
 
+    /// traces/flat-teleport.json: the teleporter to flat 1001.
+    #[test]
+    fn room_forward_matches_trace() {
+        let msg = room_forward(false, 1001);
+        assert_eq!((msg.header, msg.body.as_slice()), (286, &b"HYzC"[..]));
+    }
+
     fn user(id: u32, name: &str, motto: &str, figure: &str, male: bool) -> FriendView {
         FriendView {
             user_id: id,

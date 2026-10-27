@@ -29,5 +29,8 @@ mod tests {
         // traces/flat-visit.json: wrong room password.
         assert_eq!(localised_error(-100002).body, b"fhFF");
         assert_eq!(alert("hi").body, b"hi\x02");
+        // traces/flat-present.json: a gift for an unknown user.
+        let msg = no_user_found("nobody123");
+        assert_eq!((msg.header, msg.body.as_slice()), (76, &b"nobody123"[..]));
     }
 }

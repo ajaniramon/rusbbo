@@ -70,7 +70,10 @@ pub fn idata(item: &Item, colour: &str, text: &str) -> Message {
     let body = if item.has(Behaviour::PostIt) {
         body.raw(&latin1(colour)).raw(b" ").string(&latin1(text))
     } else {
-        body.string(&latin1(&format!("{} {}", item.virtual_id, item.custom_data)))
+        body.string(&latin1(&format!(
+            "{} {}",
+            item.virtual_id, item.custom_data
+        )))
     };
     Message::new(48, body.build())
 }
@@ -99,7 +102,9 @@ pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide
             .string(format_decimal(item.from_z).as_bytes())
             .string(format_decimal(item.to_z).as_bytes());
     }
-    body = body.int(roller.virtual_id).int(if entity.is_some() { 2 } else { 0 });
+    body = body
+        .int(roller.virtual_id)
+        .int(if entity.is_some() { 2 } else { 0 });
     if let Some(e) = entity {
         body = body
             .int(e.id)
@@ -116,6 +121,71 @@ mod tests {
         bench_armas, chair_plasto, flat_item, lamp_armas, torch,
     };
     use crate::messages::outgoing::rooms;
+
+    /// Bodies from the interactor traces (`flat-gates`, `flat-postit`, `flat-roller`,
+    /// `flat-teleport`).
+    #[test]
+    fn interactor_bodies_match_traces() {
+        use crate::game::room::items::tests::{door, post_it, queue_tile1};
+
+        let msg = change_status(1, 1);
+        assert_eq!((msg.header, msg.body.as_slice()), (312, &b"II"[..]));
+        assert_eq!(change_status(1, 0).body, b"IH");
+
+        let mut sticky = flat_item(2, post_it(), (0, 0, 0));
+        sticky.flat.as_mut().unwrap().record.wall_position = ":w=6,1 l=12,40 r".into();
+        sticky.custom_data = "FFFF33".into();
+        let msg = idata(&sticky, "FFFF33", "");
+        assert_eq!(
+            (msg.header, msg.body.as_slice()),
+            (48, &b"2\x02FFFF33 \x02"[..])
+        );
+        assert_eq!(
+            idata(&sticky, "9CCEFF", "Remember the milk").body,
+            b"2\x029CCEFF Remember the milk\x02"
+        );
+        sticky.custom_data = "9CCEFFRemember the milk".into();
+        let msg = stuff_data_update(&sticky);
+        assert_eq!(
+            (msg.header, msg.body.as_slice()),
+            (85, &b"2\x02QX:w=6,1 l=12,40 r\x029CCEFF\x02"[..])
+        );
+        assert_eq!(
+            place_wallitem(&sticky).body,
+            b"2\x02QX:w=6,1 l=12,40 r\x029CCEFF\x02"
+        );
+
+        let roller = flat_item(1, queue_tile1(), (6, 6, 4));
+        let user = Slide {
+            id: 0,
+            from_z: 0.45,
+            to_z: 0.0,
+        };
+        let msg = slide_object_bundle(&roller, &[], Some(&user));
+        assert_eq!(
+            (msg.header, msg.body.as_slice()),
+            (230, &b"RARARASAHIJH0.45\x020.0\x02"[..])
+        );
+        let chair = Slide {
+            id: 2,
+            from_z: 0.45,
+            to_z: 0.0,
+        };
+        assert_eq!(
+            slide_object_bundle(&roller, &[chair], None).body,
+            b"RARARASAIJ0.45\x020.0\x02IH"
+        );
+        assert_eq!(place_flooritem(&roller).body, b"IYtARARAPA0.0\x02J0\x02M");
+
+        let mut teleporter = flat_item(2, door(), (5, 9, 2));
+        assert_eq!(
+            place_flooritem(&teleporter).body,
+            b"J[EBQAQBJ0.0\x02H0\x02M"
+        );
+        teleporter.custom_data = "2".into();
+        let msg = stuff_data_update(&teleporter);
+        assert_eq!((msg.header, msg.body.as_slice()), (88, &b"2\x022\x02"[..]));
+    }
 
     /// Bodies from `traces/flat-furni.json` and `flat-visit.json`.
     #[test]

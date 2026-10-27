@@ -191,8 +191,7 @@ pub fn try_flat(
     }
     let mut p = session.player.lock();
     // A user who goes elsewhere than where their teleporter leads stops teleporting.
-    if p
-        .authenticate_teleporter
+    if p.authenticate_teleporter
         .is_some_and(|(_, room_id)| room_id != room.id as i32)
     {
         p.authenticate_teleporter = None;

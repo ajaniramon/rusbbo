@@ -66,6 +66,8 @@ pub enum Deferred {
     /// The user was kicked: forget which rooms they may enter (Java: `RoomPlayer.kick` resets
     /// `authenticateId`).
     ClearAuthentication { session: Arc<Session> },
+    /// The user no longer travels to a teleporter (Java: `setAuthenticateTelporterId(-1)`).
+    StopTeleporting { session: Arc<Session> },
 }
 
 /// Java: `VoteData`, a stored vote with what `hasVoted` compares.
@@ -1009,6 +1011,9 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                     enter_room(world, &session, target, destination, true);
                 }
             }
+            Deferred::StopTeleporting { session } => {
+                session.player.lock().authenticate_teleporter = None;
+            }
             Deferred::ClearAuthentication { session } => {
                 let mut p = session.player.lock();
                 p.authenticate_id = None;
@@ -1073,7 +1078,12 @@ pub fn enter_room(
         let mut r = room.lock();
         r.add_entity(world, session, details, destination);
         if let Some((teleporter_id, _)) = teleporter {
-            crate::game::item::interactors::teleport::arrive(world, &mut r, session.id, teleporter_id);
+            crate::game::item::interactors::teleport::arrive(
+                world,
+                &mut r,
+                session.id,
+                teleporter_id,
+            );
         }
         if send_entry {
             session.send(out_rooms::room_ready(r.id(), &r.model.name));
@@ -1108,6 +1118,56 @@ pub fn enter_room(
         r.take_deferred()
     };
     run_deferred(world, deferred);
+}
+
+#[cfg(test)]
+impl Room {
+    /// A loaded room for unit tests: no world, no tasks.
+    pub(crate) fn for_test(owner_id: u32, model: Arc<RoomModel>, items: Vec<items::Item>) -> Room {
+        let data = havana_storage::Room {
+            id: 1000,
+            owner_id,
+            ..Default::default()
+        };
+        let mut mapping = RoomMapping::new(model.clone(), owner_id == 0);
+        mapping.items = items;
+        let mut room = Room {
+            data,
+            model,
+            mapping,
+            rights: Vec::new(),
+            votes: Vec::new(),
+            first_tick: None,
+            entities: Vec::new(),
+            active: true,
+            counter: 0,
+            task: None,
+            roller_task: None,
+            dispose_generation: 0,
+            self_ref: Weak::new(),
+            deferred: Vec::new(),
+        };
+        room.regenerate_map();
+        room
+    }
+
+    /// Puts a user at `position` and returns its index and the receiving end of its messages.
+    pub(crate) fn add_test_user(
+        &mut self,
+        position: Position,
+    ) -> (
+        usize,
+        tokio::sync::mpsc::UnboundedReceiver<crate::session::Outgoing>,
+    ) {
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        let session = Arc::new(Session::new(self.counter as u64 + 1, tx));
+        let mut e = RoomEntity::new(session, EntityDetails::default(), self.counter);
+        self.counter += 1;
+        e.position = position;
+        self.mapping.add_entity(position, e.instance_id);
+        self.entities.push(e);
+        (self.entities.len() - 1, rx)
+    }
 }
 
 #[cfg(test)]

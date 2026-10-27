@@ -142,7 +142,10 @@ pub fn no_credits(not_enough_credits: bool, not_enough_pixels: bool) -> Message 
 }
 
 /// Java: `DELIVER_PRESENT`: what an opened present held.
-pub fn deliver_present(definition: &crate::game::item::base::ItemDefinition, custom_data: &str) -> Message {
+pub fn deliver_present(
+    definition: &crate::game::item::base::ItemDefinition,
+    custom_data: &str,
+) -> Message {
     let kind: &[u8] = if definition.has_behaviour(ItemBehaviour::WallItem) {
         b"i"
     } else {
@@ -167,6 +170,17 @@ pub fn deliver_present(definition: &crate::game::item::base::ItemDefinition, cus
 mod tests {
     use super::*;
     use crate::game::item::ItemManager;
+
+    /// traces/flat-present.json: opening the present.
+    #[test]
+    fn deliver_present_matches_trace() {
+        let chair = crate::game::room::items::tests::chair_plasto();
+        let msg = deliver_present(&chair, "");
+        assert_eq!(
+            (msg.header, msg.body.as_slice()),
+            (129, &b"s\x02[\\Achair_plasto\x02"[..])
+        );
+    }
 
     #[test]
     fn latin1_replaces_what_does_not_fit() {
