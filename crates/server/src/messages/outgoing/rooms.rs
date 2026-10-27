@@ -115,6 +115,60 @@ pub fn active_objects_park_a() -> Message {
     Message::new(32, BODY.as_bytes().to_vec())
 }
 
+/// Java: `ITEMS(room)`: the room's wall items (answer to `G_ITEMS`).
+pub fn items<'a>(wall_items: impl IntoIterator<Item = &'a Item>) -> Message {
+    let items: Vec<&Item> = wall_items.into_iter().collect();
+    let body = items
+        .iter()
+        .fold(ServerBody::new().int(items.len() as i32), |b, item| {
+            wall_item(b, item)
+        });
+    Message::new(45, body.build())
+}
+
+/// Java: `Item.serialise` for wall items: the id as text, the sprite id, the wall position and
+/// the custom data (only the colour of a post-it). TODO(furniture): `Item` has no sprite id or
+/// wall position yet; no room has wall items until flat furniture is loaded
+/// (`Room::try_initialise`), so this is never reached with an item.
+fn wall_item(body: ServerBody, item: &Item) -> ServerBody {
+    body.string(item.virtual_id.to_string().as_bytes())
+        .int(-1)
+        .string(b"")
+        .string(item.custom_data.as_bytes())
+}
+
+/// Java: `ROOMAD`: a billboard image and its link, or an empty string for none.
+pub fn room_ad(ad: Option<(&str, &str)>) -> Message {
+    let body = match ad {
+        Some((image, url)) => ServerBody::new()
+            .string(image.as_bytes())
+            .string(url.as_bytes()),
+        None => ServerBody::new().string(b""),
+    };
+    Message::new(208, body.build())
+}
+
+/// Java: `FLAT_LETIN`: the user may enter the private room (`GOTOFLAT`).
+pub fn flat_letin() -> Message {
+    Message::new(41, Vec::new())
+}
+
+/// Java: `DOORBELL_WAIT`: empty to the visitor at the door, with their name to the users with
+/// rights inside.
+pub fn doorbell_wait(username: &str) -> Message {
+    Message::new(
+        91,
+        ServerBody::new()
+            .string(&super::catalogue::latin1(username))
+            .build(),
+    )
+}
+
+/// Java: `FLATNOTALLOWEDTOENTER`: the doorbell was not answered, or answered with no.
+pub fn flat_not_allowed_to_enter() -> Message {
+    Message::new(131, Vec::new())
+}
+
 /// The literal `DuHH` Java's `G_OBJS` sends (`GROUP_BADGES` with no badges).
 pub fn group_badges_empty() -> Message {
     Message::new(309, b"HH".to_vec())
@@ -131,6 +185,7 @@ pub enum ConnectError {
     RoomFull = 1,
     /// `QUEUE_ERROR` with the club-only reason `c`.
     ClubOnly = 3,
+    Banned = 4,
 }
 
 /// Java: `CANTCONNECT`.
@@ -138,7 +193,7 @@ pub fn cant_connect(error: ConnectError) -> Message {
     let body = ServerBody::new().int(error as i32);
     let body = match error {
         ConnectError::ClubOnly => body.string(b"c"),
-        ConnectError::RoomFull => body,
+        ConnectError::RoomFull | ConnectError::Banned => body,
     };
     Message::new(224, body.build())
 }
@@ -162,6 +217,24 @@ mod tests {
         assert_eq!(active_objects(std::iter::empty()).body, b"H");
         assert_eq!(heightmap("xx0\r00\r").body, b"xx0\r00\r");
         assert_eq!(cant_connect(ConnectError::ClubOnly).body, b"Kc\x02");
+    }
+
+    #[test]
+    fn flat_entry_bodies_match_flat_traces() {
+        // traces/flat-create.json and flat-visit.json.
+        assert_eq!(room_ready(1000, "model_a").body, b"model_a\x02XzC");
+        assert_eq!(flat_property("landscape", "0").body, b"landscape\x020\x02");
+        assert_eq!(update_votes(0).body, b"H");
+        assert_eq!(items(std::iter::empty()).body, b"H");
+        assert_eq!(items(std::iter::empty()).header, 45);
+        assert_eq!(room_ad(None).body, b"\x02");
+        assert_eq!(room_ad(None).header, 208);
+        assert_eq!(flat_letin().header, 41);
+        assert!(flat_letin().body.is_empty());
+        assert_eq!(doorbell_wait("tracebot2").body, b"tracebot2\x02");
+        assert_eq!(doorbell_wait("").body, b"\x02");
+        assert_eq!(flat_not_allowed_to_enter().header, 131);
+        assert!(flat_not_allowed_to_enter().body.is_empty());
     }
 
     #[test]

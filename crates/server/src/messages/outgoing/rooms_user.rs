@@ -184,6 +184,30 @@ mod tests {
     }
 
     #[test]
+    fn statuses_match_flat_traces() {
+        // traces/flat-create.json: the owner in the door of model_a, then walking.
+        let mut e = entity(0, 3, 5, 2);
+        e.statuses.set(StatusType::FlatControl, "useradmin");
+        assert_eq!(
+            user_statuses([&e], "model_a").body,
+            b"IHKQA0.0\x02JJ/flatctrl useradmin/\x02"
+        );
+        e.position.set_rotation(3);
+        e.statuses.set(StatusType::Move, "4,6,0.0");
+        assert_eq!(
+            user_statuses([&e], "model_a").body,
+            b"IHKQA0.0\x02KK/flatctrl useradmin/mv 4,6,0.0/\x02"
+        );
+        // traces/flat-visit.json: rights given to a visitor (empty flatctrl value).
+        let mut e = entity(1, 8, 8, 3);
+        e.statuses.set(StatusType::FlatControl, "");
+        assert_eq!(
+            user_statuses([&e], "model_a").body,
+            b"IIPBPB0.0\x02KK/flatctrl/\x02"
+        );
+    }
+
+    #[test]
     fn objects_match_public_room_trace() {
         let e = entity(0, 13, 6, 4);
         assert_eq!(

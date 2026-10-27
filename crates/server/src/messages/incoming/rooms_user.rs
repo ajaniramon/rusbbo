@@ -13,8 +13,12 @@ use crate::world::World;
 
 /// Java: `QUIT`. Shockwave clients get no `HOTEL_VIEW`. TODO(flash): Flash clients do.
 pub fn quit(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
-    if session.player.lock().room_id.is_none() {
-        return Ok(());
+    {
+        let mut p = session.player.lock();
+        if p.room_id.is_none() {
+            return Ok(());
+        }
+        p.authenticate_id = None;
     }
     // TODO(items): clear the teleporter authentication.
     room::leave_current_room(world, session, false);

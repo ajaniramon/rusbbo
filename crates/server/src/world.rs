@@ -191,6 +191,28 @@ impl World {
             .find(|s| s.player.lock().user_id() == Some(user_id))
     }
 
+    /// The session logged in under `name`, ignoring case (Java: `PlayerManager.getPlayerByName`).
+    /// Locks each player in turn, so the caller must not hold a player lock.
+    pub fn player_by_name(&self, name: &str) -> Option<Arc<Session>> {
+        let name = name.to_lowercase();
+        self.players().into_iter().find(|s| {
+            let p = s.player.lock();
+            p.logged_in
+                && p.details
+                    .as_ref()
+                    .is_some_and(|d| d.username.to_lowercase() == name)
+        })
+    }
+
+    /// Java: `TextsManager.getValue`: the external text of `key`, or the key itself.
+    pub fn text(&self, key: &str) -> String {
+        self.store
+            .external_text(key)
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| key.to_string())
+    }
+
     /// Sessions logged in as `user_id`.
     pub fn sessions_of(&self, user_id: u32) -> Vec<Arc<Session>> {
         self.players()

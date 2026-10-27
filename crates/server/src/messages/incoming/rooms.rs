@@ -5,10 +5,12 @@ use std::sync::Arc;
 use havana_protocol::body::ClientReader;
 use tracing::warn;
 
+use super::latin1;
 use crate::game::fuserights;
 use crate::game::room::items::Behaviour;
 use crate::game::room::{self, current_room};
 use crate::messages::Malformed;
+use crate::messages::outgoing::alerts;
 use crate::messages::outgoing::rooms::{self as out, ConnectError};
 use crate::messages::outgoing::rooms_user as out_user;
 use crate::session::Session;
@@ -75,6 +77,177 @@ pub fn room_directory(
     if is_public {
         room::enter_room(world, session, room, None, true);
     }
+    Ok(())
+}
+
+/// Java: `TRYFLAT`: may the user enter this private room? Checks the visitor limit, bans, the
+/// doorbell and the password, then lets them in (`FLAT_LETIN`) for the `GOTOFLAT` that follows.
+pub fn try_flat(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let current_room_id = session.player.lock().room_id;
+    let room_id = if reader.remaining().is_empty() {
+        // Java reads the current room here and throws when there is none.
+        let Some(id) = current_room_id else {
+            return Ok(());
+        };
+        id as i32
+    } else {
+        reader.int().ok_or(Malformed)?
+    };
+    let password = if reader.remaining().is_empty() {
+        String::new()
+    } else {
+        latin1(reader.string().ok_or(Malformed)?)
+    };
+    let Some(room) = u32::try_from(room_id)
+        .ok()
+        .and_then(|id| world.room_by_id(id))
+    else {
+        return Ok(());
+    };
+    let (user_id, name, authenticated, enter_full, enter_locked, any_controller, is_mod) = {
+        let p = session.player.lock();
+        let Some(user) = p.details.as_ref().filter(|_| p.logged_in) else {
+            return Ok(());
+        };
+        (
+            user.id,
+            user.username.clone(),
+            p.authenticate_id == Some(room.id),
+            p.has_fuse("fuse_enter_full_rooms"),
+            p.has_fuse("fuse_enter_locked_rooms"),
+            p.has_fuse("fuse_any_room_controller"),
+            p.has_fuse("fuse_mod"),
+        )
+    };
+    let (is_public, visitors_now, visitors_max, access_type, room_password, has_rights, is_owner) = {
+        let r = room.lock();
+        (
+            r.is_public(),
+            r.data.visitors_now,
+            r.data.visitors_max,
+            r.data.accesstype,
+            r.data.password.clone(),
+            r.has_rights(user_id, false),
+            r.is_owner(user_id),
+        )
+    };
+    let (mut total_now, mut total_max) = (visitors_now, visitors_max);
+    for child in world.child_rooms(room.id, is_public) {
+        if let Some((now, max)) = world.room_visitors(child) {
+            total_now += now;
+            total_max += max;
+        }
+    }
+    if total_now >= total_max && !enter_full {
+        session.send(out::cant_connect(ConnectError::RoomFull));
+        return Ok(());
+    }
+    if !enter_locked {
+        if world
+            .store
+            .has_room_ban(room.id, user_id, crate::game::now())
+            .unwrap_or(false)
+        {
+            session.send(out::cant_connect(ConnectError::Banned));
+            return Ok(());
+        }
+        if !authenticated {
+            if access_type == 1 && !has_rights && !any_controller {
+                // Java: rangDoorbell. Note it checks the *visitor's* `fuse_mod`, as Java does.
+                let rang = {
+                    let r = room.lock();
+                    let mut rang = false;
+                    for e in &r.entities {
+                        if !r.has_rights(e.details.user_id, true) && !is_mod {
+                            continue;
+                        }
+                        e.session.send(out::doorbell_wait(&name));
+                        rang = true;
+                    }
+                    rang
+                };
+                session.send(if rang {
+                    out::doorbell_wait("")
+                } else {
+                    out::flat_not_allowed_to_enter()
+                });
+                return Ok(());
+            }
+            if access_type == 2
+                && !is_owner
+                && !any_controller
+                && room_password.as_deref() != Some(password.as_str())
+            {
+                session.send(alerts::localised_error(-100002));
+                return Ok(());
+            }
+        }
+    }
+    // TODO(items): a user who switched rooms loses the teleporter authentication.
+    session.player.lock().authenticate_id = Some(room.id);
+    session.send(out::flat_letin());
+    Ok(())
+}
+
+/// Java: `GOTOFLAT`: enters the private room `TRYFLAT` let the user into.
+pub fn goto_flat(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let room_id = reader.int().ok_or(Malformed)?;
+    let Ok(room_id) = u32::try_from(room_id) else {
+        return Ok(());
+    };
+    if session.player.lock().authenticate_id != Some(room_id) {
+        return Ok(());
+    }
+    let Some(room) = world.room_by_id(room_id) else {
+        return Ok(());
+    };
+    room::enter_room(world, session, room, None, true);
+    Ok(())
+}
+
+/// Java: `GETROOMAD`: the billboard of a public room; flats have none.
+pub fn get_room_ad(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    if current_room(world, session).is_none() {
+        return Ok(());
+    }
+    // TODO(ads): with `room.ads` on, public rooms show a random `rooms_ads` row
+    // (AdManager.getRandomAd). The setting is off by default, which always sends no ad.
+    // TODO(flash): Flash clients get the room contents here too.
+    session.send(out::room_ad(None));
+    Ok(())
+}
+
+/// Java: `G_ITEMS`: the room's wall items.
+pub fn g_items(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let msg = {
+        let r = room.lock();
+        out::items(
+            r.mapping
+                .items
+                .iter()
+                .filter(|i| i.has(Behaviour::WallItem)),
+        )
+    };
+    session.send(msg);
     Ok(())
 }
 

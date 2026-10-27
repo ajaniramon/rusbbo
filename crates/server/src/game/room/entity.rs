@@ -216,6 +216,18 @@ pub struct EntityDetails {
     pub tickets: i32,
     /// Join date (Unix seconds).
     pub created_at: i64,
+    /// For the fuserights the room checks (`Player.hasFuse`).
+    pub rank: u8,
+    pub club_expiration: i64,
+    /// Java: `PlayerDetails.getMachineId`, for `Room.hasVoted`.
+    pub machine_id: String,
+}
+
+impl EntityDetails {
+    /// Java: `Player.hasFuse`, from the rank and club membership copied at entry.
+    pub fn has_fuse(&self, name: &str) -> bool {
+        crate::game::fuserights::has_fuse(self.rank, self.club_expiration > now(), name)
+    }
 }
 
 /// Java: `RoomEntity` + `RoomPlayer` + `RoomTimerManager`, for players.

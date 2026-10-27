@@ -7,8 +7,10 @@
 //! queued as [`Deferred`] actions and run by the caller after it released the room's lock, so the
 //! lock order "player before room, never two rooms" holds.
 //!
-//! Only public rooms are entered so far. TODO(flats): private rooms (TRYFLAT/GOTOFLAT, rights,
-//! votes, doorbell). TODO(bots): `rooms_bots` NPCs; rooms that have them simply show none.
+//! Private rooms ("flats") keep their rights list and votes here too (Java: `Room.rights`,
+//! `Room.votes`), loaded when the room is initialised. Their furniture is not loaded yet: see
+//! [`Room::try_initialise`] (TODO(furniture)). TODO(bots): `rooms_bots` NPCs; rooms that have
+//! them simply show none.
 
 pub mod entity;
 pub mod items;
@@ -30,7 +32,9 @@ use crate::game::room::items::{Behaviour, Interaction};
 use crate::game::room::mapping::{RoomMapping, is_valid_tile};
 use crate::game::room::model::RoomModel;
 use crate::messages::outgoing::rooms_user::{self, ChatType};
-use crate::messages::outgoing::{rooms as out_rooms, rooms_user as out_user};
+use crate::messages::outgoing::{
+    rooms as out_rooms, rooms_moderation as out_moderation, rooms_user as out_user,
+};
 use crate::session::Session;
 use crate::world::World;
 
@@ -59,14 +63,33 @@ pub enum Deferred {
         target_room_id: u32,
         destination: Option<Position>,
     },
+    /// The user was kicked: forget which rooms they may enter (Java: `RoomPlayer.kick` resets
+    /// `authenticateId`).
+    ClearAuthentication { session: Arc<Session> },
+}
+
+/// Java: `VoteData`, a stored vote with what `hasVoted` compares.
+pub struct Vote {
+    pub user_id: u32,
+    #[allow(dead_code)] // TODO(votes): RATEFLAT sums them into the rating.
+    pub vote: i32,
+    /// The voter's machine id (Java's `getRatings` joins `users`).
+    pub machine_id: String,
 }
 
 /// Java: `Room` with its `RoomData`, entity list and managers.
 pub struct Room {
     pub data: havana_storage::Room,
     pub model: Arc<RoomModel>,
-    /// Collision map and the room's items.
+    /// Collision map and the room's items (`mapping.items` is Java's `Room.items`).
     pub mapping: RoomMapping,
+    /// Users with rights, besides the owner (Java: `Room.rights`), loaded on initialisation.
+    pub rights: Vec<u32>,
+    /// Java: `Room.votes`, loaded on initialisation.
+    pub votes: Vec<Vote>,
+    /// The statuses the first room tick composed when the room was initialised, sent once the
+    /// entry messages are out (see [`Room::try_initialise`]).
+    first_tick: Option<Message>,
     /// In entry order (Java: `CopyOnWriteArrayList<Entity>`).
     pub entities: Vec<RoomEntity>,
     /// Java: `isActive`, set by the first `G_STAT`, cleared on dispose.
@@ -110,6 +133,9 @@ impl Room {
                 data,
                 model,
                 mapping,
+                rights: Vec::new(),
+                votes: Vec::new(),
+                first_tick: None,
                 entities: Vec::new(),
                 active: false,
                 counter: 0,
@@ -214,32 +240,77 @@ impl Room {
         self.save_visitors(world);
     }
 
-    /// Java: `RoomEntityManager.tryInitialiseRoom`: loads the furniture, builds the map and
-    /// (re)starts the tick while the room is not active yet.
+    /// Java: `RoomEntityManager.tryInitialiseRoom`: loads the furniture (and, for private rooms,
+    /// the rights and votes), builds the map and (re)starts the tick while the room is not
+    /// active yet.
+    ///
+    /// Java's tasks start with no delay on the scheduler thread, so their first run reads the
+    /// room right after the newcomer was added, before `enterRoom` goes on with `refreshRights`
+    /// (the first `USER_STATUSES` of a freshly loaded flat has no `flatctrl`); its message is
+    /// written after the entry messages because those are written from the event loop the
+    /// connection belongs to. That first tick runs here, its statuses are kept in `first_tick`
+    /// and sent by [`enter_room`], and the task starts with the second tick.
     fn try_initialise(&mut self, world: &World) {
         if self.active {
             return;
         }
         // TODO(games): game arenas and custom rooms keep their items.
         self.mapping.items.clear();
+        self.rights.clear();
+        self.votes.clear();
         if self.is_public() {
             match world.store.public_items(&self.model.id) {
                 Ok(rows) => self.mapping.items = items::public_items(&self.model.id, &rows),
                 Err(e) => error!(room = self.id(), "loading public items: {e}"),
             }
+        } else {
+            self.load_rights_and_votes(world);
         }
-        // TODO(flats): rights and votes. TODO(items): ItemDao.getRoomItems and resetItemStates.
+        // TODO(furniture): this is where Java adds `ItemDao.getRoomItems(roomData)` (the room's
+        // floor and wall items, with fresh virtual ids) to `Room.items` and then runs
+        // `RoomItemManager.resetItemStates`. Push them onto `self.mapping.items`: the collision
+        // map below, `G_USRS` (`ACTIVE_OBJECTS`, floor items) and `G_ITEMS` (`ITEMS`, wall
+        // items) all read that list.
         let entities: Vec<(i32, Position)> = self
             .entities
             .iter()
             .map(|e| (e.instance_id, e.position))
             .collect();
         self.mapping.regenerate(&entities);
+        self.first_tick = self.entity_pass(world);
+        self.status_tick();
         self.start_tasks(world);
     }
 
+    /// Java: `RoomRightsDao.getRoomRights` and `RoomVoteDao.getRatings`.
+    fn load_rights_and_votes(&mut self, world: &World) {
+        match world.store.room_rights(self.id()) {
+            Ok(rights) => self.rights = rights,
+            Err(e) => error!(room = self.id(), "loading rights: {e}"),
+        }
+        match world.store.room_votes(self.id(), now()) {
+            Ok(votes) => {
+                self.votes = votes
+                    .into_iter()
+                    .filter_map(|v| {
+                        // INNER JOIN users: votes of deleted users do not count.
+                        let user = world.store.user(v.user_id).ok().flatten()?;
+                        Some(Vote {
+                            user_id: v.user_id,
+                            vote: v.vote,
+                            machine_id: user.machine_id,
+                        })
+                    })
+                    .collect();
+            }
+            Err(e) => error!(room = self.id(), "loading votes: {e}"),
+        }
+    }
+
     /// Java: `RoomTaskManager.startTasks`: the 500 ms entity task and 1 s status task, both
-    /// starting now. Restarting replaces the running ones, as Java's `scheduleTask` does.
+    /// started now; their first run already happened in [`Room::try_initialise`], so the task
+    /// runs from the second one, 500 ms later. Restarting replaces the running ones, as Java's
+    /// `scheduleTask` does.
     fn start_tasks(&mut self, world: &World) {
         if let Some(task) = self.task.take() {
             task.abort();
@@ -346,6 +417,8 @@ impl Room {
             r.active = false;
             r.stop_tasks();
             r.mapping.items.clear();
+            r.rights.clear();
+            r.votes.clear();
             r.entities.clear();
             world.unregister_room(&room);
         });
@@ -672,11 +745,15 @@ impl Room {
         }
     }
 
-    /// Java: `RoomEntity.kick(allowWalking, isBeingKicked)`: walk to the door, or leave now.
+    /// Java: `RoomPlayer.kick(allowWalking, isBeingKicked)`: walk to the door, or leave now, and
+    /// forget the room authentications.
     pub fn kick(&mut self, world: &World, idx: usize, allow_walking: bool, being_kicked: bool) {
         let door = self.model.door_location();
         let room_id = self.id();
         let session = self.entities[idx].session.clone();
+        self.deferred.push(Deferred::ClearAuthentication {
+            session: session.clone(),
+        });
         if self.entities[idx].position == door {
             self.remove_entity(world, session.id, true);
             self.deferred.push(Deferred::Left { session, room_id });
@@ -690,6 +767,89 @@ impl Room {
             self.remove_entity(world, session.id, true);
             self.deferred.push(Deferred::Left { session, room_id });
         }
+    }
+
+    /// Java: `Room.isOwner`.
+    pub fn is_owner(&self, user_id: u32) -> bool {
+        self.data.owner_id == user_id
+    }
+
+    /// Java: `Room.hasRights(userId, includeSuperUsers)`: the owner, everyone when the room
+    /// gives everybody rights ("superusers") and `include_super_users`, and the rights list.
+    pub fn has_rights(&self, user_id: u32, include_super_users: bool) -> bool {
+        if self.is_public() {
+            return false;
+        }
+        if self.is_owner(user_id) {
+            return true;
+        }
+        if include_super_users && self.data.superusers {
+            return true;
+        }
+        self.rights.contains(&user_id)
+    }
+
+    /// Java: `Room.hasVoted`. Users who joined the hotel less than an hour ago count as having
+    /// voted, and so does anyone whose user id or machine id voted. TODO(ip-log): Java also
+    /// matches the voters' IP history (`users_ip_logs`).
+    pub fn has_voted(&self, details: &EntityDetails) -> bool {
+        let mins_since_joined = (now() - details.created_at) / 60;
+        if mins_since_joined <= 60 {
+            return true;
+        }
+        if self.votes.iter().any(|v| v.user_id == details.user_id) {
+            return true;
+        }
+        self.votes.iter().any(|v| {
+            !is_blank(v.machine_id.as_bytes())
+                && !is_blank(details.machine_id.as_bytes())
+                && v.machine_id.to_lowercase() == details.machine_id.to_lowercase()
+        })
+    }
+
+    /// Java: `Room.refreshRights(player, sendStatus)`: tells the user what they may do and sets
+    /// their `flatctrl` status (`useradmin` for the owner). With `send_status` the status goes
+    /// out on the next tick.
+    pub fn refresh_rights(&mut self, idx: usize, send_status: bool) {
+        let e = &self.entities[idx];
+        let user_id = e.details.user_id;
+        let mut value = "";
+        if self.is_owner(user_id) || e.details.has_fuse("fuse_any_room_controller") {
+            e.session.send(out_moderation::you_are_owner());
+            value = "useradmin";
+        }
+        let has_rights = self.has_rights(user_id, true);
+        let is_mod = e.details.has_fuse("fuse_mod");
+        if has_rights || is_mod {
+            e.session.send(out_moderation::you_are_controller());
+        } else {
+            e.session.send(out_moderation::you_not_controller());
+        }
+        let flat_control = has_rights || self.is_owner(user_id) || is_mod;
+        let e = &mut self.entities[idx];
+        e.statuses.remove(StatusType::FlatControl);
+        if flat_control {
+            e.statuses.set(StatusType::FlatControl, value);
+        }
+        if send_status {
+            e.needs_update = true;
+        }
+    }
+
+    /// Java: `leaveRoom(entity, hotelView)` for a user taken out of the room from outside their
+    /// own session (`DELETEFLAT`): the player forgets the room once the room lock is released.
+    pub fn remove_user(&mut self, world: &World, session: &Arc<Session>, hotel_view: bool) {
+        if self.remove_entity(world, session.id, hotel_view).is_some() {
+            self.deferred.push(Deferred::Left {
+                session: session.clone(),
+                room_id: self.id(),
+            });
+        }
+    }
+
+    /// Java: `Room.tryDispose`, called again by `DELETEFLAT` after everybody left.
+    pub fn dispose_when_empty(&mut self, world: &World) {
+        self.try_dispose(world);
     }
 
     /// Java's `getRoomUser().getCurrentItem()`.
@@ -779,6 +939,10 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                     enter_room(world, &session, target, destination, true);
                 }
             }
+            Deferred::ClearAuthentication { session } => {
+                // TODO(items): also the teleporter authentications.
+                session.player.lock().authenticate_id = None;
+            }
         }
     }
 }
@@ -823,12 +987,14 @@ pub fn enter_room(
             pool_figure: user.pool_figure.clone(),
             tickets: user.tickets,
             created_at: user.created_at,
+            rank: user.rank,
+            club_expiration: user.club_expiration,
+            machine_id: user.machine_id.clone(),
         };
         p.room_id = Some(room.id);
+        p.authenticate_id = None;
         details
     };
-    let joined = details.created_at;
-    let user_id = details.user_id;
     let deferred = {
         let mut r = room.lock();
         r.add_entity(world, session, details, destination);
@@ -844,17 +1010,23 @@ pub fn enter_room(
             if r.data.floor > 0 {
                 session.send(out_rooms::flat_property("floor", &r.data.floor.to_string()));
             }
-            // TODO(flats): refreshRights for private rooms.
-            // Java: Room.hasVoted. Users who joined the hotel less than an hour ago count as
-            // having voted. TODO(flats): stored votes, machine ids and IP history.
-            let mins_since_joined = (now() - joined) / 60;
-            let voted = r.data.owner_id == user_id || mins_since_joined <= 60;
-            session.send(out_rooms::update_votes(if voted {
-                r.data.rating
-            } else {
-                -1
-            }));
+            if let Some(idx) = r.entity_index(session.id) {
+                if !r.is_public() {
+                    r.refresh_rights(idx, false);
+                }
+                // The owner never votes on their own room.
+                let details = &r.entities[idx].details;
+                let voted = r.is_owner(details.user_id) || r.has_voted(details);
+                session.send(out_rooms::update_votes(if voted {
+                    r.data.rating
+                } else {
+                    -1
+                }));
+            }
             session.send(out_rooms::room_event_info_none());
+        }
+        if let Some(msg) = r.first_tick.take() {
+            r.send(msg);
         }
         r.take_deferred()
     };

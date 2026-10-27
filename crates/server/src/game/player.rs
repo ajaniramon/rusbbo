@@ -31,6 +31,10 @@ pub struct Player {
     /// The room the player is in (Java: `getRoomUser().getRoom()`). The presence itself (position,
     /// statuses) lives in the room, see `game::room`.
     pub room_id: Option<u32>,
+    /// The private room the player may enter with `GOTOFLAT` (Java:
+    /// `RoomPlayer.authenticateId`, -1 for `None`). Set by `CREATEFLAT`, `TRYFLAT` and
+    /// `LETUSERIN`, cleared on entry, `QUIT` and kick.
+    pub authenticate_id: Option<u32>,
     /// Loaded at login (Java: `Player.messenger`).
     pub messenger: Option<Messenger>,
 }
@@ -47,6 +51,12 @@ impl Player {
         self.details
             .as_ref()
             .is_some_and(|d| d.club_expiration > now())
+    }
+
+    /// Java: `Player.hasFuse`.
+    pub fn has_fuse(&self, name: &str) -> bool {
+        let rank = self.details.as_ref().map_or(0, |d| d.rank);
+        fuserights::has_fuse(rank, self.has_club(), name)
     }
 }
 

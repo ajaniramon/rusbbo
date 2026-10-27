@@ -40,9 +40,11 @@ Ported so far: the Shockwave handshake including the encrypted transport (`GENER
 login, `GET_INFO`, `GET_CREDITS`, the daily credits handout from the game tick, public rooms
 (entering, heightmap, furniture, users, walking with the Java pathfinder and the 500 ms room tick,
 chat, shout, wave, typing, leaving, AFK), the navigator (`NAVIGATE`, `GETUSERFLATCATS`, `SUSERF`,
-`SRCHF`, `GETSPACENODEUSERS`), the catalogue (index, pages, buying, the hand) and the messenger
-(console, search, friend requests, private messages, status updates). The whole corpus passes
-against the Rust server.
+`SRCHF`, `GETSPACENODEUSERS`), the catalogue (index, pages, buying, the hand), the messenger
+(console, search, friend requests, private messages, status updates) and private rooms without
+their furniture (room kiosk, settings, doorbell and password, rights, kick, delete). The traces
+in `harness/ported.txt` pass against the Rust server; `flat-visit` and `flat-delete` pass except
+for their furniture steps, and `flat-furni` and `flat-decor` wait for the furniture port.
 
 ## Trace harness
 

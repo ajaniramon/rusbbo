@@ -5,10 +5,13 @@
 //! Both room tasks run in one tokio task: every 500 ms the entity pass runs, and every other
 //! time (starting with the first) the status pass runs right after it. The phase matters: the
 //! traces end steps on quiet time, so statuses must go out on the same 500 ms grid, counted from
-//! the moment the room was initialised, as in Java.
+//! the moment the room was initialised, as in Java. The first run happens inside
+//! `Room::try_initialise` (see there), so the task starts with the second one.
 
 use std::sync::Weak;
 use std::time::Duration;
+
+use havana_protocol::Message;
 
 use crate::game::now;
 use crate::game::pathfinder::{Position, walk_direction};
@@ -22,8 +25,9 @@ use crate::world::World;
 pub const ENTITY_TICK: Duration = Duration::from_millis(500);
 
 pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
-    let mut interval = tokio::time::interval(ENTITY_TICK);
-    let mut count: u64 = 0;
+    let start = tokio::time::Instant::now() + ENTITY_TICK;
+    let mut interval = tokio::time::interval_at(start, ENTITY_TICK);
+    let mut count: u64 = 1;
     loop {
         interval.tick().await;
         let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
@@ -53,8 +57,16 @@ enum Updated {
 impl Room {
     /// Java: `EntityTask.run`.
     pub fn entity_tick(&mut self, world: &World) {
+        if let Some(msg) = self.entity_pass(world) {
+            self.send(msg);
+        }
+    }
+
+    /// The entity pass of [`Room::entity_tick`]: moves everyone a step and returns the
+    /// `USER_STATUSES` of those who changed, without sending it.
+    pub fn entity_pass(&mut self, world: &World) -> Option<Message> {
         if self.entities.is_empty() {
-            return;
+            return None;
         }
         let moonwalk = world.settings.read().bool("april.fools");
         let snapshot: Vec<i32> = self.entities.iter().map(|e| e.instance_id).collect();
@@ -81,18 +93,18 @@ impl Room {
                 }
             }
         }
-        if !updated.is_empty() {
-            let entities: Vec<&RoomEntity> = updated
-                .iter()
-                .filter_map(|u| match u {
-                    Updated::Present(id) => self.entity_by_instance(*id).map(|i| &self.entities[i]),
-                    Updated::Left(e) => Some(&**e),
-                })
-                .collect();
-            let msg = out_user::user_statuses(entities, &self.model.name);
-            self.send(msg);
-        }
         // TODO(items): EntityTask.queueAfterLoop (avatar effects re-sent after sitting).
+        if updated.is_empty() {
+            return None;
+        }
+        let entities: Vec<&RoomEntity> = updated
+            .iter()
+            .filter_map(|u| match u {
+                Updated::Present(id) => self.entity_by_instance(*id).map(|i| &self.entities[i]),
+                Updated::Left(e) => Some(&**e),
+            })
+            .collect();
+        Some(out_user::user_statuses(entities, &self.model.name))
     }
 
     /// Java: `EntityTask.processEntity`. Returns the entity if it left the room.

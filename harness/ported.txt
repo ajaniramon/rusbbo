@@ -1,6 +1,7 @@
 # Traces the Rust server must pass (CI checks these against Rust; every trace is checked against
 # the Java oracle). Add a trace here in the same change that makes it pass.
 catalogue
+flat-create
 login
 login-encrypted
 messenger
