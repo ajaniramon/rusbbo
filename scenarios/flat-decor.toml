@@ -43,6 +43,7 @@ args = [1000, ""]
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1000]
 settle_ms = 600
 note = "No wallpaper/floor yet: only the landscape FLATPROPERTY"
@@ -99,6 +100,7 @@ args = [1000, ""]
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1000]
 settle_ms = 600
 note = "Room entry now carries the wallpaper and floor FLATPROPERTY too"

@@ -40,6 +40,7 @@ args = [1000, ""]
 [[steps]]
 bot = "e"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1000]
 settle_ms = 600
 

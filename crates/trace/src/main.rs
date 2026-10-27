@@ -239,6 +239,12 @@ fn show(trace: &Trace) {
             let names: Vec<String> = step.header_only.iter().map(|h| check::label(*h)).collect();
             println!("      (header only by design: {})", names.join(", "));
         }
+        if !step.ignore_status.is_empty() {
+            println!(
+                "      (status actions ignored: {})",
+                step.ignore_status.join(", ")
+            );
+        }
         for (bot, recv) in &step.received {
             let order = if recv.ordered { "" } else { " (any order)" };
             let closed = match recv.closed {

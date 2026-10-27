@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "053056040031406209113287\u0002I",
+              "body": "604126298729555054721497\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#B3AD4CCC01B849DBA187656227B90075\u0002",
+              "body": "#32BEA3C8F31B4A249B111CAC5D94FA1D\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -225,6 +225,9 @@
       "body": "XzC",
       "note": "No wallpaper/floor yet: only the landscape FLATPROPERTY",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -511,6 +514,9 @@
       "body": "XzC",
       "note": "Room entry now carries the wallpaper and floor FLATPROPERTY too",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -567,7 +573,7 @@
             {
               "header": 34,
               "name": "USER_STATUSES",
-              "body": "IIKQA0.0\u0002JJ/flatctrl useradmin/\u0002",
+              "body": "IIKQA0.0\u0002JJ/\u0002",
               "check": "exact"
             }
           ]

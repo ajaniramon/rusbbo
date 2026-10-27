@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "664270242428546665460843\u0002I",
+              "body": "576227903881586021449753\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#609234B95B214A5685A5E6F589AC227C\u0002",
+              "body": "#0A7E250717214249B3E18B0D94EBDE66\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -208,6 +208,9 @@
       "name": "GOTOFLAT",
       "body": "XzC",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "e": {
           "ordered": true,

@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "744409649033773051276506\u0002I",
+              "body": "215783715216228753271587\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#86785707EB7440A9A152D9E00BD17745\u0002",
+              "body": "#398EE9A5A7FB4E449A297A9B85C34C70\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -140,7 +140,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "427823199392288550864303\u0002I",
+              "body": "541208313224998726350337\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -172,7 +172,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#5DEEEFD090CD46ADA3ACEF71F30EA866\u0002",
+              "body": "#5CA989E883B24534B8FA9FC63BAE9BA5\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -278,6 +278,9 @@
       "name": "GOTOFLAT",
       "body": "XzC",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -486,6 +489,9 @@
       "name": "GOTOFLAT",
       "body": "XzC",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,

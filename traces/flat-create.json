@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "617724548392218536406661\u0002I",
+              "body": "582265362728361278108036\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#F3DBE3DD7C4B40C1966B2564D6ACB195\u0002",
+              "body": "#E92B3C6C026847AB9622508340A91BA4\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -293,6 +293,9 @@
       "body": "XzC",
       "note": "ROOM_READY, FLATPROPERTY, owner/controller rights, votes, event info",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,

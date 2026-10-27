@@ -66,6 +66,7 @@ note = "Go to the room: the owner is let in straight away (FLAT_LETIN)"
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1000]
 settle_ms = 600
 note = "ROOM_READY, FLATPROPERTY, owner/controller rights, votes, event info"

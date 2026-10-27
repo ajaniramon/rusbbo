@@ -22,6 +22,10 @@
 //! header_only = ["INVENTORY"] # optional: server messages of this step whose body is random in
 //!                            # the reference server (e.g. a gift's random wrapping): only their
 //!                            # header is recorded, even when the recordings happen to agree
+//! ignore_status = ["flatctrl"] # optional: USER_STATUSES actions left out when this step is
+//!                            # recorded and checked, for a known Java thread race (an owner's
+//!                            # first status in a freshly loaded flat may or may not carry
+//!                            # `flatctrl`); everything else in the status is still compared
 //! ```
 
 use std::path::Path;
@@ -86,6 +90,10 @@ pub struct StepDef {
     /// Server messages whose bodies are only checked by header (see the module docs).
     #[serde(default)]
     pub header_only: Vec<MsgRef>,
+    /// `USER_STATUSES` actions (e.g. `flatctrl`) left out when comparing this step, for the
+    /// Java server's thread races (see the module docs).
+    #[serde(default)]
+    pub ignore_status: Vec<String>,
     #[serde(default)]
     pub note: Option<String>,
 }
@@ -115,6 +123,8 @@ pub struct Step {
     pub settle_ms: u64,
     /// Server message ids recorded with a header-only check.
     pub header_only: Vec<u16>,
+    /// `USER_STATUSES` actions ignored in this step.
+    pub ignore_status: Vec<String>,
     pub note: Option<String>,
 }
 
@@ -161,6 +171,7 @@ impl Scenario {
                 wait_for: vec![],
                 settle_ms,
                 header_only: header_only.clone(),
+                ignore_status: def.ignore_status.clone(),
                 note: def.note.clone(),
             };
 

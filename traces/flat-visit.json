@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "639934616490604606882974\u0002I",
+              "body": "709050584995443376569696\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#C832688274804C14A558339D2BA2A90F\u0002",
+              "body": "#9BEC88A82BC74DFE91A4771D1AB273E8\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -140,7 +140,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "345633209570238405294903\u0002I",
+              "body": "826486443567355507288737\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -172,7 +172,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#C0B72953838247D3A6275583B2336CFC\u0002",
+              "body": "#17336E2384E7444DBEDC4635E23E5E6E\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -279,6 +279,9 @@
       "name": "GOTOFLAT",
       "body": "XzC",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -634,6 +637,9 @@
       "body": "XzC",
       "note": "b enters as a visitor: YOUNOTCONTROLLER",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -1294,6 +1300,9 @@
       "name": "GOTOFLAT",
       "body": "XzC",
       "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
       "received": {
         "a": {
           "ordered": true,

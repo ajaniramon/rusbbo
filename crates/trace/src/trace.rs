@@ -44,6 +44,9 @@ pub struct TraceStep {
     /// Server messages recorded header-only on purpose (`header_only` in the scenario).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub header_only: Vec<u16>,
+    /// `USER_STATUSES` actions left out of this step's comparison (`ignore_status` in the scenario).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ignore_status: Vec<String>,
     /// Per bot; bots that received nothing (and were not disconnected) are left out.
     #[serde(default)]
     pub received: BTreeMap<String, BotTrace>,
@@ -115,6 +118,55 @@ impl Expected {
     }
 }
 
+/// `USER_STATUSES` (Java `USER_STATUSES`, id 34).
+const USER_STATUSES: u16 = 34;
+
+/// Removes the given actions (`flatctrl useradmin/`, ...) from every `USER_STATUSES` body.
+/// A status entry is `<id><x><y>...<z>\x02<head><body>/<action args>/<action args>/\x02`.
+pub fn strip_status_actions(
+    messages: &[havana_protocol::Message],
+    actions: &[String],
+) -> Vec<havana_protocol::Message> {
+    messages
+        .iter()
+        .map(|m| {
+            if actions.is_empty() || m.header != USER_STATUSES {
+                return m.clone();
+            }
+            let mut body = m.body.clone();
+            for action in actions {
+                body = strip_action(&body, action.as_bytes());
+            }
+            havana_protocol::Message::new(m.header, body)
+        })
+        .collect()
+}
+
+/// Removes `<action>` or `<action> <args>` up to and including its trailing `/`, wherever it
+/// directly follows a `/`.
+fn strip_action(body: &[u8], action: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(body.len());
+    let mut i = 0;
+    while i < body.len() {
+        let after_slash = i > 0 && body[i - 1] == b'/';
+        let rest = &body[i..];
+        let starts =
+            rest.starts_with(action) && matches!(rest.get(action.len()), Some(b' ') | Some(b'/'));
+        if after_slash && starts {
+            match rest.iter().position(|&b| b == b'/') {
+                Some(end) => {
+                    i += end + 1;
+                    continue;
+                }
+                None => break,
+            }
+        }
+        out.push(body[i]);
+        i += 1;
+    }
+    out
+}
+
 /// Builds a trace from several recordings of the same scenario.
 pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) -> Trace {
     let bot_names: Vec<String> = scenario.bots.iter().map(|b| b.name.clone()).collect();
@@ -131,8 +183,12 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 } else {
                     None
                 };
+                let normalized: Vec<Vec<havana_protocol::Message>> = outputs
+                    .iter()
+                    .map(|o| strip_status_actions(&o.messages, &step.ignore_status))
+                    .collect();
                 let seqs: Vec<&[havana_protocol::Message]> =
-                    outputs.iter().map(|o| o.messages.as_slice()).collect();
+                    normalized.iter().map(Vec::as_slice).collect();
                 if seqs.iter().all(|s| s.is_empty()) && closed == Some(false) {
                     continue;
                 }
@@ -152,6 +208,7 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 wait_for: step.wait_for.clone(),
                 settle_ms: step.settle_ms,
                 header_only: step.header_only.clone(),
+                ignore_status: step.ignore_status.clone(),
                 received,
             }
         })
@@ -335,6 +392,7 @@ impl Trace {
                     wait_for: s.wait_for.clone(),
                     settle_ms: s.settle_ms,
                     header_only: s.header_only.clone(),
+                    ignore_status: s.ignore_status.clone(),
                     note: s.note.clone(),
                 })
             })
@@ -404,6 +462,33 @@ mod tests {
         assert_eq!(received[1].check, Check::Exact);
         assert_eq!(trace.steps[0].header_only, [6]);
         assert_eq!(trace.steps().unwrap()[0].header_only, [6]);
+    }
+
+    #[test]
+    fn status_actions_are_stripped() {
+        let msg = |b: &[u8]| havana_protocol::Message::new(34, b.to_vec());
+        let flags = ["flatctrl".to_string()];
+        let out = strip_status_actions(
+            &[
+                msg(b"IHKQA0.0\x02JJ/flatctrl useradmin/\x02"),
+                msg(b"IHKQA0.0\x02JJ/flatctrl useradmin/mv 6,7,0.0/\x02"),
+                msg(b"IHKQA0.0\x02JJ/\x02"),
+            ],
+            &flags,
+        );
+        assert_eq!(out[0].body, b"IHKQA0.0\x02JJ/\x02");
+        assert_eq!(out[1].body, b"IHKQA0.0\x02JJ/mv 6,7,0.0/\x02");
+        assert_eq!(out[2].body, b"IHKQA0.0\x02JJ/\x02");
+        // Other messages and other actions are left alone.
+        let other = havana_protocol::Message::new(5, b"x/flatctrl a/".to_vec());
+        assert_eq!(
+            strip_status_actions(std::slice::from_ref(&other), &flags)[0],
+            other
+        );
+        assert_eq!(
+            strip_status_actions(&[msg(b"JJ/flatctrlx/\x02")], &flags)[0].body,
+            b"JJ/flatctrlx/\x02"
+        );
     }
 
     #[test]

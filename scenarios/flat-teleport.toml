@@ -65,6 +65,7 @@ args = [1001, ""]
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1001]
 settle_ms = 600
 
@@ -98,6 +99,7 @@ note = "b stays in 1001 for the rest of the scenario"
 [[steps]]
 bot = "b"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1001]
 settle_ms = 600
 
@@ -140,6 +142,7 @@ note = "a leaves 1001 (b sees LOGOUT)"
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1000]
 settle_ms = 600
 
@@ -232,6 +235,7 @@ note = "The client follows the forward"
 [[steps]]
 bot = "a"
 send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
 args = [1001]
 settle_ms = 2500
 note = "a appears on item 4 (not at the door), which shows effects, opens, lets a out to (6,7) and closes"
