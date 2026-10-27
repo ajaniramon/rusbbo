@@ -101,6 +101,17 @@ pub fn for_player(rank: u8, has_club: bool) -> Vec<&'static str> {
         .collect()
 }
 
+/// Java: `Player.hasFuse`: whether the rank (or club membership) grants `name`.
+pub fn has_fuse(rank: u8, has_club: bool, name: &str) -> bool {
+    FUSERIGHTS.iter().any(|(n, grant)| {
+        *n == name
+            && match grant {
+                Rank(min) => rank >= *min,
+                Club => has_club,
+            }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +128,14 @@ mod tests {
                 "fuse_room_queue_default"
             ]
         );
+    }
+
+    #[test]
+    fn has_fuse_by_rank_and_club() {
+        assert!(!has_fuse(rank::NORMAL, false, "fuse_see_all_roomowners"));
+        assert!(has_fuse(rank::MODERATOR, false, "fuse_see_all_roomowners"));
+        assert!(has_fuse(rank::NORMAL, true, "fuse_room_queue_club"));
+        assert!(!has_fuse(rank::NORMAL, false, "fuse_room_queue_club"));
     }
 
     #[test]

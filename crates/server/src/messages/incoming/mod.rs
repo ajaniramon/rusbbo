@@ -4,6 +4,7 @@ pub mod catalogue;
 pub mod handshake;
 pub mod inventory;
 pub mod messenger;
+pub mod navigator;
 pub mod rooms;
 pub mod rooms_user;
 pub mod user;
@@ -30,6 +31,12 @@ pub fn handler(header: u16) -> Option<Handler> {
         41 => messenger::find_user,
         233 => messenger::get_requests,
         8 => user::get_credits,
+        // registerNavigatorPackets
+        150 => navigator::navigate,
+        151 => navigator::get_user_flat_cats,
+        16 => navigator::own_rooms,
+        17 => navigator::search_rooms,
+        154 => navigator::get_space_node_users,
         // registerRoomPackets
         2 => rooms::room_directory,
         60 => rooms::g_hmap,

@@ -39,9 +39,10 @@ cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --rese
 Ported so far: the Shockwave handshake including the encrypted transport (`GENERATEKEY`), SSO
 login, `GET_INFO`, `GET_CREDITS`, the daily credits handout from the game tick, public rooms
 (entering, heightmap, furniture, users, walking with the Java pathfinder and the 500 ms room tick,
-chat, shout, wave, typing, leaving, AFK), the catalogue (index, pages, buying, the hand) and the
-messenger (console, search, friend requests, private messages, status updates). Corpus status: see
-the last check in the commit log; `navigator` is the one trace still failing past login.
+chat, shout, wave, typing, leaving, AFK), the navigator (`NAVIGATE`, `GETUSERFLATCATS`, `SUSERF`,
+`SRCHF`, `GETSPACENODEUSERS`), the catalogue (index, pages, buying, the hand) and the messenger
+(console, search, friend requests, private messages, status updates). The whole corpus passes
+against the Rust server.
 
 ## Trace harness
 

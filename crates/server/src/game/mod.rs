@@ -6,6 +6,7 @@ pub mod fuserights;
 pub mod inventory;
 pub mod item;
 pub mod messenger;
+pub mod navigator;
 pub mod pathfinder;
 pub mod player;
 pub mod room;

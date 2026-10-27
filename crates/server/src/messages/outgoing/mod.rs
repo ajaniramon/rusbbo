@@ -4,6 +4,7 @@ pub mod catalogue;
 pub mod handshake;
 pub mod inventory;
 pub mod messenger;
+pub mod navigator;
 pub mod rooms;
 pub mod rooms_user;
 pub mod user;
