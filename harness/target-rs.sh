@@ -52,8 +52,11 @@ build_fixture() {
   docker exec -i "$DB_CONTAINER" mariadb -uroot -proot \
     -e "DROP DATABASE IF EXISTS $FIXTURE_DB; CREATE DATABASE $FIXTURE_DB;"
   docker exec -i "$DB_CONTAINER" mariadb -uroot -proot "$FIXTURE_DB" < "$GOLDEN"
-  "$WS_DIR/target/debug/havana-import" --force --out "$RUN_DIR/fixture.redb" \
+  # Import to a temporary file, so a failed import never leaves a fixture that looks current.
+  rm -f "$RUN_DIR/fixture.redb.tmp"
+  "$WS_DIR/target/debug/havana-import" --force --out "$RUN_DIR/fixture.redb.tmp" \
     --mysql "mysql://root:root@127.0.0.1:$DB_PORT/$FIXTURE_DB"
+  mv "$RUN_DIR/fixture.redb.tmp" "$RUN_DIR/fixture.redb"
 }
 
 case "${1:-}" in
