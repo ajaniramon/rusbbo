@@ -11,6 +11,7 @@
 //! `Room.votes`), loaded when the room is initialised together with their furniture (see
 //! [`furniture`]). TODO(bots): `rooms_bots` NPCs; rooms that have them simply show none.
 
+pub mod actions;
 pub mod entity;
 pub mod furniture;
 pub mod items;
@@ -73,6 +74,13 @@ pub enum Deferred {
     TradeClosed { sides: [trade::TradeSide; 2] },
     /// A trade completed: the offered items change hands, then both hands are sent.
     TradeFinished { sides: [trade::TradeSide; 2] },
+}
+
+/// Someone a chat message is sent to (Java: the `List<Player>` of `RoomEntity.talk`).
+pub struct Receiver {
+    pub session: Arc<Session>,
+    /// Java: `isWordFilterEnabled`.
+    pub filter: bool,
 }
 
 /// Java: `VoteData`, a stored vote with what `hasVoted` compares.
@@ -443,6 +451,24 @@ impl Room {
         }
     }
 
+    /// Java: `RoomPlayer.walkTo`: walking somewhere new (not among the last
+    /// `walk.spam.count` goals) resets the idle timers, which also wakes a sleeper.
+    pub fn walk_to_player(&mut self, world: &World, idx: usize, x: i32, y: i32) -> bool {
+        let goal = Position::new(x, y);
+        let limit = world.settings.read().int("walk.spam.count");
+        let e = &mut self.entities[idx];
+        let unidle = !e.walk_history.contains(&goal);
+        e.walk_history.push(goal);
+        if e.walk_history.len() as i64 > limit {
+            e.walk_history.remove(0);
+        }
+        let walking = self.walk_to(idx, x, y);
+        if walking && unidle {
+            self.reset_room_timer(world, idx);
+        }
+        walking
+    }
+
     /// Java: `RoomEntity.walkTo`.
     pub fn walk_to(&mut self, idx: usize, x: i32, y: i32) -> bool {
         if self.is_redirected(idx, x, y) {
@@ -682,8 +708,17 @@ impl Room {
         e.needs_update = true;
     }
 
-    /// Java: `RoomPlayer.talk` and `RoomEntity.talk(message, type)`.
-    pub fn talk(&mut self, world: &World, idx: usize, message: &[u8], kind: ChatType) {
+    /// Java: `RoomPlayer.talk` and `RoomEntity.talk(message, type)`. `whisper` holds the explicit
+    /// receivers of a whisper (`talk(message, type, receivers)`); chat and shout go to everyone
+    /// in the room who does not ignore the talker.
+    pub fn talk(
+        &mut self,
+        world: &World,
+        idx: usize,
+        message: &[u8],
+        kind: ChatType,
+        whisper: Option<Vec<Receiver>>,
+    ) {
         if message.ends_with(b"o/") {
             self.wave(idx);
             if message == b"o/" {
@@ -703,18 +738,40 @@ impl Room {
             return;
         }
         // TODO(moderation): muted rooms ("Shh! The room is currently muted...").
-        let message: &[u8] = if e.details.name == "Abigail.Ryan" {
-            b""
-        } else {
-            message
+        let (message, receivers): (&[u8], Vec<Receiver>) = match whisper {
+            Some(receivers) => (message, receivers),
+            None => {
+                let name = self.entities[idx].details.name.clone();
+                let receivers = self
+                    .entities
+                    .iter()
+                    .filter(|o| !o.session.ignored.lock().contains(name.as_bytes()))
+                    .map(|o| Receiver {
+                        session: o.session.clone(),
+                        filter: o.details.wordfilter_enabled,
+                    })
+                    .collect();
+                let message = if name == "Abigail.Ryan" {
+                    &b""[..]
+                } else {
+                    message
+                };
+                (message, receivers)
+            }
         };
-        // TODO(messenger): skip receivers that ignore the talker.
-        self.talk_to_all(world, idx, message, kind);
+        self.talk_to(world, idx, message, kind, receivers);
         self.entities[idx].mute_time = 0;
     }
 
-    /// Java: `RoomEntity.talk(message, type, receivers)` with every player as receiver.
-    fn talk_to_all(&mut self, world: &World, idx: usize, message: &[u8], kind: ChatType) {
+    /// Java: `RoomEntity.talk(message, type, receivers)`.
+    fn talk_to(
+        &mut self,
+        world: &World,
+        idx: usize,
+        message: &[u8],
+        kind: ChatType,
+        receivers: Vec<Receiver>,
+    ) {
         let spam_count = world.settings.read().int("chat.spam.count");
         let e = &mut self.entities[idx];
         let save = !e
@@ -728,9 +785,17 @@ impl Room {
         let talker = e.position;
         let instance_id = e.instance_id;
 
+        let talker_session = self.entities[idx].session.id;
         if kind != ChatType::Whisper {
-            for other in 0..self.entities.len() {
-                if other == idx || self.entities[other].is_sleeping {
+            // Everyone who hears it, except the talker, turns their head.
+            for receiver in &receivers {
+                if receiver.session.id == talker_session {
+                    continue;
+                }
+                let Some(other) = self.entity_index(receiver.session.id) else {
+                    continue;
+                };
+                if self.entities[other].is_sleeping {
                     continue;
                 }
                 if kind == ChatType::Chat
@@ -741,9 +806,23 @@ impl Room {
                 self.look(other);
             }
         }
-        // TODO(wordfilter): users with the filter on get WordfilterManager.filterSentence.
-        let msg = rooms_user::chat_message(kind, instance_id, message, chat_gesture(message));
-        self.send(msg);
+        let gesture = chat_gesture(message);
+        let filtered = {
+            let settings = world.settings.read();
+            receivers
+                .iter()
+                .any(|r| r.filter)
+                .then(|| world.wordfilter.filter_sentence(&settings, message))
+        };
+        for receiver in receivers {
+            let text = match (&filtered, receiver.filter) {
+                (Some(filtered), true) => filtered.as_slice(),
+                _ => message,
+            };
+            receiver
+                .session
+                .send(rooms_user::chat_message(kind, instance_id, text, gesture));
+        }
         // TODO(bots, pets): handleSpeech.
         if save {
             // TODO(chatlog): ChatManager.queue (room_chatlogs).
@@ -765,7 +844,7 @@ impl Room {
             self.deferred.push(Deferred::Left { session, room_id });
             return;
         }
-        self.walk_to(idx, door.x, door.y);
+        self.walk_to_player(world, idx, door.x, door.y);
         let e = &mut self.entities[idx];
         e.walking_allowed = allow_walking;
         e.being_kicked = being_kicked;
@@ -1000,6 +1079,7 @@ pub fn enter_room(
             machine_id: user.machine_id.clone(),
             trade_enabled: user.trade_enabled,
             trade_ban_expiration: user.trade_ban_expiration,
+            wordfilter_enabled: user.wordfilter_enabled,
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;

@@ -224,8 +224,12 @@ impl Room {
                 self.send(msg);
             }
             let e = &mut self.entities[idx];
-            if e.statuses.tick() {
+            let (changed, refresh_user) = e.statuses.tick();
+            if changed {
                 e.needs_update = true;
+            }
+            if refresh_user {
+                self.refresh_user(idx);
             }
         }
     }
@@ -258,7 +262,7 @@ impl Room {
                 continue;
             };
             if t > self.entities[idx].sleep_timer && !self.entities[idx].is_sleeping {
-                // TODO(carry): stopCarrying.
+                self.stop_carrying(idx);
                 self.sleep(idx, true);
             }
             if t > self.entities[idx].afk_timer {

@@ -17,6 +17,7 @@ mod room_rights;
 mod rooms;
 mod texts;
 mod user;
+mod wordfilter;
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -32,6 +33,7 @@ pub use records::User;
 pub use room_rights::RoomVote;
 pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
 pub use user::{Achievement, Badge, Effect, STATISTIC_COLUMNS, UserAchievement, UserStatistics};
+pub use wordfilter::WordfilterWord;
 
 /// Bump when a record layout or table changes, and add a migration in [`Store::open`].
 pub const SCHEMA_VERSION: u32 = 1;
@@ -111,6 +113,7 @@ impl Store {
             room_rights::create_tables(&tx)?;
             texts::create_tables(&tx)?;
             user::create_tables(&tx)?;
+            wordfilter::create_tables(&tx)?;
         }
         tx.commit()?;
         store.check_version()?;

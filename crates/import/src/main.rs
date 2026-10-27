@@ -12,7 +12,7 @@ use clap::Parser;
 use havana_storage::{
     CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
     MessengerCategory, MessengerMessage, PublicItem, Room, RoomCategory, RoomModel, RoomVote,
-    Store, User, Walkway,
+    Store, User, Walkway, WordfilterWord,
 };
 use mysql::prelude::Queryable;
 use mysql::{Opts, Pool, Row};
@@ -56,13 +56,14 @@ fn main() -> Result<()> {
     let messenger = import_messenger(&mut conn, &store)?;
     let room_rights = import_room_rights(&mut conn, &store)?;
     let texts = import_texts(&mut conn, &store)?;
+    let words = import_wordfilter(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts, {user_rows} badge/mute/effect/statistic/achievement rows",
+         {texts} external texts, {words} wordfilter words, {user_rows} badge/mute/effect/statistic/achievement rows",
         cli.out.display()
     );
     Ok(())
@@ -256,6 +257,22 @@ fn import_texts(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
     let mut w = store.write()?;
     for (entry, text) in &rows {
         w.put_external_text(entry, text)?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// `wordfilter` (Java: `WordfilterDao.getBadWords`).
+fn import_wordfilter(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<Row> = conn.query("SELECT * FROM wordfilter ORDER BY id")?;
+    let mut w = store.write()?;
+    for row in &rows {
+        w.put_wordfilter_word(&WordfilterWord {
+            id: col(row, "id")?,
+            word: col(row, "word")?,
+            is_bannable: bool_or_false(row, "is_bannable")?,
+            is_filterable: bool_or_false(row, "is_filterable")?,
+        })?;
     }
     w.commit()?;
     Ok(rows.len())

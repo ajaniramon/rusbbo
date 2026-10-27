@@ -17,6 +17,7 @@ use crate::game::pathfinder::Position;
 use crate::game::room::model::RoomModel;
 use crate::game::room::walkways::{self, WalkwayEntrance};
 use crate::game::room::{Room, RoomRef};
+use crate::game::wordfilter::WordFilter;
 use crate::session::Session;
 use crate::settings::Settings;
 use crate::settings_defaults::{DEFAULTS, Value};
@@ -42,6 +43,8 @@ pub struct World {
     pub room_categories: HashMap<u32, RoomCategory>,
     /// Java: `WalkwaysManager`, loaded at startup.
     pub walkways: Vec<WalkwayEntrance>,
+    /// Java: `WordfilterManager`, loaded at startup.
+    pub wordfilter: WordFilter,
     /// Set once the world is in its `Arc`, so room tasks can hold on to it.
     self_ref: OnceLock<Weak<World>>,
 }
@@ -60,6 +63,7 @@ impl World {
             .map(|c| (c.id, c))
             .collect();
         let walkways = walkways::parse(&store.walkways()?);
+        let wordfilter = WordFilter::new(store.wordfilter()?);
         let items = ItemManager::load(&store)?;
         let catalogue = CatalogueManager::load(&store, &items)?;
         let achievements = AchievementManager::new(store.achievements()?);
@@ -76,6 +80,7 @@ impl World {
             room_models,
             room_categories,
             walkways,
+            wordfilter,
             self_ref: OnceLock::new(),
         })
     }

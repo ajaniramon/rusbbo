@@ -44,7 +44,9 @@ chat, shout, wave, typing, leaving, AFK), the navigator (`NAVIGATE`, `GETUSERFLA
 (console, search, friend requests, private messages, status updates) and private rooms (room
 kiosk, settings, doorbell and password, rights, kick, delete) with their furniture (placing,
 moving, rotating and picking up floor and wall items, the default on/off interactor, chairs,
-solid furni in the pathfinder, wallpaper and floor). Interactors other than the default one
+solid furni in the pathfinder, wallpaper and floor). Social actions (whispers, `LOOKTO`, dancing, carrying drinks, `GOAWAY`), the word filter, the
+ignore list in chat and the rank-1 chat commands (`game/commands`; staff commands are
+`TODO(commands)`) are ported too. Interactors other than the default one
 (teleporters, dice, rollers, post-its, games...) are `TODO(...)` markers. Every trace in
 `harness/ported.txt` passes against the Rust server.
 

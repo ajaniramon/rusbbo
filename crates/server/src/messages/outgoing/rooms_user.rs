@@ -169,6 +169,41 @@ mod tests {
     }
 
     #[test]
+    fn social_composers_match_traces() {
+        // traces/social-actions.json, chat-commands.json, social-dance-carry.json
+        let whisper = chat_message(ChatType::Whisper, 0, b"psst, over here", 0);
+        assert_eq!(
+            (whisper.header, whisper.body),
+            (25, b"Hpsst, over here\x02H".to_vec())
+        );
+        assert_eq!(
+            chat_message(ChatType::Chat, 0, b":shutdown now", 4).body,
+            b"H:shutdown now\x02PA"
+        );
+        assert_eq!(user_dance(0, 3).body, b"HK");
+        assert_eq!(user_sleep(1, true).body, b"II");
+        assert_eq!(user_sleep(1, false).body, b"IH");
+        assert_eq!(typing_status(0, false).body, b"HH");
+    }
+
+    #[test]
+    fn carrying_status_matches_trace() {
+        let mut e = entity(0, 12, 8, 4);
+        e.statuses.set_timed(
+            StatusType::CarryDrink,
+            "5",
+            300,
+            Some(StatusType::UseItem),
+            12,
+            1,
+        );
+        assert_eq!(
+            user_statuses([&e], "ballroom").body,
+            b"IHPCPB0.0\x02PAPA/carryd 5/\x02"
+        );
+    }
+
+    #[test]
     fn statuses_match_public_room_trace() {
         let e = entity(0, 13, 6, 4);
         assert_eq!(

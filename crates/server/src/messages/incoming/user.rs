@@ -79,8 +79,9 @@ pub fn get_ignore_list(
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    let mut p = session.player.lock();
-    if !p.ignored.is_empty() {
+    let p = session.player.lock();
+    let mut ignored = session.ignored.lock();
+    if !ignored.is_empty() {
         return Ok(());
     }
     let Some(user_id) = p.user_id() else {
@@ -88,10 +89,10 @@ pub fn get_ignore_list(
     };
     for muted in world.store.muted_users(user_id).unwrap_or_default() {
         if let Ok(Some(user)) = world.store.user(muted) {
-            p.ignored.insert(user.username.as_bytes());
+            ignored.insert(user.username.as_bytes());
         }
     }
-    session.send(outgoing::user::ignored_list(&p.ignored.iter_java_order()));
+    session.send(outgoing::user::ignored_list(&ignored.iter_java_order()));
     Ok(())
 }
 
@@ -113,8 +114,9 @@ pub fn ignore_user(
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let name = reader.string().ok_or(Malformed)?;
-    let mut p = session.player.lock();
-    if p.ignored.contains(name) {
+    let p = session.player.lock();
+    let mut ignored = session.ignored.lock();
+    if ignored.contains(name) {
         return Ok(());
     }
     let Some(user_id) = p.user_id() else {
@@ -126,7 +128,7 @@ pub fn ignore_user(
     if let Err(e) = world.store.put_mutes(user_id, &rows) {
         tracing::error!(user = user_id, "saving mute: {e}");
     }
-    p.ignored.insert(name);
+    ignored.insert(name);
     session.send(outgoing::user::ignore_user_result(1));
     Ok(())
 }
@@ -138,8 +140,9 @@ pub fn unignore_user(
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let name = reader.string().ok_or(Malformed)?;
-    let mut p = session.player.lock();
-    if !p.ignored.contains(name) {
+    let p = session.player.lock();
+    let mut ignored = session.ignored.lock();
+    if !ignored.contains(name) {
         return Ok(());
     }
     let Some(user_id) = p.user_id() else {
@@ -151,7 +154,7 @@ pub fn unignore_user(
     if let Err(e) = world.store.put_mutes(user_id, &rows) {
         tracing::error!(user = user_id, "removing mute: {e}");
     }
-    p.ignored.remove(name);
+    ignored.remove(name);
     session.send(outgoing::user::ignore_user_result(3));
     Ok(())
 }

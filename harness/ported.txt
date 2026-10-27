@@ -1,6 +1,8 @@
 # Traces the Rust server must pass (CI checks these against Rust; every trace is checked against
 # the Java oracle). Add a trace here in the same change that makes it pass.
 catalogue
+chat-commands
+chat-filter
 flat-create
 flat-decor
 flat-delete
@@ -12,6 +14,9 @@ messenger
 navigator
 public-room
 room-two-bots
+social-actions
+social-dance-carry
+trade
 user-achievements
 user-badges
 user-badges-room
@@ -19,4 +24,3 @@ user-club
 user-club-member
 user-ignore
 user-settings
-trade
