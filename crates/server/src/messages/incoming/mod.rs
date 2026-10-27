@@ -1,6 +1,8 @@
 //! Client → server handlers, registered by id as in `MessageHandler.java`.
 
+pub mod badges;
 pub mod catalogue;
+pub mod club;
 pub mod handshake;
 pub mod inventory;
 pub mod messenger;
@@ -27,6 +29,18 @@ pub fn handler(header: u16) -> Option<Handler> {
         813 => handshake::unique_id,
         1170 => handshake::version_check,
         7 => user::get_info,
+        228 => user::get_account_preferences,
+        196 => user::pong,
+        370 => user::get_possible_achievements,
+        360 => user::get_ignore_list,
+        319 => user::ignore_user,
+        322 => user::unignore_user,
+        26 => club::get_club,
+        190 => club::subscribe_club,
+        157 => badges::get_available_badges,
+        158 => badges::set_badge,
+        159 => badges::get_selected_badges,
+        229 => rooms_user::set_sound_setting,
         12 => messenger::messenger_init,
         15 => messenger::friendlist_update,
         32 => messenger::mark_read,

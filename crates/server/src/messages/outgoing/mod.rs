@@ -2,6 +2,7 @@
 
 pub mod alerts;
 pub mod catalogue;
+pub mod club;
 pub mod handshake;
 pub mod inventory;
 pub mod messenger;
@@ -11,3 +12,4 @@ pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;
 pub mod user;
+pub mod user_badges;

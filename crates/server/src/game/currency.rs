@@ -24,6 +24,15 @@ pub fn decrease_pixels(store: &Store, details: &mut User, amount: i32) {
     }
 }
 
+/// Java: `CurrencyDao.increasePixels`.
+pub fn increase_pixels(store: &Store, details: &mut User, amount: i32) {
+    match store.update_user(details.id, |u| u.pixels += amount) {
+        Ok(Some(stored)) => details.pixels = stored.pixels,
+        Ok(None) => {}
+        Err(e) => error!(user = details.id, "increasing pixels: {e}"),
+    }
+}
+
 /// Java: `CurrencyDao.increaseFilm`.
 pub fn increase_film(store: &Store, details: &mut User, amount: i32) {
     match store.update_user(details.id, |u| u.film += amount) {

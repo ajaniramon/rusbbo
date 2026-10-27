@@ -1,16 +1,21 @@
 //! Game logic (Java: `org.alexdev.havana.game`).
 
+pub mod achievements;
+pub mod badges;
 pub mod catalogue;
+pub mod club;
 pub mod currency;
 pub mod fuserights;
 pub mod inventory;
 pub mod item;
+pub mod java_set;
 pub mod messenger;
 pub mod navigator;
 pub mod pathfinder;
 pub mod player;
 pub mod room;
 pub mod scheduler;
+pub mod statistics;
 
 /// Java: `String.valueOf(StringUtil.format(value))`: rounded to two decimals (`Math.round`, half
 /// up), then printed like `Double.toString` (`0.0`, `1.5`, `1.0E7`).

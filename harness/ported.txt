@@ -8,3 +8,10 @@ messenger
 navigator
 public-room
 room-two-bots
+user-achievements
+user-badges
+user-badges-room
+user-club
+user-club-member
+user-ignore
+user-settings

@@ -3,6 +3,8 @@
 //! Only the tables the Rust server uses so far are imported; each newly ported table adds a
 //! function here. See `docs/DESIGN.md`.
 
+mod user;
+
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
@@ -54,19 +56,20 @@ fn main() -> Result<()> {
     let messenger = import_messenger(&mut conn, &store)?;
     let room_rights = import_room_rights(&mut conn, &store)?;
     let texts = import_texts(&mut conn, &store)?;
+    let user_rows = user::import_user_data(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts",
+         {texts} external texts, {user_rows} badge/mute/effect/statistic/achievement rows",
         cli.out.display()
     );
     Ok(())
 }
 
 /// Reads a column, naming it in the error when it is missing or has the wrong type.
-fn col<T: mysql::prelude::FromValue>(row: &Row, name: &str) -> Result<T> {
+pub(crate) fn col<T: mysql::prelude::FromValue>(row: &Row, name: &str) -> Result<T> {
     row.get_opt(name)
         .with_context(|| format!("missing column {name}"))?
         .with_context(|| format!("bad value in column {name}"))
@@ -76,8 +79,13 @@ fn import_users(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
     // Datetimes come out as Unix seconds, converted by MariaDB in its own time zone, as the Java
     // server reads them.
     let rows: Vec<Row> = conn.query(
-        "SELECT *, UNIX_TIMESTAMP(last_online) AS last_online_ts, UNIX_TIMESTAMP(created_at) AS created_at_ts, \
-         UNIX_TIMESTAMP(updated_at) AS updated_at_ts FROM users ORDER BY id",
+        // UNIX_TIMESTAMP gives NULL (or 0) for dates after 2038, which JDBC reads fine: fall back to counting
+        // the seconds since 1970 (in UTC) for those.
+        "SELECT *, \
+         IF(IFNULL(UNIX_TIMESTAMP(last_online), 0) = 0 AND last_online > '1970-01-02', TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', last_online), UNIX_TIMESTAMP(last_online)) AS last_online_ts, \
+         IF(IFNULL(UNIX_TIMESTAMP(created_at), 0) = 0 AND created_at > '1970-01-02', TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', created_at), UNIX_TIMESTAMP(created_at)) AS created_at_ts, \
+         IF(IFNULL(UNIX_TIMESTAMP(updated_at), 0) = 0 AND updated_at > '1970-01-02', TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', updated_at), UNIX_TIMESTAMP(updated_at)) AS updated_at_ts \
+         FROM users ORDER BY id",
     )?;
     let mut w = store.write()?;
     for row in &rows {

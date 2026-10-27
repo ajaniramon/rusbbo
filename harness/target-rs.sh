@@ -67,7 +67,7 @@ case "${1:-}" in
     build_fixture
     cp "$RUN_DIR/fixture.redb" "$RUN_DIR/havana.redb"
     nohup "$WS_DIR/target/debug/havana-server" --db "$RUN_DIR/havana.redb" --bind "127.0.0.1:$PORT" \
-      --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
+      --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 --dev-ticket 3=trace-sso-3 --dev-ticket 4=trace-sso-4 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port
     ;;

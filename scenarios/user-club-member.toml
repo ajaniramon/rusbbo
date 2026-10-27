@@ -1,0 +1,40 @@
+name = "user-club-member"
+description = "Club state at login: an expired club is dropped on GET_CLUB (RIGHTS again), too few credits to subscribe, active members get club rights and the HC badge"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-3"
+
+[[bots]]
+name = "d"
+ticket = "trace-sso-4"
+
+[[steps]]
+bot = "c"
+macro = "login"
+
+[[steps]]
+bot = "c"
+send = "GET_CLUB"
+note = "expired subscription: club_expiration is reset and RIGHTS sent again"
+
+[[steps]]
+bot = "c"
+send = "SUBSCRIBE_CLUB"
+args = ["club_habbo", 1]
+settle_ms = 60
+note = "20 credits are not enough: no answer"
+
+[[steps]]
+bot = "c"
+send = "GET_CREDITS"
+
+[[steps]]
+bot = "d"
+macro = "login"
+
+[[steps]]
+bot = "d"
+send = "GETAVAILABLEBADGES"
+note = "the HC1 badge is granted while achievements are processed"
+

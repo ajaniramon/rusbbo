@@ -2,12 +2,15 @@
 
 use std::sync::Arc;
 
-use havana_storage::User;
+use havana_storage::{Effect, User, UserAchievement};
 use tracing::{error, info};
 
+use crate::game::badges::BadgeManager;
 use crate::game::inventory::Inventory;
+use crate::game::java_set::JavaStringSet;
 use crate::game::messenger::{Messenger, manager as messenger_manager};
-use crate::game::{fuserights, now, today_short};
+use crate::game::statistics::{PlayerStatistics, stat};
+use crate::game::{club, fuserights, now, today_short};
 use crate::messages::outgoing;
 use crate::session::Session;
 use crate::world::World;
@@ -37,6 +40,21 @@ pub struct Player {
     pub authenticate_id: Option<u32>,
     /// Loaded at login (Java: `Player.messenger`).
     pub messenger: Option<Messenger>,
+    /// Java: `Player.badgeManager`, loaded at login.
+    pub badges: BadgeManager,
+    /// Java: `Player.statisticManager`, loaded at login.
+    pub statistics: PlayerStatistics,
+    /// Java: `Player.achievementManager`'s rows, loaded at login.
+    pub achievements: Vec<UserAchievement>,
+    /// Java: `Player.effects`, loaded at login.
+    pub effects: Vec<Effect>,
+    /// Java: `Player.ignoredList`, a `HashSet`; filled by the first `GET_IGNORE_LIST`.
+    pub ignored: JavaStringSet,
+    /// Java: `Player.processLoginSteps`: the first `GETAVAILABLEBADGES` after login sends the
+    /// badge list and processes the achievements; later ones do nothing.
+    pub process_login_steps: bool,
+    /// Java: `PlayerDetails.previousRespectDay`: the respect day as stored before this login.
+    pub previous_respect_day: String,
 }
 
 impl Player {
@@ -48,9 +66,7 @@ impl Player {
     }
 
     pub fn has_club(&self) -> bool {
-        self.details
-            .as_ref()
-            .is_some_and(|d| d.club_expiration > now())
+        self.details.as_ref().is_some_and(club::has_club)
     }
 
     /// Java: `Player.hasFuse`.
@@ -95,6 +111,8 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     }
 
     p.messenger = Some(Messenger::load(&world.store, &settings, &user));
+    p.process_login_steps = true;
+    p.previous_respect_day = user.respect_day.clone();
 
     // TODO(bans): kick banned users once the bans tables are ported (Java: details.isBanned()).
 
@@ -107,7 +125,18 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
         session.send(outgoing::handshake::unique_id(&p.client_machine_id));
     }
 
-    // TODO(ip-log): users_ip_logs. TODO(effects): users_effects (expired ones are removed here).
+    // TODO(ip-log): users_ip_logs.
+
+    // Java: EffectDao.removeEffects drops used-up effects, then the rest are loaded.
+    let mut effects = world.store.effects(user.id).unwrap_or_default();
+    let before = effects.len();
+    effects.retain(|e| !(e.activated && e.expiry_date < now()));
+    if effects.len() != before {
+        if let Err(e) = world.store.put_effects(user.id, &effects) {
+            error!(user = user.id, "removing used-up effects: {e}");
+        }
+    }
+    p.effects = effects;
 
     p.credits_eligible = user.daily_coins_enabled;
     let today = today_short();
@@ -133,7 +162,10 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
 
     p.inventory = Inventory::load(&world.store, &world.items, user.id);
 
-    // TODO(statistics, badges, achievements, groups): loaded here in Java.
+    p.statistics = PlayerStatistics::load(&world.store, user.id);
+    p.badges = BadgeManager::load(&world.store, user.id);
+    p.achievements = world.store.user_achievements(user.id).unwrap_or_default();
+    // TODO(groups): the joined groups are loaded here in Java.
 
     if let Err(e) = world.store.update_user(user.id, |stored| {
         if save_last_online {
@@ -155,18 +187,32 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
 
     session.send(outgoing::handshake::rights(&fuserights::for_player(
         user.rank,
-        p.has_club(),
+        club::has_club(&user),
     )));
     session.send(outgoing::handshake::login());
-    session.send(outgoing::user::avatar_effects());
+    session.send(outgoing::user::avatar_effects(
+        &p.effects,
+        |id| world.effect_durations.get(&id).copied().unwrap_or(0),
+        now(),
+    ));
 
-    // TODO(alerts): welcome message (welcome.message.enabled), maintenance notice.
-    // TODO(guides/tutorial): HELP_ITEMS when the
-    // users_statistics.has_tutorial flag is set and tutorial.enabled is on.
-    // TODO(club): member days, badges, gifts.
+    if settings.bool("welcome.message.enabled") {
+        let text = settings
+            .string("welcome.message.content")
+            .replace("%username%", &user.username);
+        session.send(outgoing::alerts::alert(&text));
+    }
+    // TODO(alerts): the maintenance notice (INFO_HOTEL_CLOSING).
+    // TODO(alerts): the other placeholders of StringUtil.replaceAlertMessage.
+
+    // TODO(guides): a guide has no tutorial and starts guiding; nobody is a guide yet.
+    if settings.bool("tutorial.enabled") && p.statistics.int_value(stat::HAS_TUTORIAL) == 1 {
+        session.send(outgoing::user::help_items(&[1, 2, 3, 4, 5, 6, 7, 8]));
+    }
 
     info!(user = user.id, name = %user.username, "logged in");
     p.details = Some(user);
+    club::count_member_days(world, &mut p);
     drop(p);
     drop(settings);
     // Tell the online friends (Java: Messenger.sendStatusUpdate). Locks other players, so ours
