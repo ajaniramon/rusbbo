@@ -110,6 +110,11 @@ on wall-clock time beyond what the masks cover.
 | `room-two-bots` | two users seeing each other enter, talk, walk and leave |
 | `catalogue` | catalogue index and pages, buying furni, hand |
 | `messenger` | console init, user search, friend request/accept, private message |
+| `flat-create` | room kiosk (`CREATEFLAT`, `SETFLATINFO`, `SETFLATCAT`), own rooms and search, room info, entering a flat as the owner (`TRYFLAT`/`GOTOFLAT` + room load), walking, settings changed from inside (`UPDATEFLAT`) |
+| `flat-furni` | buying floor/wall furni, placing it from the hand, moving, rotating, an invalid move, toggling floor and wall items, walking blocked by solid furni, sitting on a chair, picking up (also from under a sitting user) |
+| `flat-visit` | two users: doorbell (refused, then let in), live furni updates for both, rights given/removed, password room (wrong, right), kick |
+| `flat-delete` | deleting a room with a visitor and furni inside: both sent to the hotel view, furni gone, navigator no longer lists it |
+| `flat-decor` | buying wallpaper and floor, applying them (`FLATPROPBYITEM`), seeing them on re-entry |
 
 ## Known gaps
 

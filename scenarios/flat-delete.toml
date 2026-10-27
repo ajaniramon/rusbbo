@@ -1,0 +1,154 @@
+name = "flat-delete"
+description = "The owner deletes a room with a visitor and furni in it: both are sent out, the furni is gone, and the navigator no longer lists the room"
+
+# Room 1000 is tracebot1's (a). a's lamp_armas is item 1.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 123, "", false]
+note = "lamp_armas: item 1"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Doomed Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+
+[[steps]]
+bot = "b"
+send = "SRCHF"
+args = ["Doomed"]
+note = "b finds the room"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+note = "Open room: straight in"
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 1500
+
+[[steps]]
+bot = "a"
+send = "SUSERF"
+note = "Own rooms: one room, two visitors"
+
+[[steps]]
+bot = "a"
+send = "DELETEFLAT"
+args = [1000]
+settle_ms = 1200
+note = "Navigator 'modify room' -> delete, while both users are inside"
+
+[[steps]]
+bot = "a"
+send = "SUSERF"
+note = "NOFLATSFORUSER"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["Doomed"]
+note = "NOFLATS"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "The lamp was deleted with the room, not returned to the hand"
+
+[[steps]]
+bot = "b"
+send = "GETFLATINFO"
+args = [1000]
+note = "Unknown room: no answer"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+note = "Unknown room: no answer"

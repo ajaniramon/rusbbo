@@ -1,0 +1,276 @@
+name = "flat-visit"
+description = "A visitor at a doorbell room (denied, then let in), live furni updates for both users, rights given and taken, then a password room (wrong, then right password) and a kick"
+
+# Room 1000 is tracebot1's (a). a's lamp_armas is item 1 (first item bought after the server start).
+# The room stays loaded the whole time because a never leaves it until the end.
+# model_a: door at (3,5), floor x 4-11, y 1-13.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 123, "", false]
+note = "lamp_armas: item 1"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Visit Flat", "model_a", "closed", true]
+note = "Door mode: doorbell"
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+note = "Lamp at (6,5)"
+
+# --- Doorbell ---
+
+[[steps]]
+bot = "b"
+send = "GETFLATINFO"
+args = [1000]
+note = "Navigator info: door mode 1 (doorbell)"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+note = "Rings: b waits (empty DOORBELL_WAIT), a is asked (DOORBELL_WAIT with b's name)"
+
+[[steps]]
+bot = "a"
+send = "LETUSERIN"
+args = ["tracebot2", false]
+note = "a refuses: b gets FLATNOTALLOWEDTOENTER"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+note = "Rings again"
+
+[[steps]]
+bot = "a"
+send = "LETUSERIN"
+args = ["tracebot2", true]
+note = "a opens: b gets FLAT_LETIN"
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+note = "b enters as a visitor: YOUNOTCONTROLLER"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+note = "ACTIVE_OBJECTS has a's lamp"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+note = "Both see each other"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 1500
+note = "a sees b walk"
+
+# --- Live furni changes and rights ---
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [1, 0]
+note = "a switches the lamp on: both see it"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [1, 6, 7, 0]
+note = "a moves the lamp: both see it"
+
+[[steps]]
+bot = "b"
+send = "MOVESTUFF"
+args = [1, 9, 3, 0]
+note = "b has no rights: ignored"
+
+[[steps]]
+bot = "b"
+send = "USEFURNITURE"
+args = [1, 0]
+note = "b has no rights and the lamp needs rights: ignored"
+
+[[steps]]
+bot = "a"
+send = "ASSIGNRIGHTS"
+args = [{ raw = "tracebot2" }]
+settle_ms = 1200
+note = "Shockwave sends the bare user name; b gets YOUARECONTROLLER, then flatctrl on the next room tick"
+
+[[steps]]
+bot = "b"
+send = "MOVESTUFF"
+args = [1, 9, 3, 0]
+note = "b moves the lamp: both see it"
+
+[[steps]]
+bot = "b"
+send = "USEFURNITURE"
+args = [1, 0]
+note = "b switches the lamp off: both see it"
+
+[[steps]]
+bot = "a"
+send = "REMOVERIGHTS"
+args = [{ raw = "tracebot2" }]
+settle_ms = 1200
+note = "Rights are refreshed before they are removed, so b is told it is still a controller"
+
+[[steps]]
+bot = "b"
+send = "MOVESTUFF"
+args = [1, 10, 10, 0]
+note = "b no longer has rights: ignored"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+note = "a sees b leave"
+
+# --- Password ---
+
+[[steps]]
+bot = "a"
+send = "UPDATEFLAT"
+args = [1000, "Visit Flat", "password", true]
+
+[[steps]]
+bot = "a"
+send = "SETFLATINFO"
+args = [1000, "", "secret", 0, 25]
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, "wrong"]
+note = "LOCALISED_ERROR -100002"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, "secret"]
+note = "FLAT_LETIN"
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 1500
+
+# --- Kick ---
+
+[[steps]]
+bot = "a"
+send = "KICK"
+args = [{ raw = "tracebot2" }]
+settle_ms = 2500
+note = "b gets HOTEL_VIEW, walks back to the door and leaves the room"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

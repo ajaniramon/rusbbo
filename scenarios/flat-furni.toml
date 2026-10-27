@@ -1,0 +1,227 @@
+name = "flat-furni"
+description = "Buy a chair, a lamp, a sofa and a wall torch, place them in your own room, move, rotate and toggle them, sit, get blocked by the lamp, pick everything up again"
+
+# Room 1000 (first room after the golden snapshot). Purchased items get the virtual ids 1-4 in
+# purchase order (the counter starts at 0 with every server start, and the bot's hand is empty at
+# login): 1 chair_plasto, 2 lamp_armas, 3 bench_armas, 4 torch.
+# model_a: door at (3,5), floor x 4-11, y 1-13.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 518, "", false]
+note = "chair_plasto (Plasto page), 3 credits: can_sit_on_top"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 123, "", false]
+note = "lamp_armas (Lodge page), 3 credits: solid, on/off custom data"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 116, "", false]
+note = "bench_armas (Lodge page), 3 credits: 2x1 sofa"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 69, "", false]
+note = "torch (Gothic page), 7 credits: wall item, on/off custom data"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Hand: the four new items"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Furni Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Open the hand in the room"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 6 5 0"]
+note = "Lamp at (6,5), straight east of the door"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 7 3 4"]
+note = "Chair at (7,3) facing south"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["3 8 8 2"]
+note = "Sofa at (8,8), rotation 2"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["4 :w=6,1 l=8,32 r"]
+note = "Torch on the wall"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Hand is empty now"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+note = "Wall items as a room load would see them"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [3, 9, 10, 2]
+note = "Move the sofa"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [3, 9, 10, 4]
+note = "Rotate the sofa in place"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [3, 6, 5, 4]
+note = "Invalid move onto the lamp: the server answers with the unchanged position"
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [2, 0]
+note = "Lamp on"
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [2, 0]
+note = "Lamp off again (max status 2)"
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [2, 0]
+note = "Lamp on, so it goes back to the hand switched on"
+
+[[steps]]
+bot = "a"
+send = "USEWALLITEM"
+args = [4]
+note = "Torch on"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [6, 5]
+settle_ms = 1200
+note = "Walk onto the solid lamp: no path"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [8, 5]
+settle_ms = 1500
+note = "Walk past the lamp: the path goes around it"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [7, 3]
+settle_ms = 1500
+note = "Walk onto the chair: sit"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 1]
+settle_ms = 1200
+note = "Pick up the chair while sitting on it"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 2]
+note = "Pick up the lamp"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 3]
+note = "Pick up the sofa"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 4]
+note = "Pick up the torch"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "All four items back in the hand"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+note = "No wall items left"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600
