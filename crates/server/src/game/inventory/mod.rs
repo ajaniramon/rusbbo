@@ -110,6 +110,13 @@ impl Inventory {
         }
     }
 
+    /// Java: `getItems().stream().anyMatch(sprite.equalsIgnoreCase(..))`.
+    pub fn has_sprite(&self, sprite: &str) -> bool {
+        self.items
+            .iter()
+            .any(|i| i.definition.sprite().eq_ignore_ascii_case(sprite))
+    }
+
     /// Java: `getItem(itemId)`: by virtual id.
     pub fn item(&self, virtual_id: i32) -> Option<&Item> {
         self.items.iter().find(|i| i.virtual_id == virtual_id)

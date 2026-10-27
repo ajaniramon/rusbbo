@@ -9,6 +9,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::debug;
 
+use crate::game::java_set::JavaStringSet;
 use crate::game::player::Player;
 
 pub enum Outgoing {
@@ -26,6 +27,10 @@ pub struct Session {
     out: UnboundedSender<Outgoing>,
     closing: AtomicBool,
     pub player: Mutex<Player>,
+    /// Java: `Player.ignoredList`, a `HashSet`; filled by the first `GET_IGNORE_LIST`. A leaf lock
+    /// of its own (never take another lock while holding it), so a room can check the receivers
+    /// of a chat message while holding its lock without taking the players' locks.
+    pub ignored: Mutex<JavaStringSet>,
     /// Receiving half of a cipher installed by `GENERATEKEY`, until the reader task picks it up.
     opener: Mutex<Option<Opener>>,
     encrypted: AtomicBool,
@@ -38,6 +43,7 @@ impl Session {
             out,
             closing: AtomicBool::new(false),
             player: Mutex::new(Player::default()),
+            ignored: Mutex::new(JavaStringSet::default()),
             opener: Mutex::new(None),
             encrypted: AtomicBool::new(false),
         }

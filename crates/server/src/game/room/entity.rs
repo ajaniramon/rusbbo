@@ -115,6 +115,14 @@ impl StatusMap {
         self.entries.iter().any(|e| e.map_key == status.code())
     }
 
+    /// Java: `getStatus(status).getValue()`.
+    pub fn value(&self, status: StatusType) -> Option<&str> {
+        self.entries
+            .iter()
+            .find(|e| e.map_key == status.code())
+            .map(|e| e.value.as_str())
+    }
+
     pub fn remove(&mut self, status: StatusType) {
         self.remove_code(status.code());
     }
@@ -163,8 +171,9 @@ impl StatusMap {
         order.into_iter()
     }
 
-    /// Java: `StatusTask.processEntity`'s countdown loop. Returns whether anything changed.
-    pub fn tick(&mut self) -> bool {
+    /// Java: `StatusTask.processEntity`'s countdown loop. Returns whether anything changed and
+    /// whether a carried drink ran out, which refreshes the user.
+    pub fn tick(&mut self) -> (bool, bool) {
         let mut changed = false;
         let mut to_remove = Vec::new();
         let mut order: Vec<usize> = (0..self.entries.len()).collect();
@@ -196,11 +205,14 @@ impl StatusMap {
             }
         }
         // Java removes by the current key, not the one the status was stored under.
+        let mut refresh_user = false;
         for code in to_remove {
             self.remove_code(code);
+            if code == StatusType::CarryDrink.code() {
+                refresh_user = true;
+            }
         }
-        // TODO(carry): a removed CARRY_DRINK refreshes the user (refreshUser).
-        changed
+        (changed, refresh_user)
     }
 }
 
@@ -221,6 +233,8 @@ pub struct EntityDetails {
     pub club_expiration: i64,
     /// Java: `PlayerDetails.getMachineId`, for `Room.hasVoted`.
     pub machine_id: String,
+    /// Java: `PlayerDetails.isWordFilterEnabled`, for the chat a receiver gets.
+    pub wordfilter_enabled: bool,
 }
 
 impl EntityDetails {
@@ -261,6 +275,8 @@ pub struct RoomEntity {
     pub afk_timer: i64,
     pub sleep_timer: i64,
     pub chat_bubble_timer: i64,
+    /// Java: `RoomPlayer.walkHistory`, the last goals asked for.
+    pub walk_history: Vec<Position>,
 }
 
 impl RoomEntity {
@@ -295,6 +311,7 @@ impl RoomEntity {
             afk_timer: 0,
             sleep_timer: 0,
             chat_bubble_timer: -1,
+            walk_history: Vec::new(),
         }
     }
 
@@ -357,8 +374,8 @@ mod tests {
     fn timed_status_expires() {
         let mut map = StatusMap::default();
         map.set_timed(StatusType::Sign, "3", 1, None, -1, -1);
-        assert!(!map.tick());
-        assert!(map.tick());
+        assert_eq!(map.tick(), (false, false));
+        assert_eq!(map.tick(), (true, false));
         assert!(!map.contains(StatusType::Sign));
     }
 }

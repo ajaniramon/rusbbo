@@ -4,6 +4,7 @@ pub mod achievements;
 pub mod badges;
 pub mod catalogue;
 pub mod club;
+pub mod commands;
 pub mod currency;
 pub mod fuserights;
 pub mod inventory;
@@ -16,6 +17,7 @@ pub mod player;
 pub mod room;
 pub mod scheduler;
 pub mod statistics;
+pub mod wordfilter;
 
 /// Java: `String.valueOf(StringUtil.format(value))`: rounded to two decimals (`Math.round`, half
 /// up), then printed like `Double.toString` (`0.0`, `1.5`, `1.0E7`).

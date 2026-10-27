@@ -298,7 +298,7 @@ pub fn use_furniture(
             let front = item.position.square_in_front();
             let walker = r.walker(e);
             if is_valid_tile(&r.mapping, Some(&walker), front) {
-                r.walk_to(e, front.x, front.y);
+                r.walk_to_player(world, e, front.x, front.y);
             }
             // TODO(items): otherwise Java walks to RoomTile.getNextAvailablePosition.
             return Ok(());

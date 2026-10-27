@@ -19,3 +19,7 @@ user-club
 user-club-member
 user-ignore
 user-settings
+chat-commands
+chat-filter
+social-actions
+social-dance-carry

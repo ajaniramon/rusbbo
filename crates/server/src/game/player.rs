@@ -7,7 +7,6 @@ use tracing::{error, info};
 
 use crate::game::badges::BadgeManager;
 use crate::game::inventory::Inventory;
-use crate::game::java_set::JavaStringSet;
 use crate::game::messenger::{Messenger, manager as messenger_manager};
 use crate::game::statistics::{PlayerStatistics, stat};
 use crate::game::{club, fuserights, now, today_short};
@@ -48,8 +47,6 @@ pub struct Player {
     pub achievements: Vec<UserAchievement>,
     /// Java: `Player.effects`, loaded at login.
     pub effects: Vec<Effect>,
-    /// Java: `Player.ignoredList`, a `HashSet`; filled by the first `GET_IGNORE_LIST`.
-    pub ignored: JavaStringSet,
     /// Java: `Player.processLoginSteps`: the first `GETAVAILABLEBADGES` after login sends the
     /// badge list and processes the achievements; later ones do nothing.
     pub process_login_steps: bool,
