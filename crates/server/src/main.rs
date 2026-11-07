@@ -6,6 +6,7 @@ mod net;
 mod session;
 mod settings;
 mod settings_defaults;
+mod ticket_api;
 mod world;
 
 use std::net::SocketAddr;
@@ -31,6 +32,13 @@ struct Cli {
     /// Stands in for the website until it exists; used by the trace harness.
     #[arg(long = "dev-ticket", value_name = "USER_ID=TICKET")]
     dev_tickets: Vec<String>,
+    /// Serve the website's ticket API (`GET /api/ticket?username=..&password=..`, as Havana-Web's
+    /// TicketController, and `/api/login`) on this address, e.g. 127.0.0.1:8095. Off by default.
+    #[arg(long, value_name = "ADDR")]
+    http: Option<SocketAddr>,
+    /// Ticket API requests allowed per client IP and minute (brute-force protection).
+    #[arg(long, value_name = "N", default_value_t = ticket_api::DEFAULT_RATE_LIMIT)]
+    http_rate_limit: u32,
 }
 
 #[tokio::main]
@@ -70,6 +78,15 @@ async fn main() -> Result<()> {
 
     let world = World::new(store)?.into_arc();
     tokio::spawn(game::scheduler::run(world.clone()));
+    if let Some(http) = cli.http {
+        let world = world.clone();
+        let rate_limit = cli.http_rate_limit;
+        tokio::spawn(async move {
+            if let Err(e) = ticket_api::serve(world, http, rate_limit).await {
+                tracing::error!("ticket API: {e:#}");
+            }
+        });
+    }
     tokio::select! {
         result = net::serve(world.clone(), cli.bind) => result,
         () = shutdown_signal() => {
