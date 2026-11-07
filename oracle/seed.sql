@@ -68,3 +68,39 @@ VALUES ('happy.hour.weekday.start', '00:00:00'), ('happy.hour.weekday.end', '00:
 
 -- All bots connect from 127.0.0.1; the default of 2 connections per IP would turn a third bot away.
 REPLACE INTO settings (setting, value) VALUES ('max.connections.per.ip', '10');
+
+-- Users for the moderation scenarios (ids from 21 up, apart from the tracebot ids). Created in
+-- 2099 like the others, which also keeps them inside the 30 minutes after joining in which
+-- WordfilterManager.hasBannableSentence bans for a bannable sentence.
+--   tracestaff:   ADMINISTRATOR (rank 8): every command and moderation tool.
+--   tracemod:     MODERATOR (rank 5): ban/mute/kick rights, so others cannot ban or mute it.
+--   tracebanned:  an active USER_ID ban (logging in kicks it straight away).
+--   tracemachine: a valid machine id with an active MACHINE_ID ban.
+--   tracepass:    password "tracepass123" (Argon2 written by Java's Argon2PasswordEncoder), for
+--                 TRY_LOGIN; an expired and an inactive ban, which do not stop it.
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning, machine_id)
+VALUES
+  (21, 'tracestaff', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'trace staff',
+   'staff@trace.local', 1000, 10, 10, 8, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-21', 1, 0, ''),
+  (22, 'tracemod', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'trace mod',
+   'mod@trace.local', 1000, 10, 10, 5, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-22', 1, 0, ''),
+  (23, 'tracebanned', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'trace banned',
+   'banned@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-23', 1, 0, ''),
+  (24, 'tracemachine', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'trace machine',
+   'machine@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-24', 1, 0,
+   '#0123456789ABCDEF0123456789ABCDEF'),
+  (25, 'tracepass', '$argon2id$v=19$m=65536,t=2,p=1$+dssL2Co/b/pOlmPSnwK3g$96Wt7oEYdSt0feXvqaUSVscIU2BuYuX5Ac9wCAfrHVc',
+   'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'trace pass',
+   'pass@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', NULL, 1, 0, '');
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable)
+VALUES (21, 0, 0), (22, 0, 0), (23, 0, 0), (24, 0, 0), (25, 0, 0);
+
+INSERT INTO users_bans (ban_type, banned_value, message, banned_until, banned_at, banned_by, is_active)
+VALUES
+  ('USER_ID', '23', 'Banned by the trace seed', '2099-01-01 00:00:00', '2026-01-01 00:00:00', 21, 1),
+  ('MACHINE_ID', '#0123456789ABCDEF0123456789ABCDEF', 'Machine banned by the trace seed',
+   '2099-01-01 00:00:00', '2026-01-01 00:00:00', 21, 1),
+  ('USER_ID', '25', 'Expired ban', '2026-01-02 00:00:00', '2026-01-01 00:00:00', 21, 1),
+  ('USER_ID', '25', 'Lifted ban', '2099-01-01 00:00:00', '2026-01-01 00:00:00', 21, 0);
