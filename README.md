@@ -52,6 +52,11 @@ staff commands are `TODO(commands)`) and trading are ported too. Other interacto
 vending machines, games...) are `TODO(...)` markers. Every trace in `harness/ported.txt` passes
 against the Rust server.
 
+Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
+walkspace, talking now and then, and handing out drinks when a user nearby asks for one
+(`game/bot.rs`, `game/room/bots.rs`). Bots are room entities with a detached session and
+`EntityKind::Bot`; they never count as players.
+
 Server housekeeping as in Java: idle connections get `PING` after 60 s and are logged out 60 s
 later without a `PONG`; startup resets SSO tickets, `players.online`, room visitor counts, trade
 states and online flags (one transaction); Ctrl-C/SIGTERM sends `INFO_HOTEL_CLOSED`, logs everyone
@@ -134,6 +139,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `login-encrypted` | the same with `GENERATEKEY`: Diffie-Hellman, then every message over the RC4 layer |
 | `navigator` | public/guest categories, flat categories, own rooms, search |
 | `public-room` | enter a public room, heightmap/objects/users, walk, chat, shout, wave, leave |
+| `room-bots` | public room NPCs: Harry joins the Welcome Lounge with its first visitor (`USER_OBJECTS` type 3), and counts neither as a visitor nor in the room's user list |
 | `room-two-bots` | two users seeing each other enter, talk, walk and leave |
 | `catalogue` | catalogue index and pages, buying furni, hand |
 | `messenger` | console init, user search, friend request/accept, private message |

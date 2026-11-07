@@ -360,7 +360,7 @@ pub fn g_stat(
         return Ok(());
     };
     let mut r = room.lock();
-    r.try_room_entry();
+    r.try_room_entry(world);
     let model = r.model.name.clone();
     session.send(out_user::user_objects(&r.entities, &model));
     if let Some(idx) = r.entity_index(session.id) {

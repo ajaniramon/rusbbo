@@ -1,0 +1,56 @@
+name = "room-bots"
+description = "Public room NPCs: Harry enters the Welcome Lounge with its first visitor (USER_OBJECTS, entity type 3, at its start tile), is not a visitor in the navigator nor in the room's user list"
+
+# rooms_bots: Harry (id 44) is in the Welcome Lounge (room 1) at 8,21. Java adds a room's bots on
+# its first G_STAT and starts the BotTask; a bot walks at the earliest ~3 s later and talks after
+# 20 s or more, at random, so everything after G_STAT stays within 3 s. (Asking a bot for a drink
+# is random too: the response and, for some bots, the drink; it was checked with the real client.)
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 1]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1000
+note = "Harry's USER_OBJECTS as it enters, then everyone's"
+
+[[steps]]
+bot = "a"
+send = "NAVIGATE"
+args = [false, 3]
+note = "Welcome Lounge: 1 visitor, Harry does not count"
+
+[[steps]]
+bot = "a"
+send = "GETSPACENODEUSERS"
+args = [1001]
+note = "Only tracebot1"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

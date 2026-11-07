@@ -21,6 +21,7 @@ messenger
 messenger-search
 navigator
 public-room
+room-bots
 room-two-bots
 social-actions
 social-dance-carry

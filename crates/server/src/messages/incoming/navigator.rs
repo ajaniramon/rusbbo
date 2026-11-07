@@ -242,6 +242,7 @@ pub fn get_space_node_users(
             r.is_public(),
             r.entities
                 .iter()
+                .filter(|e| e.is_player())
                 .map(|e| e.details.name.clone())
                 .collect::<Vec<_>>(),
         )
@@ -249,7 +250,14 @@ pub fn get_space_node_users(
     if is_public {
         for child in world.child_rooms(room.id, true) {
             if let Some(child) = world.loaded_room(child) {
-                names.extend(child.lock().entities.iter().map(|e| e.details.name.clone()));
+                names.extend(
+                    child
+                        .lock()
+                        .entities
+                        .iter()
+                        .filter(|e| e.is_player())
+                        .map(|e| e.details.name.clone()),
+                );
             }
         }
     }

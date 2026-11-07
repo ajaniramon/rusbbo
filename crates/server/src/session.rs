@@ -1,5 +1,6 @@
 //! One client connection: its outgoing queue and its player state.
 
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use havana_protocol::Message;
@@ -50,6 +51,16 @@ impl Session {
             encrypted: AtomicBool::new(false),
             ping_ok: AtomicBool::new(true),
         }
+    }
+
+    /// A session with no connection behind it, for room entities that are not players (bots,
+    /// pets): whatever is sent to it is dropped. Its id is outside the range of connection ids.
+    pub fn detached() -> Arc<Self> {
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1 << 62);
+        let (tx, _) = tokio::sync::mpsc::unbounded_channel();
+        let session = Self::new(NEXT.fetch_add(1, Ordering::Relaxed), tx);
+        session.closing.store(true, Ordering::Relaxed);
+        Arc::new(session)
     }
 
     /// Queues a message; never blocks. Messages after [`Session::close`] are dropped.

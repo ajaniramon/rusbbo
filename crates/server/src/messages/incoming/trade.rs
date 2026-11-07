@@ -68,7 +68,11 @@ pub fn trade_open(
             return Ok(());
         }
         let instance_id = reader.int().ok_or(Malformed)?;
-        let Some(partner) = r.entity_by_instance(instance_id) else {
+        // Java casts the entity to a Player: with a bot or a pet it throws and nothing happens.
+        let Some(partner) = r
+            .entity_by_instance(instance_id)
+            .filter(|&p| r.entities[p].is_player())
+        else {
             return Ok(());
         };
         // Java lets a user open a trade with themselves, which leaves them in a broken state.

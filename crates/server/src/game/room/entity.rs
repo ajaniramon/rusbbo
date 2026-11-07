@@ -249,10 +249,19 @@ impl EntityDetails {
     }
 }
 
-/// Java: `RoomEntity` + `RoomPlayer` + `RoomTimerManager`, for players.
-/// TODO(bots, pets): other entity kinds.
+/// Java: `EntityType`: what is behind a room entity.
+pub enum EntityKind {
+    Player,
+    /// An NPC of a public room (`rooms_bots`).
+    Bot(Box<crate::game::bot::BotState>),
+}
+
+/// Java: `RoomEntity` + `RoomPlayer` + `RoomTimerManager`. Bots (and, later, pets) are entities
+/// too: they have a detached `session` (see [`Session::detached`]) that nothing reads, so code that
+/// sends to everyone in the room needs no special case, and `kind` says what they are.
 pub struct RoomEntity {
     pub session: Arc<Session>,
+    pub kind: EntityKind,
     pub details: EntityDetails,
     pub instance_id: i32,
     pub position: Position,
@@ -301,6 +310,7 @@ impl RoomEntity {
     pub fn new(session: Arc<Session>, details: EntityDetails, instance_id: i32) -> Self {
         Self {
             session,
+            kind: EntityKind::Player,
             details,
             instance_id,
             position: Position::default(),
@@ -330,6 +340,33 @@ impl RoomEntity {
             chat_bubble_timer: -1,
             trade: TradeState::default(),
             walk_history: Vec::new(),
+        }
+    }
+
+    /// Java: `entity.getType() == EntityType.PLAYER`.
+    pub fn is_player(&self) -> bool {
+        matches!(self.kind, EntityKind::Player)
+    }
+
+    /// Java: `EntityType.getTypeId`, as `USER_OBJECTS` writes it.
+    pub fn type_id(&self) -> i32 {
+        match self.kind {
+            EntityKind::Player => 1,
+            EntityKind::Bot(_) => 3,
+        }
+    }
+
+    pub fn bot(&self) -> Option<&crate::game::bot::BotState> {
+        match &self.kind {
+            EntityKind::Bot(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    pub fn bot_mut(&mut self) -> Option<&mut crate::game::bot::BotState> {
+        match &mut self.kind {
+            EntityKind::Bot(b) => Some(b),
+            _ => None,
         }
     }
 

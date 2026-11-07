@@ -12,6 +12,7 @@
 //! [`furniture`]). TODO(bots): `rooms_bots` NPCs; rooms that have them simply show none.
 
 pub mod actions;
+mod bots;
 pub mod entity;
 pub mod furniture;
 pub mod items;
@@ -121,6 +122,10 @@ pub struct Room {
     roller_task: Option<tokio::task::AbortHandle>,
     /// Bumped on every dispose request, so only the latest one runs.
     dispose_generation: u64,
+    /// Java: the room's `BotTask` is scheduled (the room has bots).
+    bots_active: bool,
+    /// Java: `BotTask.lastSpeech`: the bot and sentence said last, never said twice in a row.
+    last_bot_speech: Option<(i32, usize)>,
     self_ref: Weak<RoomHandle>,
     deferred: Vec<Deferred>,
 }
@@ -164,6 +169,8 @@ impl Room {
                 task: None,
                 roller_task: None,
                 dispose_generation: 0,
+                bots_active: false,
+                last_bot_speech: None,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
             }),
@@ -213,14 +220,18 @@ impl Room {
 
     /// Java: `Room.send`: to every player in the room.
     pub fn send(&self, msg: Message) {
-        for e in &self.entities {
+        for e in self.entities.iter().filter(|e| e.is_player()) {
             e.session.send(msg.clone());
         }
     }
 
     /// Java: `Room.send(composer, exclude)`.
     pub fn send_except(&self, msg: Message, except: u64) {
-        for e in self.entities.iter().filter(|e| e.session.id != except) {
+        for e in self
+            .entities
+            .iter()
+            .filter(|e| e.is_player() && e.session.id != except)
+        {
             e.session.send(msg.clone());
         }
     }
@@ -237,8 +248,9 @@ impl Room {
             .position(|e| e.instance_id == instance_id)
     }
 
+    /// Java: `getPlayers().size()`: bots and pets do not count.
     fn players(&self) -> i32 {
-        self.entities.len() as i32
+        self.entities.iter().filter(|e| e.is_player()).count() as i32
     }
 
     pub fn walker(&self, idx: usize) -> Walker {
@@ -388,10 +400,13 @@ impl Room {
     }
 
     /// Java: `RoomEntityManager.tryRoomEntry` (`G_STAT`). Returns whether it was the first entry.
-    pub fn try_room_entry(&mut self) -> bool {
+    pub fn try_room_entry(&mut self, world: &World) -> bool {
         let was_active = self.active;
         self.active = true;
-        // TODO(triggers): model trigger onRoomEntry. TODO(bots): BotManager.addBots on first entry.
+        // TODO(triggers): model trigger onRoomEntry.
+        if !was_active {
+            self.add_bots(world);
+        }
         !was_active
     }
 
@@ -479,6 +494,8 @@ impl Room {
             r.rights.clear();
             r.votes.clear();
             r.entities.clear();
+            r.bots_active = false;
+            r.last_bot_speech = None;
             world.unregister_room(&room);
         });
     }
@@ -590,6 +607,12 @@ impl Room {
         let being_kicked = e.being_kicked;
         let session = e.session.clone();
 
+        // Java: walkways and the door only apply to players (`EntityType.PLAYER`).
+        if !e.is_player() {
+            self.invoke_item(idx, false);
+            self.bot_stopped(world, idx);
+            return None;
+        }
         if !being_kicked {
             if let Some(w) = world.walkway_at(self, position) {
                 // Java enters the target room right here; it runs once the room lock is released.
@@ -797,7 +820,9 @@ impl Room {
                 let receivers = self
                     .entities
                     .iter()
-                    .filter(|o| !o.session.ignored.lock().contains(name.as_bytes()))
+                    .filter(|o| {
+                        o.is_player() && !o.session.ignored.lock().contains(name.as_bytes())
+                    })
                     .map(|o| Receiver {
                         session: o.session.clone(),
                         filter: o.details.wordfilter_enabled,
@@ -875,7 +900,10 @@ impl Room {
                 .session
                 .send(rooms_user::chat_message(kind, instance_id, text, gesture));
         }
-        // TODO(bots, pets): handleSpeech.
+        if self.entities[idx].is_player() && kind != ChatType::Whisper {
+            self.bots_hear(world, idx, message);
+            // TODO(pets): PetManager.handleSpeech.
+        }
         if save {
             // TODO(chatlog): ChatManager.queue (room_chatlogs).
             self.reset_room_timer(world, idx);
@@ -949,6 +977,9 @@ impl Room {
     /// out on the next tick.
     pub fn refresh_rights(&mut self, idx: usize, send_status: bool) {
         let e = &self.entities[idx];
+        if !e.is_player() {
+            return;
+        }
         let user_id = e.details.user_id;
         let mut value = "";
         if self.is_owner(user_id) || e.details.has_fuse("fuse_any_room_controller") {
@@ -1245,6 +1276,8 @@ impl Room {
             task: None,
             roller_task: None,
             dispose_generation: 0,
+            bots_active: false,
+            last_bot_speech: None,
             self_ref: Weak::new(),
             deferred: Vec::new(),
         };

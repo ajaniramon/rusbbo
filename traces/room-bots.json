@@ -1,0 +1,335 @@
+{
+  "format": 1,
+  "scenario": "room-bots",
+  "description": "Public room NPCs: Harry enters the Welcome Lounge with its first visitor (USER_OBJECTS, entity type 3, at its start tile), is not a visitor in the navigator nor in the room's user list",
+  "runs": 3,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "785625979479593082798392\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#EF846CE27EB8494899961EAB261DFCA9\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "II",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "newbie_lobby\u0002I",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJSB0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxxxxxx000000\rxxxxx0xxxxxxxxxx000000\rxxxxx00000000xxx000000\rxxxxx000000000xx000000\r0000000000000000000000\r0000000000000000000000\r0000000000000000000000\r0000000000000000000000\r0000000000000000000000\rxxxxx000000000000000xx\rxxxxx000000000000000xx\rx0000000000000000000xx\rx0000000000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxxxx0000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxxxx000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxxx00000000000xxxxx\rxxxxx000000000000xxxxx\rxxxxx000000000000xxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "SOHl25\u0002crl_lamp\u0002PDHHHHu248\u0002crl_sofa2c\u0002QDHHPAHw669\u0002crl_sofa2b\u0002RDHHPAHs952\u0002crl_sofa2a\u0002SDHHPAHw820\u0002crl_lamp\u0002PEHHHHt195\u0002crl_chair\u0002PDIHJHg810\u0002crl_lamp\u0002SAJHHHc207\u0002crl_lamp\u0002SBJHHHp72\u0002crl_chair\u0002PDJHJHu845\u0002crl_pillar\u0002QAKHHHs9\u0002crl_chair\u0002SAKHJHz599\u0002crl_table1b\u0002QBKHHHd803\u0002crl_sofa1c\u0002SBKHRAHd334\u0002crl_chair\u0002PDKHJHh196\u0002crl_table2b\u0002SDKHHHn654\u0002crl_table2a\u0002PEKHHHg993\u0002crl_lamp\u0002HPAHHHm233\u0002crl_sofa2c\u0002IPAHPAHn170\u0002crl_sofa2b\u0002JPAHPAHj341\u0002crl_sofa2a\u0002KPAHPAHr26\u0002crl_lamp\u0002PAPAHHHp992\u0002crl_table1a\u0002QBPAHHHb540\u0002crl_sofa1b\u0002SBPAHRAHv970\u0002crl_wall2a\u0002SCPAHHHq419\u0002crl_lamp\u0002PDPAHHHi321\u0002crl_chair\u0002HQAHJHa227\u0002crl_chair\u0002SAQAHJHw54\u0002crl_sofa1a\u0002SBQAHRAHs844\u0002crl_table2b\u0002JRAHHHf935\u0002crl_table2a\u0002KRAHHHb634\u0002crl_lamp\u0002SBRAHHHa169\u0002crl_chair\u0002HSAHJHi341\u0002crl_lamp\u0002HPBHHHw354\u0002crl_sofa3c\u0002IPBHHHe813\u0002crl_sofa3b\u0002JPBHHHa730\u0002crl_sofa3a\u0002KPBHHHi473\u0002crl_lamp\u0002PAPBHHHm315\u0002crl_barchair2\u0002SDPBHHHf902\u0002crl_tablebar\u0002PEPBHHHg38\u0002crl_barchair2\u0002QEPBHHHm247\u0002crl_pillar2\u0002QAQBHHHj141\u0002crl_pillar\u0002QBQBHHHr641\u0002crl_desk1a\u0002PBSCHHHp12\u0002crl_deski\u0002QBSCHHHp364\u0002crl_deskh\u0002RBSCHHHe765\u0002crl_deskg\u0002RBPDHHHv794\u0002crl_deskf\u0002RBQDHHHv528\u0002crl_deske\u0002RBRDHHHf143\u0002crl_deske\u0002RBSDHHHi350\u0002crl_deske\u0002RBPEHHHg436\u0002crl_deske\u0002RBQEHHHl824\u0002crl_deske\u0002RBREHHHc578\u0002crl_deske\u0002RBSEHHHb543\u0002crl_wallb\u0002SAPFHHHn902\u0002crl_deske\u0002RBPFHHHi20\u0002crl_walla\u0002SAQFHHHd389\u0002crl_desk1b\u0002PBQFHHHz637\u0002crl_desk1c\u0002QBQFHHHd930\u0002crl_desk1d\u0002RBQFHHHn684\u0002crl_lamp2\u0002PCSFHHHw284\u0002crl_cabinet2\u0002QCSFHHHo782\u0002crl_cabinet1\u0002RCSFHHHr497\u0002crl_lamp2\u0002SCSFHH",
+              "check": "header"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "note": "Harry's USER_OBJECTS as it enters, then everyone's",
+      "settle_ms": 1000,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHHarry\u0002Happy to help \u0002sd=001&sh=003/41,41,41&lg=006/51,51,51&ch=202/139,24,32&lh=001/255,210,179&rh=001/255,210,179&hd=001/255,204,153&ey=001&fc=001/255,204,153&hr=203/103,78,59&hrb=203/2,3,4&rs=001/255,255,255&ls=001/255,255,255&bd=001/255,204,153\u0002IPBQE0.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HJSB0.0\u0002JIM\u0002MMM\u0002HHarry\u0002Happy to help \u0002sd=001&sh=003/41,41,41&lg=006/51,51,51&ch=202/139,24,32&lh=001/255,210,179&rh=001/255,210,179&hd=001/255,204,153&ey=001&fc=001/255,204,153&hr=203/103,78,59&hrb=203/2,3,4&rs=001/255,255,255&ls=001/255,255,255&bd=001/255,204,153\u0002IPBQE0.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHJSB0.0\u0002JJ/\u0002IPBQE0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 150,
+      "name": "NAVIGATE",
+      "body": "HK",
+      "note": "Welcome Lounge: 1 visitor, Harry does not count",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 220,
+              "name": "NAVNODEINFO",
+              "body": "HKHPublic Rooms\u0002I[DAHYzCIWelcome Lounge\u0002IPJKwelcome_lounge\u0002IHhh_room_nlobby\u0002HIZBDIThe Park\u0002HQPKpark\u0002RHHhh_room_park,hh_room_park_general\u0002HIXCDIHabbo Lido\u0002HP^Khabbo_lido\u0002PIHhh_room_pool,hh_people_pool\u0002HIZCDIRooftop Rumble\u0002HRLKrooftop_rumble\u0002RIHhh_room_terrace,hh_paalu,hh_people_pool,hh_people_paalu\u0002HIPCHThe Hallways\u0002HXKAKQAHEntertainment\u0002HYtAKRAHRestaurants and Cafes\u0002HZRAKSAHLounges and Clubs\u0002H[vAKPBHHabbo Club\u0002HQ_KQBHOutside Spaces\u0002H[NAKSBHThe Lobbies\u0002HR~KQCHGames\u0002HYCBK",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 154,
+      "name": "GETSPACENODEUSERS",
+      "body": "YzC",
+      "note": "Only tracebot1",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 223,
+              "name": "NODESPACEUSERS",
+              "body": "MItracebot1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 600,
+      "received": {}
+    }
+  ]
+}

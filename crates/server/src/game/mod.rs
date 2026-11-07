@@ -2,6 +2,7 @@
 
 pub mod achievements;
 pub mod badges;
+pub mod bot;
 pub mod catalogue;
 pub mod club;
 pub mod commands;

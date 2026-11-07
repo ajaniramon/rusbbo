@@ -27,7 +27,11 @@ pub fn user_objects<'a>(
             .int(e.position.y)
             .text(&format_decimal(e.position.z))
             .int(e.position.rotation())
-            .int(1) // EntityType.PLAYER
+            .int(e.type_id());
+        if !e.is_player() {
+            continue;
+        }
+        body = body
             .text(&e.details.sex.to_uppercase())
             // TODO(statistics): XP_EARNED_MONTH; -1 when it is 0.
             .int(-1)

@@ -348,7 +348,12 @@ pub fn delete(world: &World, room_id: i32, user_id: u32) {
         }
         // Java: `item.delete()` for each room item; they are not returned to the hand.
         r.delete_flat_items(world);
-        let sessions: Vec<Arc<Session>> = r.entities.iter().map(|e| e.session.clone()).collect();
+        let sessions: Vec<Arc<Session>> = r
+            .entities
+            .iter()
+            .filter(|e| e.is_player())
+            .map(|e| e.session.clone())
+            .collect();
         for s in &sessions {
             r.remove_user(world, s, true);
         }

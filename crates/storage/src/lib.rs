@@ -5,10 +5,11 @@
 //!
 //! Adding an area (rooms, catalogue...): put its records, table definitions and its own
 //! `impl Store` / `impl Writer` blocks in a module of its own (`rooms.rs`), with a
-//! `create_tables(&WriteTransaction)` called from [`Store::create`], so areas can be added in
+//! `create_tables(&WriteTransaction)` called from `Store::create_tables`, so areas can be added in
 //! parallel without touching each other's code. Bump [`SCHEMA_VERSION`] only for changes to
 //! existing tables; new tables only need `create_tables`.
 
+mod bots;
 mod catalogue;
 mod items;
 mod messenger;
@@ -26,6 +27,7 @@ use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition, Writ
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+pub use bots::RoomBot;
 pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge};
 pub use items::{Item, ItemDefinition};
 pub use messenger::{MessengerCategory, MessengerMessage, SEARCH_LIMIT};
@@ -95,7 +97,16 @@ impl Store {
     pub fn create(path: &Path) -> Result<Self> {
         let db = Database::create(path)?;
         let store = Self { db };
-        let tx = store.db.begin_write()?;
+        store.create_tables()?;
+        store.check_version()?;
+        Ok(store)
+    }
+
+    /// Creates every table that does not exist yet (and the schema version of a new file). New
+    /// tables need no version bump: a file written by an older build gets them, empty, when it is
+    /// opened.
+    fn create_tables(&self) -> Result<()> {
+        let tx = self.db.begin_write()?;
         {
             let mut meta = tx.open_table(META)?;
             if meta.get("schema_version")?.is_none() {
@@ -106,6 +117,7 @@ impl Store {
             tx.open_table(USERS_BY_SSO)?;
             tx.open_table(SETTINGS)?;
             // Area modules: one `create_tables(&tx)?;` call each.
+            bots::create_tables(&tx)?;
             rooms::create_tables(&tx)?;
             catalogue::create_tables(&tx)?;
             items::create_tables(&tx)?;
@@ -116,8 +128,7 @@ impl Store {
             wordfilter::create_tables(&tx)?;
         }
         tx.commit()?;
-        store.check_version()?;
-        Ok(store)
+        Ok(())
     }
 
     /// Opens an existing database file.
@@ -126,6 +137,7 @@ impl Store {
             db: Database::open(path)?,
         };
         store.check_version()?;
+        store.create_tables()?;
         Ok(store)
     }
 

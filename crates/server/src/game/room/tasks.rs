@@ -43,6 +43,7 @@ pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
                 r.entity_tick(&world);
                 if tick % 2 == 0 {
                     r.status_tick();
+                    r.bot_tick(&world);
                 }
                 r.take_deferred()
             };
@@ -267,6 +268,9 @@ impl Room {
             let Some(idx) = self.entity_by_instance(instance_id) else {
                 continue;
             };
+            if !self.entities[idx].is_player() {
+                continue;
+            }
             if t > self.entities[idx].sleep_timer && !self.entities[idx].is_sleeping {
                 self.stop_carrying(idx);
                 self.sleep(idx, true);

@@ -11,8 +11,8 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use havana_storage::{
     CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
-    MessengerCategory, MessengerMessage, PublicItem, Room, RoomCategory, RoomModel, RoomVote,
-    Store, User, Walkway, WordfilterWord,
+    MessengerCategory, MessengerMessage, PublicItem, Room, RoomBot, RoomCategory, RoomModel,
+    RoomVote, Store, User, Walkway, WordfilterWord,
 };
 use mysql::prelude::Queryable;
 use mysql::{Opts, Pool, Row};
@@ -57,13 +57,14 @@ fn main() -> Result<()> {
     let room_rights = import_room_rights(&mut conn, &store)?;
     let texts = import_texts(&mut conn, &store)?;
     let words = import_wordfilter(&mut conn, &store)?;
+    let bots = import_room_bots(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts, {words} wordfilter words, {user_rows} badge/mute/effect/statistic/achievement rows",
+         {texts} external texts, {words} wordfilter words, {bots} room bots, {user_rows} badge/mute/effect/statistic/achievement rows",
         cli.out.display()
     );
     Ok(())
@@ -272,6 +273,32 @@ fn import_wordfilter(conn: &mut mysql::PooledConn, store: &Store) -> Result<usiz
             word: col(row, "word")?,
             is_bannable: bool_or_false(row, "is_bannable")?,
             is_filterable: bool_or_false(row, "is_filterable")?,
+        })?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// `rooms_bots` (Java: `BotDao.getBotData`).
+fn import_room_bots(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<Row> = conn.query("SELECT * FROM rooms_bots ORDER BY id")?;
+    let mut w = store.write()?;
+    for row in &rows {
+        w.put_room_bot(&RoomBot {
+            id: col(row, "id")?,
+            room_id: col(row, "room_id")?,
+            name: col(row, "name")?,
+            mission: col(row, "mission")?,
+            x: col(row, "x")?,
+            y: col(row, "y")?,
+            start_look: col(row, "start_look")?,
+            figure: col(row, "figure")?,
+            figure_flash: col(row, "figure_flash")?,
+            walkspace: col(row, "walkspace")?,
+            speech: col(row, "speech")?,
+            response: col(row, "response")?,
+            unrecognised_response: col(row, "unrecognised_response")?,
+            hand_items: col(row, "hand_items")?,
         })?;
     }
     w.commit()?;
