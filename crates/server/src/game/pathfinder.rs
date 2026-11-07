@@ -219,6 +219,8 @@ pub struct Walker {
     pub position: Position,
     pub swimming: bool,
     pub has_pool_figure: bool,
+    /// A pet's nest item (database id), which it may walk onto (Java: `RoomTile.isValidTile`).
+    pub pet_nest: Option<u64>,
 }
 
 /// Sprites whose tiles skip the height checks (Java: the `*ItemHeightExempt` flags).

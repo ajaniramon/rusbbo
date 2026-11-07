@@ -367,6 +367,12 @@ pub fn is_valid_tile(map: &RoomMapping, walker: Option<&Walker>, p: Position) ->
             if item.sprite == "poolExit" && item.position == Position::new(19, 19) {
                 return walker.swimming;
             }
+            // Pets may walk onto their own nest.
+            if walker.pet_nest.is_some()
+                && item.flat.as_ref().map(|f| f.record.id) == walker.pet_nest
+            {
+                return true;
+            }
         }
     }
     if !tile.entities.is_empty() {

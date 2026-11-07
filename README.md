@@ -57,6 +57,11 @@ walkspace, talking now and then, and handing out drinks when a user nearby asks 
 (`game/bot.rs`, `game/room/bots.rs`). Bots are room entities with a detached session and
 `EntityKind::Bot`; they never count as players.
 
+Pets (`items_pets`) as in Java: bought with their nest (name, race, colour), in the room while
+the nest is placed, acting on their own every 10-25 s (walking, sitting, lying down, now and then
+a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
+(`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`).
+
 Server housekeeping as in Java: idle connections get `PING` after 60 s and are logged out 60 s
 later without a `PONG`; startup resets SSO tickets, `players.online`, room visitor counts, trade
 states and online flags (one transaction); Ctrl-C/SIGTERM sends `INFO_HOTEL_CLOSED`, logs everyone
@@ -157,6 +162,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-roller` | a roller moving a user and an item (`SLIDEOBJECTBUNDLE`), `:pickall` |
 | `flat-postit` | post-it pad placed on the wall, read and written by the owner and a visitor without rights, deleted |
 | `flat-gates` | a gate (solid while closed) and a one-way door (`ENTER_ONEWAY_DOOR`) |
+| `flat-pets` | pet names (`APPROVE_PET_NAME`), buying a crocodile (and an invalid colour that buys nothing), its nest placed so the pet comes in (`USER_OBJECTS` type 2), `GETPETSTAT`, the nest picked up so it leaves |
 | `flat-present` | buying a gift for another user (unknown user, too soon again), placing and opening it (`PRESENTOPEN`, `DELIVER_PRESENT`) |
 | `text-latin1` | non-ASCII text (ñ, accents, ¡¿) in a room name, a post-it, chat and a console message, as ISO-8859-1 |
 | `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |

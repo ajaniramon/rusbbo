@@ -254,6 +254,8 @@ pub enum EntityKind {
     Player,
     /// An NPC of a public room (`rooms_bots`).
     Bot(Box<crate::game::bot::BotState>),
+    /// A pet, while its nest is in the room (`items_pets`).
+    Pet(Box<crate::game::pet::PetState>),
 }
 
 /// Java: `RoomEntity` + `RoomPlayer` + `RoomTimerManager`. Bots (and, later, pets) are entities
@@ -352,6 +354,7 @@ impl RoomEntity {
     pub fn type_id(&self) -> i32 {
         match self.kind {
             EntityKind::Player => 1,
+            EntityKind::Pet(_) => 2,
             EntityKind::Bot(_) => 3,
         }
     }
@@ -359,6 +362,20 @@ impl RoomEntity {
     pub fn bot(&self) -> Option<&crate::game::bot::BotState> {
         match &self.kind {
             EntityKind::Bot(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    pub fn pet(&self) -> Option<&crate::game::pet::PetState> {
+        match &self.kind {
+            EntityKind::Pet(p) => Some(p),
+            _ => None,
+        }
+    }
+
+    pub fn pet_mut(&mut self) -> Option<&mut crate::game::pet::PetState> {
+        match &mut self.kind {
+            EntityKind::Pet(p) => Some(p),
             _ => None,
         }
     }

@@ -279,11 +279,11 @@ fn buy_gift(
         )));
         return Ok(None);
     }
-    if item
-        .definition
-        .as_ref()
-        .is_some_and(|d| d.has_behaviour(ItemBehaviour::Effect))
-    {
+    if item.definition.as_ref().is_some_and(|d| {
+        d.has_behaviour(ItemBehaviour::Effect)
+                // TODO(pets): a pet nest as a gift (the pet is created when it is opened).
+                || d.interaction_type == crate::game::item::base::InteractionType::PetNest
+    }) {
         return Ok(None);
     }
     let note = reader.string().map(latin1).unwrap_or_default();

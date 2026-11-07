@@ -9,6 +9,7 @@ flat-decor
 flat-delete
 flat-furni
 flat-gates
+flat-pets
 flat-postit
 flat-present
 flat-roller

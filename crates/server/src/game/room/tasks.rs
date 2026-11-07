@@ -42,6 +42,8 @@ pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
                 let mut r = room.lock();
                 r.entity_tick(&world);
                 if tick % 2 == 0 {
+                    // Java: StatusTask runs every pet's PetTask.
+                    r.pet_tick(&world);
                     r.status_tick();
                     r.bot_tick(&world);
                 }
@@ -456,7 +458,7 @@ impl Room {
             if self.entities[e].rolling.is_none() {
                 continue;
             }
-            self.invoke_item(e, true);
+            self.invoke_item(None, e, true);
             self.entities[e].rolling = None;
         }
     }

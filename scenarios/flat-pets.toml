@@ -1,0 +1,120 @@
+name = "flat-pets"
+description = "Pets: checking a name (APPROVE_PET_NAME), buying a crocodile with a name, race and colour (and an invalid colour that buys nothing), placing its nest so the pet comes in, its stats, and picking the nest up so it leaves"
+
+# Catalogue item 27 is pets2 (a crocodile's nest, PET_NEST, 20 credits); the extra data is
+# "name\nrace\ncolour". Flat 1000 belongs to tracebot1. The nest is item 1 and the pet is pet 1.
+# A pet acts on its own from its first tick (walks, sits or lies down at random, now and then
+# says something) and its natures are random, so the statuses after it comes in and PETSTAT are
+# checked by header only.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "APPROVE_PET_NAME"
+args = ["Gnasher"]
+note = "0: fine"
+
+[[steps]]
+bot = "a"
+send = "APPROVE_PET_NAME"
+args = ["TraceBot1"]
+note = "4: the owner's name"
+
+[[steps]]
+bot = "a"
+send = "APPROVE_PET_NAME"
+args = ["two words"]
+note = "2"
+
+[[steps]]
+bot = "a"
+send = "APPROVE_PET_NAME"
+args = ["abcdefghijklmnop"]
+note = "1: too long"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 27, "Gnasher\n2\nZZZZZZ", false]
+note = "Not a hex colour: nothing bought, nothing charged"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 27, "Gnasher\n2\n96E75A", false]
+note = "The nest, with the pet"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Pet Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+header_only = ["USER_STATUSES"]
+note = "The nest at (6,5): the pet comes in on it (USER_OBJECTS, type 2)"
+
+[[steps]]
+bot = "a"
+send = "GETPETSTAT"
+args = [1, "Gnasher"]
+header_only = ["PETSTAT", "USER_STATUSES"]
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 1]
+header_only = ["USER_STATUSES"]
+note = "The pet leaves with its nest (LOGOUT)"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

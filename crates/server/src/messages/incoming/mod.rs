@@ -7,6 +7,7 @@ pub mod handshake;
 pub mod inventory;
 pub mod messenger;
 pub mod navigator;
+pub mod pets;
 pub mod rooms;
 pub mod rooms_items;
 pub mod rooms_moderation;
@@ -56,6 +57,8 @@ pub fn handler(header: u16) -> Option<Handler> {
         // registerNavigatorPackets
         150 => navigator::navigate,
         264 => navigator::recommended_rooms,
+        42 => pets::approve_pet_name,
+        128 => pets::get_pet_stat,
         151 => navigator::get_user_flat_cats,
         16 => navigator::own_rooms,
         17 => navigator::search_rooms,

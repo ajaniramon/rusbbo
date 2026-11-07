@@ -148,7 +148,11 @@ impl Room {
             self.update_entities(&[], &tiles);
         }
         self.save_item(world, idx);
-        // TODO(items): onItemPlaced of the pet, totem and teleporter triggers.
+        // TODO(items): onItemPlaced of the totem and teleporter triggers.
+        if self.mapping.items[idx].interaction == super::items::Interaction::PetNest {
+            self.pet_nest_placed(world, idx);
+        }
+        self.pet_item_placed(world, idx);
     }
 
     /// Java: `RoomMapping.moveItem`.
@@ -190,13 +194,26 @@ impl Room {
             self.update_entities(&old_tiles, &tiles);
         }
         self.save_item(world, idx);
-        // TODO(items): onItemMoved of the totem and pet triggers.
+        // TODO(items): onItemMoved of the totem trigger.
+        let interaction = self.mapping.items[idx].interaction;
+        self.pet_item_left(world, interaction, old);
     }
 
     /// Java: `RoomMapping.pickupItem` (whose triggers do nothing for the ported interactors)
     /// and `removeItem`. Returns the item as it goes back to the hand.
     pub fn remove_flat_item(&mut self, world: &World, idx: usize) -> Item {
-        // TODO(items): onItemPickup of the pet and totem triggers.
+        // TODO(items): onItemPickup of the totem trigger.
+        let interaction = self.mapping.items[idx].interaction;
+        if interaction == super::items::Interaction::PetNest {
+            self.pet_nest_picked_up(world, idx);
+        }
+        let at = self.mapping.items[idx].position;
+        self.pet_item_left(world, interaction, at);
+        self.take_flat_item(world, idx)
+    }
+
+    /// Java: `RoomMapping.removeItem`: takes the item out of the room, with no pickup trigger.
+    pub fn take_flat_item(&mut self, world: &World, idx: usize) -> Item {
         let wall = self.mapping.items[idx].has(Behaviour::WallItem);
         if !wall {
             self.mapping.remove_item_tiles(idx);
@@ -283,7 +300,7 @@ impl Room {
         }
         for instance_id in instances {
             if let Some(idx) = self.entity_by_instance(instance_id) {
-                self.invoke_item(idx, true);
+                self.invoke_item(None, idx, true);
             }
         }
     }
@@ -542,6 +559,7 @@ mod tests {
     fn walking_goes_around_solid_furniture() {
         let map = furni_flat(&[]);
         let walker = Walker {
+            pet_nest: None,
             instance_id: 0,
             position: Position::new(3, 5),
             swimming: false,
@@ -612,6 +630,7 @@ mod tests {
         map.items = items;
         map.regenerate(&[]);
         let walker = |x, y| Walker {
+            pet_nest: None,
             instance_id: 0,
             position: Position::new(x, y),
             swimming: false,

@@ -11,7 +11,7 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use havana_storage::{
     CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
-    MessengerCategory, MessengerMessage, PublicItem, Room, RoomBot, RoomCategory, RoomModel,
+    MessengerCategory, MessengerMessage, Pet, PublicItem, Room, RoomBot, RoomCategory, RoomModel,
     RoomVote, Store, User, Walkway, WordfilterWord,
 };
 use mysql::prelude::Queryable;
@@ -58,13 +58,14 @@ fn main() -> Result<()> {
     let texts = import_texts(&mut conn, &store)?;
     let words = import_wordfilter(&mut conn, &store)?;
     let bots = import_room_bots(&mut conn, &store)?;
+    let pets = import_pets(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts, {words} wordfilter words, {bots} room bots, {user_rows} badge/mute/effect/statistic/achievement rows",
+         {texts} external texts, {words} wordfilter words, {bots} room bots, {pets} pets, {user_rows} badge/mute/effect/statistic/achievement rows",
         cli.out.display()
     );
     Ok(())
@@ -273,6 +274,36 @@ fn import_wordfilter(conn: &mut mysql::PooledConn, store: &Store) -> Result<usiz
             word: col(row, "word")?,
             is_bannable: bool_or_false(row, "is_bannable")?,
             is_filterable: bool_or_false(row, "is_filterable")?,
+        })?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// `items_pets` (Java: `PetDao`).
+fn import_pets(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<Row> = conn.query("SELECT * FROM items_pets ORDER BY id")?;
+    let mut w = store.write()?;
+    for row in &rows {
+        w.put_pet(&Pet {
+            id: col(row, "id")?,
+            item_id: col(row, "item_id")?,
+            name: col(row, "name")?,
+            pet_type: col(row, "type")?,
+            race: col(row, "race")?,
+            colour: col(row, "colour")?,
+            nature_positive: col(row, "nature_positive")?,
+            nature_negative: col(row, "nature_negative")?,
+            friendship: col(row, "friendship")?,
+            born: col(row, "born")?,
+            last_kip: col(row, "last_kip")?,
+            last_eat: col(row, "last_eat")?,
+            last_drink: col(row, "last_drink")?,
+            last_playtoy: col(row, "last_playtoy")?,
+            last_playuser: col(row, "last_playuser")?,
+            x: col(row, "x")?,
+            y: col(row, "y")?,
+            rotation: col(row, "rotation")?,
         })?;
     }
     w.commit()?;

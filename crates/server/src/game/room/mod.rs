@@ -18,6 +18,7 @@ pub mod furniture;
 pub mod items;
 pub mod mapping;
 pub mod model;
+mod pets;
 pub mod tasks;
 pub mod trade;
 #[cfg(test)]
@@ -256,6 +257,7 @@ impl Room {
     pub fn walker(&self, idx: usize) -> Walker {
         let e = &self.entities[idx];
         Walker {
+            pet_nest: e.pet().map(|p| p.pet.item_id),
             instance_id: e.instance_id,
             position: e.position,
             swimming: e.statuses.contains(StatusType::Swim),
@@ -403,8 +405,11 @@ impl Room {
     pub fn try_room_entry(&mut self, world: &World) -> bool {
         let was_active = self.active;
         self.active = true;
-        // TODO(triggers): model trigger onRoomEntry.
+        // TODO(triggers): the other model triggers' onRoomEntry.
         if !was_active {
+            if self.model.trigger == "flat_trigger" {
+                self.load_pets(world);
+            }
             self.add_bots(world);
         }
         !was_active
@@ -485,7 +490,8 @@ impl Room {
             if r.dispose_generation != generation || r.players() > 0 {
                 return;
             }
-            // TODO(events): remove the room's event. TODO(pets): save pet coordinates.
+            // TODO(events): remove the room's event.
+            r.save_pet_coordinates(&world);
             r.reset_item_states(&world);
             r.counter = 0;
             r.active = false;
@@ -609,7 +615,7 @@ impl Room {
 
         // Java: walkways and the door only apply to players (`EntityType.PLAYER`).
         if !e.is_player() {
-            self.invoke_item(idx, false);
+            self.invoke_item(Some(world), idx, false);
             self.bot_stopped(world, idx);
             return None;
         }
@@ -644,12 +650,12 @@ impl Room {
             self.deferred.push(Deferred::Left { session, room_id });
             return left;
         }
-        self.invoke_item(idx, false);
+        self.invoke_item(Some(world), idx, false);
         None
     }
 
     /// Java: `RoomEntity.invokeItem`: runs the trigger of the item the entity stopped on.
-    fn invoke_item(&mut self, idx: usize, instant_update: bool) {
+    fn invoke_item(&mut self, world: Option<&World>, idx: usize, instant_update: bool) {
         let position = self.entities[idx].position;
         let Some(tile) = self.mapping.tile(position) else {
             return;
@@ -682,6 +688,7 @@ impl Room {
             if self.mapping.items[i].interaction == Interaction::Chair {
                 self.chair_stop(idx, i);
             }
+            self.pet_stopped_on(world, idx, i);
             // TODO(items, pool, games): the other interaction triggers' onEntityStop.
             self.entities[idx].last_item_interaction = Some(self.mapping.items[i].virtual_id);
         }
@@ -902,7 +909,7 @@ impl Room {
         }
         if self.entities[idx].is_player() && kind != ChatType::Whisper {
             self.bots_hear(world, idx, message);
-            // TODO(pets): PetManager.handleSpeech.
+            self.pets_hear(world, idx, message);
         }
         if save {
             // TODO(chatlog): ChatManager.queue (room_chatlogs).
@@ -1039,7 +1046,7 @@ impl Room {
         self.send(out_user::user_objects([&self.entities[idx]], &model));
         self.send(out_user::user_statuses([&self.entities[idx]], &model));
         if self.mapping.tile(old).is_some() {
-            self.invoke_item(idx, true);
+            self.invoke_item(None, idx, true);
         }
         // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
         // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
@@ -1340,6 +1347,7 @@ mod tests {
         let mut map = RoomMapping::new(model, true);
         map.regenerate(&[]);
         let walker = Walker {
+            pet_nest: None,
             instance_id: 0,
             position: Position::new(13, 6),
             swimming: false,

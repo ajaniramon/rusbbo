@@ -14,6 +14,7 @@ pub mod java_set;
 pub mod messenger;
 pub mod navigator;
 pub mod pathfinder;
+pub mod pet;
 pub mod player;
 pub mod room;
 pub mod scheduler;

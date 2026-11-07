@@ -217,7 +217,6 @@ impl CatalogueManager {
     ///
     /// TODO(effects): `purchaseEffect` (users_effects, `AVATAR_EFFECT_ADDED`).
     /// TODO(trophies): `PRIZE_TROPHY` extra data (TrophyExtraData JSON, player lookup).
-    /// TODO(pets): `PET_NEST` (items_pets row, name and colour validation).
     pub fn unsupported(item: &CatalogueItem) -> Option<&'static str> {
         for package in item.packages() {
             let Some(def) = &package.definition else {
@@ -228,9 +227,6 @@ impl CatalogueManager {
             }
             if def.has_behaviour(ItemBehaviour::PrizeTrophy) {
                 return Some("trophies");
-            }
-            if def.interaction_type == InteractionType::PetNest {
-                return Some("pets");
             }
         }
         None
@@ -335,6 +331,17 @@ impl CatalogueManager {
         }
         reset_extra_data(def, &mut custom_data);
 
+        // Java: a pet nest comes with its pet, from `name\nrace\ncolour`; anything invalid (or no
+        // extra data) buys nothing.
+        let pet = if def.interaction_type == InteractionType::PetNest {
+            match pet_from_extra_data(&details.username, def.sprite(), extra_data, now) {
+                Some(pet) => Some(pet),
+                None => return Ok(None),
+            }
+        } else {
+            None
+        };
+
         let mut draft = havana_storage::Item::with_defaults(
             details.id,
             def.record.id,
@@ -353,6 +360,10 @@ impl CatalogueManager {
 
         let mut w = store.write()?;
         let created = w.insert_item(&draft, now)?;
+        if let Some(mut pet) = pet {
+            pet.item_id = created.id;
+            w.insert_pet(pet)?;
+        }
         let linked = if def.has_behaviour(ItemBehaviour::Teleporter) {
             // A teleporter is sold as a pair. The linked one keeps the unreset custom data.
             let mut linked_draft =
@@ -404,4 +415,47 @@ fn reset_extra_data(def: &ItemDefinition, custom_data: &mut String) {
             return;
         }
     }
+}
+
+/// Java: the `PET_NEST` part of `CatalogueManager.purchase`: `name\nrace\ncolour`, with a name
+/// `PetManager.isValidName` accepts, a numeric race and a hex colour; the type is the sprite
+/// without `pets` (`pets0` is a dog). The natures are random, as in `PetDao.createPet`.
+fn pet_from_extra_data(
+    owner: &str,
+    sprite: &str,
+    extra_data: Option<&str>,
+    now: i64,
+) -> Option<havana_storage::Pet> {
+    use rand::RngExt;
+    let extra = extra_data?;
+    if !extra.contains('\n') {
+        return None;
+    }
+    let parts: Vec<&str> = extra.split('\n').collect();
+    if parts.len() != 3 || !super::super::room::items::is_numeric(parts[1]) {
+        return None;
+    }
+    let name = crate::game::messenger::filter_input(parts[0], true);
+    let race: i32 = parts[1].parse().ok()?;
+    let colour = crate::game::messenger::filter_input(parts[2], true);
+    let hex = |s: &str| (s.len() == 6 || s.len() == 3) && s.chars().all(|c| c.is_ascii_hexdigit());
+    if !hex(&colour) || crate::game::pet::name_status(owner, &name) >= 1 {
+        return None;
+    }
+    let mut rng = rand::rng();
+    Some(havana_storage::Pet {
+        name,
+        pet_type: sprite.replace("pets", ""),
+        race,
+        colour,
+        nature_positive: rng.random_range(0..7),
+        nature_negative: rng.random_range(0..7),
+        born: now,
+        last_kip: now,
+        last_eat: now,
+        last_drink: now,
+        last_playtoy: now,
+        last_playuser: now,
+        ..Default::default()
+    })
 }

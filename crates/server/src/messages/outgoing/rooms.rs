@@ -250,6 +250,35 @@ pub fn cant_connect(error: ConnectError) -> Message {
     Message::new(224, body.build())
 }
 
+/// Java: `PETSTAT`.
+pub fn pet_stat(
+    instance_id: i32,
+    age: i32,
+    hunger: i32,
+    thirst: i32,
+    happiness: i32,
+    nature_negative: i32,
+    nature_positive: i32,
+) -> Message {
+    Message::new(
+        210,
+        ServerBody::new()
+            .int(instance_id)
+            .int(age)
+            .int(hunger)
+            .int(thirst)
+            .int(happiness)
+            .int(nature_negative)
+            .int(nature_positive)
+            .build(),
+    )
+}
+
+/// Java: `NAMEAPPROVED`: 0 when a pet name is fine (see `pet::name_status`).
+pub fn name_approved(status: i32) -> Message {
+    Message::new(36, ServerBody::new().int(status).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

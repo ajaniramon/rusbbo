@@ -132,16 +132,16 @@ impl Room {
                     bot.next_speech = t + rng.random_range(MIN_SPEAK_TIME..MAX_SPEAK_TIME);
                 }
                 if self.last_bot_speech != Some((instance_id, i)) {
-                    self.bot_talk(world, idx, &speech);
+                    self.npc_talk(world, idx, &speech);
                 }
                 self.last_bot_speech = Some((instance_id, i));
             }
         }
     }
 
-    /// Java: `RoomEntity.talk(message, type)` for a non-player: to every player in the room,
+    /// Java: `RoomEntity.talk(message, type)` for a non-player (bot or pet): to every player in the room,
     /// with none of a player's spam checks.
-    fn bot_talk(&mut self, world: &World, idx: usize, speech: &BotSpeech) {
+    pub(super) fn npc_talk(&mut self, world: &World, idx: usize, speech: &BotSpeech) {
         let receivers = self
             .entities
             .iter()
@@ -213,14 +213,14 @@ impl Room {
                         .text
                         .replace("%lowercaseDrink%", &drink.to_lowercase())
                         .replace("%drink%", &drink);
-                    self.bot_talk(world, bot_idx, &response);
+                    self.npc_talk(world, bot_idx, &response);
                 }
                 continue;
             }
             if text.contains(&bot.data.name.to_lowercase()) && !bot.data.unrecognised.is_empty() {
                 let answer =
                     bot.data.unrecognised[rng.random_range(0..bot.data.unrecognised.len())].clone();
-                self.bot_talk(world, bot_idx, &answer);
+                self.npc_talk(world, bot_idx, &answer);
             }
         }
     }
