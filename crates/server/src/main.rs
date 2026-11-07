@@ -6,6 +6,10 @@ mod net;
 mod session;
 mod settings;
 mod settings_defaults;
+#[cfg(test)]
+mod testkit;
+#[cfg(test)]
+mod txn_tests;
 mod world;
 
 use std::net::SocketAddr;

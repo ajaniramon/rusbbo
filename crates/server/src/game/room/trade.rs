@@ -9,6 +9,7 @@
 
 use std::sync::Arc;
 
+use havana_storage::Transaction;
 use tracing::error;
 
 use crate::game::item::Item;
@@ -253,13 +254,23 @@ pub fn run_closed(world: &World, sides: [TradeSide; 2]) {
 /// Runs the hand side of a completed trade: the offered items change hands (Java:
 /// `RoomTradeManager.addItems`), then both hands are sent.
 ///
-/// TODO(transactions): `TransactionDao.createTransaction` ("Traded ... from/to ...").
+/// Every ownership change and its two transaction rows ("Traded ... from/to ...") are one
+/// transaction (Java writes them one by one, so a failure midway left a half trade). If it
+/// fails, every item goes back to the hand it came from, out of the trade window, as if the
+/// trade had been cancelled.
 pub fn run_finished(world: &World, sides: [TradeSide; 2]) {
     // Take everything out first, one hand at a time, so no two player locks are held.
+    let mut names = Vec::new();
     let mut taken: Vec<Vec<Item>> = sides
         .iter()
         .map(|side| {
             let mut p = side.session.player.lock();
+            names.push(
+                p.details
+                    .as_ref()
+                    .map(|d| d.username.clone())
+                    .unwrap_or_default(),
+            );
             // Recycled, used or otherwise gone since it was offered: never hand over a ghost.
             side.items
                 .iter()
@@ -269,15 +280,81 @@ pub fn run_finished(world: &World, sides: [TradeSide; 2]) {
         .collect();
     let from_second = taken.pop().unwrap_or_default();
     let from_first = taken.pop().unwrap_or_default();
-    for (side, items) in sides.iter().zip([from_second, from_first]) {
+    // Side `i` receives what the other side offered.
+    let mut received = [from_second, from_first];
+
+    let written = (|| -> anyhow::Result<Vec<Vec<bool>>> {
+        let mut w = world.store.write()?;
+        let t = now();
+        let mut existed = Vec::new();
+        for (i, items) in received.iter().enumerate() {
+            let (to, from) = (&sides[i], &sides[1 - i]);
+            let (to_name, from_name) = (&names[i], &names[1 - i]);
+            let mut rows = Vec::new();
+            for item in items {
+                let mut record = item.record.clone();
+                record.user_id = Some(to.user_id);
+                record.room_id = 0;
+                record.is_trading = false;
+                // Java: `UPDATE items ... WHERE id = ?`: a row deleted meanwhile stays deleted.
+                rows.push(w.update_item(&record)?);
+                let name = &item.definition.record.name;
+                let row = |user_id: u32, description: String, partner: u32| Transaction {
+                    user_id,
+                    item_id: item.record.id.to_string(),
+                    catalogue_id: item.definition.record.id.to_string(),
+                    amount: 1,
+                    description,
+                    credit_cost: 0,
+                    pixel_cost: partner as i32,
+                    created_at: t,
+                    is_visible: false,
+                };
+                w.insert_transaction(&row(
+                    to.user_id,
+                    format!("Traded {name} from {from_name}"),
+                    from.user_id,
+                ))?;
+                w.insert_transaction(&row(
+                    from.user_id,
+                    format!("Traded {name} to {to_name}"),
+                    to.user_id,
+                ))?;
+            }
+            existed.push(rows);
+        }
+        w.commit()?;
+        Ok(existed)
+    })();
+
+    let existed = match written {
+        Ok(existed) => existed,
+        Err(e) => {
+            error!("saving a trade: {e}");
+            // Nothing changed hands: the items go back where they came from.
+            received.swap(0, 1);
+            for (side, items) in sides.iter().zip(received) {
+                let mut p = side.session.player.lock();
+                let ids: Vec<u64> = items.iter().map(|i| i.record.id).collect();
+                for item in items {
+                    p.inventory.add_item(item);
+                }
+                p.inventory.set_trading(&world.store, &ids, false);
+                let hand = p.inventory.get_view(&world.store, "new");
+                side.session.send(out_inventory::inventory(&hand));
+            }
+            return;
+        }
+    };
+    for ((side, items), existed) in sides.iter().zip(received).zip(existed) {
         let mut p = side.session.player.lock();
-        for mut item in items {
+        for (mut item, existed) in items.into_iter().zip(existed) {
+            if !existed {
+                continue; // Deleted while on offer: nothing to hand over.
+            }
             item.record.user_id = Some(side.user_id);
             item.record.room_id = 0;
             item.record.is_trading = false;
-            if let Err(e) = world.store.update_item(&item.record) {
-                error!(item = item.record.id, "saving traded item: {e}");
-            }
             p.inventory.add_item(item);
         }
         let hand = p.inventory.get_view(&world.store, "new");

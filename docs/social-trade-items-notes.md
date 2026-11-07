@@ -146,6 +146,13 @@ Java server. They explain the traces; the traces stay the spec.
 - `PRESENTOPEN` (VL64 id, owner only): ordinary furni keep the item and its virtual id, changing its
   definition: `REMOVE_FLOORITEM`, `DELIVER_PRESENT ("s"|"i", sprite id, sprite)`, the hand.
   Teleporters, trophies, post-its, decorations and packages are bought anew instead.
+- A pet nest as a gift (`flat-pet-gift`): the gift path checks nothing about the pet. Its
+  `name\nrace\ncolour` (minus `|`) is the present's extra data, the buyer is charged and gets the
+  usual `ALERT`. No `items_pets` row exists until the present is opened: `PRESENTOPEN` buys the nest
+  anew for the opener (`CatalogueManager.purchase` with the extra data), which creates the pet
+  (`PetDao.createPet`, random natures) checked against the *opener's* name and with the colour
+  validated. A bad pet buys nothing (no `DELIVER_PRESENT`, no hand) and the present is still
+  removed and deleted.
 
 ## Porting checklist
 Three groups that can be ported independently; each only needs what is already ported (rooms,

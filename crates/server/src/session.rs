@@ -100,6 +100,11 @@ impl Session {
         self.ping_ok.swap(false, Ordering::Relaxed)
     }
 
+    /// Whether [`Session::close`] was called (or the session is detached).
+    pub fn is_closing(&self) -> bool {
+        self.closing.load(Ordering::Relaxed)
+    }
+
     pub fn close(&self) {
         if !self.closing.swap(true, Ordering::Relaxed) {
             let _ = self.out.send(Outgoing::Close);

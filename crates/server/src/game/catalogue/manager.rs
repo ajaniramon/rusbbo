@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use havana_storage::Store;
+use havana_storage::{Store, User, Writer};
 use tracing::error;
 
 use super::{CatalogueItem, CataloguePackage, CataloguePage};
@@ -124,12 +124,14 @@ impl CatalogueManager {
         self.items.iter().find(|i| i.sale_code == sale_code)
     }
 
-    /// Java: `ItemManager.createGift`: a present wrapping `sale_code` for `owner_id`, in a random
-    /// `present_gen` sprite. Its custom data is `catalogue id|from|label|extra data|time`.
+    /// Java: `ItemManager.createGift`, inside `w`: a present wrapping `sale_code` for
+    /// `owner_id`, in a random `present_gen` sprite. Its custom data is
+    /// `catalogue id|from|label|extra data|time`. Returns the new row; it becomes a live item
+    /// (with a virtual id) once `w` is committed.
     #[allow(clippy::too_many_arguments)]
-    pub fn create_gift(
+    pub fn create_gift_in(
         &self,
-        store: &Store,
+        w: &mut Writer,
         items: &ItemManager,
         owner_id: u32,
         received_from: &str,
@@ -137,7 +139,7 @@ impl CatalogueManager {
         label: &str,
         extra_data: &str,
         now: i64,
-    ) -> anyhow::Result<Option<crate::game::item::Item>> {
+    ) -> anyhow::Result<havana_storage::Item> {
         use rand::RngExt;
         let present_id = rand::rng().random_range(0..7);
         let sprite = if present_id > 0 {
@@ -161,10 +163,7 @@ impl CatalogueManager {
             now
         );
         let draft = havana_storage::Item::with_defaults(owner_id, def.record.id, custom_data, now);
-        let mut w = store.write()?;
-        let created = w.insert_item(&draft, now)?;
-        w.commit()?;
-        Ok(items.make_item(created))
+        Ok(w.insert_item(&draft, now)?)
     }
 
     /// Java: `getSeasonalItems`: the items on sale today, at their seasonal prices.
@@ -232,35 +231,32 @@ impl CatalogueManager {
         None
     }
 
-    /// Java: `purchase(PlayerDetails, CatalogueItem, ...)`. Returns the database ids of the items
-    /// created. The player must be logged in.
-    #[allow(clippy::too_many_arguments)]
-    pub fn purchase(
+    /// Java: `purchase(PlayerDetails, CatalogueItem, ...)`, inside `w`: creates the items (with
+    /// their pets, teleporter links and film) for `owner`. Nothing changes in memory: once `w`
+    /// is committed, [`Purchase::apply`] hands the items over; dropping `w` undoes it all.
+    pub fn purchase_in(
         &self,
-        store: &Store,
-        items: &ItemManager,
-        session: &Session,
-        player: &mut Player,
+        w: &mut Writer,
+        owner: &User,
         item: &CatalogueItem,
         extra_data: &str,
         now: i64,
-    ) -> anyhow::Result<Vec<u64>> {
-        let mut bought = Vec::new();
+    ) -> anyhow::Result<Purchase> {
+        let mut bought = Purchase::default();
         if !item.is_package {
             let Some(def) = &item.definition else {
                 return Ok(bought);
             };
             for _ in 0..item.amount {
-                bought.extend(self.purchase_one(
-                    store,
-                    items,
-                    session,
-                    player,
+                purchase_one(
+                    w,
+                    owner,
                     def,
                     Some(extra_data),
                     &item.item_special_id,
                     now,
-                )?);
+                    &mut bought,
+                )?;
             }
         } else {
             for package in item.packages() {
@@ -268,130 +264,199 @@ impl CatalogueManager {
                     continue;
                 };
                 for _ in 0..package.amount {
-                    bought.extend(self.purchase_one(
-                        store,
-                        items,
-                        session,
-                        player,
+                    purchase_one(
+                        w,
+                        owner,
                         def,
                         None,
                         &package.special_sprite_id,
                         now,
-                    )?);
+                        &mut bought,
+                    )?;
                 }
             }
         }
         Ok(bought)
     }
+}
 
-    /// Java: `purchase(PlayerDetails, ItemDefinition, ...)`: creates one item for the player.
-    #[allow(clippy::too_many_arguments)]
-    fn purchase_one(
-        &self,
-        store: &Store,
-        items: &ItemManager,
-        session: &Session,
-        player: &mut Player,
-        def: &std::sync::Arc<ItemDefinition>,
-        extra_data: Option<&str>,
-        special_sprite_id: &str,
-        now: i64,
-    ) -> anyhow::Result<Option<u64>> {
-        let Some(details) = player.details.as_mut() else {
-            return Ok(None);
-        };
+/// One item a purchase created, with the partner of a teleporter.
+pub struct BoughtUnit {
+    pub item: havana_storage::Item,
+    pub linked: Option<havana_storage::Item>,
+}
 
-        // Film is not an item: the player just gets film.
-        if def.sprite() == "film" {
-            currency::increase_film(store, details, 5);
-            session.send(outgoing::user::film(details.film));
-            return Ok(None);
-        }
+/// What [`CatalogueManager::purchase_in`] wrote, to apply once it is committed.
+#[derive(Default)]
+pub struct Purchase {
+    /// Java's `itemsBought`, in order.
+    pub units: Vec<BoughtUnit>,
+    /// The stored film after each grant (film itself, a camera's two), one `FILM` each.
+    pub film: Vec<i32>,
+}
 
-        let mut custom_data = String::new();
-        if let Some(extra) = extra_data {
-            if def.has_behaviour(ItemBehaviour::Decoration) {
-                custom_data = extra.to_string();
-            } else if !special_sprite_id.is_empty() {
-                custom_data = special_sprite_id.to_string();
-            }
-            if def.has_behaviour(ItemBehaviour::PostIt) {
-                custom_data = "20".into();
-            }
-            if def.interaction_type == InteractionType::Scoreboard {
-                custom_data = "x".into();
-            }
-            // TODO(trophies): PRIZE_TROPHY builds TrophyExtraData JSON here.
-            if def.has_behaviour(ItemBehaviour::Roomdimmer) {
-                custom_data = DEFAULT_ROOMDIMMER_CUSTOM_DATA.into();
-            }
-        }
-        if custom_data.is_empty() {
-            custom_data = "0".into();
-        }
-        reset_extra_data(def, &mut custom_data);
-
-        // Java: a pet nest comes with its pet, from `name\nrace\ncolour`; anything invalid (or no
-        // extra data) buys nothing.
-        let pet = if def.interaction_type == InteractionType::PetNest {
-            match pet_from_extra_data(&details.username, def.sprite(), extra_data, now) {
-                Some(pet) => Some(pet),
-                None => return Ok(None),
-            }
-        } else {
-            None
-        };
-
-        let mut draft = havana_storage::Item::with_defaults(
-            details.id,
-            def.record.id,
-            custom_data.clone(),
-            now,
-        );
-        if def.record.rental_time > 0 {
-            draft.expire_time = now + i64::from(def.record.rental_time);
-        }
-
-        // A camera comes with two films.
-        if def.sprite() == "camera" {
-            currency::increase_film(store, details, 2);
-            session.send(outgoing::user::film(details.film));
-        }
-
-        let mut w = store.write()?;
-        let created = w.insert_item(&draft, now)?;
-        if let Some(mut pet) = pet {
-            pet.item_id = created.id;
-            w.insert_pet(pet)?;
-        }
-        let linked = if def.has_behaviour(ItemBehaviour::Teleporter) {
-            // A teleporter is sold as a pair. The linked one keeps the unreset custom data.
-            let mut linked_draft =
-                havana_storage::Item::with_defaults(details.id, def.record.id, custom_data, now);
-            if def.record.rental_time > 0 {
-                linked_draft.expire_time = now + i64::from(def.record.rental_time);
-            }
-            let linked = w.insert_item(&linked_draft, now)?;
-            // Java: TeleporterDao.addPair both ways.
-            w.add_teleporter_link(linked.id, created.id)?;
-            w.add_teleporter_link(created.id, linked.id)?;
-            Some(linked)
-        } else {
-            None
-        };
-        w.commit()?;
-
-        let id = created.id;
-        let Some(item) = items.make_item(created) else {
-            error!(item = id, "bought an item without a definition");
-            return Ok(None);
-        };
-        if let Some(linked) = linked.and_then(|l| items.make_item(l)) {
-            player.inventory.add_item(linked);
-        }
-        player.inventory.add_item(item);
-        Ok(Some(id))
+impl Purchase {
+    /// Whether no item was created (film is not an item).
+    pub fn is_empty(&self) -> bool {
+        self.units.is_empty()
     }
+
+    /// The ids of the bought items, comma-separated, as a transaction row lists them (Java:
+    /// `getDatabaseId` of each of `itemsBought`).
+    pub fn id_list(&self) -> String {
+        self.units
+            .iter()
+            .map(|u| u.item.id.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    }
+
+    /// After the commit: sends `FILM` for each grant and puts the items in the hand (a
+    /// teleporter's partner first, the order of Java's `addItem` calls). Returns the database
+    /// ids of the bought items.
+    pub fn apply(self, items: &ItemManager, session: &Session, player: &mut Player) -> Vec<u64> {
+        if let Some(details) = player.details.as_mut() {
+            for film in &self.film {
+                details.film = *film;
+                session.send(outgoing::user::film(*film));
+            }
+        }
+        let mut ids = Vec::new();
+        for unit in self.units {
+            let id = unit.item.id;
+            let Some(item) = items.make_item(unit.item) else {
+                error!(item = id, "bought an item without a definition");
+                continue;
+            };
+            if let Some(linked) = unit.linked.and_then(|l| items.make_item(l)) {
+                player.inventory.add_item(linked);
+            }
+            player.inventory.add_item(item);
+            ids.push(id);
+        }
+        ids
+    }
+}
+
+/// Java: `GRPC.getTransactionDescription`: the description of a purchase's transaction row, or
+/// `None` (no row) for an item without a definition.
+pub fn transaction_description(item: &CatalogueItem) -> Option<String> {
+    fn describe(def: Option<&ItemDefinition>) -> Option<String> {
+        let def = def?;
+        Some(if def.has_behaviour(ItemBehaviour::Effect) {
+            format!(
+                "Effect {} purchase",
+                def.sprite().replace("avatar_effect", "")
+            )
+        } else if def.sprite() == "film" {
+            "Film purchase".to_string()
+        } else {
+            format!("{} purchase", def.record.name)
+        })
+    }
+    if !item.is_package {
+        return describe(item.definition.as_deref());
+    }
+    let parts: Vec<String> = item
+        .packages()
+        .iter()
+        .filter_map(|p| describe(p.definition.as_deref()))
+        .collect();
+    Some(format!("Package purchase ({})", parts.join(", ")))
+}
+
+/// Java: `purchase(PlayerDetails, ItemDefinition, ...)`: creates one item for `owner` inside
+/// `w` and records it in `bought`.
+fn purchase_one(
+    w: &mut Writer,
+    owner: &User,
+    def: &std::sync::Arc<ItemDefinition>,
+    extra_data: Option<&str>,
+    special_sprite_id: &str,
+    now: i64,
+    bought: &mut Purchase,
+) -> anyhow::Result<()> {
+    // Film is not an item: the player just gets film.
+    if def.sprite() == "film" {
+        bought
+            .film
+            .push(currency::increase_film_in(w, owner.id, 5)?);
+        return Ok(());
+    }
+
+    let mut custom_data = String::new();
+    if let Some(extra) = extra_data {
+        if def.has_behaviour(ItemBehaviour::Decoration) {
+            custom_data = extra.to_string();
+        } else if !special_sprite_id.is_empty() {
+            custom_data = special_sprite_id.to_string();
+        }
+        if def.has_behaviour(ItemBehaviour::PostIt) {
+            custom_data = "20".into();
+        }
+        if def.interaction_type == InteractionType::Scoreboard {
+            custom_data = "x".into();
+        }
+        // TODO(trophies): PRIZE_TROPHY builds TrophyExtraData JSON here.
+        if def.has_behaviour(ItemBehaviour::Roomdimmer) {
+            custom_data = DEFAULT_ROOMDIMMER_CUSTOM_DATA.into();
+        }
+    }
+    if custom_data.is_empty() {
+        custom_data = "0".into();
+    }
+    reset_extra_data(def, &mut custom_data);
+
+    // Java: a pet nest comes with its pet, from `name\nrace\ncolour`; anything invalid (or no
+    // extra data) buys nothing. The name is checked against the owner's: the buyer's, or for a
+    // present the opener's.
+    let pet = if def.interaction_type == InteractionType::PetNest {
+        match pet_from_extra_data(&owner.username, def.sprite(), extra_data, now) {
+            Some(pet) => Some(pet),
+            None => return Ok(()),
+        }
+    } else {
+        None
+    };
+
+    let mut draft =
+        havana_storage::Item::with_defaults(owner.id, def.record.id, custom_data.clone(), now);
+    if def.record.rental_time > 0 {
+        draft.expire_time = now + i64::from(def.record.rental_time);
+    }
+
+    // A camera comes with two films.
+    if def.sprite() == "camera" {
+        bought
+            .film
+            .push(currency::increase_film_in(w, owner.id, 2)?);
+    }
+
+    let created = w.insert_item(&draft, now)?;
+    if let Some(mut pet) = pet {
+        pet.item_id = created.id;
+        w.insert_pet(pet)?;
+    }
+    let linked = if def.has_behaviour(ItemBehaviour::Teleporter) {
+        // A teleporter is sold as a pair. The linked one keeps the unreset custom data.
+        let mut linked_draft =
+            havana_storage::Item::with_defaults(owner.id, def.record.id, custom_data, now);
+        if def.record.rental_time > 0 {
+            linked_draft.expire_time = now + i64::from(def.record.rental_time);
+        }
+        let linked = w.insert_item(&linked_draft, now)?;
+        // Java: TeleporterDao.addPair both ways.
+        w.add_teleporter_link(linked.id, created.id)?;
+        w.add_teleporter_link(created.id, linked.id)?;
+        Some(linked)
+    } else {
+        None
+    };
+    bought.units.push(BoughtUnit {
+        item: created,
+        linked,
+    });
+    Ok(())
 }
 
 /// The custom data part of Java's `RoomMapping.resetExtraData`: the value a freshly created item

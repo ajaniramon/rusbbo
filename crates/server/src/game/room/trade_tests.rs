@@ -51,6 +51,7 @@ fn room() -> Room {
         last_bot_speech: None,
         self_ref: std::sync::Weak::new(),
         deferred: Vec::new(),
+        deleted: false,
     }
 }
 
@@ -278,6 +279,8 @@ fn hands_cancel_and_swap() {
     let mut bench = item(3, 323, "can_sit_on_top", "0");
     bench.record.user_id = Some(6);
     for (u, i) in [(&ue, &chair), (&uf, &bench)] {
+        // A finished trade only hands over items whose rows exist.
+        world.store.put_item(&i.record).unwrap();
         let mut p = u.session.player.lock();
         p.inventory.add_item(i.clone());
         p.inventory.set_trading(&world.store, &[i.record.id], true);

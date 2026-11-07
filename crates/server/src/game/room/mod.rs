@@ -129,6 +129,10 @@ pub struct Room {
     last_bot_speech: Option<(i32, usize)>,
     self_ref: Weak<RoomHandle>,
     deferred: Vec<Deferred>,
+    /// Set by `DELETEFLAT`: the row is gone and the room only waits to be unloaded. It still
+    /// answers `GETFLATINFO` and `TRYFLAT` until then, as in Java, but nobody may enter it again
+    /// (Java lets them, and whatever they place in it is lost with the room).
+    pub deleted: bool,
 }
 
 impl Room {
@@ -174,6 +178,7 @@ impl Room {
                 last_bot_speech: None,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
+                deleted: false,
             }),
         }))
     }
@@ -1181,8 +1186,12 @@ pub fn enter_room(
     destination: Option<Position>,
     send_entry: bool,
 ) {
-    leave_current_room(world, session, false);
     let room = world.register_room(room);
+    // A deleted room waiting to be unloaded is as good as gone (Java's `room == null`).
+    if room.lock().deleted {
+        return;
+    }
+    leave_current_room(world, session, false);
     let details = {
         let mut p = session.player.lock();
         let Some(user) = p.details.as_ref().filter(|_| p.logged_in) else {
@@ -1213,6 +1222,17 @@ pub fn enter_room(
     let (details, teleporter) = details;
     let deferred = {
         let mut r = room.lock();
+        if r.deleted {
+            // Deleted since the check above: do not join it after all.
+            drop(r);
+            let mut p = session.player.lock();
+            if p.room_id == Some(room.id) {
+                p.room_id = None;
+            }
+            drop(p);
+            session.send(out_user::hotel_view());
+            return;
+        }
         r.add_entity(world, session, details, destination);
         if let Some((teleporter_id, _)) = teleporter {
             crate::game::item::interactors::teleport::arrive(
@@ -1287,6 +1307,7 @@ impl Room {
             last_bot_speech: None,
             self_ref: Weak::new(),
             deferred: Vec::new(),
+            deleted: false,
         };
         room.regenerate_map();
         room

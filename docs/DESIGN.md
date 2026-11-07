@@ -67,6 +67,14 @@ back up on a Pi. Chat logs, if ever stored, can go to a second table or file wit
 - **Durability**: `Durability::Immediate` (fsync) by default. Hot, losable writes (last online,
   statistics) may later use `Eventual` in batched transactions. SD cards fsync slowly, so this will
   matter.
+- **Multi-step changes are one transaction** (Java commits each statement on its own): a purchase
+  (items, pets, teleporter links, film, the charge and its `users_transactions` row), a gift, a club
+  subscription, a finished trade (every ownership change and its rows) and opening a present (what
+  it holds created, the present deleted) each use one `Writer`. The handler builds the change in
+  the transaction, commits, and only then changes memory (hand, balances) and tells the client;
+  on any error it drops the `Writer` (nothing is written) and leaves the player as it was. Tests
+  prove it with `Store::fail_next_commits` (cargo feature `test-faults`, on for the server's
+  tests): see `crates/server/src/txn_tests.rs`.
 - **Blocking**: redb calls are blocking but short. Handlers call them directly on the runtime
   threads at first, and move them to `spawn_blocking` or a writer thread only if measurements on
   a Pi say so.

@@ -47,10 +47,13 @@ impl Inventory {
     }
 
     /// Java: `refreshPagination`. The hand shows the items in order and renumbers `order_id` to
-    /// match, saving the items it changed.
+    /// match, saving the items it changed (one transaction). Like Java's `UPDATE items`, a row
+    /// deleted meanwhile (a recycled or traded-away item still in this copy of the hand) is not
+    /// written back.
     fn refresh_pagination(&mut self, store: &Store) {
         self.displayed.clear();
         let mut order_id = 0;
+        let mut changed = Vec::new();
         for (index, item) in self.items.iter_mut().enumerate() {
             if !item.is_visible() {
                 continue;
@@ -59,12 +62,16 @@ impl Inventory {
             // set, which `is_visible` covers.
             if item.record.order_id != order_id {
                 item.record.order_id = order_id;
-                if let Err(e) = store.put_item(&item.record) {
-                    error!(item = item.record.id, "saving item order: {e}");
-                }
+                changed.push(index);
             }
             order_id += 1;
             self.displayed.push(index);
+        }
+        if changed.is_empty() {
+            return;
+        }
+        if let Err(e) = store.update_items(changed.iter().map(|&i| &self.items[i].record)) {
+            error!("saving item order: {e}");
         }
     }
 
@@ -159,6 +166,12 @@ impl Inventory {
     pub fn take_item(&mut self, virtual_id: i32) -> Option<Item> {
         let index = self.items.iter().position(|i| i.virtual_id == virtual_id)?;
         Some(self.items.remove(index))
+    }
+
+    /// The row ids of every item in the hand, in order.
+    #[cfg(test)]
+    pub fn record_ids(&self) -> Vec<u64> {
+        self.items.iter().map(|i| i.record.id).collect()
     }
 
     /// Java: `addItem`: the newest item goes first.

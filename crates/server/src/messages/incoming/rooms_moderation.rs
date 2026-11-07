@@ -56,20 +56,20 @@ pub fn assign_rights(
     let Some((target, target_id)) = target_in_room(world, &name, &room) else {
         return Ok(());
     };
-    {
-        let mut r = room.lock();
-        if r.rights.contains(&target_id) {
-            return Ok(());
-        }
-        r.rights.push(target_id);
-        let Some(idx) = r.entity_index(target.id) else {
-            return Ok(());
-        };
-        r.refresh_rights(idx, true);
-        r.entities[idx].needs_update = true;
+    let mut r = room.lock();
+    if r.rights.contains(&target_id) {
+        return Ok(());
     }
+    // Saved first, under the room's lock: the rights in memory are always ones the store has
+    // (the target may have left meanwhile; the rights are given all the same, as in Java).
     if let Err(e) = world.store.add_room_rights(room.id, target_id) {
         error!(room = room.id, user = target_id, "adding rights: {e}");
+        return Ok(());
+    }
+    r.rights.push(target_id);
+    if let Some(idx) = r.entity_index(target.id) {
+        r.refresh_rights(idx, true);
+        r.entities[idx].needs_update = true;
     }
     Ok(())
 }
