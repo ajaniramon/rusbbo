@@ -12,7 +12,7 @@ use clap::Parser;
 use havana_storage::{
     CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
     MessengerCategory, MessengerMessage, Pet, PublicItem, Room, RoomBot, RoomCategory, RoomModel,
-    RoomVote, Store, User, Walkway, WordfilterWord,
+    RoomVote, Store, Transaction, User, Walkway, WordfilterWord,
 };
 use mysql::prelude::Queryable;
 use mysql::{Opts, Pool, Row};
@@ -59,13 +59,14 @@ fn main() -> Result<()> {
     let words = import_wordfilter(&mut conn, &store)?;
     let bots = import_room_bots(&mut conn, &store)?;
     let pets = import_pets(&mut conn, &store)?;
+    let transactions = import_transactions(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts, {words} wordfilter words, {bots} room bots, {pets} pets, {user_rows} badge/mute/effect/statistic/achievement rows",
+         {texts} external texts, {words} wordfilter words, {bots} room bots, {pets} pets, {transactions} transactions, {user_rows} badge/mute/effect/statistic/achievement rows",
         cli.out.display()
     );
     Ok(())
@@ -304,6 +305,30 @@ fn import_pets(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
             x: col(row, "x")?,
             y: col(row, "y")?,
             rotation: col(row, "rotation")?,
+        })?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// `users_transactions` (Java: `TransactionDao`), oldest first.
+fn import_transactions(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<Row> = conn.query(
+        "SELECT *, UNIX_TIMESTAMP(created_at) AS created_at_ts FROM users_transactions \
+         ORDER BY created_at",
+    )?;
+    let mut w = store.write()?;
+    for row in &rows {
+        w.insert_transaction(&Transaction {
+            user_id: col(row, "user_id")?,
+            item_id: col(row, "item_id")?,
+            catalogue_id: col(row, "catalogue_id")?,
+            amount: col(row, "amount")?,
+            description: col(row, "description")?,
+            credit_cost: col(row, "credit_cost")?,
+            pixel_cost: col(row, "pixel_cost")?,
+            created_at: timestamp(row, "created_at_ts")?,
+            is_visible: col::<i32>(row, "is_visible")? != 0,
         })?;
     }
     w.commit()?;

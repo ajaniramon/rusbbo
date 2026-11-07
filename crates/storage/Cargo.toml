@@ -11,5 +11,9 @@ redb = "2.6.4"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.21"
 
+[features]
+# `Store::fail_next_commits`, for tests that prove a change is one transaction.
+test-faults = []
+
 [dev-dependencies]
 tempfile = "3.27.0"

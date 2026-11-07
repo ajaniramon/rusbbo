@@ -18,6 +18,7 @@ mod records;
 mod room_rights;
 mod rooms;
 mod texts;
+mod transactions;
 mod user;
 mod wordfilter;
 
@@ -36,6 +37,7 @@ pub use pets::Pet;
 pub use records::User;
 pub use room_rights::RoomVote;
 pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
+pub use transactions::Transaction;
 pub use user::{Achievement, Badge, Effect, STATISTIC_COLUMNS, UserAchievement, UserStatistics};
 pub use wordfilter::WordfilterWord;
 
@@ -59,6 +61,9 @@ pub enum Error {
     SchemaVersion { found: u32 },
     #[error("username {0:?} is already taken")]
     DuplicateName(String),
+    /// A failure injected by [`Store::fail_next_commits`] (feature `test-faults`).
+    #[error("injected failure")]
+    Injected,
 }
 
 macro_rules! db_error {
@@ -92,16 +97,49 @@ fn name_key(name: &str) -> String {
 
 pub struct Store {
     db: Database,
+    /// How many of the next write transactions fail at commit (feature `test-faults`).
+    #[cfg(feature = "test-faults")]
+    fail_commits: std::sync::atomic::AtomicU32,
 }
 
 impl Store {
     /// Creates the database file, or opens it if it exists, and sets up the tables.
     pub fn create(path: &Path) -> Result<Self> {
         let db = Database::create(path)?;
-        let store = Self { db };
+        let store = Self::with_db(db);
         store.create_tables()?;
         store.check_version()?;
         Ok(store)
+    }
+
+    fn with_db(db: Database) -> Self {
+        Self {
+            db,
+            #[cfg(feature = "test-faults")]
+            fail_commits: std::sync::atomic::AtomicU32::new(0),
+        }
+    }
+
+    /// Makes the next `n` write transactions started with [`Store::write`] fail at
+    /// [`Writer::commit`] with [`Error::Injected`], writing nothing: for tests that prove a
+    /// multi-step change is one transaction.
+    #[cfg(feature = "test-faults")]
+    pub fn fail_next_commits(&self, n: u32) {
+        self.fail_commits
+            .store(n, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    #[cfg(feature = "test-faults")]
+    fn take_injected_failure(&self) -> bool {
+        use std::sync::atomic::Ordering::SeqCst;
+        let mut n = self.fail_commits.load(SeqCst);
+        while n > 0 {
+            match self.fail_commits.compare_exchange(n, n - 1, SeqCst, SeqCst) {
+                Ok(_) => return true,
+                Err(now) => n = now,
+            }
+        }
+        false
     }
 
     /// Creates every table that does not exist yet (and the schema version of a new file). New
@@ -127,6 +165,7 @@ impl Store {
             pets::create_tables(&tx)?;
             room_rights::create_tables(&tx)?;
             texts::create_tables(&tx)?;
+            transactions::create_tables(&tx)?;
             user::create_tables(&tx)?;
             wordfilter::create_tables(&tx)?;
         }
@@ -136,9 +175,7 @@ impl Store {
 
     /// Opens an existing database file.
     pub fn open(path: &Path) -> Result<Self> {
-        let store = Self {
-            db: Database::open(path)?,
-        };
+        let store = Self::with_db(Database::open(path)?);
         store.check_version()?;
         store.create_tables()?;
         Ok(store)
@@ -161,6 +198,8 @@ impl Store {
     pub fn write(&self) -> Result<Writer> {
         Ok(Writer {
             tx: self.db.begin_write()?,
+            #[cfg(feature = "test-faults")]
+            fail: self.take_injected_failure(),
         })
     }
 
@@ -264,9 +303,12 @@ pub struct StartupReset {
     pub trading_items: usize,
 }
 
-/// A write transaction over several records.
+/// A write transaction over several records. Dropping it without [`Writer::commit`] (an early
+/// `?` return) aborts it: nothing it wrote is kept.
 pub struct Writer {
     tx: WriteTransaction,
+    #[cfg(feature = "test-faults")]
+    fail: bool,
 }
 
 impl Writer {
@@ -310,6 +352,16 @@ impl Writer {
         table.get(id)?.map(|v| decode(v.value())).transpose()
     }
 
+    /// [`Store::update_user`] inside this transaction.
+    pub fn update_user(&mut self, id: u32, change: impl FnOnce(&mut User)) -> Result<Option<User>> {
+        let Some(mut user) = self.user(id)? else {
+            return Ok(None);
+        };
+        change(&mut user);
+        self.put_user(&user)?;
+        Ok(Some(user))
+    }
+
     /// Inserts or replaces a user and updates the name and SSO indexes.
     pub fn put_user(&mut self, user: &User) -> Result<()> {
         let old: Option<User> = self.user(user.id)?;
@@ -350,6 +402,11 @@ impl Writer {
     }
 
     pub fn commit(self) -> Result<()> {
+        #[cfg(feature = "test-faults")]
+        if self.fail {
+            self.tx.abort()?;
+            return Err(Error::Injected);
+        }
         self.tx.commit()?;
         Ok(())
     }
