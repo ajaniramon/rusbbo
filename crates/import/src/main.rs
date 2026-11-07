@@ -10,9 +10,10 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, bail};
 use clap::Parser;
 use havana_storage::{
-    CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge, Item, ItemDefinition,
-    MessengerCategory, MessengerMessage, Pet, PublicItem, Room, RoomBot, RoomCategory, RoomModel,
-    RoomVote, Store, User, Walkway, WordfilterWord,
+    AuditLogEntry, Ban, BanType, CatalogueItem, CataloguePackage, CataloguePage,
+    CatalogueSaleBadge, IpLog, Item, ItemDefinition, MessengerCategory, MessengerMessage, Pet,
+    PublicItem, Room, RoomBot, RoomCategory, RoomModel, RoomVote, Store, User, Walkway,
+    WordfilterWord,
 };
 use mysql::prelude::Queryable;
 use mysql::{Opts, Pool, Row};
@@ -60,12 +61,14 @@ fn main() -> Result<()> {
     let bots = import_room_bots(&mut conn, &store)?;
     let pets = import_pets(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
+    let moderation = import_moderation(&mut conn, &store)?;
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
          {pages} catalogue pages, {definitions} item definitions, {items} items, \
          {messenger} messenger rows, {room_rights} room rights/bans/votes rows, \
-         {texts} external texts, {words} wordfilter words, {bots} room bots, {pets} pets, {user_rows} badge/mute/effect/statistic/achievement rows",
+         {texts} external texts, {words} wordfilter words, {bots} room bots, {pets} pets, {user_rows} badge/mute/effect/statistic/achievement rows, \
+         {moderation} ban/ip log/audit log/rank badge rows",
         cli.out.display()
     );
     Ok(())
@@ -250,6 +253,81 @@ fn import_room_rights(conn: &mut mysql::PooledConn, store: &Store) -> Result<usi
     }
     w.commit()?;
     Ok(rights.len() + bans.len() + votes.len())
+}
+
+/// A datetime column as Unix seconds, in MariaDB's time zone like the Java server reads it, with
+/// the same fallback as `import_users` for dates `UNIX_TIMESTAMP` cannot represent.
+fn unix_seconds_sql(column: &str) -> String {
+    format!(
+        "IF(IFNULL(UNIX_TIMESTAMP({column}), 0) = 0 AND {column} > '1970-01-02', \
+         TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', {column}), UNIX_TIMESTAMP({column})) \
+         AS {column}_ts"
+    )
+}
+
+/// `users_bans`, `users_ip_logs`, `housekeeping_audit_log` and `rank_badges` (Java: `BanDao`,
+/// `PlayerDao.logIpAddress`/`getLatestIp`, `ModerationDao`, `BadgeDao.getRankBadges`). Returns the number of rows copied.
+fn import_moderation(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let mut w = store.write()?;
+    let rows: Vec<Row> = conn.query(format!(
+        "SELECT *, {}, {} FROM users_bans",
+        unix_seconds_sql("banned_until"),
+        unix_seconds_sql("banned_at")
+    ))?;
+    for row in &rows {
+        let ban_type: String = col(row, "ban_type")?;
+        let ban_type =
+            BanType::from_name(&ban_type).with_context(|| format!("bad ban_type {ban_type:?}"))?;
+        w.put_ban(&Ban {
+            ban_type,
+            banned_value: col(row, "banned_value")?,
+            message: col(row, "message")?,
+            banned_until: timestamp(row, "banned_until_ts")?,
+            banned_at: timestamp(row, "banned_at_ts")?,
+            banned_by: col(row, "banned_by")?,
+            is_active: col::<i32>(row, "is_active")? != 0,
+        })?;
+    }
+    let mut count = rows.len();
+
+    let rows: Vec<Row> = conn.query(format!(
+        "SELECT user_id, ip_address, {} FROM users_ip_logs ORDER BY created_at",
+        unix_seconds_sql("created_at")
+    ))?;
+    for row in &rows {
+        w.put_ip_log(
+            col(row, "user_id")?,
+            IpLog {
+                ip_address: col(row, "ip_address")?,
+                created_at: timestamp(row, "created_at_ts")?,
+            },
+        )?;
+    }
+    count += rows.len();
+
+    let rows: Vec<Row> = conn.query(format!(
+        "SELECT *, {} FROM housekeeping_audit_log ORDER BY created_at",
+        unix_seconds_sql("created_at")
+    ))?;
+    for row in &rows {
+        w.put_audit_log(&AuditLogEntry {
+            action: col(row, "action")?,
+            user_id: col(row, "user_id")?,
+            target_id: col(row, "target_id")?,
+            message: col(row, "message")?,
+            extra_notes: col(row, "extra_notes")?,
+            created_at: timestamp(row, "created_at_ts")?,
+        })?;
+    }
+    count += rows.len();
+
+    let rows: Vec<(u8, String)> = conn.query("SELECT `rank`, badge FROM rank_badges")?;
+    for (rank, badge) in &rows {
+        w.put_rank_badge(*rank, badge.trim_end())?;
+    }
+    count += rows.len();
+    w.commit()?;
+    Ok(count)
 }
 
 /// `external_texts` (Java: `SettingsDao.getTexts`), in table order so the last row of an entry
