@@ -22,7 +22,7 @@ pub fn room_ready(room_id: u32, model_name: &str) -> Message {
     Message::new(
         69,
         ServerBody::new()
-            .string(model_name.as_bytes())
+            .text(model_name)
             .int(room_id as i32)
             .build(),
     )
@@ -30,13 +30,7 @@ pub fn room_ready(room_id: u32, model_name: &str) -> Message {
 
 /// Java: `FLATPROPERTY`.
 pub fn flat_property(property: &str, value: &str) -> Message {
-    Message::new(
-        46,
-        ServerBody::new()
-            .string(property.as_bytes())
-            .string(value.as_bytes())
-            .build(),
-    )
+    Message::new(46, ServerBody::new().text(property).text(value).build())
 }
 
 /// Java: `UPDATE_VOTES`; -1 makes the client show the vote buttons.
@@ -54,10 +48,32 @@ pub fn heightmap(heightmap: &str) -> Message {
     Message::new(31, heightmap.as_bytes().to_vec())
 }
 
+/// Java: `FLOOR_MAP`: the model's rows like `HEIGHTMAP`, with the door tile replaced by the door
+/// height as a whole number (`(int) door.z`), written raw.
+pub fn floor_map(model: &crate::game::room::model::RoomModel) -> Message {
+    let mut body = Vec::with_capacity(model.heightmap.len());
+    for (y, row) in model
+        .heightmap
+        .split('\r')
+        .take(model.size_y as usize)
+        .enumerate()
+    {
+        for (x, tile) in row.chars().enumerate() {
+            if x as i32 == model.door_x && y as i32 == model.door_y {
+                body.extend((model.door_z as i32).to_string().bytes());
+            } else {
+                body.extend(latin1(&tile.to_string()));
+            }
+        }
+        body.push(b'\r');
+    }
+    Message::new(470, body)
+}
+
 /// Java: `HEIGHTMAP_UPDATE`: the walking heights of the open tiles (see
 /// `RoomMapping::heightmap_update`), sent before furniture is placed, moved or picked up.
 pub fn heightmap_update(map: &str) -> Message {
-    Message::new(219, ServerBody::new().string(map.as_bytes()).build())
+    Message::new(219, ServerBody::new().text(map).build())
 }
 
 /// Java: `Item.serialise` for public space objects.
@@ -65,8 +81,8 @@ fn public_item(body: ServerBody, item: &Item) -> ServerBody {
     let has_dimensions = item.has(Behaviour::ExtraParameter);
     let body = body
         .int(has_dimensions as i32)
-        .string(item.custom_data.as_bytes())
-        .string(item.sprite.as_bytes())
+        .text(&item.custom_data)
+        .text(&item.sprite)
         .int(item.position.x)
         .int(item.position.y)
         .int(item.position.z as i32);
@@ -97,7 +113,7 @@ pub(crate) fn floor_item(body: ServerBody, item: &Item) -> ServerBody {
         .int(item.position.x)
         .int(item.position.y)
         .int(item.position.rotation())
-        .string(crate::game::format_decimal(item.position.z).as_bytes())
+        .text(&crate::game::format_decimal(item.position.z))
         // Rollers need 2 to animate.
         .int(if item.has(Behaviour::Roller) { 2 } else { 0 });
     let data = if item.has(Behaviour::Present) {
@@ -121,7 +137,7 @@ pub(crate) fn floor_item(body: ServerBody, item: &Item) -> ServerBody {
     };
     let body = body.string(&latin1(&data)).int(minutes);
     if item.sprite_id() < 0 {
-        body.string(item.sprite.as_bytes())
+        body.text(&item.sprite)
     } else {
         body
     }
@@ -163,7 +179,7 @@ pub(crate) fn wall_item(body: ServerBody, item: &Item) -> ServerBody {
     } else {
         item.custom_data.clone()
     };
-    body.string(item.virtual_id.to_string().as_bytes())
+    body.text(&item.virtual_id.to_string())
         .int(item.sprite_id())
         .string(&latin1(item.wall_position()))
         .string(&latin1(&data))
@@ -172,12 +188,16 @@ pub(crate) fn wall_item(body: ServerBody, item: &Item) -> ServerBody {
 /// Java: `ROOMAD`: a billboard image and its link, or an empty string for none.
 pub fn room_ad(ad: Option<(&str, &str)>) -> Message {
     let body = match ad {
-        Some((image, url)) => ServerBody::new()
-            .string(image.as_bytes())
-            .string(url.as_bytes()),
+        Some((image, url)) => ServerBody::new().text(image).text(url),
         None => ServerBody::new().string(b""),
     };
     Message::new(208, body.build())
+}
+
+/// Java: `INTERSITIALDATA`: the ad shown while a room loads; empty strings for none.
+pub fn intersitial_data(ad: Option<(&str, &str)>) -> Message {
+    let (image, url) = ad.unwrap_or(("", ""));
+    Message::new(258, ServerBody::new().text(image).text(url).build())
 }
 
 /// Java: `FLAT_LETIN`: the user may enter the private room (`GOTOFLAT`).

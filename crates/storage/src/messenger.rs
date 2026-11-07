@@ -351,16 +351,66 @@ impl Writer {
 }
 
 /// SQL `LIKE` with `%`, `_` and `\` as the escape character, over lowercase text.
+///
+/// Greedy matching that backtracks only to the last `%`: O(pattern × text) at worst. (A naive
+/// recursive matcher is exponential in the number of `%`, so one search for `%%%…%x` could pin a
+/// worker thread for minutes.)
 fn like_matches(pattern: &[char], text: &[char]) -> bool {
-    match pattern.split_first() {
-        None => text.is_empty(),
-        Some((&'%', rest)) => (0..=text.len()).any(|skip| like_matches(rest, &text[skip..])),
-        Some((&'_', rest)) => !text.is_empty() && like_matches(rest, &text[1..]),
-        Some((&'\\', rest)) if !rest.is_empty() => {
-            text.first() == Some(&rest[0]) && like_matches(&rest[1..], &text[1..])
-        }
-        Some((c, rest)) => text.first() == Some(c) && like_matches(rest, &text[1..]),
+    #[derive(Clone, Copy, PartialEq)]
+    enum Token {
+        Any,
+        One,
+        Lit(char),
     }
+    let mut tokens = Vec::with_capacity(pattern.len());
+    let mut i = 0;
+    while i < pattern.len() {
+        tokens.push(match pattern[i] {
+            // Consecutive `%` are one `%`.
+            '%' if tokens.last() == Some(&Token::Any) => {
+                i += 1;
+                continue;
+            }
+            '%' => Token::Any,
+            '_' => Token::One,
+            '\\' if i + 1 < pattern.len() => {
+                i += 1;
+                Token::Lit(pattern[i])
+            }
+            c => Token::Lit(c),
+        });
+        i += 1;
+    }
+
+    let (mut p, mut t) = (0, 0);
+    // Position after the last `%` seen, and the text position it is currently matched up to.
+    let mut star: Option<(usize, usize)> = None;
+    while t < text.len() {
+        match tokens.get(p) {
+            Some(Token::Any) => {
+                star = Some((p + 1, t));
+                p += 1;
+            }
+            Some(Token::One) => {
+                p += 1;
+                t += 1;
+            }
+            Some(Token::Lit(c)) if *c == text[t] => {
+                p += 1;
+                t += 1;
+            }
+            _ => match star {
+                // Let the last `%` swallow one more character and retry from there.
+                Some((sp, st)) => {
+                    star = Some((sp, st + 1));
+                    p = sp;
+                    t = st + 1;
+                }
+                None => return false,
+            },
+        }
+    }
+    tokens[p..].iter().all(|tok| *tok == Token::Any)
 }
 
 #[cfg(test)]
@@ -437,5 +487,68 @@ mod tests {
         assert_eq!(store.messenger_search("a\\_").unwrap(), vec![4]);
         assert_eq!(store.messenger_search("").unwrap(), vec![4, 2, 1, 3]);
         assert!(store.messenger_search("zz").unwrap().is_empty());
+        assert_eq!(store.messenger_search("%b").unwrap(), vec![4, 3]);
+        assert_eq!(store.messenger_search("%i%e").unwrap(), vec![1]);
+    }
+
+    /// The obvious recursive definition of `LIKE`, as a reference for [`like_matches`].
+    fn like_reference(pattern: &[char], text: &[char]) -> bool {
+        match pattern.split_first() {
+            None => text.is_empty(),
+            Some((&'%', rest)) => (0..=text.len()).any(|skip| like_reference(rest, &text[skip..])),
+            Some((&'_', rest)) => !text.is_empty() && like_reference(rest, &text[1..]),
+            Some((&'\\', rest)) if !rest.is_empty() => {
+                text.first() == Some(&rest[0]) && like_reference(&rest[1..], &text[1..])
+            }
+            Some((c, rest)) => text.first() == Some(c) && like_reference(rest, &text[1..]),
+        }
+    }
+
+    #[test]
+    fn like_matches_agrees_with_the_reference() {
+        // Every pattern of up to 5 symbols over this alphabet, against every text of up to 4.
+        let symbols = ['%', '_', '\\', 'a', 'b'];
+        let letters = ['a', 'b', '_', '%', '\\'];
+        fn all(alphabet: &[char], max: usize) -> Vec<Vec<char>> {
+            let mut out = vec![vec![]];
+            let mut layer = vec![vec![]];
+            for _ in 0..max {
+                layer = layer
+                    .iter()
+                    .flat_map(|w: &Vec<char>| {
+                        alphabet.iter().map(move |&c| {
+                            let mut w = w.clone();
+                            w.push(c);
+                            w
+                        })
+                    })
+                    .collect();
+                out.extend(layer.iter().cloned());
+            }
+            out
+        }
+        let texts = all(&letters, 4);
+        for pattern in all(&symbols, 5) {
+            for text in &texts {
+                assert_eq!(
+                    like_matches(&pattern, text),
+                    like_reference(&pattern, text),
+                    "pattern {pattern:?} text {text:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn many_wildcards_stay_fast() {
+        let pattern: Vec<char> = format!("{}Q%", "%".repeat(200)).chars().collect();
+        let text: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123".chars().collect();
+        let start = std::time::Instant::now();
+        assert!(!like_matches(&pattern, &text));
+        let pattern: Vec<char> = "_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%_%Z"
+            .chars()
+            .collect();
+        assert!(!like_matches(&pattern, &text));
+        assert!(start.elapsed() < std::time::Duration::from_millis(100));
     }
 }

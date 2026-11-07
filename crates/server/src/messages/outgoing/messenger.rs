@@ -32,7 +32,7 @@ fn serialise(body: ServerBody, f: &FriendView) -> ServerBody {
         .string(&text(&f.figure))
         .int(f.category_id)
         .string(&text(&f.motto))
-        .string(long_date(f.last_online).as_bytes())
+        .text(&long_date(f.last_online))
 }
 
 /// Java: `MESSENGER_INIT`.
@@ -83,7 +83,7 @@ pub fn friend_request(requester: &MessengerUser) -> Message {
     let body = ServerBody::new()
         .int(requester.user_id as i32)
         .string(&text(&requester.username))
-        .string(requester.user_id.to_string().as_bytes());
+        .text(&requester.user_id.to_string());
     Message::new(132, body.build())
 }
 
@@ -95,7 +95,7 @@ pub fn friend_requests<'a>(requests: impl ExactSizeIterator<Item = &'a Messenger
         body = body
             .int(r.user_id as i32)
             .string(&text(&r.username))
-            .string(r.user_id.to_string().as_bytes());
+            .text(&r.user_id.to_string());
     }
     Message::new(314, body.build())
 }
@@ -156,7 +156,7 @@ pub fn messenger_search(friends: &[SearchEntry], others: &[SearchEntry]) -> Mess
                 .string(&text(e.room_name.as_deref().unwrap_or("")))
                 .bool(e.male)
                 .string(&text(if e.online { &e.figure } else { "" }))
-                .string(long_date(e.last_online).as_bytes());
+                .text(&long_date(e.last_online));
         }
     }
     Message::new(435, body.build())

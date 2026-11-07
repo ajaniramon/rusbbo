@@ -43,8 +43,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let store = Store::open(&cli.db).with_context(|| format!("opening {}", cli.db.display()))?;
-    // Like Havana.java: tickets from before a restart are never valid.
-    let cleared = store.clear_sso_tickets()?;
+    // Like Havana.java: tickets, online flags, visitor counts and trade states from before a
+    // restart are never valid.
+    let reset = store.startup_reset()?;
     for spec in &cli.dev_tickets {
         let (id, ticket) = spec
             .split_once('=')
@@ -59,12 +60,63 @@ async fn main() -> Result<()> {
     }
     info!(
         users = store.user_count()?,
-        cleared_tickets = cleared,
+        cleared_tickets = reset.sso_tickets,
+        reset_online = reset.online_users,
+        reset_visitors = reset.room_visitors,
+        reset_trading = reset.trading_items,
         "database {}",
         cli.db.display()
     );
 
     let world = World::new(store)?.into_arc();
     tokio::spawn(game::scheduler::run(world.clone()));
-    net::serve(world, cli.bind).await
+    tokio::select! {
+        result = net::serve(world.clone(), cli.bind) => result,
+        () = shutdown_signal() => {
+            shutdown(&world).await;
+            Ok(())
+        }
+    }
+}
+
+/// Ctrl-C, or SIGTERM on Unix (`systemctl stop`, `docker stop`).
+async fn shutdown_signal() {
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{SignalKind, signal};
+        match signal(SignalKind::terminate()) {
+            Ok(mut term) => {
+                tokio::select! {
+                    _ = tokio::signal::ctrl_c() => {}
+                    _ = term.recv() => {}
+                }
+                return;
+            }
+            Err(e) => tracing::warn!("cannot listen for SIGTERM: {e}"),
+        }
+    }
+    let _ = tokio::signal::ctrl_c().await;
+}
+
+/// Java: `Havana.dispose` → `PlayerManager.dispose`: tell everyone the hotel closed, then kick
+/// them, which saves their logout like a normal disconnect.
+async fn shutdown(world: &world::World) {
+    use chrono::Timelike;
+    info!(
+        "shutting down: disconnecting {} players",
+        world.players_online()
+    );
+    let now = chrono::Local::now();
+    for session in world.players() {
+        session.send(messages::outgoing::handshake::info_hotel_closed(
+            now.hour(),
+            now.minute(),
+            false,
+        ));
+        game::player::kick(world, &session);
+    }
+    // Let the writer tasks flush HOTEL_LOGOUT; the database closes cleanly when the runtime
+    // drops the last task holding the world.
+    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    info!("all done");
 }

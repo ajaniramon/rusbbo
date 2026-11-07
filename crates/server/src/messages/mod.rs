@@ -28,7 +28,11 @@ pub fn handle(world: &World, session: &Arc<Session>, msg: Message) {
         return;
     };
     let mut reader = havana_protocol::body::ClientReader::new(&msg.body);
-    if handler(world, session, &mut reader).is_err() {
+    let result = crate::game::contain_panic(
+        format_args!("handler {name} ({}), conn {}", msg.header, session.id),
+        || handler(world, session, &mut reader),
+    );
+    if matches!(result, Some(Err(_))) {
         warn!(
             conn = session.id,
             header = msg.header,

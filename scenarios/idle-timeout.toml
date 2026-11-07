@@ -1,0 +1,60 @@
+name = "idle-timeout"
+description = "Idle check: PING every 60 s from the moment a connection opens; without a PONG since the last PING, HOTEL_LOGOUT and a closed connection instead; other traffic does not count"
+
+# Java: IdleStateHandler(60, 0, 0) + IdleConnectionHandler. The IdleStateHandler sits behind
+# ConnectionHandler, which consumes every message, so it fires every 60 s whatever the client
+# sends; only a PONG (Player.pingOK) matters. Bot a logs in and then stays silent. Bot b
+# only connects (no login, so its PONG runs no achievement check) and answers its PING. Bot c only
+# marks time without touching a or b. Times are from the end of a's login; each PING/HOTEL_LOGOUT
+# falls inside one step with seconds to spare.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-3"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+connect = true
+settle_ms = 30000
+note = "t = 0 to 30 s"
+
+[[steps]]
+bot = "c"
+connect = true
+settle_ms = 500
+
+[[steps]]
+bot = "c"
+disconnect = true
+settle_ms = 33000
+note = "t = 30 to 63 s: PING to a and to b at about 60 s"
+
+[[steps]]
+bot = "b"
+send = "PONG"
+settle_ms = 25000
+note = "t = 63 to 88 s: b answered its PING"
+
+[[steps]]
+bot = "b"
+send = "PONG"
+settle_ms = 35000
+note = "t = 88 to 123 s: at about 120 s b gets its second PING (the PONG at 88 s does not move it), and a, which never answered, gets HOTEL_LOGOUT and its connection closes"
+
+[[steps]]
+bot = "b"
+send = "PONG"
+settle_ms = 1000
+note = "b is still connected"

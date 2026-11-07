@@ -52,6 +52,13 @@ staff commands are `TODO(commands)`) and trading are ported too. Other interacto
 vending machines, games...) are `TODO(...)` markers. Every trace in `harness/ported.txt` passes
 against the Rust server.
 
+Server housekeeping as in Java: idle connections get `PING` after 60 s and are logged out 60 s
+later without a `PONG`; startup resets SSO tickets, `players.online`, room visitor counts, trade
+states and online flags (one transaction); Ctrl-C/SIGTERM sends `INFO_HOTEL_CLOSED`, logs everyone
+out and closes the database cleanly. A panic in a message handler or a tick is logged and
+contained (Java catches the exception and carries on); all text on the wire is ISO-8859-1
+(`ServerBody::text`).
+
 ## Trace harness
 
 ### 1. Start the reference server
@@ -145,8 +152,21 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-postit` | post-it pad placed on the wall, read and written by the owner and a visitor without rights, deleted |
 | `flat-gates` | a gate (solid while closed) and a one-way door (`ENTER_ONEWAY_DOOR`) |
 | `flat-present` | buying a gift for another user (unknown user, too soon again), placing and opening it (`PRESENTOPEN`, `DELIVER_PRESENT`) |
+| `text-latin1` | non-ASCII text (ñ, accents, ¡¿) in a room name, a post-it, chat and a console message, as ISO-8859-1 |
+| `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |
+| `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
+| `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
 
 ## Known gaps
+
+- The bots' `login` macro is shorter than what the real client sends; `client-flow` covers the
+  difference that was found by logging in with the real v31 client (HabboLauncher and dirplayer)
+  against a copy of a real hotel's database. That session also showed what the client asks for and
+  the server does not answer yet: moodlight presets (`MSG_ROOMDIMMER_GET_PRESETS`) and the jukebox
+  (`GET_PLAY_LIST`, `GET_JUKEBOX_DISCS`); ids 288, 301, 302, 315 and 321 have no handler in Java
+  either.
+- There is no website login yet: tickets come from `--dev-ticket` (or are written to the database
+  before the server opens it), so a real deployment still needs a ticket API.
 
 - Only `login-encrypted` uses the RC4 layer (`encrypt = true` on a bot); every other scenario runs
   unencrypted. The Flash port (12323) is not covered.

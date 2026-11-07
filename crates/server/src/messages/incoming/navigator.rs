@@ -152,6 +152,24 @@ pub fn own_rooms(
     Ok(())
 }
 
+/// Java: `RECOMMENDED_ROOMS`: three open private rooms for the hotel view's "recommended" box.
+/// The real client asks for it right after logging in.
+pub fn recommended_rooms(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(viewer) = viewer(session) else {
+        return Ok(());
+    };
+    let rows = world.store.recommended_rooms(3, 0).unwrap_or_default();
+    let mut rooms = navigator::room_entries(world, rows);
+    navigator::sort_rooms(&mut rooms);
+    navigator::rating_sanity_check(&rooms);
+    session.send(out::recommended_room_list(&rooms, &viewer));
+    Ok(())
+}
+
 /// Java: `SRCHF`: room search, with the `owner:name` tag.
 pub fn search_rooms(
     world: &World,
@@ -210,7 +228,11 @@ pub fn get_space_node_users(
     session: &Arc<Session>,
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    let id = reader.int().ok_or(Malformed)? - PUBLIC_ROOM_OFFSET;
+    // Wrapping, like the Java int arithmetic: a hostile id must not panic (debug builds).
+    let id = reader
+        .int()
+        .ok_or(Malformed)?
+        .wrapping_sub(PUBLIC_ROOM_OFFSET);
     let Some(room) = u32::try_from(id).ok().and_then(|id| world.room_by_id(id)) else {
         return Ok(());
     };

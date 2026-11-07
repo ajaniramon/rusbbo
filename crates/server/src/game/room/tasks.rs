@@ -36,15 +36,18 @@ pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
         let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
             return;
         };
-        let deferred = {
-            let mut r = room.lock();
-            r.entity_tick(&world);
-            if count % 2 == 0 {
-                r.status_tick();
-            }
-            r.take_deferred()
-        };
-        run_deferred(&world, deferred);
+        let tick = count;
+        crate::game::contain_panic(format_args!("room tick"), || {
+            let deferred = {
+                let mut r = room.lock();
+                r.entity_tick(&world);
+                if tick % 2 == 0 {
+                    r.status_tick();
+                }
+                r.take_deferred()
+            };
+            run_deferred(&world, deferred);
+        });
         count += 1;
     }
 }
@@ -298,7 +301,9 @@ pub async fn run_rollers(world: Weak<World>, room: Weak<RoomHandle>) {
         let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
             return;
         };
-        room.lock().roller_tick(&world);
+        crate::game::contain_panic(format_args!("roller tick"), || {
+            room.lock().roller_tick(&world)
+        });
     }
 }
 

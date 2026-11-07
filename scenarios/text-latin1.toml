@@ -1,0 +1,157 @@
+name = "text-latin1"
+description = "Text outside ASCII (ñ, accents, ¡¿) round-trips as ISO-8859-1: a room name, a post-it and a console message, seen by the writer and by a second user"
+
+# The wire is ISO-8859-1 both ways (Java's NettyRequest/NettyResponse); a server writing UTF-8
+# sends "ñ" as two bytes the client shows as "Ã±". Scenario strings are ISO-8859-1 too.
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits it. Post-it as in flat-postit:
+# catalogue item 150 is the pad (item 1); placing it creates the sticky (item 2).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "b"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "b"
+send = "MESSENGER_ACCEPTBUDDY"
+args = [1, 1]
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_SENDMSG"
+args = [2, "¿Qué tal, señor? ¡Ñandú!"]
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 150, "", false]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Sala de Ñoño", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "SUSERF"
+note = "Own rooms: the name as written"
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 :w=6,1 l=12,40 r"]
+
+[[steps]]
+bot = "a"
+send = "SETITEMDATA"
+args = [2, "9CCEFF Año nuevo: café, piñata y güisqui"]
+
+[[steps]]
+bot = "a"
+send = "G_IDATA"
+args = [2]
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+note = "The sticky as the visitor sees it"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "G_IDATA"
+args = [2]
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

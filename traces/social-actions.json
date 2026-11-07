@@ -43,7 +43,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "392444092123758363650685\u0002I",
+              "body": "556799602403429713634079\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#4CF87E2CAABC48E1BAB7B7E777677E91\u0002",
+              "body": "#889307B8AFC8463A92661833E5E8C354\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -202,7 +202,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHu551\u0002broom_bench1\u0002PAHPAPAHp4\u0002broom_bench2\u0002QAHPAPAHf880\u0002broom_bench3\u0002RAHPAPAHn670\u0002broom_bench1\u0002SAHPAPAHn974\u0002broom_bench2\u0002PBHPAPAHd910\u0002broom_bench2\u0002QBHPAPAHe677\u0002broom_bench3\u0002RBHPAPAHq64\u0002broom_bench1\u0002SBHPAPAHd684\u0002broom_bench2\u0002PCHPAPAHi99\u0002broom_bench2\u0002QCHPAPAHz888\u0002broom_bench2\u0002RCHPAPAHo907\u0002broom_bench3\u0002SCHPAPAHm662\u0002broom_bench1\u0002PDHPAPAHq884\u0002broom_bench2\u0002QDHPAPAHc492\u0002broom_bench2\u0002RDHPAPAHq989\u0002broom_bench3\u0002SDHPAPAHi308\u0002broom_bench1\u0002PEHPAPAHj138\u0002broom_bench2\u0002QEHPAPAHw452\u0002broom_bench3\u0002REHPAPAHe775\u0002broom_seatb1\u0002SAKJPAHf176\u0002broom_seatb2\u0002PBKJPAHc716\u0002broom_seatb3\u0002QBKJPAHs429\u0002broom_seatb4\u0002RBKJPAHu934\u0002broom_seat1\u0002PDKJPAHr243\u0002broom_seat2\u0002QDKJPAHr567\u0002broom_seat3\u0002RDKJPAHo872\u0002broom_seat4\u0002SDKJPAHj578\u0002broom_seatb1\u0002SARAHPAHj836\u0002broom_seatb2\u0002PBRAHPAHt158\u0002broom_seatb3\u0002QBRAHPAHs588\u0002broom_seatb4\u0002RBRAHPAHr561\u0002broom_seat1\u0002PDRAHPAHd531\u0002broom_seat2\u0002QDRAHPAHg933\u0002broom_seat3\u0002RDRAHPAHj483\u0002broom_seat4\u0002SDRAHPAHp76\u0002broom_chair\u0002SDRBHPAHg197\u0002broom_chair\u0002PERBHPAHq888\u0002broom_chair\u0002QERBHPAHf619\u0002broom_table1\u0002SDSBHHHw190\u0002broom_table2\u0002PESBHHHs969\u0002broom_table3\u0002QESBHHHl823\u0002broom_chair\u0002SDPCHHHf971\u0002broom_chair\u0002PEPCHHHe727\u0002broom_chair\u0002QEPCHHHi196\u0002broom_chair\u0002SDSCHPAHt199\u0002broom_chair\u0002PESCHPAHu216\u0002broom_chair\u0002QESCHPAHp225\u0002broom_table1\u0002SDPDHHHo26\u0002broom_table2\u0002PEPDHHHp338\u0002broom_table3\u0002QEPDHHHn976\u0002broom_chair\u0002SDQDHHHf116\u0002broom_chair\u0002PEQDHHHc654\u0002broom_chair\u0002QEQDHHHn407\u0002broom_stool\u0002QBPEIJHa407\u0002broom_stool\u0002QBQEIJHl162\u0002broom_stool\u0002QBREIJHm385\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHe57\u0002broom_bench1\u0002PAHPAPAHb761\u0002broom_bench2\u0002QAHPAPAHg209\u0002broom_bench3\u0002RAHPAPAHg520\u0002broom_bench1\u0002SAHPAPAHu576\u0002broom_bench2\u0002PBHPAPAHz610\u0002broom_bench2\u0002QBHPAPAHp843\u0002broom_bench3\u0002RBHPAPAHt49\u0002broom_bench1\u0002SBHPAPAHz892\u0002broom_bench2\u0002PCHPAPAHl163\u0002broom_bench2\u0002QCHPAPAHt941\u0002broom_bench2\u0002RCHPAPAHz34\u0002broom_bench3\u0002SCHPAPAHw193\u0002broom_bench1\u0002PDHPAPAHn470\u0002broom_bench2\u0002QDHPAPAHs523\u0002broom_bench2\u0002RDHPAPAHh355\u0002broom_bench3\u0002SDHPAPAHq282\u0002broom_bench1\u0002PEHPAPAHp497\u0002broom_bench2\u0002QEHPAPAHy191\u0002broom_bench3\u0002REHPAPAHr129\u0002broom_seatb1\u0002SAKJPAHl171\u0002broom_seatb2\u0002PBKJPAHu68\u0002broom_seatb3\u0002QBKJPAHo551\u0002broom_seatb4\u0002RBKJPAHs464\u0002broom_seat1\u0002PDKJPAHr461\u0002broom_seat2\u0002QDKJPAHz26\u0002broom_seat3\u0002RDKJPAHp787\u0002broom_seat4\u0002SDKJPAHl502\u0002broom_seatb1\u0002SARAHPAHa521\u0002broom_seatb2\u0002PBRAHPAHa998\u0002broom_seatb3\u0002QBRAHPAHn4\u0002broom_seatb4\u0002RBRAHPAHe58\u0002broom_seat1\u0002PDRAHPAHr62\u0002broom_seat2\u0002QDRAHPAHq896\u0002broom_seat3\u0002RDRAHPAHu545\u0002broom_seat4\u0002SDRAHPAHu806\u0002broom_chair\u0002SDRBHPAHa697\u0002broom_chair\u0002PERBHPAHd660\u0002broom_chair\u0002QERBHPAHy427\u0002broom_table1\u0002SDSBHHHb25\u0002broom_table2\u0002PESBHHHc372\u0002broom_table3\u0002QESBHHHs782\u0002broom_chair\u0002SDPCHHHp30\u0002broom_chair\u0002PEPCHHHj65\u0002broom_chair\u0002QEPCHHHs924\u0002broom_chair\u0002SDSCHPAHz964\u0002broom_chair\u0002PESCHPAHb950\u0002broom_chair\u0002QESCHPAHm344\u0002broom_table1\u0002SDPDHHHb284\u0002broom_table2\u0002PEPDHHHe218\u0002broom_table3\u0002QEPDHHHn53\u0002broom_chair\u0002SDQDHHHo762\u0002broom_chair\u0002PEQDHHHm132\u0002broom_chair\u0002QEQDHHHq273\u0002broom_stool\u0002QBPEIJHc634\u0002broom_stool\u0002QBQEIJHh340\u0002broom_stool\u0002QBREIJHy25\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -339,7 +339,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "448798014807732279580932\u0002I",
+              "body": "627835066315783388950162\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -371,7 +371,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#8C354ED2A0F34CBA9389BCB55B97EA69\u0002",
+              "body": "#AC7ABE3D9F1C4463A6A637A0DBD1D837\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -510,7 +510,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHu551\u0002broom_bench1\u0002PAHPAPAHp4\u0002broom_bench2\u0002QAHPAPAHf880\u0002broom_bench3\u0002RAHPAPAHn670\u0002broom_bench1\u0002SAHPAPAHn974\u0002broom_bench2\u0002PBHPAPAHd910\u0002broom_bench2\u0002QBHPAPAHe677\u0002broom_bench3\u0002RBHPAPAHq64\u0002broom_bench1\u0002SBHPAPAHd684\u0002broom_bench2\u0002PCHPAPAHi99\u0002broom_bench2\u0002QCHPAPAHz888\u0002broom_bench2\u0002RCHPAPAHo907\u0002broom_bench3\u0002SCHPAPAHm662\u0002broom_bench1\u0002PDHPAPAHq884\u0002broom_bench2\u0002QDHPAPAHc492\u0002broom_bench2\u0002RDHPAPAHq989\u0002broom_bench3\u0002SDHPAPAHi308\u0002broom_bench1\u0002PEHPAPAHj138\u0002broom_bench2\u0002QEHPAPAHw452\u0002broom_bench3\u0002REHPAPAHe775\u0002broom_seatb1\u0002SAKJPAHf176\u0002broom_seatb2\u0002PBKJPAHc716\u0002broom_seatb3\u0002QBKJPAHs429\u0002broom_seatb4\u0002RBKJPAHu934\u0002broom_seat1\u0002PDKJPAHr243\u0002broom_seat2\u0002QDKJPAHr567\u0002broom_seat3\u0002RDKJPAHo872\u0002broom_seat4\u0002SDKJPAHj578\u0002broom_seatb1\u0002SARAHPAHj836\u0002broom_seatb2\u0002PBRAHPAHt158\u0002broom_seatb3\u0002QBRAHPAHs588\u0002broom_seatb4\u0002RBRAHPAHr561\u0002broom_seat1\u0002PDRAHPAHd531\u0002broom_seat2\u0002QDRAHPAHg933\u0002broom_seat3\u0002RDRAHPAHj483\u0002broom_seat4\u0002SDRAHPAHp76\u0002broom_chair\u0002SDRBHPAHg197\u0002broom_chair\u0002PERBHPAHq888\u0002broom_chair\u0002QERBHPAHf619\u0002broom_table1\u0002SDSBHHHw190\u0002broom_table2\u0002PESBHHHs969\u0002broom_table3\u0002QESBHHHl823\u0002broom_chair\u0002SDPCHHHf971\u0002broom_chair\u0002PEPCHHHe727\u0002broom_chair\u0002QEPCHHHi196\u0002broom_chair\u0002SDSCHPAHt199\u0002broom_chair\u0002PESCHPAHu216\u0002broom_chair\u0002QESCHPAHp225\u0002broom_table1\u0002SDPDHHHo26\u0002broom_table2\u0002PEPDHHHp338\u0002broom_table3\u0002QEPDHHHn976\u0002broom_chair\u0002SDQDHHHf116\u0002broom_chair\u0002PEQDHHHc654\u0002broom_chair\u0002QEQDHHHn407\u0002broom_stool\u0002QBPEIJHa407\u0002broom_stool\u0002QBQEIJHl162\u0002broom_stool\u0002QBREIJHm385\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHe57\u0002broom_bench1\u0002PAHPAPAHb761\u0002broom_bench2\u0002QAHPAPAHg209\u0002broom_bench3\u0002RAHPAPAHg520\u0002broom_bench1\u0002SAHPAPAHu576\u0002broom_bench2\u0002PBHPAPAHz610\u0002broom_bench2\u0002QBHPAPAHp843\u0002broom_bench3\u0002RBHPAPAHt49\u0002broom_bench1\u0002SBHPAPAHz892\u0002broom_bench2\u0002PCHPAPAHl163\u0002broom_bench2\u0002QCHPAPAHt941\u0002broom_bench2\u0002RCHPAPAHz34\u0002broom_bench3\u0002SCHPAPAHw193\u0002broom_bench1\u0002PDHPAPAHn470\u0002broom_bench2\u0002QDHPAPAHs523\u0002broom_bench2\u0002RDHPAPAHh355\u0002broom_bench3\u0002SDHPAPAHq282\u0002broom_bench1\u0002PEHPAPAHp497\u0002broom_bench2\u0002QEHPAPAHy191\u0002broom_bench3\u0002REHPAPAHr129\u0002broom_seatb1\u0002SAKJPAHl171\u0002broom_seatb2\u0002PBKJPAHu68\u0002broom_seatb3\u0002QBKJPAHo551\u0002broom_seatb4\u0002RBKJPAHs464\u0002broom_seat1\u0002PDKJPAHr461\u0002broom_seat2\u0002QDKJPAHz26\u0002broom_seat3\u0002RDKJPAHp787\u0002broom_seat4\u0002SDKJPAHl502\u0002broom_seatb1\u0002SARAHPAHa521\u0002broom_seatb2\u0002PBRAHPAHa998\u0002broom_seatb3\u0002QBRAHPAHn4\u0002broom_seatb4\u0002RBRAHPAHe58\u0002broom_seat1\u0002PDRAHPAHr62\u0002broom_seat2\u0002QDRAHPAHq896\u0002broom_seat3\u0002RDRAHPAHu545\u0002broom_seat4\u0002SDRAHPAHu806\u0002broom_chair\u0002SDRBHPAHa697\u0002broom_chair\u0002PERBHPAHd660\u0002broom_chair\u0002QERBHPAHy427\u0002broom_table1\u0002SDSBHHHb25\u0002broom_table2\u0002PESBHHHc372\u0002broom_table3\u0002QESBHHHs782\u0002broom_chair\u0002SDPCHHHp30\u0002broom_chair\u0002PEPCHHHj65\u0002broom_chair\u0002QEPCHHHs924\u0002broom_chair\u0002SDSCHPAHz964\u0002broom_chair\u0002PESCHPAHb950\u0002broom_chair\u0002QESCHPAHm344\u0002broom_table1\u0002SDPDHHHb284\u0002broom_table2\u0002PEPDHHHe218\u0002broom_table3\u0002QEPDHHHn53\u0002broom_chair\u0002SDQDHHHo762\u0002broom_chair\u0002PEQDHHHm132\u0002broom_chair\u0002QEQDHHHq273\u0002broom_stool\u0002QBPEIJHc634\u0002broom_stool\u0002QBQEIJHh340\u0002broom_stool\u0002QBREIJHy25\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -695,7 +695,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "695123097296565657456109\u0002I",
+              "body": "005883737680536199525425\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -727,7 +727,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#1C43EA0178984AA5969FD08C9B4F2251\u0002",
+              "body": "#7A61030AE090470CB3408B5BC6AECE4B\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -907,7 +907,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHu551\u0002broom_bench1\u0002PAHPAPAHp4\u0002broom_bench2\u0002QAHPAPAHf880\u0002broom_bench3\u0002RAHPAPAHn670\u0002broom_bench1\u0002SAHPAPAHn974\u0002broom_bench2\u0002PBHPAPAHd910\u0002broom_bench2\u0002QBHPAPAHe677\u0002broom_bench3\u0002RBHPAPAHq64\u0002broom_bench1\u0002SBHPAPAHd684\u0002broom_bench2\u0002PCHPAPAHi99\u0002broom_bench2\u0002QCHPAPAHz888\u0002broom_bench2\u0002RCHPAPAHo907\u0002broom_bench3\u0002SCHPAPAHm662\u0002broom_bench1\u0002PDHPAPAHq884\u0002broom_bench2\u0002QDHPAPAHc492\u0002broom_bench2\u0002RDHPAPAHq989\u0002broom_bench3\u0002SDHPAPAHi308\u0002broom_bench1\u0002PEHPAPAHj138\u0002broom_bench2\u0002QEHPAPAHw452\u0002broom_bench3\u0002REHPAPAHe775\u0002broom_seatb1\u0002SAKJPAHf176\u0002broom_seatb2\u0002PBKJPAHc716\u0002broom_seatb3\u0002QBKJPAHs429\u0002broom_seatb4\u0002RBKJPAHu934\u0002broom_seat1\u0002PDKJPAHr243\u0002broom_seat2\u0002QDKJPAHr567\u0002broom_seat3\u0002RDKJPAHo872\u0002broom_seat4\u0002SDKJPAHj578\u0002broom_seatb1\u0002SARAHPAHj836\u0002broom_seatb2\u0002PBRAHPAHt158\u0002broom_seatb3\u0002QBRAHPAHs588\u0002broom_seatb4\u0002RBRAHPAHr561\u0002broom_seat1\u0002PDRAHPAHd531\u0002broom_seat2\u0002QDRAHPAHg933\u0002broom_seat3\u0002RDRAHPAHj483\u0002broom_seat4\u0002SDRAHPAHp76\u0002broom_chair\u0002SDRBHPAHg197\u0002broom_chair\u0002PERBHPAHq888\u0002broom_chair\u0002QERBHPAHf619\u0002broom_table1\u0002SDSBHHHw190\u0002broom_table2\u0002PESBHHHs969\u0002broom_table3\u0002QESBHHHl823\u0002broom_chair\u0002SDPCHHHf971\u0002broom_chair\u0002PEPCHHHe727\u0002broom_chair\u0002QEPCHHHi196\u0002broom_chair\u0002SDSCHPAHt199\u0002broom_chair\u0002PESCHPAHu216\u0002broom_chair\u0002QESCHPAHp225\u0002broom_table1\u0002SDPDHHHo26\u0002broom_table2\u0002PEPDHHHp338\u0002broom_table3\u0002QEPDHHHn976\u0002broom_chair\u0002SDQDHHHf116\u0002broom_chair\u0002PEQDHHHc654\u0002broom_chair\u0002QEQDHHHn407\u0002broom_stool\u0002QBPEIJHa407\u0002broom_stool\u0002QBQEIJHl162\u0002broom_stool\u0002QBREIJHm385\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHe57\u0002broom_bench1\u0002PAHPAPAHb761\u0002broom_bench2\u0002QAHPAPAHg209\u0002broom_bench3\u0002RAHPAPAHg520\u0002broom_bench1\u0002SAHPAPAHu576\u0002broom_bench2\u0002PBHPAPAHz610\u0002broom_bench2\u0002QBHPAPAHp843\u0002broom_bench3\u0002RBHPAPAHt49\u0002broom_bench1\u0002SBHPAPAHz892\u0002broom_bench2\u0002PCHPAPAHl163\u0002broom_bench2\u0002QCHPAPAHt941\u0002broom_bench2\u0002RCHPAPAHz34\u0002broom_bench3\u0002SCHPAPAHw193\u0002broom_bench1\u0002PDHPAPAHn470\u0002broom_bench2\u0002QDHPAPAHs523\u0002broom_bench2\u0002RDHPAPAHh355\u0002broom_bench3\u0002SDHPAPAHq282\u0002broom_bench1\u0002PEHPAPAHp497\u0002broom_bench2\u0002QEHPAPAHy191\u0002broom_bench3\u0002REHPAPAHr129\u0002broom_seatb1\u0002SAKJPAHl171\u0002broom_seatb2\u0002PBKJPAHu68\u0002broom_seatb3\u0002QBKJPAHo551\u0002broom_seatb4\u0002RBKJPAHs464\u0002broom_seat1\u0002PDKJPAHr461\u0002broom_seat2\u0002QDKJPAHz26\u0002broom_seat3\u0002RDKJPAHp787\u0002broom_seat4\u0002SDKJPAHl502\u0002broom_seatb1\u0002SARAHPAHa521\u0002broom_seatb2\u0002PBRAHPAHa998\u0002broom_seatb3\u0002QBRAHPAHn4\u0002broom_seatb4\u0002RBRAHPAHe58\u0002broom_seat1\u0002PDRAHPAHr62\u0002broom_seat2\u0002QDRAHPAHq896\u0002broom_seat3\u0002RDRAHPAHu545\u0002broom_seat4\u0002SDRAHPAHu806\u0002broom_chair\u0002SDRBHPAHa697\u0002broom_chair\u0002PERBHPAHd660\u0002broom_chair\u0002QERBHPAHy427\u0002broom_table1\u0002SDSBHHHb25\u0002broom_table2\u0002PESBHHHc372\u0002broom_table3\u0002QESBHHHs782\u0002broom_chair\u0002SDPCHHHp30\u0002broom_chair\u0002PEPCHHHj65\u0002broom_chair\u0002QEPCHHHs924\u0002broom_chair\u0002SDSCHPAHz964\u0002broom_chair\u0002PESCHPAHb950\u0002broom_chair\u0002QESCHPAHm344\u0002broom_table1\u0002SDPDHHHb284\u0002broom_table2\u0002PEPDHHHe218\u0002broom_table3\u0002QEPDHHHn53\u0002broom_chair\u0002SDQDHHHo762\u0002broom_chair\u0002PEQDHHHm132\u0002broom_chair\u0002QEQDHHHq273\u0002broom_stool\u0002QBPEIJHc634\u0002broom_stool\u0002QBQEIJHh340\u0002broom_stool\u0002QBREIJHy25\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -1470,6 +1470,54 @@
       "received": {}
     },
     {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "note": "a leaves right after its last action",
+      "settle_ms": 600,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "d": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "disconnect",
+      "note": "and disconnects, so its connection ends well before the PING Java sends 60 s after connecting",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
       "bot": "d",
       "action": "send",
       "header": 317,
@@ -1477,18 +1525,6 @@
       "body": "",
       "settle_ms": 300,
       "received": {
-        "a": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 361,
-              "name": "TYPING_STATUS",
-              "body": "II",
-              "check": "exact"
-            }
-          ]
-        },
         "c": {
           "ordered": true,
           "closed": false,
@@ -1533,18 +1569,6 @@
       "body": "",
       "settle_ms": 300,
       "received": {
-        "a": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 361,
-              "name": "TYPING_STATUS",
-              "body": "IH",
-              "check": "exact"
-            }
-          ]
-        },
         "c": {
           "ordered": true,
           "closed": false,
@@ -1590,54 +1614,6 @@
       "note": "c walks to the door and leaves the room",
       "settle_ms": 4000,
       "received": {
-        "a": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IJPCSB0.0\u0002II/mv 13,10,0.0/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IJQCRB0.0\u0002HH/mv 13,9,0.0/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IJQCQB0.0\u0002HH/mv 13,8,0.0/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IJQCPB0.0\u0002HH/mv 13,7,0.0/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IJQCSA0.0\u0002HH/mv 13,6,0.0/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 29,
-              "name": "LOGOUT",
-              "body": "2\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IMQCRA0.0\u0002HH/\u0002",
-              "check": "exact"
-            }
-          ]
-        },
         "c": {
           "ordered": true,
           "closed": false,
@@ -1724,28 +1700,6 @@
               "header": 34,
               "name": "USER_STATUSES",
               "body": "IMQCRA0.0\u0002HH/\u0002",
-              "check": "exact"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "bot": "a",
-      "action": "send",
-      "header": 53,
-      "name": "QUIT",
-      "body": "",
-      "settle_ms": 600,
-      "received": {
-        "d": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 29,
-              "name": "LOGOUT",
-              "body": "0\u0002",
               "check": "exact"
             }
           ]

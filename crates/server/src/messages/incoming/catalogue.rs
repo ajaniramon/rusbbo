@@ -17,10 +17,7 @@ use crate::messages::{Malformed, outgoing};
 use crate::session::Session;
 use crate::world::World;
 
-/// Client strings are ISO-8859-1.
-fn latin1_to_string(bytes: &[u8]) -> String {
-    bytes.iter().map(|&b| char::from(b)).collect()
-}
+use super::latin1;
 
 /// Java: `GET_CATALOG_INDEX`.
 pub fn get_catalog_index(
@@ -150,7 +147,7 @@ pub fn grpc(
         return Ok(());
     }
 
-    let mut extra_data = latin1_to_string(reader.string().ok_or(Malformed)?);
+    let mut extra_data = latin1(reader.string().ok_or(Malformed)?);
     let is_gift = reader.bool().ok_or(Malformed)?;
     if is_gift {
         let Some(present) = buy_gift(world, session, p, &item, &mut extra_data, reader)? else {
@@ -250,7 +247,7 @@ fn buy_gift(
     let Some(user) = p.details.clone() else {
         return Ok(None);
     };
-    let gifted_user = latin1_to_string(reader.string().ok_or(Malformed)?);
+    let gifted_user = latin1(reader.string().ok_or(Malformed)?);
     let t = now();
     if user.rank < fuserights::rank::MODERATOR
         && !gifted_user.eq_ignore_ascii_case(&user.username)
@@ -289,7 +286,7 @@ fn buy_gift(
     {
         return Ok(None);
     }
-    let note = reader.string().map(latin1_to_string).unwrap_or_default();
+    let note = reader.string().map(latin1).unwrap_or_default();
     *extra_data = extra_data.replace('|', "");
     let note = note.replace('|', "");
     if !item.item_special_id.trim().is_empty() && is_numeric(&item.item_special_id) {

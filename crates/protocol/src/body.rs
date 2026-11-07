@@ -9,6 +9,19 @@ use crate::encoding::{b64_decode, b64_encode, vl64_decode, vl64_encode};
 /// Separator after server-written strings.
 pub const STRING_END: u8 = 2;
 
+/// Text as the wire carries it: ISO-8859-1, with `?` for what does not fit (Java:
+/// `String.getBytes(ISO_8859_1)`, which `NettyResponse` uses for every string).
+pub fn latin1(text: &str) -> Vec<u8> {
+    text.chars()
+        .map(|c| u8::try_from(u32::from(c)).unwrap_or(b'?'))
+        .collect()
+}
+
+/// Client text as Java reads it (ISO-8859-1: one char per byte).
+pub fn from_latin1(bytes: &[u8]) -> String {
+    bytes.iter().map(|&b| char::from(b)).collect()
+}
+
 /// Builds a client → server body.
 #[derive(Default, Clone, Debug)]
 pub struct ClientBody(Vec<u8>);
@@ -65,6 +78,13 @@ impl ServerBody {
         self.0.extend_from_slice(s);
         self.0.push(STRING_END);
         self
+    }
+
+    /// A string written as Java writes text: ISO-8859-1 (see [`latin1`]). Use this, not
+    /// `string(s.as_bytes())`, for anything that is not plain ASCII by construction: `as_bytes`
+    /// is UTF-8, which the client shows as mojibake (`ñ` → `Ã±`).
+    pub fn text(self, s: &str) -> Self {
+        self.string(&latin1(s))
     }
 
     pub fn raw(mut self, bytes: &[u8]) -> Self {

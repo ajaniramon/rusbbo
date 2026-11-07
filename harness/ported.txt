@@ -3,6 +3,7 @@
 catalogue
 chat-commands
 chat-filter
+client-flow
 flat-create
 flat-decor
 flat-delete
@@ -13,14 +14,17 @@ flat-present
 flat-roller
 flat-teleport
 flat-visit
+idle-timeout
 login
 login-encrypted
 messenger
+messenger-search
 navigator
 public-room
 room-two-bots
 social-actions
 social-dance-carry
+text-latin1
 trade
 user-achievements
 user-badges

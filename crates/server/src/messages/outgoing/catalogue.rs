@@ -7,13 +7,7 @@ use crate::game::catalogue::{CatalogueItem, CatalogueManager, CataloguePage};
 use crate::game::item::base::ItemBehaviour;
 use crate::settings::Settings;
 
-/// Text as the wire carries it: ISO-8859-1, with `?` for what does not fit (Java:
-/// `String.getBytes(ISO_8859_1)`).
-pub fn latin1(text: &str) -> Vec<u8> {
-    text.chars()
-        .map(|c| u8::try_from(u32::from(c)).unwrap_or(b'?'))
-        .collect()
-}
+pub use havana_protocol::body::latin1;
 
 /// Java: `CATALOGUE_PAGES`: the page tree this rank and club status can see.
 pub fn catalogue_pages(

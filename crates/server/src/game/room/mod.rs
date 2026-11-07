@@ -45,6 +45,8 @@ use crate::world::World;
 /// A loaded room in the registry.
 pub struct RoomHandle {
     pub id: u32,
+    /// The model's name, readable without the room's lock (a loaded room never changes model).
+    pub model_name: String,
     room: Mutex<Room>,
 }
 
@@ -148,6 +150,7 @@ impl Room {
             .collect();
         Some(Arc::new_cyclic(|weak| RoomHandle {
             id,
+            model_name: model.name.clone(),
             room: Mutex::new(Room {
                 data,
                 model,
@@ -1126,6 +1129,8 @@ pub fn leave_current_room(world: &World, session: &Arc<Session>, hotel_view: boo
         r.take_deferred()
     };
     run_deferred(world, deferred);
+    // Java: the end of `RoomEntityManager.leaveRoom`: friends' consoles stop showing the room.
+    crate::game::messenger::manager::send_status_update(world, session);
 }
 
 /// Java: `RoomEntityManager.enterRoom(player, destination)`: leaves the current room, joins
@@ -1212,6 +1217,8 @@ pub fn enter_room(
         r.take_deferred()
     };
     run_deferred(world, deferred);
+    // Java: the end of `RoomEntityManager.enterRoom`: "let friends know I entered this room".
+    crate::game::messenger::manager::send_status_update(world, session);
 }
 
 #[cfg(test)]

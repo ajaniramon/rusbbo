@@ -48,6 +48,7 @@ pub fn get_account_preferences(
 
 /// Java: `PONG`: a ping answered; achievements are processed for logged-in players.
 pub fn pong(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
+    session.set_ping_ok(true);
     let mut p = session.player.lock();
     if p.logged_in {
         achievements::process_achievements(world, session, &mut p, false);

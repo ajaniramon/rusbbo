@@ -14,6 +14,15 @@ use tokio::sync::mpsc;
 use tracing::{debug, info, warn};
 
 use crate::messages::{self, outgoing};
+
+/// Java: `IdleStateHandler(60, 0, 0)` + `IdleConnectionHandler`: every 60 s from the moment the
+/// connection opens, the server sends `PING` if the client answered the previous one (`PONG`), and
+/// otherwise sends `HOTEL_LOGOUT` and drops the connection. Other client traffic does not restart
+/// the 60 s: Java's `ConnectionHandler` is a `SimpleChannelInboundHandler` that consumes every
+/// message, so the `IdleStateHandler` behind it never sees a read and fires on a fixed period.
+/// Without this a client that vanished without closing its socket (a phone losing its network)
+/// would stay in its room and online forever.
+const IDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
 use crate::session::{Outgoing, Session};
 use crate::world::World;
 
@@ -80,6 +89,7 @@ async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()>
     let mut opener: Option<Opener> = None;
     let mut buf = vec![0u8; 8192];
     let mut writer_done = false;
+    let mut idle_deadline = tokio::time::Instant::now() + IDLE_TIMEOUT;
     let result = loop {
         tokio::select! {
             read = reader.read(&mut buf) => {
@@ -104,6 +114,18 @@ async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()>
                     if let Some(o) = session.take_opener() {
                         opener = Some(o);
                     }
+                }
+            }
+            () = tokio::time::sleep_until(idle_deadline) => {
+                if session.take_ping_ok() {
+                    session.send(outgoing::user::ping());
+                    idle_deadline += IDLE_TIMEOUT;
+                } else {
+                    info!(conn = id, "connection timed out");
+                    session.send(outgoing::handshake::hotel_logout(
+                        outgoing::handshake::LogoutReason::Disconnect,
+                    ));
+                    break Ok(());
                 }
             }
             // The server closed the connection (kick): stop reading too.

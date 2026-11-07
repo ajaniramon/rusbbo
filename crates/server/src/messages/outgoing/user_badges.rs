@@ -8,11 +8,11 @@ use havana_storage::Badge;
 pub fn available_badges(badges: &[Badge], equipped: &[&Badge]) -> Message {
     let mut body = ServerBody::new().int(badges.len() as i32);
     for badge in badges {
-        body = body.string(badge.code.as_bytes());
+        body = body.text(&badge.code);
     }
     body = body.int(equipped.len() as i32);
     for badge in equipped {
-        body = body.int(badge.slot_id).string(badge.code.as_bytes());
+        body = body.int(badge.slot_id).text(&badge.code);
     }
     Message::new(229, body.build())
 }
@@ -20,10 +20,10 @@ pub fn available_badges(badges: &[Badge], equipped: &[&Badge]) -> Message {
 /// Java: `USERBADGE` for a Shockwave client: the user id is a string.
 pub fn user_badge(user_id: u32, equipped: &[&Badge]) -> Message {
     let mut body = ServerBody::new()
-        .string(user_id.to_string().as_bytes())
+        .text(&user_id.to_string())
         .int(equipped.len() as i32);
     for badge in equipped {
-        body = body.int(badge.slot_id).string(badge.code.as_bytes());
+        body = body.int(badge.slot_id).text(&badge.code);
     }
     Message::new(228, body.build())
 }
@@ -39,8 +39,8 @@ pub fn achievement_notification(
         ServerBody::new()
             .int(0)
             .int(level)
-            .string(badge_code.as_bytes())
-            .string(badge_remove.unwrap_or("").as_bytes())
+            .text(badge_code)
+            .text(badge_remove.unwrap_or(""))
             .build(),
     )
 }

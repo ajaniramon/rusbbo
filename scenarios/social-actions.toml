@@ -188,6 +188,17 @@ note = "Own tile: ignored"
 
 
 [[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600
+note = "a leaves right after its last action"
+
+[[steps]]
+bot = "a"
+disconnect = true
+note = "and disconnects, so its connection ends well before the PING Java sends 60 s after connecting"
+
+[[steps]]
 bot = "d"
 send = "USER_START_TYPING"
 
@@ -213,11 +224,6 @@ bot = "c"
 send = "GOAWAY"
 settle_ms = 4000
 note = "c walks to the door and leaves the room"
-
-[[steps]]
-bot = "a"
-send = "QUIT"
-settle_ms = 600
 
 [[steps]]
 bot = "d"

@@ -199,21 +199,27 @@ impl Store {
     /// Removes every SSO ticket (the Java server does this on startup). Returns how many were set.
     pub fn clear_sso_tickets(&self) -> Result<usize> {
         let mut w = self.write()?;
-        let ids: Vec<u32> = {
-            let index = w.tx.open_table(USERS_BY_SSO)?;
-            index
-                .iter()?
-                .map(|e| e.map(|(_, id)| id.value()))
-                .collect::<std::result::Result<_, _>>()?
-        };
-        for id in &ids {
-            if let Some(mut user) = w.user(*id)? {
-                user.sso_ticket = None;
-                w.put_user(&user)?;
-            }
-        }
+        let cleared = w.clear_sso_tickets()?;
         w.commit()?;
-        Ok(ids.len())
+        Ok(cleared)
+    }
+
+    /// Everything `Havana.java` resets on startup, in one transaction: SSO tickets, the
+    /// `players.online` setting, `rooms.visitors_now` (`RoomDao.resetVisitors`),
+    /// `items.is_trading` (`ItemDao.resetTradeStates`) and `users.is_online`
+    /// (`PlayerDao.resetOnline`). After a crash these still describe the previous run: an item
+    /// left `is_trading` would be hidden from its owner's hand for good.
+    pub fn startup_reset(&self) -> Result<StartupReset> {
+        let mut w = self.write()?;
+        let reset = StartupReset {
+            sso_tickets: w.clear_sso_tickets()?,
+            online_users: w.reset_online()?,
+            room_visitors: w.reset_visitors()?,
+            trading_items: w.reset_trade_states()?,
+        };
+        w.put_setting("players.online", "0")?;
+        w.commit()?;
+        Ok(reset)
     }
 
     pub fn settings(&self) -> Result<BTreeMap<String, String>> {
@@ -234,12 +240,56 @@ impl Store {
     }
 }
 
+/// What [`Store::startup_reset`] changed: how many records of each kind.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct StartupReset {
+    pub sso_tickets: usize,
+    pub online_users: usize,
+    pub room_visitors: usize,
+    pub trading_items: usize,
+}
+
 /// A write transaction over several records.
 pub struct Writer {
     tx: WriteTransaction,
 }
 
 impl Writer {
+    fn clear_sso_tickets(&mut self) -> Result<usize> {
+        let ids: Vec<u32> = {
+            let index = self.tx.open_table(USERS_BY_SSO)?;
+            index
+                .iter()?
+                .map(|e| e.map(|(_, id)| id.value()))
+                .collect::<std::result::Result<_, _>>()?
+        };
+        for id in &ids {
+            if let Some(mut user) = self.user(*id)? {
+                user.sso_ticket = None;
+                self.put_user(&user)?;
+            }
+        }
+        Ok(ids.len())
+    }
+
+    /// Java: `PlayerDao.resetOnline`. `is_online` is in no index, so rows are rewritten in place.
+    fn reset_online(&mut self) -> Result<usize> {
+        let mut table = self.tx.open_table(USERS)?;
+        let mut changed = Vec::new();
+        for entry in table.iter()? {
+            let (id, bytes) = entry?;
+            let mut user: User = decode(bytes.value())?;
+            if user.is_online {
+                user.is_online = false;
+                changed.push((id.value(), encode(&user)?));
+            }
+        }
+        for (id, bytes) in &changed {
+            table.insert(*id, bytes.as_slice())?;
+        }
+        Ok(changed.len())
+    }
+
     pub fn user(&mut self, id: u32) -> Result<Option<User>> {
         let table = self.tx.open_table(USERS)?;
         table.get(id)?.map(|v| decode(v.value())).transpose()
@@ -348,6 +398,61 @@ mod tests {
         assert_eq!(store.clear_sso_tickets().unwrap(), 2);
         assert!(store.user_by_sso("x").unwrap().is_none());
         assert_eq!(store.user(2).unwrap().unwrap().sso_ticket, None);
+    }
+
+    #[test]
+    fn startup_reset_clears_the_previous_run() {
+        let (_dir, store) = temp_store();
+        store
+            .put_user(&User {
+                is_online: true,
+                ..user(1, "a", Some("x"))
+            })
+            .unwrap();
+        store.put_user(&user(2, "b", None)).unwrap();
+        let mut w = store.write().unwrap();
+        w.put_room(&Room {
+            id: 7,
+            owner_id: 1,
+            visitors_now: 3,
+            ..Default::default()
+        })
+        .unwrap();
+        w.put_room(&Room {
+            id: 8,
+            owner_id: 2,
+            ..Default::default()
+        })
+        .unwrap();
+        w.put_item(&Item {
+            id: 5,
+            user_id: Some(1),
+            is_trading: true,
+            ..Default::default()
+        })
+        .unwrap();
+        w.put_setting("players.online", "4").unwrap();
+        w.commit().unwrap();
+
+        let reset = store.startup_reset().unwrap();
+        assert_eq!(
+            reset,
+            StartupReset {
+                sso_tickets: 1,
+                online_users: 1,
+                room_visitors: 1,
+                trading_items: 1,
+            }
+        );
+        assert!(!store.user(1).unwrap().unwrap().is_online);
+        assert_eq!(store.user(1).unwrap().unwrap().sso_ticket, None);
+        assert_eq!(store.room(7).unwrap().unwrap().visitors_now, 0);
+        let item = store.item(5).unwrap().unwrap();
+        assert!(!item.is_trading);
+        // The owner index still finds the rewritten item.
+        assert_eq!(store.inventory_items(1).unwrap(), vec![item]);
+        assert_eq!(store.settings().unwrap()["players.online"], "0");
+        assert_eq!(store.startup_reset().unwrap(), StartupReset::default());
     }
 
     #[test]

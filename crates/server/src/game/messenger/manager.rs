@@ -38,6 +38,19 @@ pub fn online_details(world: &World, user_id: u32) -> Option<User> {
     p.details.clone()
 }
 
+/// Java: `MessengerUser.canFollowFriend`: the friend is connected (whatever their online status
+/// setting) and in a room that is not a game arena. TODO(flash): Flash viewers are also refused
+/// public rooms that have no navigator style.
+fn can_follow_friend(world: &World, user_id: u32) -> bool {
+    let Some(session) = world.player_by_id(user_id) else {
+        return false;
+    };
+    let room_id = session.player.lock().room_id;
+    room_id
+        .and_then(|id| world.loaded_room(id))
+        .is_some_and(|room| !room.model_name.starts_with("bb_") && room.model_name != "snowwar")
+}
+
 /// Java: `MessengerUser.serialise`: overlays the live data of an online friend and resolves the
 /// online flag (`PlayerManager.isPlayerOnline`, which honours `online_status_visible`).
 pub fn resolve(world: &World, friend: &MessengerUser) -> FriendView {
@@ -57,13 +70,13 @@ pub fn resolve(world: &World, friend: &MessengerUser) -> FriendView {
         ),
     };
     let online = live.as_ref().is_some_and(|d| d.online_status_visible);
+    let can_follow = can_follow_friend(world, friend.user_id);
     FriendView {
         user_id: friend.user_id,
         username: friend.username.clone(),
         male: sex.eq_ignore_ascii_case("m"),
         online,
-        // TODO(rooms): MessengerUser.canFollowFriend (friend in a room that can be followed).
-        can_follow: false,
+        can_follow,
         figure: if online { figure } else { String::new() },
         category_id: friend.category_id,
         motto,
@@ -77,7 +90,8 @@ pub fn resolve_all(world: &World, friends: &[MessengerUser]) -> Vec<FriendView> 
 }
 
 /// Java: `Messenger.sendStatusUpdate`: tells the online friends that this user came online or went
-/// offline. Called after login and after logout, with no lock held.
+/// offline, or entered or left a room. Called after login and logout, at the end of entering and
+/// leaving a room, and on `G_USRS`, as in Java; with no lock held.
 pub fn send_status_update(world: &World, session: &Arc<Session>) {
     let (me, friend_ids) = {
         let p = session.player.lock();

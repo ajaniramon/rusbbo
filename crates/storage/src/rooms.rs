@@ -219,6 +219,18 @@ impl Store {
         Ok(rooms)
     }
 
+    /// Java: `RoomDao.getRecommendedRooms`: `SELECT * FROM rooms ... WHERE owner_id > 0 AND
+    /// accesstype = 0 ORDER BY visitors_now DESC, rating DESC LIMIT ? OFFSET ?` (open private rooms).
+    /// Ties come out by ascending id, the table scan order.
+    pub fn recommended_rooms(&self, limit: usize, offset: usize) -> Result<Vec<Room>> {
+        let mut found: Vec<Room> = all::<Room>(self, ROOMS)?
+            .into_iter()
+            .filter(|r| r.owner_id > 0 && r.accesstype == 0)
+            .collect();
+        found.sort_by_key(|r| (Reverse(r.visitors_now), Reverse(r.rating)));
+        Ok(found.into_iter().skip(offset).take(limit).collect())
+    }
+
     /// Java: `RoomDao.searchRooms`. The SQL is
     /// `... FROM rooms INNER JOIN users ON rooms.owner_id = users.id WHERE <owner_id = ? AND |
     /// users.username LIKE ? OR> rooms.name LIKE ? ORDER BY visitors_now DESC, rating DESC LIMIT ?`
@@ -320,6 +332,24 @@ impl Store {
 }
 
 impl Writer {
+    /// Java: `RoomDao.resetVisitors`. `visitors_now` is in no index, so rows are rewritten in place.
+    pub(crate) fn reset_visitors(&mut self) -> Result<usize> {
+        let mut table = self.tx.open_table(ROOMS)?;
+        let mut changed = Vec::new();
+        for entry in table.iter()? {
+            let (id, bytes) = entry?;
+            let mut room: Room = decode(bytes.value())?;
+            if room.visitors_now > 0 {
+                room.visitors_now = 0;
+                changed.push((id.value(), encode(&room)?));
+            }
+        }
+        for (id, bytes) in &changed {
+            table.insert(*id, bytes.as_slice())?;
+        }
+        Ok(changed.len())
+    }
+
     pub fn room(&mut self, id: u32) -> Result<Option<Room>> {
         let table = self.tx.open_table(ROOMS)?;
         table.get(id)?.map(|v| decode(v.value())).transpose()

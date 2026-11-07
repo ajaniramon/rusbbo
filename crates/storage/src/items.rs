@@ -202,6 +202,25 @@ impl Store {
 }
 
 impl Writer {
+    /// Java: `ItemDao.resetTradeStates`. `is_trading` is in no index, so rows are rewritten in
+    /// place.
+    pub(crate) fn reset_trade_states(&mut self) -> Result<usize> {
+        let mut table = self.tx.open_table(ITEMS)?;
+        let mut changed = Vec::new();
+        for entry in table.iter()? {
+            let (id, bytes) = entry?;
+            let mut item: Item = decode(bytes.value())?;
+            if item.is_trading {
+                item.is_trading = false;
+                changed.push((id.value(), encode(&item)?));
+            }
+        }
+        for (id, bytes) in &changed {
+            table.insert(*id, bytes.as_slice())?;
+        }
+        Ok(changed.len())
+    }
+
     pub fn put_item_definition(&mut self, definition: &ItemDefinition) -> Result<()> {
         let bytes = encode(definition)?;
         self.tx

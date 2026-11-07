@@ -15,12 +15,7 @@ pub struct SubCategory<'a> {
     pub max_visitors: i32,
 }
 
-/// Java's `String.getBytes(ISO_8859_1)`: characters above U+00FF become `?`.
-fn latin1(s: &str) -> Vec<u8> {
-    s.chars()
-        .map(|c| u8::try_from(u32::from(c)).unwrap_or(b'?'))
-        .collect()
-}
+use super::catalogue::latin1;
 
 /// The owner name shown to `viewer`: `-` unless it is their room, the owner shows their name or
 /// they may see all owners.
@@ -83,7 +78,7 @@ pub fn nav_node_info(
                 .int(room.id as i32)
                 .string(&latin1(&room.name))
                 .string(&visible_owner(room, viewer))
-                .string(room.access_type_name().as_bytes())
+                .text(room.access_type_name())
                 .int(room.visitors_now)
                 .int(room.visitors_max)
                 .string(&latin1(&room.description));
@@ -128,7 +123,7 @@ pub fn flat_results(rooms: &[RoomEntry]) -> Message {
             .int(room.id as i32)
             .string(&latin1(&room.name))
             .string(&latin1(&room.owner_name))
-            .string(room.access_type_name().as_bytes())
+            .text(room.access_type_name())
             .int(room.visitors_now)
             .int(room.visitors_max)
             .string(&latin1(&room.description));
@@ -138,18 +133,27 @@ pub fn flat_results(rooms: &[RoomEntry]) -> Message {
 
 /// Java: `SEARCH_FLAT_RESULTS`.
 pub fn search_flat_results(rooms: &[RoomEntry], viewer: &Viewer) -> Message {
+    flat_list(55, rooms, viewer)
+}
+
+/// Java: `RECOMMENDED_ROOM_LIST`: the same layout as `SEARCH_FLAT_RESULTS`.
+pub fn recommended_room_list(rooms: &[RoomEntry], viewer: &Viewer) -> Message {
+    flat_list(351, rooms, viewer)
+}
+
+fn flat_list(header: u16, rooms: &[RoomEntry], viewer: &Viewer) -> Message {
     let mut body = ServerBody::new().int(rooms.len() as i32);
     for room in rooms {
         body = body
             .int(room.id as i32)
             .string(&latin1(&room.name))
             .string(&visible_owner(room, viewer))
-            .string(room.access_type_name().as_bytes())
+            .text(room.access_type_name())
             .int(room.visitors_now)
             .int(room.visitors_max)
             .string(&latin1(&room.description));
     }
-    Message::new(55, body.build())
+    Message::new(header, body.build())
 }
 
 /// Java: `NODESPACEUSERS`.

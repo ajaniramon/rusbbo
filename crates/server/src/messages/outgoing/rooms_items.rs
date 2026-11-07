@@ -22,9 +22,7 @@ pub fn move_flooritem(item: &Item) -> Message {
 pub fn remove_flooritem(item: &Item) -> Message {
     Message::new(
         94,
-        ServerBody::new()
-            .string(item.virtual_id.to_string().as_bytes())
-            .build(),
+        ServerBody::new().text(&item.virtual_id.to_string()).build(),
     )
 }
 
@@ -37,9 +35,7 @@ pub fn place_wallitem(item: &Item) -> Message {
 pub fn remove_wallitem(item: &Item) -> Message {
     Message::new(
         84,
-        ServerBody::new()
-            .string(item.virtual_id.to_string().as_bytes())
-            .build(),
+        ServerBody::new().text(&item.virtual_id.to_string()).build(),
     )
 }
 
@@ -52,7 +48,7 @@ pub fn stuff_data_update(item: &Item) -> Message {
         Message::new(
             88,
             ServerBody::new()
-                .string(item.virtual_id.to_string().as_bytes())
+                .text(&item.virtual_id.to_string())
                 .string(&latin1(&item.custom_data))
                 .build(),
         )
@@ -66,7 +62,7 @@ pub fn change_status(item_id: i32, status: i32) -> Message {
 
 /// Java: `IDATA`: a post-it's colour and text, or any other wall item's custom data.
 pub fn idata(item: &Item, colour: &str, text: &str) -> Message {
-    let body = ServerBody::new().string(item.virtual_id.to_string().as_bytes());
+    let body = ServerBody::new().text(&item.virtual_id.to_string());
     let body = if item.has(Behaviour::PostIt) {
         body.raw(&latin1(colour)).raw(b" ").string(&latin1(text))
     } else {
@@ -99,8 +95,8 @@ pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide
     for item in items {
         body = body
             .int(item.id)
-            .string(format_decimal(item.from_z).as_bytes())
-            .string(format_decimal(item.to_z).as_bytes());
+            .text(&format_decimal(item.from_z))
+            .text(&format_decimal(item.to_z));
     }
     body = body
         .int(roller.virtual_id)
@@ -108,8 +104,8 @@ pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide
     if let Some(e) = entity {
         body = body
             .int(e.id)
-            .string(format_decimal(e.from_z).as_bytes())
-            .string(format_decimal(e.to_z).as_bytes());
+            .text(&format_decimal(e.from_z))
+            .text(&format_decimal(e.to_z));
     }
     Message::new(230, body.build())
 }

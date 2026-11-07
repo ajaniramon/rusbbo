@@ -34,6 +34,8 @@ pub struct Session {
     /// Receiving half of a cipher installed by `GENERATEKEY`, until the reader task picks it up.
     opener: Mutex<Option<Opener>>,
     encrypted: AtomicBool,
+    /// Java: `Player.pingOK`: true until a `PING` goes unanswered (see `net::IDLE_TIMEOUT`).
+    ping_ok: AtomicBool,
 }
 
 impl Session {
@@ -46,6 +48,7 @@ impl Session {
             ignored: Mutex::new(JavaStringSet::default()),
             opener: Mutex::new(None),
             encrypted: AtomicBool::new(false),
+            ping_ok: AtomicBool::new(true),
         }
     }
 
@@ -74,6 +77,16 @@ impl Session {
     /// Takes the receiving half of a cipher installed since the last call (reader task only).
     pub fn take_opener(&self) -> Option<Opener> {
         self.opener.lock().take()
+    }
+
+    /// Java: `Player.setPingOK`.
+    pub fn set_ping_ok(&self, ok: bool) {
+        self.ping_ok.store(ok, Ordering::Relaxed);
+    }
+
+    /// Java: `isPingOK` followed by `setPingOK(false)`: returns the old value.
+    pub fn take_ping_ok(&self) -> bool {
+        self.ping_ok.swap(false, Ordering::Relaxed)
     }
 
     pub fn close(&self) {

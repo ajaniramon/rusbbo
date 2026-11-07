@@ -19,6 +19,26 @@ pub mod scheduler;
 pub mod statistics;
 pub mod wordfilter;
 
+/// Runs `f`, turning a panic into a logged error (Java catches the exception of a message
+/// handler or a scheduled task, logs it and carries on). Without this a panic in a handler kills
+/// the connection task before `player::dispose`, leaving a ghost player online, and a panic in a
+/// tick ends that room's or the hotel's tick for good. The locks are `parking_lot`'s, which do not
+/// poison.
+pub fn contain_panic<R>(what: std::fmt::Arguments<'_>, f: impl FnOnce() -> R) -> Option<R> {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
+        Ok(r) => Some(r),
+        Err(payload) => {
+            let reason = payload
+                .downcast_ref::<&str>()
+                .copied()
+                .or_else(|| payload.downcast_ref::<String>().map(String::as_str))
+                .unwrap_or("unknown panic");
+            tracing::error!("panic in {what}: {reason}");
+            None
+        }
+    }
+}
+
 /// Java: `String.valueOf(StringUtil.format(value))`: rounded to two decimals (`Math.round`, half
 /// up), then printed like `Double.toString` (`0.0`, `1.5`, `1.0E7`).
 pub fn format_decimal(value: f64) -> String {

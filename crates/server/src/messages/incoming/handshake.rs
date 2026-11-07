@@ -109,6 +109,22 @@ pub fn version_check(_: &World, _: &Arc<Session>, _: &mut ClientReader) -> Resul
     Ok(())
 }
 
+/// Java: `GET_SESSION_PARAMETERS`. The Shockwave client sends it after `UNIQUEID` and waits for
+/// the answer before it sends its SSO ticket, so without it a real client never logs in.
+pub fn get_session_parameters(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let settings = world.settings.read();
+    session.send(outgoing::handshake::session_parameters(
+        settings.bool("vouchers.enabled"),
+        settings.bool("profile.editing"),
+        settings.bool("tutorial.enabled"),
+    ));
+    Ok(())
+}
+
 pub fn sso(
     world: &World,
     session: &Arc<Session>,

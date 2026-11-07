@@ -22,10 +22,7 @@ use crate::world::World;
 /// The user whose console must stay hidden (Java hard-codes this name in several places).
 const HIDDEN_USER: &str = "Abigail.Ryan";
 
-/// Client strings are ISO-8859-1.
-fn latin1(bytes: &[u8]) -> String {
-    bytes.iter().map(|&b| char::from(b)).collect()
-}
+use super::latin1;
 
 /// A client-sent user id; negative ids cannot match anybody.
 fn user_id(v: i32) -> Option<u32> {

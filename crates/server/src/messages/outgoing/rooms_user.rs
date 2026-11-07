@@ -19,27 +19,27 @@ pub fn user_objects<'a>(
         motto.push(' ');
         body = body
             .int(e.details.user_id as i32)
-            .string(e.details.name.as_bytes())
-            .string(motto.as_bytes())
-            .string(e.details.figure.as_bytes())
+            .text(&e.details.name)
+            .text(&motto)
+            .text(&e.details.figure)
             .int(e.instance_id)
             .int(e.position.x)
             .int(e.position.y)
-            .string(format_decimal(e.position.z).as_bytes())
+            .text(&format_decimal(e.position.z))
             .int(e.position.rotation())
             .int(1) // EntityType.PLAYER
-            .string(e.details.sex.to_uppercase().as_bytes())
+            .text(&e.details.sex.to_uppercase())
             // TODO(statistics): XP_EARNED_MONTH; -1 when it is 0.
             .int(-1)
             // TODO(groups): favourite group id and member rank.
             .int(-1)
             .int(-1);
         let pool_figure = if pool && !e.details.pool_figure.is_empty() {
-            e.details.pool_figure.as_bytes()
+            e.details.pool_figure.as_str()
         } else {
-            b""
+            ""
         };
-        body = body.string(pool_figure);
+        body = body.text(pool_figure);
     }
     Message::new(28, body.build())
 }
@@ -56,7 +56,7 @@ pub fn user_statuses<'a>(
             .int(e.instance_id)
             .int(e.position.x)
             .int(e.position.y)
-            .string(format_decimal(e.position.z).as_bytes())
+            .text(&format_decimal(e.position.z))
             .int(e.position.head_rotation)
             .int(e.position.body_rotation)
             .raw(b"/");
@@ -70,9 +70,9 @@ pub fn user_statuses<'a>(
                     && e.position.y == 24
                 {
                     // TODO(flash): Flash clients get 4.0 here.
-                    body = body.string(format_decimal(7.0).as_bytes());
+                    body = body.text(&format_decimal(7.0));
                 } else {
-                    body = body.raw(status.value.as_bytes());
+                    body = body.raw(&havana_protocol::body::latin1(&status.value));
                 }
             }
             body = body.raw(b"/");
@@ -131,12 +131,7 @@ pub fn user_sleep(instance_id: i32, sleeping: bool) -> Message {
 
 /// Java: `LOGOUT`: the instance id as text.
 pub fn logout(instance_id: i32) -> Message {
-    Message::new(
-        29,
-        ServerBody::new()
-            .string(instance_id.to_string().as_bytes())
-            .build(),
-    )
+    Message::new(29, ServerBody::new().text(&instance_id.to_string()).build())
 }
 
 /// Java: `HOTEL_VIEW`.

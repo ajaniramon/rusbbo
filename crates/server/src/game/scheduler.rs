@@ -13,7 +13,7 @@ pub async fn run(world: Arc<World>) {
     let mut interval = tokio::time::interval(Duration::from_secs(1));
     loop {
         interval.tick().await;
-        tick(&world);
+        crate::game::contain_panic(format_args!("game tick"), || tick(&world));
     }
 }
 
@@ -68,7 +68,7 @@ pub fn schedule(world: &World, delay: Duration, task: impl FnOnce(&World) + Send
             tokio::time::sleep(delay).await;
         }
         if let Some(world) = world.upgrade() {
-            task(&world);
+            crate::game::contain_panic(format_args!("scheduled task"), || task(&world));
         }
     });
 }

@@ -66,13 +66,24 @@ impl Decoder {
 
     /// Next complete client → server message, if one is buffered.
     pub fn next_client(&mut self) -> Option<Message> {
-        if self.buf.len() < 5 {
-            return None;
+        loop {
+            if self.buf.len() < 3 {
+                return None;
+            }
+            let len = b64_decode(&self.buf[..3]) as usize;
+            if self.buf.len() < 3 + len {
+                return None;
+            }
+            if len < 2 {
+                // Too short to hold a header. Java's `NetworkDecoder` consumes such a frame too;
+                // waiting for more bytes instead would stall the stream and let the buffer grow
+                // without bound.
+                self.buf.drain(..3 + len);
+                continue;
+            }
+            break;
         }
         let len = b64_decode(&self.buf[..3]) as usize;
-        if len < 2 || self.buf.len() < 3 + len {
-            return None;
-        }
         let frame: Vec<u8> = self.buf.drain(..3 + len).collect();
         Some(Message::new(
             b64_decode(&frame[3..5]) as u16,
@@ -97,6 +108,23 @@ mod tests {
         let mut d = Decoder::default();
         d.push(&encode_client(&msg));
         assert_eq!(d.next_client(), Some(msg));
+        assert_eq!(d.buffered(), 0);
+    }
+
+    #[test]
+    fn client_frames_too_short_for_a_header_are_skipped() {
+        let mut d = Decoder::default();
+        // A zero-length frame, a one-byte frame, then a real one.
+        d.push(b"@@@@@Ax");
+        d.push(&encode_client(&Message::new(206, vec![])));
+        assert_eq!(d.next_client(), Some(Message::new(206, vec![])));
+        assert_eq!(d.buffered(), 0);
+
+        // A stream of zero-length frames never accumulates.
+        for _ in 0..10_000 {
+            d.push(b"@@@");
+            assert_eq!(d.next_client(), None);
+        }
         assert_eq!(d.buffered(), 0);
     }
 

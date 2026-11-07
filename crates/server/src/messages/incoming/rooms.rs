@@ -84,6 +84,19 @@ pub fn room_directory(
 
 /// Java: `TRYFLAT`: may the user enter this private room? Checks the visitor limit, bans, the
 /// doorbell and the password, then lets them in (`FLAT_LETIN`) for the `GOTOFLAT` that follows.
+/// Java: `GETINTEREST`: the client asks for a loading ad before it enters a room, and waits for
+/// the answer. Java shows one (`AdManager.getRandomLoadingAd`) one time in six when
+/// `room.intersitial.ads` is on and the user is not teleporting; otherwise, and always here until
+/// the ads are ported (`TODO(ads)`), there is none.
+pub fn get_interest(
+    _: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    session.send(out::intersitial_data(None));
+    Ok(())
+}
+
 pub fn try_flat(
     world: &World,
     session: &Arc<Session>,
@@ -261,6 +274,26 @@ pub fn g_items(
 }
 
 /// Java: `G_HMAP`. TODO(games): SnowStorm maps and the game status. TODO(flash): FLOOR_MAP.
+/// Java: `GET_FLOORMAP`: the real client asks for it while loading a room (the trace bots do not)
+/// and waits for the answer: `FLOOR_MAP`, the walking heights of a private room, and an empty
+/// `USER_OBJECTS`.
+pub fn get_floormap(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let r = room.lock();
+    session.send(out::floor_map(&r.model));
+    if !r.is_public() {
+        session.send(out::heightmap_update(&r.mapping.heightmap_update()));
+    }
+    session.send(out_user::user_objects([], &r.model.name));
+    Ok(())
+}
+
 pub fn g_hmap(
     world: &World,
     session: &Arc<Session>,
@@ -297,7 +330,8 @@ pub fn g_usrs(
             !i.has(Behaviour::PublicSpaceObject) && !i.has(Behaviour::WallItem)
         })));
     }
-    // TODO(messenger): sendStatusUpdate.
+    drop(r);
+    crate::game::messenger::manager::send_status_update(world, session);
     Ok(())
 }
 

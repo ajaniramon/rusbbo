@@ -12,13 +12,13 @@ pub fn user_object(user: &User) -> Message {
     };
     let daily = user.daily_respect_points.max(0);
     let body = ServerBody::new()
-        .string(user.id.to_string().as_bytes())
-        .string(user.username.as_bytes())
-        .string(user.figure.as_bytes())
-        .string(user.sex.as_bytes())
-        .string(user.motto.as_bytes())
+        .text(&user.id.to_string())
+        .text(&user.username)
+        .text(&user.figure)
+        .text(&user.sex)
+        .text(&user.motto)
         .int(user.tickets)
-        .string(user.pool_figure.as_bytes())
+        .text(&user.pool_figure)
         .int(user.film)
         .bool(false) // direct mail
         .int(respect)
@@ -96,7 +96,7 @@ pub fn ignore_user_result(result: i32) -> Message {
 pub fn possible_achievements(rows: &[(u32, i32, String)]) -> Message {
     let mut body = ServerBody::new().int(rows.len() as i32);
     for (id, level, code) in rows {
-        body = body.int(*id as i32).int(*level).string(code.as_bytes());
+        body = body.int(*id as i32).int(*level).text(code);
     }
     Message::new(436, body.build())
 }
@@ -113,6 +113,11 @@ pub fn help_items(flags: &[i32]) -> Message {
         body = body.int(*flag);
     }
     Message::new(352, body.build())
+}
+
+/// Java: `PING` (sent by `IdleConnectionHandler`); the client answers with `PONG`.
+pub fn ping() -> Message {
+    Message::new(50, vec![])
 }
 
 #[cfg(test)]

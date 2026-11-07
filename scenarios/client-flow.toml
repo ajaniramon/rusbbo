@@ -1,0 +1,104 @@
+name = "client-flow"
+description = "What the real v31 Shockwave client sends and the login macro does not: VERSIONCHECK and GET_SESSION_PARAMETERS before SSO, RECOMMENDED_ROOMS on the hotel view, GETINTEREST before entering a room and GET_FLOORMAP while loading it (private and public)"
+
+# Found by logging in with the real client (HabboLauncher and dirplayer): it waits for
+# SESSION_PARAMETERS before sending its ticket and for INTERSITIALDATA before TRYFLAT, so a server
+# that ignores these never gets a real user into the hotel or a room.
+# SESSION_PARAMETERS is a Java HashMap keyed by an enum: its order changes from one JVM run to the
+# next, so only its header is checked (the body is a unit test in outgoing/handshake.rs).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+connect = true
+
+[[steps]]
+bot = "a"
+send = "INIT_CRYPTO"
+
+[[steps]]
+bot = "a"
+send = "VERSIONCHECK"
+args = [401, "http://localhost/dcr/v31/habbo.dcr", "http://localhost/dcr/v31/gamedata/external_variables.txt"]
+note = "No answer"
+
+[[steps]]
+bot = "a"
+send = "UNIQUEID"
+args = ["trace-machine"]
+
+[[steps]]
+bot = "a"
+send = "GET_SESSION_PARAMETERS"
+header_only = ["SESSION_PARAMETERS"]
+
+[[steps]]
+bot = "a"
+send = "SSO"
+args = ["$ticket"]
+settle_ms = 1000
+
+[[steps]]
+bot = "a"
+send = "RECOMMENDED_ROOMS"
+note = "No open private room yet"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Open Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "RECOMMENDED_ROOMS"
+note = "The new room"
+
+[[steps]]
+bot = "a"
+send = "GETINTEREST"
+note = "No loading ad (room.intersitial.ads is off)"
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GET_FLOORMAP"
+note = "Private room: FLOOR_MAP, HEIGHTMAP_UPDATE, empty USER_OBJECTS"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GET_FLOORMAP"
+note = "Public room: FLOOR_MAP and empty USER_OBJECTS"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

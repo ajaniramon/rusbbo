@@ -18,9 +18,7 @@ pub mod user;
 use super::Handler;
 
 /// Client text as Java reads it (ISO-8859-1: one char per byte).
-pub(crate) fn latin1(bytes: &[u8]) -> String {
-    bytes.iter().map(|&b| char::from(b)).collect()
-}
+pub(crate) use havana_protocol::body::from_latin1 as latin1;
 
 /// The handler for a message id, or `None` for ids nobody handles yet.
 pub fn handler(header: u16) -> Option<Handler> {
@@ -30,6 +28,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         204 | 415 => handshake::sso,
         813 => handshake::unique_id,
         1170 => handshake::version_check,
+        1817 => handshake::get_session_parameters,
         7 => user::get_info,
         228 => user::get_account_preferences,
         196 => user::pong,
@@ -56,12 +55,15 @@ pub fn handler(header: u16) -> Option<Handler> {
         8 => user::get_credits,
         // registerNavigatorPackets
         150 => navigator::navigate,
+        264 => navigator::recommended_rooms,
         151 => navigator::get_user_flat_cats,
         16 => navigator::own_rooms,
         17 => navigator::search_rooms,
         154 => navigator::get_space_node_users,
         // registerRoomPackets
         57 | 391 => rooms::try_flat,
+        182 => rooms::get_interest,
+        394 => rooms::get_floormap,
         59 => rooms::goto_flat,
         2 => rooms::room_directory,
         126 => rooms::get_room_ad,
