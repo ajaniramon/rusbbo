@@ -24,8 +24,10 @@ fn stack_height_limit(world: &World) -> f64 {
 /// Java: `RoomMapping.resetExtraData(item, roomLoad)`: puts transient states back. Returns
 /// whether the item changed and needs saving.
 pub fn reset_extra_data(item: &mut Item, _room_load: bool) -> bool {
-    // TODO(dice): DICE sets requiresUpdate to false (the HC dice defaults are commented out in
-    // Java too).
+    // The HC dice defaults that follow in Java are commented out there too.
+    if item.has(Behaviour::Dice) {
+        item.requires_update = false;
+    }
     if !item.has(Behaviour::WallItem) {
         let rotations = item.allowed_rotations();
         if !rotations.is_empty() && !rotations.contains(&item.position.rotation()) {
@@ -36,24 +38,29 @@ pub fn reset_extra_data(item: &mut Item, _room_load: bool) -> bool {
     }
     use Interaction::*;
     let interaction = item.interaction;
+    // (applies, state, whether Java also clears `requiresUpdate` when the state was right)
     let resets = [
-        (interaction == Lert, "0"),
-        (interaction == IdolVoteChair, "0"),
-        (interaction == IdolScoreboard, "-1"),
-        (item.has(Behaviour::OneWayGate), "0"),
-        (interaction == Fortune, "8"), // FortuneInteractor.FORTUNE_OFF
-        (interaction == VendingMachine, "0"),
-        (interaction == LoveRandomizer, "0"),
-        (item.has(Behaviour::Teleporter), "0"), // TELEPORTER_CLOSE
+        (interaction == Lert, "0", false),
+        (interaction == IdolVoteChair, "0", false),
+        (interaction == IdolScoreboard, "-1", false),
+        (item.has(Behaviour::OneWayGate), "0", false),
+        (interaction == Fortune, "8", true), // FortuneInteractor.FORTUNE_OFF
+        (interaction == VendingMachine, "0", true),
+        (interaction == LoveRandomizer, "0", true),
+        (item.has(Behaviour::Teleporter), "0", false), // TELEPORTER_CLOSE
     ];
-    for (applies, value) in resets {
-        if applies && item.custom_data != value {
+    for (applies, value, clears) in resets {
+        if !applies {
+            continue;
+        }
+        if item.custom_data != value {
             item.custom_data = value.to_string();
             return true;
         }
+        if clears {
+            item.requires_update = false;
+        }
     }
-    // TODO(items): requiresUpdate of the wheel of fortune, vending machines and love
-    // randomizers.
     if item.current_roll_blocked {
         item.current_roll_blocked = false;
     }
@@ -109,10 +116,66 @@ impl Room {
         )
     }
 
-    /// Java: `RoomItemManager.hasTooMany`. TODO(sound, moodlight, idol): the one sound machine,
-    /// moodlight and idol scoreboard per room (`refreshRoomItems`), and the post-it, roller and
-    /// pet nest limits with their `CANNOT_PLACE_STUFF_FROM_STRIP` errors.
-    pub fn has_too_many(&self, _item: &Item) -> bool {
+    /// Java: `RoomItemManager.hasTooMany`: one sound machine (or jukebox), room dimmer and idol
+    /// scoreboard per room, at most 25 post-its, 35 rollers (60 with club) and 3 pet nests.
+    /// Tells the player why. (A post-it pad never gets here: `PLACESTUFF` places stickies
+    /// before it asks, in Java too.)
+    pub fn has_too_many(
+        &self,
+        world: &World,
+        session: &crate::session::Session,
+        has_club: bool,
+        item: &Item,
+    ) -> bool {
+        use crate::messages::outgoing::alerts;
+        let items = &self.mapping.items;
+        // Java: the `soundMachine`, `moodlight` and `idolScoreboard` that `refreshRoomItems`
+        // keeps: the first floor item with the behaviour (on a tile), the first wall dimmer.
+        let on_tile =
+            |i: &&Item| !i.has(Behaviour::WallItem) && self.mapping.tile(i.position).is_some();
+        let sound_machine = items
+            .iter()
+            .filter(on_tile)
+            .any(|i| i.has(Behaviour::Jukebox) || i.has(Behaviour::SoundMachine));
+        if sound_machine && (item.has(Behaviour::SoundMachine) || item.has(Behaviour::Jukebox)) {
+            session.send(out::cannot_place_stuff_from_strip(23));
+            return true;
+        }
+        let moodlight = items
+            .iter()
+            .any(|i| i.has(Behaviour::WallItem) && i.has(Behaviour::Roomdimmer));
+        if moodlight && item.has(Behaviour::Roomdimmer) {
+            session.send(alerts::alert(&world.text("roomdimmer_furni_limit")));
+            return true;
+        }
+        let idol_scoreboard = items
+            .iter()
+            .filter(on_tile)
+            .any(|i| i.interaction == Interaction::IdolScoreboard);
+        if idol_scoreboard && item.interaction == Interaction::IdolScoreboard {
+            session.send(alerts::alert(
+                "You can only place one American Idol scoreboard per room",
+            ));
+            return true;
+        }
+        let roller_limit = if has_club { 60 } else { 35 };
+        let count = |f: &dyn Fn(&Item) -> bool| items.iter().filter(|i| f(i)).count();
+        let limits = [
+            (Behaviour::PostIt, 25, 12),
+            (Behaviour::Roller, roller_limit, 22),
+        ];
+        for (behaviour, limit, error) in limits {
+            if count(&|i| i.has(behaviour)) >= limit && item.has(behaviour) {
+                session.send(out::cannot_place_stuff_from_strip(error));
+                return true;
+            }
+        }
+        if count(&|i| i.interaction == Interaction::PetNest) >= 3
+            && item.interaction == Interaction::PetNest
+        {
+            session.send(out::cannot_place_stuff_from_strip(21));
+            return true;
+        }
         false
     }
 
@@ -126,7 +189,7 @@ impl Room {
             flat.record.order_id = -1;
         }
         item.rolling = None;
-        // TODO(items): lastPlacedTime.
+        // Java also sets lastPlacedTime, which only commented-out code in WALK reads.
         reset_extra_data(&mut item, false);
         let wall = item.has(Behaviour::WallItem);
         if item.has(Behaviour::Teleporter) {
@@ -145,10 +208,12 @@ impl Room {
         }
         let tiles = self.mapping.items[idx].affected_tiles();
         if !wall {
-            self.update_entities(&[], &tiles);
+            self.update_entities(&[], &tiles, None);
         }
         self.save_item(world, idx);
-        // TODO(items): onItemPlaced of the totem and teleporter triggers.
+        if !wall && self.mapping.items[idx].interaction == Interaction::TotemHead {
+            self.totem_head_placed(world, idx);
+        }
         if self.mapping.items[idx].interaction == super::items::Interaction::PetNest {
             self.pet_nest_placed(world, idx);
         }
@@ -159,6 +224,12 @@ impl Room {
     pub fn move_flat_item(&mut self, world: &World, idx: usize, x: i32, y: i32, rotation: i32) {
         let old = self.mapping.items[idx].position;
         let is_rotation = old == Position::new(x, y) && old.rotation() != rotation;
+        // Java: `getItemBelow`/`getItemAbove` before the move, for the totem triggers.
+        let (below, above) = (self.item_below(idx), self.item_above(idx));
+        let (below, above) = (
+            below.map(|i| self.mapping.items[i].virtual_id),
+            above.map(|i| self.mapping.items[i].virtual_id),
+        );
         let old_tiles = self.mapping.items[idx].affected_tiles();
         self.mapping.remove_item_tiles(idx);
         {
@@ -167,7 +238,6 @@ impl Room {
             item.position.y = y;
             item.position.set_rotation(rotation);
             item.rolling = None;
-            // TODO(items): lastPlacedTime.
             reset_extra_data(item, false);
         }
         let wall = self.mapping.items[idx].has(Behaviour::WallItem);
@@ -191,18 +261,21 @@ impl Room {
         }
         if !wall {
             let tiles = self.mapping.items[idx].affected_tiles();
-            self.update_entities(&old_tiles, &tiles);
+            self.update_entities(&old_tiles, &tiles, Some(old));
         }
         self.save_item(world, idx);
-        // TODO(items): onItemMoved of the totem trigger.
         let interaction = self.mapping.items[idx].interaction;
+        match interaction {
+            Interaction::TotemHead => self.totem_head_moved(world, idx, is_rotation, below),
+            Interaction::TotemLeg => self.totem_leg_moved(world, above),
+            _ => {}
+        }
         self.pet_item_left(world, interaction, old);
     }
 
     /// Java: `RoomMapping.pickupItem` (whose triggers do nothing for the ported interactors)
     /// and `removeItem`. Returns the item as it goes back to the hand.
     pub fn remove_flat_item(&mut self, world: &World, idx: usize) -> Item {
-        // TODO(items): onItemPickup of the totem trigger.
         let interaction = self.mapping.items[idx].interaction;
         if interaction == super::items::Interaction::PetNest {
             self.pet_nest_picked_up(world, idx);
@@ -234,10 +307,12 @@ impl Room {
             }
             // TODO(moodlight): the room loses its moodlight.
         }
-        // TODO(totems): a totem head loses its colour.
+        if item.sprite == "totem_head" {
+            crate::game::item::interactors::totem::head_picked_up(&mut item);
+        }
         reset_extra_data(&mut item, false);
         if !wall {
-            self.update_entities(&[], &item.affected_tiles());
+            self.update_entities(&[], &item.affected_tiles(), None);
         }
         item.position = Position::new(0, 0);
         if let Some(flat) = item.flat.as_mut() {
@@ -293,22 +368,26 @@ impl Room {
 
     /// Java: `Item.updateEntities(oldPosition)`: everybody on the item's old and new tiles gets
     /// their status worked out again, sent at once. Like Java, someone on both is updated twice.
-    fn update_entities(&mut self, old_tiles: &[Position], tiles: &[Position]) {
+    pub(crate) fn update_entities(
+        &mut self,
+        old_tiles: &[Position],
+        tiles: &[Position],
+        old_position: Option<Position>,
+    ) {
         let mut instances = Vec::new();
         for p in old_tiles.iter().chain(tiles) {
             instances.extend(self.mapping.entire_entities(*p));
         }
         for instance_id in instances {
             if let Some(idx) = self.entity_by_instance(instance_id) {
-                self.invoke_item(None, idx, true);
+                self.invoke_item(None, idx, true, old_position);
             }
         }
     }
 
-    /// Java: `InteractionType.getTrigger().onInteract(player, room, item, status)` for the
-    /// ported interactors: `DefaultInteractor` (also what `ChairInteractor` and `BedInteractor`
-    /// do); teleporters are `game::item::interactors::teleport`. TODO(items): vending machines, lert, scoreboards, fortune wheel, pets,
-    /// pool, games, totems, idol, step light, love randomizer and multi height interactors.
+    /// Java: `InteractionType.getTrigger().onInteract(player, room, item, status)` of
+    /// `DefaultInteractor` and of `ChairInteractor` and `BedInteractor`, which do the same. The
+    /// other interactors are in `game::item::interactors` ([`Room::on_interact`]).
     pub fn interact(&mut self, world: &World, idx: usize) {
         match self.mapping.items[idx].interaction {
             Interaction::Default | Interaction::Chair | Interaction::Bed => {
@@ -320,7 +399,7 @@ impl Room {
 
     /// Java: `DefaultInteractor.onInteract`: cycles the custom data through
     /// `0..max_status - 1`.
-    fn default_interact(&mut self, world: &World, idx: usize) {
+    pub(crate) fn default_interact(&mut self, world: &World, idx: usize) {
         let item = &self.mapping.items[idx];
         if item.has(Behaviour::Gate)
             && item.is_gate_open()

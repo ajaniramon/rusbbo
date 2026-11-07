@@ -51,6 +51,8 @@ fn room() -> Room {
         last_bot_speech: None,
         self_ref: std::sync::Weak::new(),
         deferred: Vec::new(),
+        world: std::sync::Weak::new(),
+        idol: Default::default(),
     }
 }
 

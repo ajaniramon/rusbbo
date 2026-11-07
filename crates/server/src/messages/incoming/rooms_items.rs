@@ -157,7 +157,7 @@ pub fn place_stuff(
             item.position.set_rotation(rotation);
         }
     }
-    if r.has_too_many(&item) {
+    if r.has_too_many(world, session, p.has_club(), &item) {
         return Ok(());
     }
     r.add_flat_item(world, item);
@@ -406,7 +406,13 @@ pub fn remove_item(
     if !allowed {
         return Ok(());
     }
-    // TODO(items): the current item's onEntityLeave trigger.
+    // Java: the current item's onEntityLeave trigger, for the remover.
+    if let Some(e) = r.entity_index(session.id) {
+        if let Some(interaction) = r.current_item(e).map(|i| i.interaction) {
+            let is_player = r.entities[e].is_player();
+            r.on_entity_leave(interaction, session, is_player);
+        }
+    }
     let removed = r.remove_flat_item(world, idx);
     if let Some(flat) = removed.flat.as_ref() {
         if let Err(e) = world.store.delete_items(&[flat.record.id]) {
@@ -581,7 +587,9 @@ pub fn move_stuff(
     if r.mapping.items[idx].has(Behaviour::WallItem) {
         return Ok(());
     }
-    // TODO(dice, items): items waiting for an update (requiresUpdate) cannot be moved.
+    if r.mapping.items[idx].requires_update {
+        return Ok(()); // A dice rolling, a wheel spinning...
+    }
     let x = reader.int().ok_or(Malformed)?;
     let y = reader.int().ok_or(Malformed)?;
     let rotation = reader.int().ok_or(Malformed)?;
@@ -655,8 +663,8 @@ pub fn add_strip_item(
     Ok(())
 }
 
-/// Java: `USEFURNITURE`: toggles a floor item. The status argument is read and ignored by the
-/// ported interactors.
+/// Java: `USEFURNITURE`: uses a floor item (its interactor's `onInteract` with the status the
+/// client sends, which only the scoreboard reads).
 pub fn use_furniture(
     world: &World,
     session: &Arc<Session>,
@@ -669,7 +677,7 @@ pub fn use_furniture(
         return Ok(());
     };
     let item_id = reader.int().ok_or(Malformed)?;
-    let _status = reader.int().ok_or(Malformed)?;
+    let status = reader.int().ok_or(Malformed)?;
     let teleporting = session.player.lock().authenticate_teleporter.is_some();
     let mut r = room.lock();
     let Some(idx) = r.mapping.item_index(item_id) else {
@@ -691,29 +699,61 @@ pub fn use_furniture(
         };
         let user_position = r.entities[e].position;
         if item.position.distance_squared(&user_position) > 1 {
-            let front = item.position.square_in_front();
-            let walker = r.walker(e);
-            if is_valid_tile(&r.mapping, Some(&walker), front) {
-                r.walk_to_player(world, e, front.x, front.y);
-            }
-            // TODO(items): otherwise Java walks to RoomTile.getNextAvailablePosition.
+            walk_next_to(world, &mut r, e, idx, true);
             return Ok(());
         }
     }
     // TODO(commands): the item debug alert (":debugfurniture").
+    use_item(world, session, r, idx, status, teleporting);
+    Ok(())
+}
+
+/// Java: `USEFURNITURE`/`SET_RANDOM_STATE` walking a user who is not next to an item to the
+/// square in front of it, or (when that is blocked) to the first free square around it. With
+/// `check_tile` (`USEFURNITURE`), a missing item tile falls back to the front square.
+fn walk_next_to(world: &World, r: &mut Room, entity: usize, idx: usize, check_tile: bool) {
+    let position = r.mapping.items[idx].position;
+    let mut next = Some(position.square_in_front());
+    let walker = r.walker(entity);
+    if !is_valid_tile(&r.mapping, Some(&walker), position.square_in_front()) {
+        if r.mapping.tile(position).is_some() {
+            next = r.next_available_position(entity, position);
+        } else if !check_tile {
+            return; // Java's getTile() is null there and throws.
+        }
+    }
+    if let Some(next) = next {
+        r.walk_to_player(world, entity, next.x, next.y);
+    }
+}
+
+/// Java: `getInteractionType().getTrigger().onInteract(player, room, item, status)` for the
+/// player of `session`; teleporters need the player too, once the room is released.
+fn use_item(
+    world: &World,
+    session: &Arc<Session>,
+    mut r: parking_lot::MutexGuard<'_, Room>,
+    idx: usize,
+    status: i32,
+    teleporting: bool,
+) {
     if r.mapping.items[idx].interaction == Interaction::Teleport {
         let travel = teleport::on_interact(world, session, &mut r, idx, teleporting);
         drop(r);
         if travel.is_some() {
             session.player.lock().authenticate_teleporter = travel;
         }
-        return Ok(());
+        return;
     }
-    r.interact(world, idx);
-    Ok(())
+    if let Some(e) = r.entity_index(session.id) {
+        r.on_interact(world, e, idx, status);
+    }
+    let deferred = r.take_deferred();
+    drop(r);
+    crate::game::room::run_deferred(world, deferred);
 }
 
-/// Java: `USEWALLITEM`: toggles a wall item.
+/// Java: `USEWALLITEM`: uses a wall item (status -1).
 pub fn use_wall_item(
     world: &World,
     session: &Arc<Session>,
@@ -726,7 +766,8 @@ pub fn use_wall_item(
         return Ok(());
     };
     let item_id = reader.int().ok_or(Malformed)?;
-    let mut r = room.lock();
+    let teleporting = session.player.lock().authenticate_teleporter.is_some();
+    let r = room.lock();
     let Some(idx) = r.mapping.item_index(item_id) else {
         return Ok(());
     };
@@ -740,6 +781,193 @@ pub fn use_wall_item(
     {
         return Ok(());
     }
-    r.interact(world, idx);
+    use_item(world, session, r, idx, -1, teleporting);
+    Ok(())
+}
+
+/// Java: `SET_RANDOM_STATE`: like `USEFURNITURE` with status -1, except that a teleporter is
+/// used from anywhere (its interactor walks the user to it).
+pub fn set_random_state(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let Some(actor) = actor(session) else {
+        return Ok(());
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    let teleporting = session.player.lock().authenticate_teleporter.is_some();
+    let mut r = room.lock();
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    let item = &r.mapping.items[idx];
+    if blocks_interaction(item) {
+        return Ok(());
+    }
+    if item.has(Behaviour::RequiresRightsForInteraction)
+        && !r.has_rights(actor.user_id, true)
+        && !actor.is_mod
+    {
+        return Ok(());
+    }
+    if item.has(Behaviour::RequiresTouchingForInteraction) && !item.has(Behaviour::Teleporter) {
+        let Some(e) = r.entity_index(session.id) else {
+            return Ok(());
+        };
+        if item.position.distance_squared(&r.entities[e].position) > 1 {
+            walk_next_to(world, &mut r, e, idx, false);
+            return Ok(());
+        }
+    }
+    use_item(world, session, r, idx, -1, teleporting);
+    Ok(())
+}
+
+/// The room of the session and the session's entity index in it, locked.
+fn in_room<'a>(
+    world: &World,
+    session: &Session,
+    room: &'a Option<RoomRef>,
+) -> Option<(parking_lot::MutexGuard<'a, Room>, usize)> {
+    let _ = world;
+    let r = room.as_ref()?.lock();
+    let e = r.entity_index(session.id)?;
+    Some((r, e))
+}
+
+/// Java: `THROW_DICE` (VL64 item id).
+pub fn throw_dice(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let room = room_of(world, session);
+    let Some((mut r, e)) = in_room(world, session, &room) else {
+        return Ok(());
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    if let Some(idx) = r.mapping.item_index(item_id) {
+        r.throw_dice(world, e, idx);
+    }
+    Ok(())
+}
+
+/// Java: `DICE_OFF` (VL64 item id).
+pub fn dice_off(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let room = room_of(world, session);
+    let Some((mut r, e)) = in_room(world, session, &room) else {
+        return Ok(());
+    };
+    let item_id = reader.int().ok_or(Malformed)?;
+    if let Some(idx) = r.mapping.item_index(item_id) {
+        r.dice_off(world, e, idx);
+    }
+    Ok(())
+}
+
+/// Java: `SPIN_WHEEL_OF_FORTUNE` (VL64 item id), for users with rights.
+pub fn spin_wheel_of_fortune(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let Some(actor) = actor(session) else {
+        return Ok(());
+    };
+    let mut r = room.lock();
+    if !r.has_rights(actor.user_id, true) && !actor.is_mod {
+        return Ok(());
+    }
+    let item_id = reader.int().ok_or(Malformed)?;
+    if let Some(idx) = r.mapping.item_index(item_id) {
+        r.spin_wheel(world, idx);
+    }
+    Ok(())
+}
+
+/// Java: `CONVERT_FURNI_TO_CREDITS` (VL64 item id): the owner exchanges a credit furni in the
+/// room (`CF_<amount>_<name>`) for its credits.
+/// TODO(transactions): the "Exchanged ... into ... credits" transaction.
+pub fn convert_furni_to_credits(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = room_of(world, session) else {
+        return Ok(());
+    };
+    let mut p = session.player.lock();
+    let Some(user_id) = p.user_id() else {
+        return Ok(());
+    };
+    let any_controller = p.has_fuse("fuse_any_room_controller");
+    let mut r = room.lock();
+    if !r.is_owner(user_id) && !any_controller {
+        return Ok(());
+    }
+    let item_id = reader.int().ok_or(Malformed)?;
+    if item_id < 0 {
+        return Ok(());
+    }
+    let Some(idx) = r.mapping.item_index(item_id) else {
+        return Ok(());
+    };
+    let item = &r.mapping.items[idx];
+    let Some(database_id) = item.flat.as_ref().map(|f| f.record.id) else {
+        return Ok(());
+    };
+    if !item.has(Behaviour::Redeemable) {
+        return Ok(());
+    }
+    // Java: Integer.parseInt(sprite.split("_")[1]), which throws on anything else.
+    let Some(amount) = item
+        .sprite
+        .split('_')
+        .nth(1)
+        .and_then(|a| a.parse::<i32>().ok())
+    else {
+        return Ok(());
+    };
+    // Java: ItemDao.redeemCreditItem, the item deleted and the credits added in one transaction.
+    let redeemed = (|| -> anyhow::Result<Option<i32>> {
+        let mut w = world.store.write()?;
+        let Some(mut user) = w.user(user_id)? else {
+            return Ok(None);
+        };
+        w.delete_item(database_id)?;
+        user.credits += amount;
+        w.put_user(&user)?;
+        w.commit()?;
+        Ok(Some(user.credits))
+    })();
+    let credits = match redeemed {
+        Ok(Some(credits)) => credits,
+        Ok(None) | Err(_) => {
+            if let Err(e) = redeemed {
+                error!(item = database_id, "redeeming a credit furni: {e}");
+            }
+            session.send(alerts::alert(
+                "Unable to redeem furniture! Contact staff or support team.",
+            ));
+            return Ok(());
+        }
+    };
+    r.remove_flat_item(world, idx);
+    drop(r);
+    if let Some(details) = p.details.as_mut() {
+        details.credits = credits;
+    }
+    session.send(crate::messages::outgoing::user::credit_balance(credits));
     Ok(())
 }

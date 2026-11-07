@@ -392,8 +392,8 @@ fn carry(
     let Some(idx) = r.entity_index(session.id) else {
         return Ok(());
     };
-    // Flats only let users carry from an adjacent vending machine, and that is commented out.
-    // TODO(items): vending machines.
+    // Flats would let users carry what an adjacent vending machine hands out, but that part of
+    // `canCarry` is commented out in Java (the machines hand out drinks themselves).
     let can_carry = |r: &Room| {
         if carry_id == 20 {
             has_camera

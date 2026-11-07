@@ -9,6 +9,7 @@ pub mod messenger;
 pub mod navigator;
 pub mod pets;
 pub mod rooms;
+pub mod rooms_idol;
 pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
@@ -87,7 +88,13 @@ pub fn handler(header: u16) -> Option<Handler> {
         84 => rooms_items::set_item_data,
         85 => rooms_items::remove_item,
         78 => rooms_items::present_open,
-        // TODO(items): dice, wheel of fortune and the other item packets.
+        183 => rooms_items::convert_furni_to_credits,
+        76 => rooms_items::throw_dice,
+        77 => rooms_items::dice_off,
+        247 => rooms_items::spin_wheel_of_fortune,
+        314 => rooms_items::set_random_state,
+        410 => rooms_idol::start_performance,
+        411 => rooms_idol::vote_performance,
         98 => rooms_moderation::let_user_in,
         // registerRoomSettingsPackets
         21 => rooms_settings::get_flat_info,

@@ -282,8 +282,9 @@ pub struct RoomEntity {
     pub effect_id: i32,
     pub is_sleeping: bool,
     pub is_typing: bool,
-    /// Virtual id of the item whose trigger last ran on this entity.
-    pub last_item_interaction: Option<i32>,
+    /// The item whose trigger last ran on this entity: its virtual id and interactor (Java keeps
+    /// the item itself, so its leave trigger runs even once the item is gone).
+    pub last_item_interaction: Option<(i32, crate::game::room::items::Interaction)>,
     /// Recent messages, for the chat log's duplicate check.
     pub chat_messages: Vec<Vec<u8>>,
     pub chat_spam_count: i32,

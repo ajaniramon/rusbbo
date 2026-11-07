@@ -341,6 +341,7 @@ mod tests {
             flat: None,
             rolling: None,
             current_roll_blocked: false,
+            requires_update: false,
         };
         // From traces/public-room.json: "QNH" + "r697\x02broom_bench1\x02PAHPAPA" ...
         assert_eq!(

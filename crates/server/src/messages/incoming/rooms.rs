@@ -377,7 +377,10 @@ pub fn g_stat(
             session.send(out_user::user_sleep(e.instance_id, true));
         }
     }
-    // TODO(pool): SHOWPROGRAM for items with a program value. TODO(items): dice and wheel updates.
+    // A spinning wheel or a rolling dice. TODO(pool): SHOWPROGRAM for items with a program value.
+    for msg in r.busy_item_updates() {
+        session.send(msg);
+    }
     // TODO(groups): GROUP_BADGES of the user's favourite group. TODO(badges): rooms_entry_badges.
     // TODO(inventory): drop hand items that are in the room.
     Ok(())

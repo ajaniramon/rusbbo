@@ -11,7 +11,7 @@ use crate::messages::outgoing::rooms_user as out_user;
 use crate::world::World;
 
 /// Java: `Rotation.getHeadRotation`: the head of a sitting user turns one step towards a point.
-fn head_rotation(rotation: i32, position: &Position, towards: &Position) -> i32 {
+pub(crate) fn head_rotation(rotation: i32, position: &Position, towards: &Position) -> i32 {
     let diff = rotation - human_direction(position.x, position.y, towards.x, towards.y);
     if position.rotation() % 2 == 0 {
         if diff > 0 {

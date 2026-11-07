@@ -45,7 +45,7 @@ pub struct RoomTile {
     pub tile_height: f64,
     pub default_height: f64,
     pub highest_item: Option<usize>,
-    #[allow(dead_code)] // TODO(items): stacking helpers read it.
+    #[allow(dead_code)] // Java sets it but nothing reads `isChairTile`.
     pub chair_tile: bool,
 }
 
@@ -144,7 +144,8 @@ impl RoomMapping {
         for (id, position) in entities {
             self.add_entity(*position, *id);
         }
-        // TODO(items): refreshRoomItems (sound machine, moodlight, idol scoreboard).
+        // Java's refreshRoomItems (the room's sound machine, moodlight and idol scoreboard) is
+        // looked up when needed instead (`Room::has_too_many`, `interactors::idol`).
     }
 
     /// Java: `RoomTile.addItem`.
@@ -189,6 +190,19 @@ impl RoomMapping {
                 self.reset_highest_item(t);
             }
         }
+    }
+
+    /// Java: `getTile(p).removeItem(item)` then `getTile(p).addItem(item)`: puts the item back
+    /// on that one tile, working the tile's height out again (a multi-height item changed).
+    pub fn readd_item_at(&mut self, p: Position, item: usize) {
+        let Some(t) = self.index(p.x, p.y) else {
+            return;
+        };
+        self.tiles[t].items.retain(|i| *i != item);
+        if self.tiles[t].highest_item == Some(item) {
+            self.reset_highest_item(t);
+        }
+        self.add_item(t, item);
     }
 
     /// Removes the item at `item` from the room's list once it is off its tiles (see

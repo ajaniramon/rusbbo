@@ -102,7 +102,7 @@ impl Room {
                 }
             }
         }
-        // TODO(items): EntityTask.queueAfterLoop (avatar effects re-sent after sitting).
+        // TODO(effects): EntityTask.queueAfterLoop (avatar effects re-sent after sitting).
         if updated.is_empty() {
             return None;
         }
@@ -126,7 +126,7 @@ impl Room {
             e.position.x = next.x;
             e.position.y = next.y;
             self.update_new_height(idx);
-            // TODO(items): the current item's onEntityStep trigger.
+            self.on_entity_step(idx);
         }
 
         let Some(next) = self.entities[idx].path.pop_front() else {
@@ -186,10 +186,11 @@ impl Room {
         }
 
         let e = &mut self.entities[idx];
-        if e.last_item_interaction.is_some() {
-            // TODO(items): the last item's onEntityLeave trigger.
-            e.last_item_interaction = None;
+        if let Some((_, interaction)) = e.last_item_interaction.take() {
+            let (session, is_player) = (e.session.clone(), e.is_player());
+            self.on_entity_leave(interaction, &session, is_player);
         }
+        let e = &mut self.entities[idx];
         e.statuses.remove(StatusType::Lay);
         e.statuses.remove(StatusType::Sit);
         let rotation = if moonwalk {
@@ -458,7 +459,7 @@ impl Room {
             if self.entities[e].rolling.is_none() {
                 continue;
             }
-            self.invoke_item(None, e, true);
+            self.invoke_item(None, e, true, None);
             self.entities[e].rolling = None;
         }
     }

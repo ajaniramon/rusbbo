@@ -112,6 +112,11 @@ impl Inventory {
     }
 
     /// Java: `getItems().stream().anyMatch(sprite.equalsIgnoreCase(..))`.
+    /// Java: `getItems()`: every item in the hand.
+    pub fn items(&self) -> &[Item] {
+        &self.items
+    }
+
     pub fn has_sprite(&self, sprite: &str) -> bool {
         self.items
             .iter()

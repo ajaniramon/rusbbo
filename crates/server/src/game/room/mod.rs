@@ -80,6 +80,8 @@ pub enum Deferred {
     TradeClosed { sides: [trade::TradeSide; 2] },
     /// A trade completed: the offered items change hands, then both hands are sent.
     TradeFinished { sides: [trade::TradeSide; 2] },
+    /// Anything else that has to wait for the room's lock to be released (it may lock a player).
+    Run(Box<dyn FnOnce(&World) + Send>),
 }
 
 /// Someone a chat message is sent to (Java: the `List<Player>` of `RoomEntity.talk`).
@@ -129,6 +131,10 @@ pub struct Room {
     last_bot_speech: Option<(i32, usize)>,
     self_ref: Weak<RoomHandle>,
     deferred: Vec<Deferred>,
+    /// The world the room was loaded in, for item timers started where no `&World` is at hand.
+    pub(crate) world: Weak<World>,
+    /// Java: `RoomIdolManager`.
+    pub idol: crate::game::item::interactors::idol::IdolState,
 }
 
 impl Room {
@@ -174,6 +180,8 @@ impl Room {
                 last_bot_speech: None,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
+                world: world.arc().as_ref().map(Arc::downgrade).unwrap_or_default(),
+                idol: Default::default(),
             }),
         }))
     }
@@ -185,6 +193,11 @@ impl Room {
     /// Java: `isPublicRoom`.
     pub fn is_public(&self) -> bool {
         self.data.owner_id == 0
+    }
+
+    /// Queues `task` to run once the room's lock is released ([`Deferred::Run`]).
+    pub(crate) fn defer(&mut self, task: impl FnOnce(&World) + Send + 'static) {
+        self.deferred.push(Deferred::Run(Box::new(task)));
     }
 
     pub fn take_deferred(&mut self) -> Vec<Deferred> {
@@ -325,7 +338,10 @@ impl Room {
         self.votes.clear();
         if self.is_public() {
             match world.store.public_items(&self.model.id) {
-                Ok(rows) => self.mapping.items = items::public_items(&self.model.id, &rows),
+                Ok(rows) => {
+                    let definition = |sprite: &str| world.items.definition_by_sprite(sprite);
+                    self.mapping.items = items::public_items(&self.model.id, &rows, &definition)
+                }
                 Err(e) => error!(room = self.id(), "loading public items: {e}"),
             }
         } else {
@@ -425,7 +441,11 @@ impl Room {
     ) -> Option<RoomEntity> {
         let idx = self.entity_index(session_id)?;
         let mut e = self.entities.remove(idx);
-        // TODO(items): the current item's onEntityLeave trigger. TODO(triggers): onRoomLeave.
+        // Java: the current item's onEntityLeave trigger. TODO(triggers): onRoomLeave.
+        if let Some(interaction) = self.mapping.highest_item(e.position).map(|i| i.interaction) {
+            let session = e.session.clone();
+            self.on_entity_leave(interaction, &session, e.is_player());
+        }
         self.mapping.remove_entity(e.position, e.instance_id);
         if let Some(next) = e.next_position {
             self.mapping.remove_entity(next, e.instance_id);
@@ -507,7 +527,7 @@ impl Room {
     }
 
     /// Java: `RoomEntity.updateNewHeight`.
-    fn update_new_height(&mut self, idx: usize) {
+    pub(crate) fn update_new_height(&mut self, idx: usize) {
         let e = &mut self.entities[idx];
         let Some(tile) = self.mapping.tile(e.position) else {
             return;
@@ -547,7 +567,7 @@ impl Room {
             e.position.x = next.x;
             e.position.y = next.y;
             self.update_new_height(idx);
-            // TODO(items): the current item's onEntityStep trigger.
+            self.on_entity_step(idx);
         }
         if self.mapping.tile(Position::new(x, y)).is_none() {
             return false;
@@ -559,7 +579,19 @@ impl Room {
         if !is_valid_tile(&self.mapping, Some(&walker), goal) {
             return false;
         }
-        // TODO(items): beds redirect the goal to the pillow (BedInteractor).
+        // Java: a bed leads to its pillow (BedInteractor).
+        if let Some(bed) = self
+            .mapping
+            .highest_item(goal)
+            .filter(|i| i.has(Behaviour::CanLayOnTop))
+        {
+            use crate::game::item::interactors::bed;
+            if !bed::is_valid_pillow_tile(bed, goal) {
+                let destination = bed::convert_to_pillow(goal, bed);
+                self.walk_to(idx, destination.x, destination.y);
+                return true;
+            }
+        }
         let path = make_path(&self.mapping, &walker, walker.position, goal);
         if path.is_empty() {
             return false;
@@ -615,7 +647,7 @@ impl Room {
 
         // Java: walkways and the door only apply to players (`EntityType.PLAYER`).
         if !e.is_player() {
-            self.invoke_item(Some(world), idx, false);
+            self.invoke_item(Some(world), idx, false, None);
             self.bot_stopped(world, idx);
             return None;
         }
@@ -650,12 +682,19 @@ impl Room {
             self.deferred.push(Deferred::Left { session, room_id });
             return left;
         }
-        self.invoke_item(Some(world), idx, false);
+        self.invoke_item(Some(world), idx, false, None);
         None
     }
 
     /// Java: `RoomEntity.invokeItem`: runs the trigger of the item the entity stopped on.
-    fn invoke_item(&mut self, world: Option<&World>, idx: usize, instant_update: bool) {
+    /// `old_position` is Java's `oldPosition`: standing there again is a rotation.
+    fn invoke_item(
+        &mut self,
+        world: Option<&World>,
+        idx: usize,
+        instant_update: bool,
+        old_position: Option<Position>,
+    ) {
         let position = self.entities[idx].position;
         let Some(tile) = self.mapping.tile(position) else {
             return;
@@ -679,18 +718,26 @@ impl Room {
                 e.statuses.remove(StatusType::Sit);
                 e.statuses.remove(StatusType::Lay);
             }
-            if item.is_none() && e.last_item_interaction.is_some() {
-                // TODO(items): the last item's onEntityLeave trigger.
-                e.last_item_interaction = None;
+            if item.is_none() {
+                if let Some((_, interaction)) = e.last_item_interaction.take() {
+                    let (session, is_player) = (e.session.clone(), e.is_player());
+                    self.on_entity_leave(interaction, &session, is_player);
+                }
             }
         }
         if let Some(i) = item {
-            if self.mapping.items[i].interaction == Interaction::Chair {
-                self.chair_stop(idx, i);
+            let is_rotation = old_position == Some(self.entities[idx].position);
+            match self.mapping.items[i].interaction {
+                Interaction::Chair | Interaction::LoveRandomizer => self.chair_stop(idx, i),
+                Interaction::Bed => self.bed_stop(idx, i),
+                Interaction::IdolVoteChair => self.idol_chair_stop(idx, i, is_rotation),
+                Interaction::IdolScoreboard => self.idol_scoreboard_stop(idx, i, is_rotation),
+                _ => {}
             }
             self.pet_stopped_on(world, idx, i);
-            // TODO(items, pool, games): the other interaction triggers' onEntityStop.
-            self.entities[idx].last_item_interaction = Some(self.mapping.items[i].virtual_id);
+            // TODO(pool, games): the pool and game triggers' onEntityStop.
+            let item = &self.mapping.items[i];
+            self.entities[idx].last_item_interaction = Some((item.virtual_id, item.interaction));
         }
         self.update_new_height(idx);
         if instant_update {
@@ -702,7 +749,7 @@ impl Room {
     }
 
     /// Java: `ChairInteractor.onEntityStop`.
-    fn chair_stop(&mut self, idx: usize, item: usize) {
+    pub(crate) fn chair_stop(&mut self, idx: usize, item: usize) {
         let (top_height, rotation) = {
             let item = &self.mapping.items[item];
             (item.top_height, item.position.rotation())
@@ -1046,7 +1093,7 @@ impl Room {
         self.send(out_user::user_objects([&self.entities[idx]], &model));
         self.send(out_user::user_statuses([&self.entities[idx]], &model));
         if self.mapping.tile(old).is_some() {
-            self.invoke_item(None, idx, true);
+            self.invoke_item(None, idx, true, Some(old));
         }
         // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
         // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
@@ -1143,6 +1190,7 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
             }
             Deferred::TradeClosed { sides } => trade::run_closed(world, sides),
             Deferred::TradeFinished { sides } => trade::run_finished(world, sides),
+            Deferred::Run(task) => task(world),
             Deferred::StopTeleporting { session } => {
                 session.player.lock().authenticate_teleporter = None;
             }
@@ -1287,9 +1335,16 @@ impl Room {
             last_bot_speech: None,
             self_ref: Weak::new(),
             deferred: Vec::new(),
+            world: Weak::new(),
+            idol: Default::default(),
         };
         room.regenerate_map();
         room
+    }
+
+    /// Java: `invokeItem(null, false)` for the entity at `idx`.
+    pub(crate) fn invoke_item_for_test(&mut self, idx: usize) {
+        self.invoke_item(None, idx, false, None);
     }
 
     /// Puts a user at `position` and returns its index and the receiving end of its messages.

@@ -55,6 +55,9 @@ pub struct Item {
     pub rolling: Option<RollingData>,
     /// Java: `isCurrentRollBlocked`: the item stays put during this roll.
     pub current_roll_blocked: bool,
+    /// Java: `requiresUpdate`: a dice rolling, a wheel spinning, a vending machine or a
+    /// randomizer busy; the item ignores new requests and cannot be moved meanwhile.
+    pub requires_update: bool,
 }
 
 impl Item {
@@ -93,6 +96,7 @@ impl Item {
             flat: Some(FlatItem { record, definition }),
             rolling: None,
             current_roll_blocked: false,
+            requires_update: false,
         }
     }
 
@@ -248,8 +252,13 @@ fn parse_target(value: Option<&str>) -> Option<Position> {
     Some(p)
 }
 
-/// Java: `PublicItemParser.getPublicItems(roomId, modelId)`.
-pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<Item> {
+/// Java: `PublicItemParser.getPublicItems(roomId, modelId)`. `definition_by_sprite` is
+/// `ItemManager.getDefinitionBySprite`, for `PRIVATE_FURNITURE` items.
+pub fn public_items(
+    model_id: &str,
+    rows: &[havana_storage::PublicItem],
+    definition_by_sprite: &dyn Fn(&str) -> Option<Arc<ItemDefinition>>,
+) -> Vec<Item> {
     const ALPHABET: &[u8] = b"abcdefghijlmnopqrstuvwyz";
     let mut rng = rand::rng();
     let mut used: Vec<String> = Vec::new();
@@ -286,6 +295,7 @@ pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<
             flat: None,
             rolling: None,
             current_roll_blocked: false,
+            requires_update: false,
         };
         let trigger = match sprite.as_str() {
             "poolEnter" | "poolExit" => Some(Interaction::PoolLadder),
@@ -321,7 +331,28 @@ pub fn public_items(model_id: &str, rows: &[havana_storage::PublicItem]) -> Vec<
         if !sprite.contains("queue_tile2") {
             item.add(Behaviour::PublicSpaceObject);
         }
-        // TODO(items): PRIVATE_FURNITURE items take their definition id from items_definitions.
+        // A PRIVATE_FURNITURE item (park_b's bar) takes the furniture definition of its sprite,
+        // with its behaviours (losing PUBLIC_SPACE_OBJECT) and interactor (Java:
+        // `setDefinitionId`, which drops the item's own definition).
+        if item.has(Behaviour::PrivateFurniture) {
+            if let Some(definition) = definition_by_sprite(&sprite) {
+                let def = &definition.record;
+                item.top_height = def.top_height;
+                item.length = def.length;
+                item.width = def.width;
+                item.behaviours = definition.behaviours().to_vec();
+                item.interaction = definition.interaction_type;
+                item.flat = Some(FlatItem {
+                    record: havana_storage::Item {
+                        definition_id: def.id,
+                        custom_data: item.custom_data.clone(),
+                        expire_time: -1,
+                        ..Default::default()
+                    },
+                    definition,
+                });
+            }
+        }
         if sprite == "poolLift" || sprite == "poolBooth" {
             // Java: item.showProgram("open"), which sets the value before the room exists.
             item.current_program_value = "open".into();
@@ -509,7 +540,7 @@ pub(crate) mod tests {
                 ..Default::default()
             },
         ];
-        let items = public_items("ballroom", &rows);
+        let items = public_items("ballroom", &rows, &|_| None);
         assert_eq!(items[0].interaction, Interaction::Chair);
         assert!(items[0].has(Behaviour::PublicSpaceObject));
         assert_eq!(items[0].total_height(), 5.0);
@@ -519,6 +550,38 @@ pub(crate) mod tests {
         assert!(items[1].has(Behaviour::Invisible));
         let id = &items[0].custom_data;
         assert!(id.len() >= 2 && id.as_bytes()[0].is_ascii_lowercase());
+    }
+
+    #[test]
+    fn private_furniture_in_a_public_room() {
+        // park_b's bar is the bar_basic vending machine.
+        let bar = definition(
+            (93, "bar_basic", 1068),
+            (1, 1, 0.0),
+            2,
+            "solid,requires_touching_for_interaction,custom_data_true_false",
+            "vending_machine",
+            "2,4",
+        );
+        let rows = [havana_storage::PublicItem {
+            id: 594,
+            sprite: Some("bar_basic".into()),
+            x: 10,
+            y: 3,
+            behaviour: "solid,private_furniture".into(),
+            ..Default::default()
+        }];
+        let items = public_items("park_b", &rows, &|s| {
+            (s == "bar_basic").then(|| bar.clone())
+        });
+        let item = &items[0];
+        assert_eq!(item.interaction, Interaction::VendingMachine);
+        assert!(!item.has(Behaviour::PublicSpaceObject));
+        assert!(!item.has(Behaviour::PrivateFurniture));
+        assert!(item.has(Behaviour::RequiresTouchingForInteraction));
+        assert_eq!((item.sprite_id(), item.max_status()), (1068, 2));
+        assert_eq!(item.expire_time(), -1);
+        assert_eq!(item.position, Position::new(10, 3));
     }
 
     #[test]

@@ -110,6 +110,40 @@ pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide
     Message::new(230, body.build())
 }
 
+/// Java: `DICE_VALUE`: the dice's id and its value; -1 starts the rolling animation (and 0 too,
+/// for a client that comes in while it rolls).
+pub fn dice_value(item_id: i32, value: i32) -> Message {
+    Message::new(90, ServerBody::new().int(item_id).int(value).build())
+}
+
+/// Java: `CANNOT_PLACE_STUFF_FROM_STRIP`: why an item cannot be placed (a per-room limit).
+pub fn cannot_place_stuff_from_strip(reason: i32) -> Message {
+    Message::new(516, ServerBody::new().int(reason).build())
+}
+
+/// Java: `JUDGE_GUI_STATUS`: an idol judge's panel: 0 closed, 1 waiting, 2 voting for the
+/// performer `user_id`.
+pub fn judge_gui_status(status: i32, user_id: i32) -> Message {
+    let body = ServerBody::new().int(status);
+    let body = if status == 2 { body.int(user_id) } else { body };
+    Message::new(490, body.build())
+}
+
+/// Java: `OPEN_PERFORMER_GUI`: the discs an idol performer may sing (virtual id, song name).
+pub fn open_performer_gui(discs: &[(i32, String)]) -> Message {
+    let mut body = ServerBody::new().int(discs.len() as i32);
+    for (id, name) in discs {
+        body = body.int(*id).string(&latin1(name));
+    }
+    Message::new(491, body.build())
+}
+
+/// Java: the anonymous composer 492 of `IdolScoreboardInteractor.onEntityLeave`: closes the
+/// performer's panel.
+pub fn close_performer_gui() -> Message {
+    Message::new(492, ServerBody::new().build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
