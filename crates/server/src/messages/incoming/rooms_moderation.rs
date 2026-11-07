@@ -2,7 +2,7 @@
 //!
 //! Shockwave clients send the target's bare name as the whole body of `ASSIGNRIGHTS`,
 //! `REMOVERIGHTS` and `KICK` (Java: `reader.contents()`). TODO(flash): Flash sends user ids.
-//! TODO(moderation): BANUSER.
+//! `BANUSER` bans a visitor from the room for 6 hours.
 //!
 //! Lock order: the sender's player lock, then the target's, are each taken and released before
 //! the room is locked; while the room is locked no player is locked.
@@ -189,6 +189,57 @@ pub fn kick(
         r.take_deferred()
     };
     run_deferred(world, deferred);
+    Ok(())
+}
+
+/// Java: `BANUSER`: the owner (or anyone with `fuse_kick`) sends a visitor away with
+/// `CANTCONNECT` (banned) and bans them from the room for 6 hours (`rooms_bans`).
+pub fn ban_user(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let (user_id, can_kick) = {
+        let p = session.player.lock();
+        let Some(id) = p.user_id() else {
+            return Ok(());
+        };
+        (id, p.has_fuse("fuse_kick"))
+    };
+    let name = latin1(reader.remaining());
+    let Some((target, target_id)) = target_in_room(world, &name, &room) else {
+        return Ok(());
+    };
+    if target_id == user_id {
+        return Ok(());
+    }
+    let target_can_kick = target.player.lock().has_fuse("fuse_kick");
+    let deferred = {
+        let mut r = room.lock();
+        if target_can_kick || r.is_owner(target_id) || (!r.is_owner(user_id) && !can_kick) {
+            drop(r);
+            session.send(alerts::alert(&world.text("modtool_rankerror")));
+            return Ok(());
+        }
+        let Some(idx) = r.entity_index(target.id) else {
+            return Ok(());
+        };
+        target.send(out_rooms::cant_connect(out_rooms::ConnectError::Banned));
+        r.kick(world, idx, false, true);
+        r.take_deferred()
+    };
+    run_deferred(world, deferred);
+    let expire_at = crate::game::now() + 6 * 3600;
+    let saved = world.store.write().and_then(|mut w| {
+        w.put_room_ban(room.id, target_id, expire_at)?;
+        w.commit()
+    });
+    if let Err(e) = saved {
+        error!(room = room.id, "saving room ban: {e}");
+    }
     Ok(())
 }
 

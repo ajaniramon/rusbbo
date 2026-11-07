@@ -125,6 +125,8 @@ pub struct Room {
     dispose_generation: u64,
     /// Java: the room's `BotTask` is scheduled (the room has bots).
     bots_active: bool,
+    /// Java: `RoomData.isRoomMuted` (`:roommute`); not saved, gone when the room unloads.
+    pub is_room_muted: bool,
     /// Java: `BotTask.lastSpeech`: the bot and sentence said last, never said twice in a row.
     last_bot_speech: Option<(i32, usize)>,
     self_ref: Weak<RoomHandle>,
@@ -171,6 +173,7 @@ impl Room {
                 roller_task: None,
                 dispose_generation: 0,
                 bots_active: false,
+                is_room_muted: false,
                 last_bot_speech: None,
                 self_ref: weak.clone(),
                 deferred: Vec::new(),
@@ -554,7 +557,22 @@ impl Room {
         }
         let goal = Position::new(x, y);
         self.entities[idx].goal = Some(goal);
-        // TODO(commands): teleporting users warp instead of walking.
+        // Java: `:teleport` mode warps the user to the goal.
+        if self.entities[idx].is_teleporting {
+            self.warp(idx, goal);
+            // Unlike a teleporter arrival, no status follows on the next tick
+            // (traces/staff-commands.json).
+            self.entities[idx].needs_update = false;
+            let e = &self.entities[idx];
+            let msg = rooms_user::figure_change(
+                e.instance_id,
+                &e.details.figure,
+                &e.details.sex,
+                &e.details.motto,
+            );
+            self.send(msg);
+            return true;
+        }
         let walker = self.walker(idx);
         if !is_valid_tile(&self.mapping, Some(&walker), goal) {
             return false;
@@ -819,7 +837,24 @@ impl Room {
         if e.mute_time > now() {
             return;
         }
-        // TODO(moderation): muted rooms ("Shh! The room is currently muted...").
+        // Java: only players with the `roommute` command may talk in a muted room.
+        if self.is_room_muted
+            && self.entities[idx].is_player()
+            && !crate::game::commands::has_permission_for(
+                self.entities[idx].details.rank,
+                "roommute",
+            )
+        {
+            let e = &self.entities[idx];
+            e.session.send(rooms_user::chat_message(
+                ChatType::Whisper,
+                e.instance_id,
+                b"Shh! The room is currently muted by the moderators",
+                0,
+            ));
+            self.reset_room_timer(world, idx);
+            return;
+        }
         let (message, receivers): (&[u8], Vec<Receiver>) = match whisper {
             Some(receivers) => (message, receivers),
             None => {
@@ -1284,6 +1319,7 @@ impl Room {
             roller_task: None,
             dispose_generation: 0,
             bots_active: false,
+            is_room_muted: false,
             last_bot_speech: None,
             self_ref: Weak::new(),
             deferred: Vec::new(),

@@ -124,6 +124,33 @@ impl Item {
         self.flat.as_ref().map(|f| &*f.definition)
     }
 
+    /// The `:itemdebug` alert of `WALK` and `USEFURNITURE`. Public room objects have no stored
+    /// definition: their name, description and definition id are empty.
+    pub fn debug_alert(&self) -> String {
+        use crate::game::java_double;
+        let (name, description, id) =
+            self.definition()
+                .map_or((String::new(), String::new(), 0), |d| {
+                    (
+                        d.record.name.clone(),
+                        d.record.description.clone(),
+                        d.record.id,
+                    )
+                });
+        format!(
+            "Name: {name}<br>Description: {description}<br>Definition ID: {id}<br>Sprite ID: \
+             {}<br>Sprite Name: {}<br>Top Height: {}<br>Total Height: {}<br>Z Height: {}<br>X \
+             Y: [{}, {}]",
+            self.sprite_id(),
+            self.sprite,
+            java_double(self.top_height),
+            java_double(self.total_height()),
+            java_double(self.position.z),
+            self.position.x,
+            self.position.y
+        )
+    }
+
     /// Java: `getDefinition().getSpriteId()`; public items have none (-1).
     pub fn sprite_id(&self) -> i32 {
         self.definition().map_or(-1, |d| d.record.sprite_id)

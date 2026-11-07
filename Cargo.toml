@@ -6,3 +6,11 @@ members = ["crates/import","crates/protocol", "crates/server", "crates/storage",
 edition = "2024"
 license = "AGPL-3.0-only"  # same licence as the Java Havana it is derived from
 rust-version = "1.85"
+
+# Argon2 (password checks, 64 MiB per hash) is unusably slow unoptimised; the trace harness runs
+# the debug build.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3

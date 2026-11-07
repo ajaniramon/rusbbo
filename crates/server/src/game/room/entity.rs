@@ -297,6 +297,11 @@ pub struct RoomEntity {
     pub walk_history: Vec<Position>,
     /// Java: `RoomPlayer`'s trade fields.
     pub trade: TradeState,
+    /// Java: `RoomEntity.isTeleporting` (`:teleport`). TODO(rooms): Java keeps it on the player
+    /// across rooms.
+    pub is_teleporting: bool,
+    /// Java: `RoomEntity.hasItemDebug` (`:itemdebug`), same TODO as `is_teleporting`.
+    pub has_item_debug: bool,
 }
 
 impl EntityDetails {
@@ -342,6 +347,8 @@ impl RoomEntity {
             chat_bubble_timer: -1,
             trade: TradeState::default(),
             walk_history: Vec::new(),
+            is_teleporting: false,
+            has_item_debug: false,
         }
     }
 

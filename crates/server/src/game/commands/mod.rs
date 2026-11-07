@@ -2,11 +2,11 @@
 //!
 //! A command is a table entry: its aliases, the lowest rank that may run it, the names of its
 //! required arguments and a handler. [`commands`] lists them in the order of
-//! `CommandManager.getCommands`. TODO(commands): the staff commands (`copyroom`, `givebadge`,
-//! `reload`, `shutdown`, `teleport`, `ban`, `mute`... see `CommandManager.java`) are added to
-//! the table with their rank when they are ported; nothing else needs to change.
+//! `CommandManager.getCommands`. The staff commands are in [`staff`]; `bot` and `shutdown`
+//! are listed but do nothing yet (TODO(commands), see `staff::not_ported`).
 
 pub mod registered;
+pub mod staff;
 
 use std::sync::Arc;
 
@@ -15,6 +15,12 @@ use crate::world::World;
 
 /// Java: `PlayerRank.NORMAL`.
 pub const RANK_NORMAL: u8 = 1;
+/// Java: `PlayerRank.MODERATOR`.
+pub const RANK_MODERATOR: u8 = 5;
+/// Java: `PlayerRank.COMMUNITY_MANAGER`.
+pub const RANK_COMMUNITY_MANAGER: u8 = 6;
+/// Java: `PlayerRank.ADMINISTRATOR`.
+pub const RANK_ADMINISTRATOR: u8 = 8;
 
 /// What a command handler gets (Java: `handleCommand(entity, message, args)`).
 pub type CommandHandler = fn(&World, &Arc<Session>, &[Vec<u8>]);
@@ -64,6 +70,12 @@ fn command_name(message: &[u8]) -> Option<&[u8]> {
 /// settings that let members of a group run a command.
 pub fn has_permission(rank: u8, command: &Command) -> bool {
     rank >= command.rank
+}
+
+/// Java: `CommandManager.hasPermission(details, commandName)` by name: false for an unknown
+/// command (used by moderation: "has permission to ban/mute/roommute").
+pub fn has_permission_for(rank: u8, command_name: &str) -> bool {
+    get_command(command_name.as_bytes()).is_some_and(|c| has_permission(rank, c))
 }
 
 /// Java: `CommandManager.hasCommand`: whether `message` is a command the user may run. Anything

@@ -105,6 +105,26 @@ pub fn unique_id(
     Ok(())
 }
 
+/// Java: `TRY_LOGIN`: logging in with a user name and password instead of a ticket. A wrong
+/// login is answered with `LOCALISED_ERROR` and the connection stays open.
+pub fn try_login(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    if session.player.lock().logged_in {
+        return Ok(());
+    }
+    let filter = |s: &[u8]| crate::game::messenger::filter_input(&super::latin1(s), true);
+    let username = filter(reader.string().ok_or(Malformed)?);
+    let password = filter(reader.string().ok_or(Malformed)?);
+    match player::check_login(world, &username, &password) {
+        Some(user) => player::login(world, session, user),
+        None => session.send(outgoing::alerts::localised_error_text("Login incorrect")),
+    }
+    Ok(())
+}
+
 pub fn version_check(_: &World, _: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
     Ok(())
 }

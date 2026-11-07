@@ -15,6 +15,11 @@ impl Settings {
         self.values.get(key).map(String::as_str).unwrap_or("")
     }
 
+    /// Java: `GameConfiguration.getConfig().containsKey`.
+    pub fn contains(&self, key: &str) -> bool {
+        self.values.contains_key(key)
+    }
+
     /// Java `getBoolean`: true only for the text `true` (any case).
     pub fn bool(&self, key: &str) -> bool {
         self.string(key).eq_ignore_ascii_case("true")

@@ -48,6 +48,7 @@ fn room() -> Room {
         roller_task: None,
         dispose_generation: 0,
         bots_active: false,
+        is_room_muted: false,
         last_bot_speech: None,
         self_ref: std::sync::Weak::new(),
         deferred: Vec::new(),

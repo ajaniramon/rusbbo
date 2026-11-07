@@ -90,6 +90,20 @@ impl BadgeManager {
         true
     }
 
+    /// Java: `tryAddBadge` on a manager made for an offline user (`new BadgeManager(userId)`):
+    /// no player, so no notification.
+    pub fn add_badge_offline(&mut self, store: &Store, code: &str) {
+        if self.has_badge(code) {
+            return;
+        }
+        self.badges.push(Badge {
+            code: code.to_string(),
+            equipped: false,
+            slot_id: 0,
+        });
+        self.save(store);
+    }
+
     /// Java: `removeBadge`.
     pub fn remove_badge(&mut self, store: &Store, code: &str) {
         let Some(i) = self.find(code) else { return };

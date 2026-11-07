@@ -6,8 +6,9 @@ use havana_storage::WordfilterWord;
 use crate::settings::Settings;
 
 pub struct WordFilter {
-    /// Longest words first (Java sorts a stable list by descending length).
-    words: Vec<WordfilterWord>,
+    /// Longest words first (Java sorts a stable list by descending length). Replaced by
+    /// `:reload wordfilter`.
+    words: parking_lot::RwLock<Vec<WordfilterWord>>,
 }
 
 fn to_string(bytes: &[u8]) -> String {
@@ -21,9 +22,20 @@ fn to_bytes(s: &str) -> Vec<u8> {
 }
 
 impl WordFilter {
-    pub fn new(mut words: Vec<WordfilterWord>) -> Self {
+    pub fn new(words: Vec<WordfilterWord>) -> Self {
+        Self {
+            words: parking_lot::RwLock::new(Self::sorted(words)),
+        }
+    }
+
+    fn sorted(mut words: Vec<WordfilterWord>) -> Vec<WordfilterWord> {
         words.sort_by_key(|w| std::cmp::Reverse(w.word.chars().count()));
-        Self { words }
+        words
+    }
+
+    /// Java: `WordfilterManager.reset`.
+    pub fn reload(&self, words: Vec<WordfilterWord>) {
+        *self.words.write() = Self::sorted(words);
     }
 
     /// Java: `WordfilterManager.hasBannableSentence`, the sentence part: users who joined more
@@ -34,6 +46,7 @@ impl WordFilter {
         }
         let lower = to_string(sentence).to_lowercase();
         self.words
+            .read()
             .iter()
             .any(|w| w.is_bannable && lower.contains(&w.word.to_lowercase()))
     }
@@ -44,7 +57,7 @@ impl WordFilter {
         }
         let replacement = settings.string("wordfilter.word.replacement");
         let mut text = to_string(sentence);
-        for w in &self.words {
+        for w in self.words.read().iter() {
             if mandatory_only && w.is_filterable {
                 continue;
             }

@@ -1,9 +1,9 @@
-//! The commands (Java: `game/commands/registered`). TODO(commands): `admin`, `groups` and
-//! `moderation` commands.
+//! The commands (Java: `game/commands/registered`); the staff ones are in [`super::staff`].
 
 use std::sync::Arc;
 
-use super::{Command, RANK_NORMAL};
+use super::staff;
+use super::{Command, RANK_ADMINISTRATOR, RANK_COMMUNITY_MANAGER, RANK_MODERATOR, RANK_NORMAL};
 use crate::game::player::Player;
 use crate::game::room::{Room, current_room, run_deferred};
 use crate::messages::incoming::latin1;
@@ -57,6 +57,13 @@ pub static ALL: &[Command] = &[
         handler: uptime,
     },
     Command {
+        aliases: &["coords"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Shows the coordinates in the room",
+        arguments: &[],
+        handler: staff::coords,
+    },
+    Command {
         aliases: &["pickall"],
         rank: RANK_NORMAL,
         description: "Allows the owner to pick up all furniture in a room",
@@ -90,6 +97,198 @@ pub static ALL: &[Command] = &[
         description: "View guide statistics",
         arguments: &[],
         handler: guide_status,
+    },
+    // Staff commands
+    Command {
+        aliases: &["copyroom"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Creates a copy of the room",
+        arguments: &[],
+        handler: staff::copy_room,
+    },
+    Command {
+        aliases: &["givebadge"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Add badge to user",
+        arguments: &["user", "badge"],
+        handler: staff::give_badge,
+    },
+    Command {
+        aliases: &["deletebadge", "removebadge"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Remove badge from user",
+        arguments: &["user", "badge"],
+        handler: staff::remove_badge,
+    },
+    Command {
+        aliases: &["packet"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Tests a Habbo client-sided packet",
+        arguments: &[],
+        handler: staff::packet,
+    },
+    Command {
+        aliases: &["reload"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Refresh the settings/items/texts",
+        arguments: &["component"],
+        handler: staff::reload,
+    },
+    Command {
+        aliases: &["shutdown"],
+        rank: RANK_ADMINISTRATOR,
+        description: "<minutes> - Shutdown Havana",
+        arguments: &[],
+        handler: staff::not_ported,
+    },
+    Command {
+        aliases: &["setconfig"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Allows to update server configs.",
+        arguments: &["setting", "value"],
+        handler: staff::set_config,
+    },
+    Command {
+        aliases: &["itemdebug"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Enable/disable item debug",
+        arguments: &[],
+        handler: staff::item_debug,
+    },
+    Command {
+        aliases: &["talk"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Voice to text command",
+        arguments: &[],
+        handler: staff::talk,
+    },
+    Command {
+        aliases: &["bot"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Creates a bot partay!",
+        arguments: &["amount"],
+        handler: staff::not_ported,
+    },
+    Command {
+        aliases: &["headrotate", "hr"],
+        rank: RANK_MODERATOR,
+        description: "Rotates the users head",
+        arguments: &[],
+        handler: staff::head_rotate,
+    },
+    Command {
+        aliases: &["teleport", "tele", "telep", "tp"],
+        rank: RANK_MODERATOR,
+        description: "Triggers the teleporting",
+        arguments: &[],
+        handler: staff::teleport,
+    },
+    Command {
+        aliases: &["addcredits", "givecredits"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Add credits to user",
+        arguments: &["user", "credits"],
+        handler: staff::give_credits,
+    },
+    Command {
+        aliases: &["removecredits", "delcredits"],
+        rank: RANK_COMMUNITY_MANAGER,
+        description: "Remove credits from user",
+        arguments: &["user", "credits"],
+        handler: staff::remove_credits,
+    },
+    Command {
+        aliases: &["checkbalance", "balance"],
+        rank: RANK_MODERATOR,
+        description: "Checks the credit amount for an user",
+        arguments: &["user"],
+        handler: staff::check_credits,
+    },
+    Command {
+        aliases: &["resetpw"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Resets the player's account",
+        arguments: &["user"],
+        handler: staff::recover_account,
+    },
+    Command {
+        aliases: &["unacceptable"],
+        rank: RANK_MODERATOR,
+        description: "Makes a room set to 'Unacceptable to hotel management'",
+        arguments: &["name/desc/description/both"],
+        handler: staff::unacceptable,
+    },
+    Command {
+        aliases: &["giftroom"],
+        rank: RANK_ADMINISTRATOR,
+        description: "Sends a gift from catalogue to users in the room",
+        arguments: &[],
+        handler: staff::gift_room,
+    },
+    // Moderation
+    Command {
+        aliases: &["dc", "disconnect"],
+        rank: RANK_MODERATOR,
+        description: "Disconnects a given user",
+        arguments: &["user"],
+        handler: staff::disconnect,
+    },
+    // Group perms
+    Command {
+        aliases: &["roommute", "eventmute"],
+        rank: RANK_MODERATOR,
+        description: "Mutes/unmutes a room",
+        arguments: &[],
+        handler: staff::room_mute,
+    },
+    Command {
+        aliases: &["hotelalert", "ha"],
+        rank: RANK_MODERATOR,
+        description: "Sends an alert hotel-wide",
+        arguments: &[],
+        handler: staff::hotel_alert,
+    },
+    Command {
+        aliases: &["roomalert", "ra"],
+        rank: RANK_MODERATOR,
+        description: "Sends an alert room-wide",
+        arguments: &[],
+        handler: staff::room_alert,
+    },
+    Command {
+        aliases: &["ban", "userban"],
+        rank: RANK_MODERATOR,
+        description: "Temporarily bans a given user",
+        arguments: &["user", "minutes", "reason"],
+        handler: staff::ban,
+    },
+    Command {
+        aliases: &["unban"],
+        rank: RANK_MODERATOR,
+        description: "Removes a ban for the given user",
+        arguments: &[],
+        handler: staff::unban,
+    },
+    Command {
+        aliases: &["tradeban"],
+        rank: RANK_MODERATOR,
+        description: "Sets trade ban time of user",
+        arguments: &["user", "minutes"],
+        handler: staff::trade_ban,
+    },
+    Command {
+        aliases: &["mute"],
+        rank: RANK_MODERATOR,
+        description: "Remove user ability to speak",
+        arguments: &["user", "minutes"],
+        handler: staff::mute,
+    },
+    Command {
+        aliases: &["unmute"],
+        rank: RANK_MODERATOR,
+        description: "Lets user speak again",
+        arguments: &["user"],
+        handler: staff::unmute,
     },
 ];
 
