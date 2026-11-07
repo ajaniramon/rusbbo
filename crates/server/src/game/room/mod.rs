@@ -19,6 +19,7 @@ pub mod items;
 pub mod mapping;
 pub mod model;
 mod pets;
+pub mod sound;
 pub mod tasks;
 pub mod trade;
 #[cfg(test)]
@@ -121,6 +122,8 @@ pub struct Room {
     task: Option<tokio::task::AbortHandle>,
     /// Java: `RoomTaskManager`'s RollerTask, private rooms only.
     roller_task: Option<tokio::task::AbortHandle>,
+    /// Java: `RoomTaskManager`'s RainbowTask (`:rainbow`), while it cycles the moodlight.
+    rainbow_task: Option<tokio::task::AbortHandle>,
     /// Bumped on every dispose request, so only the latest one runs.
     dispose_generation: u64,
     /// Java: the room's `BotTask` is scheduled (the room has bots).
@@ -169,6 +172,7 @@ impl Room {
                 counter: 0,
                 task: None,
                 roller_task: None,
+                rainbow_task: None,
                 dispose_generation: 0,
                 bots_active: false,
                 last_bot_speech: None,
@@ -397,6 +401,9 @@ impl Room {
             task.abort();
         }
         if let Some(task) = self.roller_task.take() {
+            task.abort();
+        }
+        if let Some(task) = self.rainbow_task.take() {
             task.abort();
         }
     }
@@ -1282,6 +1289,7 @@ impl Room {
             counter: 0,
             task: None,
             roller_task: None,
+            rainbow_task: None,
             dispose_generation: 0,
             bots_active: false,
             last_bot_speech: None,

@@ -157,7 +157,7 @@ pub fn place_stuff(
             item.position.set_rotation(rotation);
         }
     }
-    if r.has_too_many(&item) {
+    if r.has_too_many(world, session, p.has_club(), &item) {
         return Ok(());
     }
     r.add_flat_item(world, item);

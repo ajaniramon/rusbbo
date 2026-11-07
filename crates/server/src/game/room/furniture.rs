@@ -109,10 +109,28 @@ impl Room {
         )
     }
 
-    /// Java: `RoomItemManager.hasTooMany`. TODO(sound, moodlight, idol): the one sound machine,
-    /// moodlight and idol scoreboard per room (`refreshRoomItems`), and the post-it, roller and
-    /// pet nest limits with their `CANNOT_PLACE_STUFF_FROM_STRIP` errors.
-    pub fn has_too_many(&self, _item: &Item) -> bool {
+    /// Java: `RoomItemManager.hasTooMany`: one sound machine (or jukebox) and one room dimmer
+    /// per room, telling the player why. TODO(idol, items): the idol scoreboard, and the
+    /// post-it, roller (more with club: `has_club`) and pet nest limits.
+    pub fn has_too_many(
+        &self,
+        world: &World,
+        session: &crate::session::Session,
+        _has_club: bool,
+        item: &Item,
+    ) -> bool {
+        if self.sound_machine().is_some()
+            && (item.has(Behaviour::SoundMachine) || item.has(Behaviour::Jukebox))
+        {
+            session.send(out::cannot_place_stuff_from_strip(23));
+            return true;
+        }
+        if self.moodlight().is_some() && item.has(Behaviour::Roomdimmer) {
+            session.send(crate::messages::outgoing::alerts::alert(
+                &world.text("roomdimmer_furni_limit"),
+            ));
+            return true;
+        }
         false
     }
 
@@ -135,8 +153,8 @@ impl Room {
         self.mapping.items.push(item);
         let idx = self.mapping.items.len() - 1;
         if wall {
+            // A room dimmer becomes the room's moodlight (`Room::moodlight`).
             self.send(out::place_wallitem(&self.mapping.items[idx]));
-            // TODO(moodlight): a room dimmer becomes the room's moodlight.
         } else {
             self.handle_item_adjustment(world, idx, false);
             self.mapping.add_item_tiles(idx);
@@ -232,7 +250,7 @@ impl Room {
             if item.custom_data.starts_with('2') {
                 item.custom_data.replace_range(..1, "1");
             }
-            // TODO(moodlight): the room loses its moodlight.
+            // The room loses its moodlight (`Room::moodlight` finds the next one, if any).
         }
         // TODO(totems): a totem head loses its colour.
         reset_extra_data(&mut item, false);

@@ -144,7 +144,8 @@ impl RoomMapping {
         for (id, position) in entities {
             self.add_entity(*position, *id);
         }
-        // TODO(items): refreshRoomItems (sound machine, moodlight, idol scoreboard).
+        // Java's refreshRoomItems: the sound machine and the moodlight are looked up when
+        // needed (`Room::sound_machine`, `Room::moodlight`). TODO(idol): the idol scoreboard.
     }
 
     /// Java: `RoomTile.addItem`.

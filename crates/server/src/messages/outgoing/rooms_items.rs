@@ -110,6 +110,11 @@ pub fn slide_object_bundle(roller: &Item, items: &[Slide], entity: Option<&Slide
     Message::new(230, body.build())
 }
 
+/// Java: `CANNOT_PLACE_STUFF_FROM_STRIP`: why an item cannot be placed (a per-room limit).
+pub fn cannot_place_stuff_from_strip(reason: i32) -> Message {
+    Message::new(516, ServerBody::new().int(reason).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

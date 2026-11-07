@@ -374,5 +374,90 @@ fn uptime(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
 /// Java: `UsersOnlineCommand`. TODO(commands): the list of players online.
 fn users_online(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
 
-/// Java: `RainbowDimmerCommand`. TODO(commands, dimmer): needs the room dimmer.
-fn rainbow_dimmer(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
+/// Java: `RainbowDimmerCommand`: the owner (or a room controller) starts the room's moodlight
+/// cycling through the rainbow, a colour every `<seconds>` (5), or stops it. The owner hears
+/// about it too when they are in one of their rooms.
+fn rainbow_dimmer(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
+    use crate::game::room::items::is_numeric;
+
+    let Some(room) = current_room(world, session) else {
+        return;
+    };
+    let Some((user_id, any_controller)) = ({
+        let p = session.player.lock();
+        p.user_id()
+            .map(|id| (id, p.has_fuse("fuse_any_room_controller")))
+    }) else {
+        return;
+    };
+    let (owner_id, room_id) = {
+        let r = room.lock();
+        if !r.is_owner(user_id) && !any_controller {
+            return;
+        }
+        (r.data.owner_id, r.id())
+    };
+    let mut seconds = 5;
+    if let [arg] = args {
+        let arg = latin1(arg);
+        if !is_numeric(&arg) {
+            session.send(alert(
+                "Please specify the number internal in seconds of the time it takes change colours",
+            ));
+            return;
+        }
+        let Ok(value) = arg.parse::<i32>() else {
+            return; // Java's parseInt throws.
+        };
+        seconds = value;
+    }
+    if seconds < 1 {
+        seconds = 1;
+    }
+    if room.lock().moodlight().is_none() {
+        session.send(alert(
+            "This command requires a moodlight placed for it to work",
+        ));
+        return;
+    }
+    // Java: getPlayerById(owner).getRoomUser(), which throws when the owner is offline.
+    let Some(owner) = world.player_by_id(owner_id) else {
+        return;
+    };
+    let owner_room = owner.player.lock().room_id;
+    // The owner's instance id when they are in one of their own rooms other than this one.
+    let mut owner_elsewhere = None;
+    if let Some(other) = owner_room.filter(|&id| id != room_id) {
+        if let Some(other) = world.loaded_room(other) {
+            let r = other.lock();
+            if r.data.owner_id == owner_id {
+                owner_elsewhere = r.entity_index(owner.id).map(|i| r.entities[i].instance_id);
+            }
+        }
+    }
+    let mut r = room.lock();
+    let status = if r.has_rainbow() {
+        r.cancel_rainbow();
+        "Rainbow room dimmer cycle has stopped"
+    } else {
+        r.start_rainbow(world, seconds as u64);
+        "Rainbow room dimmer cycle has started"
+    };
+    let whisper = |to: &Session, instance_id: i32| {
+        to.send(out::chat_message(
+            ChatType::Whisper,
+            instance_id,
+            status.as_bytes(),
+            0,
+        ));
+    };
+    if let Some(idx) = r.entity_index(session.id) {
+        whisper(session, r.entities[idx].instance_id);
+    }
+    let owner_here = (owner_room == Some(room_id))
+        .then(|| r.entity_index(owner.id).map(|i| r.entities[i].instance_id))
+        .flatten();
+    if let Some(instance_id) = owner_here.or(owner_elsewhere) {
+        whisper(&owner, instance_id);
+    }
+}

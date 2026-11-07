@@ -161,6 +161,16 @@ impl Inventory {
         Some(self.items.remove(index))
     }
 
+    /// Java: `getItems()`, in hand order (hidden items too).
+    pub fn items(&self) -> &[Item] {
+        &self.items
+    }
+
+    /// [`Inventory::items`], to change them in place.
+    pub fn items_mut(&mut self) -> &mut [Item] {
+        &mut self.items
+    }
+
     /// Java: `addItem`: the newest item goes first.
     pub fn add_item(&mut self, item: Item) {
         self.items.retain(|i| i.record.id != item.record.id);

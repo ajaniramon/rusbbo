@@ -5,14 +5,17 @@ pub mod catalogue;
 pub mod club;
 pub mod handshake;
 pub mod inventory;
+pub mod jukebox;
 pub mod messenger;
 pub mod navigator;
 pub mod pets;
 pub mod rooms;
+pub mod rooms_dimmer;
 pub mod rooms_items;
 pub mod rooms_moderation;
 pub mod rooms_settings;
 pub mod rooms_user;
+pub mod songs;
 pub mod trade;
 pub mod user;
 
@@ -76,6 +79,9 @@ pub fn handler(header: u16) -> Option<Handler> {
         64 => rooms::g_stat,
         63 => rooms::g_items,
         66 => rooms::flat_prop_by_item,
+        341 => rooms_dimmer::get_presets,
+        342 => rooms_dimmer::set_preset,
+        343 => rooms_dimmer::change_state,
         // registerItemPackets
         90 => rooms_items::place_stuff,
         73 => rooms_items::move_stuff,
@@ -129,6 +135,26 @@ pub fn handler(header: u16) -> Option<Handler> {
         68 | 403 => trade::trade_unaccept,
         402 => trade::trade_confirm_accept,
         405 => trade::trade_remove_item,
+        // registerSongPackets
+        244 | 246 => songs::get_song_list,
+        239 => songs::new_song,
+        219 => songs::insert_sound_package,
+        220 => songs::eject_sound_package,
+        240 => songs::save_song_new,
+        243 => songs::update_play_list,
+        221 => songs::get_song_info,
+        245 => songs::get_play_list,
+        248 => songs::delete_song,
+        241 => songs::edit_song,
+        242 => songs::save_song_edit,
+        254 => songs::burn_song,
+        // registerJukeboxPackets
+        258 => jukebox::get_jukebox_discs,
+        259 => jukebox::get_user_song_discs,
+        255 => jukebox::add_jukebox_disc,
+        256 => jukebox::remove_jukebox_disc,
+        257 => jukebox::jukebox_playlist_add,
+        260 => jukebox::reset_jukebox,
         _ => return None,
     })
 }
