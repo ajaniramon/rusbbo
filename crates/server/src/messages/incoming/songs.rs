@@ -8,8 +8,8 @@
 use std::sync::Arc;
 
 use chrono::Datelike;
-use havana_protocol::body::ClientReader;
-use havana_storage::Song;
+use rusbbo_protocol::body::ClientReader;
+use rusbbo_storage::Song;
 use tracing::error;
 
 use super::latin1;
@@ -80,7 +80,7 @@ pub(super) fn send_hand(world: &World, session: &Session, p: &mut Player) {
 
 /// Java: `SONG_PLAYLIST(SongMachineDao.getSongPlaylist(machine))`, `None` where it fails to
 /// compose.
-pub(super) fn playlist_message(world: &World, machine_id: i64) -> Option<havana_protocol::Message> {
+pub(super) fn playlist_message(world: &World, machine_id: i64) -> Option<rusbbo_protocol::Message> {
     let songs: Vec<(Option<Song>, Option<String>)> = song::playlist(&world.store, machine_id)
         .into_iter()
         .map(|(_, song)| {
@@ -531,7 +531,7 @@ pub fn burn_song(
     );
     let t = now();
     let draft =
-        havana_storage::Item::with_defaults(user.id, definition.id() as u32, custom_data, t);
+        rusbbo_storage::Item::with_defaults(user.id, definition.id() as u32, custom_data, t);
     let created = world.store.write().and_then(|mut w| {
         let created = w.insert_item(&draft, t)?;
         w.commit()?;
@@ -550,7 +550,7 @@ pub fn burn_song(
     };
     p.inventory.add_item(disk);
     send_hand(world, session, &mut p);
-    let row = havana_storage::SongDisk {
+    let row = rusbbo_storage::SongDisk {
         item_id: disk_id as i64,
         soundmachine_id: 0,
         slot_id: 0,

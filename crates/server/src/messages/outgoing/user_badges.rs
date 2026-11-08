@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/user/badges`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::Badge;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::Badge;
 
 /// Java: `AVAILABLE_BADGES`: every badge, then the worn ones with their slots.
 pub fn available_badges(badges: &[Badge], equipped: &[&Badge]) -> Message {

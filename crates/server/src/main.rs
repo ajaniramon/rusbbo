@@ -19,7 +19,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
-use havana_storage::Store;
+use rusbbo_storage::Store;
 use tracing::info;
 
 use world::World;
@@ -27,8 +27,8 @@ use world::World;
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
-    /// Database file (create one with havana-import).
-    #[arg(long, default_value = "havana.redb")]
+    /// Database file (create one with rusbbo-import).
+    #[arg(long, default_value = "rusbbo.redb")]
     db: PathBuf,
     /// Address for the Shockwave game port.
     #[arg(long, default_value = "127.0.0.1:12321")]

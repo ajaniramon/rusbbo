@@ -1,4 +1,4 @@
-//! `havana-trace load`: many bots that log in, enter public rooms, walk and chat, to compare how
+//! `rusbbo-trace load`: many bots that log in, enter public rooms, walk and chat, to compare how
 //! servers hold up under load (latency percentiles, lost replies, dropped connections). Unlike
 //! `check` it compares nothing byte by byte; it only times the replies a real client waits for.
 
@@ -11,9 +11,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
-use havana_protocol::body::ClientBody;
-use havana_protocol::frame::{Decoder, Message, encode_client};
 use rand::RngExt;
+use rusbbo_protocol::body::ClientBody;
+use rusbbo_protocol::frame::{Decoder, Message, encode_client};
 use serde::Serialize;
 
 /// Client message ids.

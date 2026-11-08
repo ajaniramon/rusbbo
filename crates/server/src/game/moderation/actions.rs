@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use super::{LogAction, add_log, ban_user, kick_to_hotel_view};
 use crate::messages::Malformed;

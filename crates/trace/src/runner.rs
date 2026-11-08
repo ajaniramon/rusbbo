@@ -8,9 +8,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
-use havana_protocol::crypto::{self, Crypto, DiffieHellman, Opener, Sealer};
-use havana_protocol::frame::{Decoder, Message, encode_client};
 use rand::RngExt;
+use rusbbo_protocol::crypto::{self, Crypto, DiffieHellman, Opener, Sealer};
+use rusbbo_protocol::frame::{Decoder, Message, encode_client};
 
 use crate::scenario::{Action, BOT_DH_PRIVATE, Step};
 
@@ -309,7 +309,7 @@ impl Runner {
 /// of parameters and each key and value, every string as a 4-byte length and its bytes.
 pub fn rcon_frame(header: &str, values: &std::collections::BTreeMap<String, String>) -> Vec<u8> {
     fn string(out: &mut Vec<u8>, s: &str) {
-        let bytes = havana_protocol::body::latin1(s);
+        let bytes = rusbbo_protocol::body::latin1(s);
         out.extend_from_slice(&(bytes.len() as i32).to_be_bytes());
         out.extend_from_slice(&bytes);
     }

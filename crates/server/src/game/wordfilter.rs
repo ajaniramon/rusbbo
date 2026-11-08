@@ -1,7 +1,7 @@
 //! The word filter (Java: `game/wordfilter/WordfilterManager`). Sentences are ISO-8859-1 bytes;
 //! they are compared as one char per byte, like Java's strings.
 
-use havana_storage::WordfilterWord;
+use rusbbo_storage::WordfilterWord;
 
 use crate::settings::Settings;
 

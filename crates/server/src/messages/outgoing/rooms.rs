@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/rooms` (room entry and furniture), plus `ROOMEEVENT_INFO` and
 //! `CANTCONNECT` which room entry sends.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 use crate::game::room::items::{Behaviour, Item};

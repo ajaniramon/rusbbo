@@ -3,8 +3,8 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
-use havana_storage::{
+use rusbbo_protocol::body::ClientReader;
+use rusbbo_storage::{
     CatalogueItem, CataloguePage, Item, ItemDefinition, Room, RoomModel, Store, User,
     UserStatistics,
 };
@@ -215,7 +215,7 @@ impl Fixture {
 pub struct Snapshot {
     users: Vec<Option<User>>,
     items: Vec<Item>,
-    pets: Vec<Option<havana_storage::Pet>>,
+    pets: Vec<Option<rusbbo_storage::Pet>>,
     transactions: u64,
     statistics: Vec<Option<UserStatistics>>,
 }
@@ -242,7 +242,7 @@ impl Client {
         &self,
         world: &World,
         handler: fn(&World, &Arc<Session>, &mut ClientReader) -> Result<(), Malformed>,
-        body: havana_protocol::body::ClientBody,
+        body: rusbbo_protocol::body::ClientBody,
     ) {
         let body = body.build();
         handler(world, &self.session, &mut ClientReader::new(&body)).unwrap();

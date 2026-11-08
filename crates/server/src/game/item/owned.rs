@@ -10,7 +10,7 @@ pub const DEFAULT_ROOMDIMMER_CUSTOM_DATA: &str = "1,1,1,#000000,255";
 #[derive(Clone, Debug)]
 pub struct Item {
     /// The `items` row.
-    pub record: havana_storage::Item,
+    pub record: rusbbo_storage::Item,
     pub definition: Arc<ItemDefinition>,
     /// The id the client sees (Java: `Item.getVirtualId`, from `ItemManager`'s counter).
     pub virtual_id: i32,

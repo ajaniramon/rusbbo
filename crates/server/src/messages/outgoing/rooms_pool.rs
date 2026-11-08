@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/rooms/pool`, `rooms/items/SHOWPROGRAM` and the ticket messages of
 //! `user/currencies`.
 
-use havana_protocol::Message;
-use havana_protocol::body::{ServerBody, latin1};
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::{ServerBody, latin1};
 
 /// Java: `SHOWPROGRAM`: the arguments joined by spaces, raw (the pool's curtains, splashes, lift
 /// and diving camera).

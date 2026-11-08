@@ -33,8 +33,8 @@ pub mod wobble_squabble;
 
 use std::sync::{Arc, Weak};
 
-use havana_protocol::Message;
 use parking_lot::{Mutex, MutexGuard};
+use rusbbo_protocol::Message;
 use tracing::{error, warn};
 
 use crate::game::now;
@@ -108,7 +108,7 @@ pub struct Vote {
 
 /// Java: `Room` with its `RoomData`, entity list and managers.
 pub struct Room {
-    pub data: havana_storage::Room,
+    pub data: rusbbo_storage::Room,
     pub model: Arc<RoomModel>,
     /// Collision map and the room's items (`mapping.items` is Java's `Room.items`).
     pub mapping: RoomMapping,
@@ -243,7 +243,7 @@ impl Room {
         let key = world.new_arena_key();
         // Java: RoomData.fill(0, name, ""): no owner (a public room), no landscape (written
         // as "null").
-        let data = havana_storage::Room {
+        let data = rusbbo_storage::Room {
             id: key,
             name: name.to_string(),
             model: model.id.clone(),
@@ -1704,7 +1704,7 @@ fn enter_room_with(
 impl Room {
     /// A loaded room for unit tests: no world, no tasks.
     pub(crate) fn for_test(owner_id: u32, model: Arc<RoomModel>, items: Vec<items::Item>) -> Room {
-        let data = havana_storage::Room {
+        let data = rusbbo_storage::Room {
             id: 1000,
             owner_id,
             ..Default::default()
@@ -1791,7 +1791,7 @@ mod tests {
 
     #[test]
     fn walking_uses_the_trace_path() {
-        let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "ballroom".into(),
             model_name: "ballroom".into(),
             door_x: 13,

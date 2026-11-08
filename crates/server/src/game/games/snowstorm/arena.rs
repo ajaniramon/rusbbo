@@ -3,9 +3,9 @@
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_protocol::body::ClientReader;
 use rand::RngExt;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ClientReader;
 
 use super::game::{Output, PlayerInfo, RosterEntry, SnowStormGame};
 use super::outgoing;
@@ -25,7 +25,7 @@ pub fn now_ms() -> i64 {
 /// Java: `SnowStormGame.initialise`'s `new RoomModel("snowwar_arena_0", "snowwar_arena_0", 0, 0,
 /// 0, 0, getHeightMap(mapId), null)`.
 pub fn arena_model(map_id: i32) -> Arc<RoomModel> {
-    Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+    Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
         model_id: "snowwar_arena_0".into(),
         model_name: "snowwar_arena_0".into(),
         door_x: 0,

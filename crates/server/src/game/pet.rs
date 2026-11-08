@@ -2,7 +2,7 @@
 //! `PetTask` timers). A pet lives in its nest item's `items_pets` row and walks the room as an
 //! entity while the nest is placed; the room side is in `room/pets.rs`.
 
-use havana_storage::Pet;
+use rusbbo_storage::Pet;
 
 /// Java: `PetStat`, with the highest value each stat takes.
 #[derive(Clone, Copy)]

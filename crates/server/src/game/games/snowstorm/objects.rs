@@ -1,7 +1,7 @@
 //! The game objects (Java: `snowstorm/objects/SnowStormAvatarObject`, `SnowStormMachineObject`,
 //! `SnowballObject`).
 
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::body::ServerBody;
 
 use super::events::object_type;
 use super::game::SnowStormPlayer;

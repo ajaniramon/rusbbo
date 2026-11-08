@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use havana_storage::{PlaylistEntry, Song, SongDisk, Store};
+use rusbbo_storage::{PlaylistEntry, Song, SongDisk, Store};
 use tracing::error;
 
 use crate::game::item::Item;

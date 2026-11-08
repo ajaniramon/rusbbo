@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/messenger`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::MessengerCategory;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::MessengerCategory;
 
 use crate::game::long_date;
 use crate::game::messenger::{FriendView, MessengerError, MessengerUser};

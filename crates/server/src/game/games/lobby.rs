@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use havana_protocol::Message;
+use rusbbo_protocol::Message;
 
 use super::battleball::BattleBall;
 use super::game::{Game, GameKind};

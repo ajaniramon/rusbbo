@@ -72,9 +72,9 @@ pub mod snowstorm;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_storage::Store;
 use parking_lot::Mutex;
+use rusbbo_protocol::Message;
+use rusbbo_storage::Store;
 use tracing::error;
 
 use crate::game::pathfinder::Position;
@@ -284,7 +284,7 @@ impl GameData {
 /// `GameDao.getGameMaps` builds the arenas' models. Java's `split("|")` drops the empty row a
 /// trailing `|` leaves.
 pub fn arena_model(name: &str, heightmap: &str, door_x: i32, door_y: i32) -> RoomModel {
-    RoomModel::parse(&havana_storage::RoomModel {
+    RoomModel::parse(&rusbbo_storage::RoomModel {
         model_id: name.to_string(),
         model_name: name.to_string(),
         door_x,

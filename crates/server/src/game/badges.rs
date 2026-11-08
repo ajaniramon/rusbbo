@@ -1,7 +1,7 @@
 //! A player's badges (Java: `game/badges/BadgeManager.java`). Loaded at login; every change is
 //! written to the store as the whole list (the Java tables are only read by user).
 
-use havana_storage::{Badge, Store};
+use rusbbo_storage::{Badge, Store};
 use tracing::error;
 
 use crate::messages::outgoing::user_badges as out;

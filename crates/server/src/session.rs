@@ -3,10 +3,10 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, Ordering};
 
-use havana_protocol::Message;
-use havana_protocol::crypto::{Crypto, Opener, Sealer};
-use havana_protocol::frame::encode_server;
 use parking_lot::Mutex;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::crypto::{Crypto, Opener, Sealer};
+use rusbbo_protocol::frame::encode_server;
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::debug;
 

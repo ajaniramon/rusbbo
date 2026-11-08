@@ -1,9 +1,9 @@
 //! `games_maps`, `games_player_spawns`, `games_ranks` and `games_played_history` (Java: `GameDao`).
 
 use anyhow::Result;
-use havana_storage::{GameMap, GameRank, GameSpawn, PlayedGame, Store};
 use mysql::Row;
 use mysql::prelude::Queryable;
+use rusbbo_storage::{GameMap, GameRank, GameSpawn, PlayedGame, Store};
 
 use crate::col;
 

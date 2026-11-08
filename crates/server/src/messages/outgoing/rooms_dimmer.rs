@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/rooms/dimmer`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use crate::game::song::{java_split, parse_int};
 

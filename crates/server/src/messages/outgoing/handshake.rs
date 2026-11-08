@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/handshake` and `HOTEL_LOGOUT`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 /// Java `MessageComposer` ids; `MessageComposer`s with no body still get the 0x01 terminator.
 pub fn hello() -> Message {

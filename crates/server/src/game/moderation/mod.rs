@@ -9,7 +9,7 @@ pub mod cfh;
 
 use std::sync::Arc;
 
-use havana_storage::{AuditLogEntry, Ban, BanType, User};
+use rusbbo_storage::{AuditLogEntry, Ban, BanType, User};
 use tracing::{error, info};
 
 use crate::game::now;
@@ -255,7 +255,7 @@ pub fn ban_user(
 }
 
 /// Sends `msg` to everyone online with `fuse` (Java: `CallForHelpManager.sendToModerators`).
-pub fn send_to_fuse(world: &World, fuse: &str, msg: &havana_protocol::Message) {
+pub fn send_to_fuse(world: &World, fuse: &str, msg: &rusbbo_protocol::Message) {
     for session in world.players() {
         if session.player.lock().has_fuse(fuse) {
             session.send(msg.clone());

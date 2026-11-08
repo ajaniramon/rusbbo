@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/jukebox` (the discs in a jukebox and in the hand).
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::{Song, SongDisk};
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::{Song, SongDisk};
 
 use crate::game::song::calculate_song_length;
 

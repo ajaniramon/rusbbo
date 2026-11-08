@@ -5,7 +5,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;
@@ -111,7 +111,7 @@ pub fn place_stuff(
         // Java logs the placement before checking where the item goes (credit and pixel cost
         // hold the room and its owner).
         let owner_name = owner.map(|o| o.username).unwrap_or_else(|| "null".into());
-        let row = havana_storage::Transaction {
+        let row = rusbbo_storage::Transaction {
             user_id: user.id,
             item_id: owned.record.id.to_string(),
             catalogue_id: owned.definition.record.id.to_string(),
@@ -239,7 +239,7 @@ fn place_sticky(world: &World, p: &mut Player, r: &mut Room, pad_id: i32, wall_p
     let Some(pad) = p.inventory.item(pad_id) else {
         return;
     };
-    let mut draft = havana_storage::Item::with_defaults(
+    let mut draft = rusbbo_storage::Item::with_defaults(
         r.data.owner_id,
         pad.definition.record.id,
         "FFFF33".into(),

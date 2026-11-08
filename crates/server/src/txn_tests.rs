@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientBody;
+use rusbbo_protocol::body::ClientBody;
 
 use crate::game::room;
 use crate::game::room::trade::{TradeSide, run_finished};

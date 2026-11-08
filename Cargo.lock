@@ -522,73 +522,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 
 [[package]]
-name = "havana-import"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "havana-storage",
- "mysql",
- "serde_json",
-]
-
-[[package]]
-name = "havana-protocol"
-version = "0.1.0"
-dependencies = [
- "num-bigint",
-]
-
-[[package]]
-name = "havana-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2",
- "bytes",
- "chrono",
- "clap",
- "havana-protocol",
- "havana-storage",
- "http-body-util",
- "hyper",
- "hyper-util",
- "parking_lot",
- "rand",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
-name = "havana-storage"
-version = "0.1.0"
-dependencies = [
- "postcard",
- "redb",
- "serde",
- "tempfile",
- "thiserror",
-]
-
-[[package]]
-name = "havana-trace"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "havana-protocol",
- "rand",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
 name = "heapless"
 version = "0.7.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1220,6 +1153,73 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+
+[[package]]
+name = "rusbbo-import"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "mysql",
+ "rusbbo-storage",
+ "serde_json",
+]
+
+[[package]]
+name = "rusbbo-protocol"
+version = "0.1.0"
+dependencies = [
+ "num-bigint",
+]
+
+[[package]]
+name = "rusbbo-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "bytes",
+ "chrono",
+ "clap",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "parking_lot",
+ "rand",
+ "rusbbo-protocol",
+ "rusbbo-storage",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "rusbbo-storage"
+version = "0.1.0"
+dependencies = [
+ "postcard",
+ "redb",
+ "serde",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "rusbbo-trace"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "rand",
+ "rusbbo-protocol",
+ "serde",
+ "serde_json",
+ "toml",
+]
 
 [[package]]
 name = "rustc_version"

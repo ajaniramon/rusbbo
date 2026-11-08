@@ -6,7 +6,7 @@
 //! the details once the transaction is committed.
 
 use anyhow::{Context, Result};
-use havana_storage::{Store, User, Writer};
+use rusbbo_storage::{Store, User, Writer};
 use tracing::error;
 
 /// Java: `CurrencyDao.decreaseCredits` inside `w`: the stored balance after it. Nothing is taken
@@ -22,7 +22,7 @@ pub fn decrease_credits_in(w: &mut Writer, details: &User, amount: i32) -> Resul
 
 /// Java: `CurrencyDao.decreaseCredits` on its own (a staff command, burning a song): one
 /// transaction, and the stored balance copied into `details`.
-pub fn decrease_credits(store: &havana_storage::Store, details: &mut User, amount: i32) {
+pub fn decrease_credits(store: &rusbbo_storage::Store, details: &mut User, amount: i32) {
     let result = (|| -> Result<i32> {
         let mut w = store.write()?;
         let credits = decrease_credits_in(&mut w, details, amount)?;

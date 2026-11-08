@@ -3,7 +3,7 @@
 //! Each Java event is a `GameObject` whose `serialiseObject` writes its type id and fields; they
 //! are values taken when the event is queued.
 
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::body::ServerBody;
 
 /// Java: the SnowStorm values of `GameObjectType`.
 pub mod object_type {

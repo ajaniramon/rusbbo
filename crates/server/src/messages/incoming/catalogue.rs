@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::{debug, error, info};
 
 use super::rooms_items::trade_ban_alert;
@@ -17,7 +17,7 @@ use crate::game::{fuserights, now};
 use crate::messages::{Malformed, outgoing};
 use crate::session::Session;
 use crate::world::World;
-use havana_storage::Transaction;
+use rusbbo_storage::Transaction;
 
 use super::latin1;
 
@@ -253,7 +253,7 @@ fn purchase_transaction(
 
 /// The end of Java's `GRPC` once the charge is committed: copies the balances into the details
 /// and tells the client.
-fn send_charge(session: &Session, details: &mut havana_storage::User, charge: Charge) {
+fn send_charge(session: &Session, details: &mut rusbbo_storage::User, charge: Charge) {
     charge.apply(details);
     if charge.credits.is_some() {
         session.send(outgoing::user::credit_balance(details.credits));
@@ -268,7 +268,7 @@ fn send_charge(session: &Session, details: &mut havana_storage::User, charge: Ch
 
 /// A gift that passed [`check_gift`]: who gets it, and what goes in the present.
 struct Gift {
-    receiver: havana_storage::User,
+    receiver: rusbbo_storage::User,
     /// The name the buyer typed (Java: `giftedUser`), for the transaction rows.
     gifted_user: String,
     note: String,
@@ -367,7 +367,7 @@ fn buy_gift(
     let user = p.details.clone()?;
     let t = now();
     let receiver = &gift.receiver;
-    let written = (|| -> anyhow::Result<(havana_storage::Item, Charge)> {
+    let written = (|| -> anyhow::Result<(rusbbo_storage::Item, Charge)> {
         let mut w = world.store.write()?;
         let present = world.catalogue.create_gift_in(
             &mut w,

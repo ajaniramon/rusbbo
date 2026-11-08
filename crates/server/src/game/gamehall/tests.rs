@@ -36,7 +36,7 @@ mod flows {
 
     pub fn world() -> (tempfile::TempDir, Arc<World>) {
         let dir = tempfile::tempdir().unwrap();
-        let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+        let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
         (dir, Arc::new(World::new(store).unwrap()))
     }
 
@@ -44,7 +44,7 @@ mod flows {
     pub fn bodies(rx: &mut UnboundedReceiver<Outgoing>) -> Vec<(u16, String)> {
         let mut out = Vec::new();
         while let Ok(Outgoing::Frame(f)) = rx.try_recv() {
-            let header = havana_protocol::encoding::b64_decode(&f[..2]) as u16;
+            let header = rusbbo_protocol::encoding::b64_decode(&f[..2]) as u16;
             let body = f[2..f.len() - 1].iter().map(|&b| b as char).collect();
             out.push((header, body));
         }

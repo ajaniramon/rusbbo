@@ -1,8 +1,8 @@
 //! Java: `messages/outgoing/user` and `AVATAR_EFFECTS`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::{Effect, User};
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::{Effect, User};
 
 pub fn user_object(user: &User) -> Message {
     let respect = if user.daily_respect_points > 0 {

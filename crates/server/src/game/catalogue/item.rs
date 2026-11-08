@@ -37,7 +37,7 @@ pub struct CatalogueItem {
 impl CatalogueItem {
     /// Java: the `CatalogueItem` constructor. `None` when `page_id` is NULL or not a list of
     /// numbers (Java throws while loading and the rest of the table is lost; here only the row).
-    pub fn new(r: havana_storage::CatalogueItem, items: &ItemManager) -> Option<Self> {
+    pub fn new(r: rusbbo_storage::CatalogueItem, items: &ItemManager) -> Option<Self> {
         let page_id = r.page_id.as_deref()?;
         // `"".split(",")` has one element, so an empty list is the array `[0]`.
         let pages = if page_id.is_empty() {

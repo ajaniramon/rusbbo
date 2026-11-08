@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::game::infobus;
 use crate::game::room::{current_room, run_deferred};

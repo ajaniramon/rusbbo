@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_protocol::frame::encode_server;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::frame::encode_server;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 use super::Room;
@@ -19,7 +19,7 @@ use crate::world::World;
 
 fn world() -> (tempfile::TempDir, Arc<World>) {
     let dir = tempfile::tempdir().unwrap();
-    let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+    let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
     (dir, World::new(store).unwrap().into_arc())
 }
 
@@ -40,13 +40,13 @@ fn pool_room(
     world: &Arc<World>,
     model: &str,
     trigger: &str,
-    rows: &[havana_storage::PublicItem],
+    rows: &[rusbbo_storage::PublicItem],
 ) -> Room {
     let line = |c: char| std::iter::repeat_n(c, 30).collect::<String>();
     let heightmap: Vec<String> = (0..30)
         .map(|y| if y < 15 { line('7') } else { line('0') })
         .collect();
-    let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+    let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
         model_id: model.into(),
         model_name: model.into(),
         door_x: 2,
@@ -67,8 +67,8 @@ fn row(
     (x, y, z): (i32, i32, f64),
     rotation: i32,
     program: &str,
-) -> havana_storage::PublicItem {
-    havana_storage::PublicItem {
+) -> rusbbo_storage::PublicItem {
+    rusbbo_storage::PublicItem {
         sprite: Some(sprite.into()),
         x,
         y,
@@ -277,7 +277,7 @@ fn effects_stop_drinks_and_drinks_stop_effects() {
 fn logged_in(world: &World, user_id: u32) -> (Arc<Session>, UnboundedReceiver<Outgoing>) {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
     let session = Arc::new(Session::new(u64::from(user_id), tx));
-    let user = havana_storage::User {
+    let user = rusbbo_storage::User {
         id: user_id,
         username: format!("user{user_id}"),
         ..Default::default()
@@ -295,7 +295,7 @@ fn logged_in(world: &World, user_id: u32) -> (Arc<Session>, UnboundedReceiver<Ou
 fn activated_effects_expire() {
     let (_dir, world) = world();
     let (session, mut rx) = logged_in(&world, 7);
-    let effect = |id, effect_id, expiry_date, activated| havana_storage::Effect {
+    let effect = |id, effect_id, expiry_date, activated| rusbbo_storage::Effect {
         id,
         effect_id,
         expiry_date,

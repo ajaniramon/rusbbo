@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/rooms/user`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use crate::game::format_decimal;
 use crate::game::room::entity::{RoomEntity, StatusType};
@@ -80,7 +80,7 @@ pub fn user_statuses<'a>(
                     // TODO(flash): Flash clients get 4.0 here.
                     body = body.text(&format_decimal(7.0));
                 } else {
-                    body = body.raw(&havana_protocol::body::latin1(&status.value));
+                    body = body.raw(&rusbbo_protocol::body::latin1(&status.value));
                 }
             }
             body = body.raw(b"/");

@@ -1,6 +1,6 @@
 //! Compares a fresh run against a recorded trace.
 
-use havana_protocol::{Message, escape, ids};
+use rusbbo_protocol::{Message, escape, ids};
 
 use crate::runner::StepOutput;
 use crate::trace::{BotTrace, Trace};

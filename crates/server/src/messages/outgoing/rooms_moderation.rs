@@ -1,6 +1,6 @@
 //! Java: `messages/outgoing/rooms/moderation` (what a user may do in a private room).
 
-use havana_protocol::Message;
+use rusbbo_protocol::Message;
 
 /// Java: `YOUAROWNER`.
 pub fn you_are_owner() -> Message {

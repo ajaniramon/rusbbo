@@ -1,6 +1,6 @@
 //! A player's hand (Java: `game/inventory/Inventory.java`).
 
-use havana_storage::Store;
+use rusbbo_storage::Store;
 use tracing::error;
 
 use crate::game::item::{Item, ItemManager};

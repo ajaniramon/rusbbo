@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use havana_storage::Transaction;
+use rusbbo_storage::Transaction;
 use tracing::error;
 
 use crate::game::item::Item;

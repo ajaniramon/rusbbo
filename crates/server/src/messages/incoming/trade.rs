@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::game::room::trade::show_trade_ban_alert;
 use crate::game::room::{Room, current_room, run_deferred};

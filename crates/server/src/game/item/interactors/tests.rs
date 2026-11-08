@@ -3,8 +3,8 @@
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_protocol::frame::encode_server;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::frame::encode_server;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 use crate::game::item::base::ItemDefinition;
@@ -20,7 +20,7 @@ use crate::world::World;
 
 fn world() -> (tempfile::TempDir, World) {
     let dir = tempfile::tempdir().unwrap();
-    let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+    let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
     (dir, World::new(store).unwrap())
 }
 
@@ -132,7 +132,7 @@ fn wheel_spins_once() {
 fn vending_machine_from_the_front_or_the_side() {
     let (_dir, world) = world();
     let sink = Arc::new(
-        ItemDefinition::new(havana_storage::ItemDefinition {
+        ItemDefinition::new(rusbbo_storage::ItemDefinition {
             id: 85,
             sprite: "sink".into(),
             length: 1,
@@ -419,7 +419,7 @@ fn step_light_and_multi_height() {
         "can_stand_on_top",
         "step_light",
     );
-    let mut multi_def = havana_storage::ItemDefinition {
+    let mut multi_def = rusbbo_storage::ItemDefinition {
         id: 2,
         sprite: "multi".into(),
         length: 1,

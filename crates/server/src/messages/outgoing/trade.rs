@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/trade`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 use crate::game::item::Item;
@@ -108,7 +108,7 @@ pub(crate) mod tests {
         behaviour: &str,
         custom_data: &str,
     ) -> Item {
-        let definition = ItemDefinition::new(havana_storage::ItemDefinition {
+        let definition = ItemDefinition::new(rusbbo_storage::ItemDefinition {
             id: sprite_id as u32,
             sprite: "x".into(),
             sprite_id,
@@ -119,7 +119,7 @@ pub(crate) mod tests {
         })
         .unwrap();
         Item {
-            record: havana_storage::Item {
+            record: rusbbo_storage::Item {
                 id: virtual_id as u64,
                 custom_data: custom_data.into(),
                 ..Default::default()

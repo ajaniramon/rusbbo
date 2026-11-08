@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use havana_storage::{BanType, User};
+use rusbbo_storage::{BanType, User};
 use tracing::error;
 
 use super::{RANK_COMMUNITY_MANAGER, has_permission_for};
@@ -58,7 +58,7 @@ fn whisper_self(world: &World, session: &Arc<Session>, text: &str) {
     session.send(out::chat_message(
         ChatType::Whisper,
         instance_id,
-        &havana_protocol::body::latin1(text),
+        &rusbbo_protocol::body::latin1(text),
         0,
     ));
 }
@@ -730,7 +730,7 @@ pub fn talk(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
     let Some(definition) = world.items.definition_by_sprite("spotlight") else {
         return;
     };
-    let record = havana_storage::Item {
+    let record = rusbbo_storage::Item {
         definition_id: definition.record.id,
         x: 255,
         y: 255,
@@ -866,7 +866,7 @@ fn talk_whisper(world: &World, session: &Arc<Session>, text: &str) {
         r.talk(
             world,
             idx,
-            &havana_protocol::body::latin1(text),
+            &rusbbo_protocol::body::latin1(text),
             ChatType::Whisper,
             Some(receivers),
         );
@@ -962,14 +962,14 @@ pub fn copy_room(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
         if r.is_public() {
             return;
         }
-        let items: Vec<havana_storage::Item> = r
+        let items: Vec<rusbbo_storage::Item> = r
             .mapping
             .items
             .iter()
             .filter(|i| !i.has(Behaviour::Teleporter))
             .filter_map(|i| {
                 let flat = i.flat.as_ref()?;
-                let mut copy = havana_storage::Item {
+                let mut copy = rusbbo_storage::Item {
                     user_id: Some(me.id),
                     definition_id: flat.record.definition_id,
                     custom_data: i.custom_data.clone(),
@@ -991,7 +991,7 @@ pub fn copy_room(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
     };
     // NavigatorDao.createRoom, as CREATEFLAT, then RoomDao.saveDecorations.
     let t = now();
-    let new_room = havana_storage::Room {
+    let new_room = rusbbo_storage::Room {
         owner_id: me.id,
         category: 2,
         name: format!("{} (2)", data.name),

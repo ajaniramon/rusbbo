@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Runs the Rust server as the target for `havana-trace check`, from the same data as the oracle.
+# Runs the Rust server as the target for `rusbbo-trace check`, from the same data as the oracle.
 #
 #   target-rs.sh reset   rebuild, restore the fixture database, (re)start the server
 #   target-rs.sh stop    stop the server
 #
 # The fixture is the oracle's golden snapshot (oracle/run/golden.sql) loaded into a scratch
-# MariaDB database and imported with havana-import. It is rebuilt when golden.sql changes.
+# MariaDB database and imported with rusbbo-import. It is rebuilt when golden.sql changes.
 # The server listens on 127.0.0.1:12331, so it can run next to the Java oracle (12321):
-#   havana-trace check traces/login.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
+#   rusbbo-trace check traces/login.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 #
 # Environment, for running several copies at once (e.g. one per git worktree):
 #   TARGET_PORT    game port (12331)
-#   TARGET_RCON_PORT  RCON port (TARGET_PORT - 12: what havana-trace assumes without --rcon)
-#   FIXTURE_DB     scratch MariaDB database used to build the fixture (havana_fixture)
+#   TARGET_RCON_PORT  RCON port (TARGET_PORT - 12: what rusbbo-trace assumes without --rcon)
+#   FIXTURE_DB     scratch MariaDB database used to build the fixture (rusbbo_fixture)
 #   ORACLE_GOLDEN  golden.sql to build the fixture from (oracle/run/golden.sql of this checkout)
 set -euo pipefail
 
@@ -20,7 +20,7 @@ HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "$HARNESS_DIR/.." && pwd)"
 RUN_DIR="$HARNESS_DIR/run"
 GOLDEN="${ORACLE_GOLDEN:-$WS_DIR/oracle/run/golden.sql}"
-FIXTURE_DB="${FIXTURE_DB:-havana_fixture}"
+FIXTURE_DB="${FIXTURE_DB:-rusbbo_fixture}"
 DB_CONTAINER="${ORACLE_DB_CONTAINER:-havana-oracle-db}"
 DB_PORT="${ORACLE_DB_PORT:-13307}"
 PORT="${TARGET_PORT:-12331}"
@@ -56,7 +56,7 @@ build_fixture() {
   docker exec -i "$DB_CONTAINER" mariadb -uroot -proot "$FIXTURE_DB" < "$GOLDEN"
   # Import to a temporary file, so a failed import never leaves a fixture that looks current.
   rm -f "$RUN_DIR/fixture.redb.tmp"
-  "$WS_DIR/target/debug/havana-import" --force --out "$RUN_DIR/fixture.redb.tmp" \
+  "$WS_DIR/target/debug/rusbbo-import" --force --out "$RUN_DIR/fixture.redb.tmp" \
     --mysql "mysql://root:root@127.0.0.1:$DB_PORT/$FIXTURE_DB"
   mv "$RUN_DIR/fixture.redb.tmp" "$RUN_DIR/fixture.redb"
 }
@@ -64,11 +64,11 @@ build_fixture() {
 case "${1:-}" in
   reset)
     mkdir -p "$RUN_DIR"
-    (cd "$WS_DIR" && cargo build -q -p havana-server -p havana-import)
+    (cd "$WS_DIR" && cargo build -q -p rusbbo-server -p rusbbo-import)
     stop_server
     build_fixture
-    cp "$RUN_DIR/fixture.redb" "$RUN_DIR/havana.redb"
-    nohup "$WS_DIR/target/debug/havana-server" --db "$RUN_DIR/havana.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" \
+    cp "$RUN_DIR/fixture.redb" "$RUN_DIR/rusbbo.redb"
+    nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" \
       --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 --dev-ticket 3=trace-sso-3 --dev-ticket 4=trace-sso-4 --dev-ticket 5=trace-sso-5 --dev-ticket 6=trace-sso-6 --dev-ticket 21=trace-sso-21 --dev-ticket 22=trace-sso-22 --dev-ticket 23=trace-sso-23 --dev-ticket 24=trace-sso-24 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port

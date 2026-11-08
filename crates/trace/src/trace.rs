@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use havana_protocol::{escape, ids};
+use rusbbo_protocol::{escape, ids};
 use serde::{Deserialize, Serialize};
 
 use crate::runner::StepOutput;
@@ -130,9 +130,9 @@ const USER_STATUSES: u16 = 34;
 /// Removes the given actions (`flatctrl useradmin/`, ...) from every `USER_STATUSES` body.
 /// A status entry is `<id><x><y>...<z>\x02<head><body>/<action args>/<action args>/\x02`.
 pub fn strip_status_actions(
-    messages: &[havana_protocol::Message],
+    messages: &[rusbbo_protocol::Message],
     actions: &[String],
-) -> Vec<havana_protocol::Message> {
+) -> Vec<rusbbo_protocol::Message> {
     messages
         .iter()
         .map(|m| {
@@ -143,7 +143,7 @@ pub fn strip_status_actions(
             for action in actions {
                 body = strip_action(&body, action.as_bytes());
             }
-            havana_protocol::Message::new(m.header, body)
+            rusbbo_protocol::Message::new(m.header, body)
         })
         .collect()
 }
@@ -189,11 +189,11 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 } else {
                     None
                 };
-                let normalized: Vec<Vec<havana_protocol::Message>> = outputs
+                let normalized: Vec<Vec<rusbbo_protocol::Message>> = outputs
                     .iter()
                     .map(|o| strip_status_actions(&o.messages, &step.ignore_status))
                     .collect();
-                let seqs: Vec<&[havana_protocol::Message]> =
+                let seqs: Vec<&[rusbbo_protocol::Message]> =
                     normalized.iter().map(Vec::as_slice).collect();
                 if seqs.iter().all(|s| s.is_empty()) && closed == Some(false) {
                     continue;
@@ -235,8 +235,8 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
     }
 }
 
-fn calibrate_bot(seqs: &[&[havana_protocol::Message]], closed: Option<bool>) -> BotTrace {
-    let headers = |s: &[havana_protocol::Message]| s.iter().map(|m| m.header).collect::<Vec<_>>();
+fn calibrate_bot(seqs: &[&[rusbbo_protocol::Message]], closed: Option<bool>) -> BotTrace {
+    let headers = |s: &[rusbbo_protocol::Message]| s.iter().map(|m| m.header).collect::<Vec<_>>();
     let ordered = seqs.iter().all(|s| headers(s) == headers(seqs[0]));
     let messages = if ordered {
         (0..seqs[0].len())
@@ -479,7 +479,7 @@ mod tests {
         let scenario: Scenario = toml::from_str(text).unwrap();
         let steps = scenario.compile().unwrap();
         assert_eq!(steps[0].header_only, [6]);
-        let msg = |header, body: &[u8]| havana_protocol::Message {
+        let msg = |header, body: &[u8]| rusbbo_protocol::Message {
             header,
             body: body.to_vec(),
         };
@@ -502,7 +502,7 @@ mod tests {
 
     #[test]
     fn status_actions_are_stripped() {
-        let msg = |b: &[u8]| havana_protocol::Message::new(34, b.to_vec());
+        let msg = |b: &[u8]| rusbbo_protocol::Message::new(34, b.to_vec());
         let flags = ["flatctrl".to_string()];
         let out = strip_status_actions(
             &[
@@ -516,7 +516,7 @@ mod tests {
         assert_eq!(out[1].body, b"IHKQA0.0\x02JJ/mv 6,7,0.0/\x02");
         assert_eq!(out[2].body, b"IHKQA0.0\x02JJ/\x02");
         // Other messages and other actions are left alone.
-        let other = havana_protocol::Message::new(5, b"x/flatctrl a/".to_vec());
+        let other = rusbbo_protocol::Message::new(5, b"x/flatctrl a/".to_vec());
         assert_eq!(
             strip_status_actions(std::slice::from_ref(&other), &flags)[0],
             other

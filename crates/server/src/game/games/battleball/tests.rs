@@ -11,7 +11,7 @@ use crate::session::Session;
 
 fn world() -> (tempfile::TempDir, Arc<World>) {
     let dir = tempfile::tempdir().unwrap();
-    let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+    let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
     (dir, Arc::new(World::new(store).unwrap()))
 }
 

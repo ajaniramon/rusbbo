@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::game::effects;
 use crate::messages::Malformed;

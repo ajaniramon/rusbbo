@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;
@@ -47,7 +47,7 @@ fn ensure_presets(world: &World, item_id: u64) {
     }
 }
 
-fn presets(world: &World, item_id: u64) -> Option<havana_storage::MoodlightPresets> {
+fn presets(world: &World, item_id: u64) -> Option<rusbbo_storage::MoodlightPresets> {
     world.store.moodlight_presets(item_id).unwrap_or_else(|e| {
         error!(item = item_id, "loading moodlight presets: {e}");
         None

@@ -4,9 +4,9 @@
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_storage::{PlayedGame, Store};
 use rand::RngExt;
+use rusbbo_protocol::Message;
+use rusbbo_storage::{PlayedGame, Store};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 

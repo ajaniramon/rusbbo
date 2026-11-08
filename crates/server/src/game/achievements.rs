@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use havana_storage::{Achievement, UserAchievement};
+use rusbbo_storage::{Achievement, UserAchievement};
 use tracing::error;
 
 use crate::game::club;

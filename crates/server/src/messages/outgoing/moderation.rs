@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/moderation`: the call for help (CRY) and moderator alerts.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 /// Java: `MODERATOR_ALERT`.
 pub fn moderator_alert(message: &str) -> Message {

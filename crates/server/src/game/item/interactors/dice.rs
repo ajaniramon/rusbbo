@@ -106,7 +106,7 @@ impl Room {
     /// Java: `G_STAT`'s loop over the room's items for a user who just came in: a pool item's
     /// program (`SHOWPROGRAM`), a spinning wheel's state again (it would not spin otherwise) and
     /// a rolling dice's animation.
-    pub fn busy_item_updates(&self) -> Vec<havana_protocol::Message> {
+    pub fn busy_item_updates(&self) -> Vec<rusbbo_protocol::Message> {
         let mut messages = Vec::new();
         for (idx, item) in self.mapping.items.iter().enumerate() {
             messages.extend(self.program_of(idx));

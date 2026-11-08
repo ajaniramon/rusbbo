@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/wobblesquabble`: Rooftop Rumble's Wobble Squabble.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 /// One player's part of `PT_STATUS` (Java: `WobbleSquabbleStatus`).
 pub struct PlayerStatus {

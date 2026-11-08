@@ -13,7 +13,7 @@
 
 use std::collections::HashMap;
 
-use havana_storage::{Room, RoomCategory};
+use rusbbo_storage::{Room, RoomCategory};
 
 use crate::game::fuserights;
 use crate::world::World;

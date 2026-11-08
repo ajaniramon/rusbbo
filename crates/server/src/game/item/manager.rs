@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicI32, Ordering};
 
 use anyhow::Result;
-use havana_storage::Store;
+use rusbbo_storage::Store;
 
 use super::Item;
 use super::base::ItemDefinition;
@@ -21,7 +21,7 @@ impl ItemManager {
         Ok(Self::new(store.item_definitions()?))
     }
 
-    pub fn new(records: Vec<havana_storage::ItemDefinition>) -> Self {
+    pub fn new(records: Vec<rusbbo_storage::ItemDefinition>) -> Self {
         let definitions = records
             .into_iter()
             .filter_map(|r| ItemDefinition::new(r).map(|d| (d.record.id, Arc::new(d))))
@@ -54,7 +54,7 @@ impl ItemManager {
 
     /// Wraps a stored row as a live item with a fresh virtual id; `None` if its definition is
     /// missing (Java would fail on the null definition).
-    pub fn make_item(&self, record: havana_storage::Item) -> Option<Item> {
+    pub fn make_item(&self, record: rusbbo_storage::Item) -> Option<Item> {
         let definition = self.definition(record.definition_id as i32)?;
         Some(Item {
             record,

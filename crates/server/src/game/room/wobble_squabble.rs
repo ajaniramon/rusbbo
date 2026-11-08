@@ -682,12 +682,12 @@ mod tests {
     use crate::game::room::items::{Item, public_items};
     use crate::game::room::model::RoomModel;
     use crate::session::Outgoing;
-    use havana_protocol::frame::encode_server;
+    use rusbbo_protocol::frame::encode_server;
     use tokio::sync::mpsc::UnboundedReceiver;
 
     fn world() -> (tempfile::TempDir, Arc<World>) {
         let dir = tempfile::tempdir().unwrap();
-        let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+        let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
         (dir, World::new(store).unwrap().into_arc())
     }
 
@@ -715,7 +715,7 @@ mod tests {
                     .collect()
             })
             .collect();
-        let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "md_a".into(),
             model_name: "md_a".into(),
             door_x: 3,
@@ -725,7 +725,7 @@ mod tests {
             ..Default::default()
         }));
         let row =
-            |sprite: &str, (x, y, z): (i32, i32, f64), program: &str| havana_storage::PublicItem {
+            |sprite: &str, (x, y, z): (i32, i32, f64), program: &str| rusbbo_storage::PublicItem {
                 sprite: Some(sprite.into()),
                 x,
                 y,

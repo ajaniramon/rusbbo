@@ -16,7 +16,7 @@ pub struct WalkwayEntrance {
 }
 
 /// Java: `WalkwaysManager.createWalkway`; rows Java would fail to parse are skipped.
-pub fn parse(rows: &[havana_storage::Walkway]) -> Vec<WalkwayEntrance> {
+pub fn parse(rows: &[rusbbo_storage::Walkway]) -> Vec<WalkwayEntrance> {
     let mut out = Vec::new();
     for row in rows {
         match parse_one(row) {
@@ -27,7 +27,7 @@ pub fn parse(rows: &[havana_storage::Walkway]) -> Vec<WalkwayEntrance> {
     out
 }
 
-fn parse_one(row: &havana_storage::Walkway) -> Option<WalkwayEntrance> {
+fn parse_one(row: &rusbbo_storage::Walkway) -> Option<WalkwayEntrance> {
     let mut from_coords = Vec::new();
     // Java's `split(" ")` drops trailing empty strings, so "5,25 " is one tile there.
     for coord in row.coords_map.as_deref()?.trim_end_matches(' ').split(' ') {
@@ -69,13 +69,13 @@ mod tests {
     #[test]
     fn parses_rows() {
         let rows = [
-            havana_storage::Walkway {
+            rusbbo_storage::Walkway {
                 room_id: 45,
                 to_id: 69,
                 coords_map: Some("20,23 20,24".into()),
                 door_position: Some("3,23,0,2".into()),
             },
-            havana_storage::Walkway {
+            rusbbo_storage::Walkway {
                 room_id: 34,
                 to_id: 35,
                 coords_map: Some("28,4".into()),
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn trailing_space_like_java_split() {
-        let rows = [havana_storage::Walkway {
+        let rows = [rusbbo_storage::Walkway {
             room_id: 22,
             to_id: 21,
             coords_map: Some("5,25 ".into()),

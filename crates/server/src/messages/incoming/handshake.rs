@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
-use havana_protocol::crypto::{Crypto, DiffieHellman};
 use rand::RngExt;
+use rusbbo_protocol::body::ClientReader;
+use rusbbo_protocol::crypto::{Crypto, DiffieHellman};
 
 use crate::game::player;
 use crate::messages::{Malformed, outgoing};

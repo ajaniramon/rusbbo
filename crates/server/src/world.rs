@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, OnceLock, Weak};
 
 use anyhow::Result;
-use havana_storage::{RoomCategory, Store};
 use parking_lot::{Mutex, RwLock};
+use rusbbo_storage::{RoomCategory, Store};
 
 use crate::game::achievements::AchievementManager;
 use crate::game::catalogue::CatalogueManager;

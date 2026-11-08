@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use havana_storage::{Effect, User, UserAchievement};
+use rusbbo_storage::{Effect, User, UserAchievement};
 use tracing::{error, info};
 
 use crate::game::badges::BadgeManager;
@@ -62,7 +62,7 @@ pub struct Player {
     pub ip_address: String,
     /// Java: `RoomEntity.packetQueueAfterRoomLeave`: what the Infobus's end sends again when the
     /// player is back in the park (`InfobusParkTrigger`).
-    pub packet_queue_after_room_leave: Vec<havana_protocol::Message>,
+    pub packet_queue_after_room_leave: Vec<rusbbo_protocol::Message>,
 }
 
 impl Player {

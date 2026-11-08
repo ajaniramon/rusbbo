@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
-use havana_storage::{Store, User, Writer};
+use rusbbo_storage::{Store, User, Writer};
 use tracing::error;
 
 use super::{CatalogueItem, CataloguePackage, CataloguePage};
@@ -39,10 +39,10 @@ impl CatalogueManager {
     }
 
     pub fn new(
-        pages: Vec<havana_storage::CataloguePage>,
-        items: Vec<havana_storage::CatalogueItem>,
-        packages: Vec<havana_storage::CataloguePackage>,
-        badges: Vec<havana_storage::CatalogueSaleBadge>,
+        pages: Vec<rusbbo_storage::CataloguePage>,
+        items: Vec<rusbbo_storage::CatalogueItem>,
+        packages: Vec<rusbbo_storage::CataloguePackage>,
+        badges: Vec<rusbbo_storage::CatalogueSaleBadge>,
         item_manager: &ItemManager,
     ) -> Self {
         let packages: Vec<CataloguePackage> = packages
@@ -139,7 +139,7 @@ impl CatalogueManager {
         label: &str,
         extra_data: &str,
         now: i64,
-    ) -> anyhow::Result<havana_storage::Item> {
+    ) -> anyhow::Result<rusbbo_storage::Item> {
         use rand::RngExt;
         let present_id = rand::rng().random_range(0..7);
         let sprite = if present_id > 0 {
@@ -162,7 +162,7 @@ impl CatalogueManager {
             extra_data.replace('|', ""),
             now
         );
-        let draft = havana_storage::Item::with_defaults(owner_id, def.record.id, custom_data, now);
+        let draft = rusbbo_storage::Item::with_defaults(owner_id, def.record.id, custom_data, now);
         Ok(w.insert_item(&draft, now)?)
     }
 
@@ -278,8 +278,8 @@ impl CatalogueManager {
 
 /// One item a purchase created, with the partner of a teleporter.
 pub struct BoughtUnit {
-    pub item: havana_storage::Item,
-    pub linked: Option<havana_storage::Item>,
+    pub item: rusbbo_storage::Item,
+    pub linked: Option<rusbbo_storage::Item>,
 }
 
 /// What [`CatalogueManager::purchase_in`] wrote, to apply once it is committed.
@@ -425,7 +425,7 @@ fn purchase_one(
     };
 
     let mut draft =
-        havana_storage::Item::with_defaults(owner.id, def.record.id, custom_data.clone(), now);
+        rusbbo_storage::Item::with_defaults(owner.id, def.record.id, custom_data.clone(), now);
     if def.record.rental_time > 0 {
         draft.expire_time = now + i64::from(def.record.rental_time);
     }
@@ -445,7 +445,7 @@ fn purchase_one(
     let linked = if def.has_behaviour(ItemBehaviour::Teleporter) {
         // A teleporter is sold as a pair. The linked one keeps the unreset custom data.
         let mut linked_draft =
-            havana_storage::Item::with_defaults(owner.id, def.record.id, custom_data, now);
+            rusbbo_storage::Item::with_defaults(owner.id, def.record.id, custom_data, now);
         if def.record.rental_time > 0 {
             linked_draft.expire_time = now + i64::from(def.record.rental_time);
         }
@@ -495,7 +495,7 @@ fn pet_from_extra_data(
     sprite: &str,
     extra_data: Option<&str>,
     now: i64,
-) -> Option<havana_storage::Pet> {
+) -> Option<rusbbo_storage::Pet> {
     use rand::RngExt;
     let extra = extra_data?;
     if !extra.contains('\n') {
@@ -513,7 +513,7 @@ fn pet_from_extra_data(
         return None;
     }
     let mut rng = rand::rng();
-    Some(havana_storage::Pet {
+    Some(rusbbo_storage::Pet {
         name,
         pet_type: sprite.replace("pets", ""),
         race,

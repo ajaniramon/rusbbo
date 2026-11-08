@@ -2,11 +2,11 @@
 //! `JukeboxDao`): one function per table.
 
 use anyhow::{Context, Result};
-use havana_storage::{
-    MoodlightPresets, PlaylistEntry, Song, SongDisk, SoundMachineTrack, Store, Writer,
-};
 use mysql::Row;
 use mysql::prelude::Queryable;
+use rusbbo_storage::{
+    MoodlightPresets, PlaylistEntry, Song, SongDisk, SoundMachineTrack, Store, Writer,
+};
 
 use crate::{auto_increment, col};
 

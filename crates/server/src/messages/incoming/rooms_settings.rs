@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;
@@ -24,7 +24,7 @@ use crate::world::World;
 const KIOSK_MODELS: [&str; 12] = ["a", "b", "c", "d", "e", "f", "i", "j", "k", "l", "m", "n"];
 
 /// Java: `RoomDao.save`: the columns the settings dialogs change.
-pub fn save(world: &World, data: &havana_storage::Room) {
+pub fn save(world: &World, data: &rusbbo_storage::Room) {
     if let Err(e) = world.store.update_room(data.id, |row| {
         row.category = data.category;
         row.name = data.name.clone();
@@ -106,7 +106,7 @@ pub fn create_flat(
 
     // NavigatorDao.createRoom: the INSERT sets these columns, the rest are the table defaults.
     let t = now();
-    let room = havana_storage::Room {
+    let room = rusbbo_storage::Room {
         owner_id,
         category: 2,
         name: name.clone(),

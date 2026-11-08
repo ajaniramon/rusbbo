@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn drink_lists() {
-        let mut record = havana_storage::ItemDefinition {
+        let mut record = rusbbo_storage::ItemDefinition {
             id: 99,
             sprite: "fridge".into(),
             interactor: "vending_machine".into(),

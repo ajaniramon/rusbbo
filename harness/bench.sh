@@ -4,19 +4,21 @@
 #   harness/bench.sh [java|rust|both]    (default both; results in harness/run/bench/)
 #
 # For each server: start it on a scratch copy of the oracle's golden snapshot plus one bench user
-# per bot of every level (havana_bench), time the start until the game port opens, sample its
-# memory (RSS) and CPU every second, measure it idle, then run `havana-trace load` at each BENCH_LEVELS bot
+# per bot of every level (rusbbo_bench), time the start until the game port opens, sample its
+# memory (RSS) and CPU every second, measure it idle, then run `rusbbo-trace load` at each BENCH_LEVELS bot
 # count in turn on the same process (the bots leave between levels). Both servers run with their
 # packet logging off. Needs the release binaries (cargo build --release) and the oracle jar.
 #
 # Environment: BENCH_LEVELS ("100 300 500"), BENCH_RAMP (30 s), BENCH_DURATION
 # (60 s), BENCH_INTERVAL (4000 ms between one bot's actions), BENCH_IDLE (20 s), BENCH_PER_ROOM
-# (25 bots per room), ORACLE_JAVA_HOME.
+# (25 bots per room), HAVANA_DIR (the Java Havana checkout; ../aeyra-havana), ORACLE_JAVA_HOME.
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "$HARNESS_DIR/.." && pwd)"
-REPO_DIR="$(cd "$WS_DIR/.." && pwd)"
+# The Java Havana repository (the reference server: its sources, schema and data files), by
+# default a sibling checkout named aeyra-havana.
+REPO_DIR="${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}"
 OUT="$HARNESS_DIR/run/bench"
 GOLDEN="$WS_DIR/oracle/run/golden.sql"
 DB_CONTAINER="${ORACLE_DB_CONTAINER:-havana-oracle-db}"
@@ -52,9 +54,9 @@ wait_port() {
 }
 
 make_db() {
-  log "building havana_bench ($USERS bench users)"
-  db -e 'DROP DATABASE IF EXISTS havana_bench; CREATE DATABASE havana_bench;'
-  db havana_bench < "$GOLDEN"
+  log "building rusbbo_bench ($USERS bench users)"
+  db -e 'DROP DATABASE IF EXISTS rusbbo_bench; CREATE DATABASE rusbbo_bench;'
+  db rusbbo_bench < "$GOLDEN"
   {
     echo "INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, \`rank\`,"
     echo "  last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning) VALUES"
@@ -70,7 +72,7 @@ make_db() {
     done
     # Every bot connects from 127.0.0.1.
     echo "UPDATE settings SET value = '0' WHERE setting = 'max.connections.per.ip';"
-  } | db havana_bench
+  } | db rusbbo_bench
 }
 
 tickets_sql() { echo "UPDATE users SET sso_ticket = CONCAT('bench-sso-', id) WHERE id >= $FIRST;"; }
@@ -99,7 +101,7 @@ start_java() {
   local dir="$OUT/java-run"
   rm -rf "$dir"; mkdir -p "$dir/tools"
   cp "$WS_DIR/oracle/run/Havana-Server.jar" "$WS_DIR/oracle/run/logback.xml" "$REPO_DIR/tools/figuredata.xml" "$dir/"
-  cp -r "$REPO_DIR/tools/snowstorm_maps" "$dir/tools/"
+  cp -r "$WS_DIR/tools/snowstorm_maps" "$dir/tools/"
   cat > "$dir/server.ini" <<EOF
 [Global]
 server.bind=127.0.0.1
@@ -123,7 +125,7 @@ mysql.hostname=127.0.0.1
 mysql.port=$DB_PORT
 mysql.username=havana
 mysql.password=goldfish
-mysql.database=havana_bench
+mysql.database=rusbbo_bench
 
 [Logging]
 log.received.packets=false
@@ -132,24 +134,24 @@ log.sent.packets=false
 [Console]
 debug=false
 EOF
-  local h; for h in '%' 127.0.0.1 localhost; do db -e "GRANT ALL ON havana_bench.* TO 'havana'@'$h'" 2>/dev/null || true; done
+  local h; for h in '%' 127.0.0.1 localhost; do db -e "GRANT ALL ON rusbbo_bench.* TO 'havana'@'$h'" 2>/dev/null || true; done
   pushd "$dir" >/dev/null
   nohup "$JAVA" -Djava.net.preferIPv4Stack=true -jar Havana-Server.jar > stdout.log 2>&1 < /dev/null &
   SERVER_PID=$!
   popd >/dev/null
   STARTUP_MS=$(wait_port "$JAVA_PORT")
-  tickets_sql | db havana_bench
+  tickets_sql | db rusbbo_bench
   PORT=$JAVA_PORT
 }
 
 start_rust() {
   local dir="$OUT/rust-run" args=()
   rm -rf "$dir"; mkdir -p "$dir"
-  "$WS_DIR/target/release/havana-import" --force --out "$dir/bench.redb" \
-    --mysql "mysql://root:root@127.0.0.1:$DB_PORT/havana_bench" > "$dir/import.log" 2>&1
+  "$WS_DIR/target/release/rusbbo-import" --force --out "$dir/bench.redb" \
+    --mysql "mysql://root:root@127.0.0.1:$DB_PORT/rusbbo_bench" > "$dir/import.log" 2>&1
   for ((i = FIRST; i < FIRST + USERS; i++)); do args+=(--dev-ticket "$i=bench-sso-$i"); done
   pushd "$dir" >/dev/null
-  nohup "$WS_DIR/target/release/havana-server" --db bench.redb --bind "127.0.0.1:$RUST_PORT" \
+  nohup "$WS_DIR/target/release/rusbbo-server" --db bench.redb --bind "127.0.0.1:$RUST_PORT" \
     "${args[@]}" > server.log 2>&1 < /dev/null &
   SERVER_PID=$!
   popd >/dev/null
@@ -171,7 +173,7 @@ bench() {
   for n in $LEVELS; do
     log "$name: $n bots"
     local a=$(( $(date +%s) - t0 + RAMP + 5 ))
-    "$WS_DIR/target/release/havana-trace" load --target "127.0.0.1:$PORT" --bots "$n" --first "$first" \
+    "$WS_DIR/target/release/rusbbo-trace" load --target "127.0.0.1:$PORT" --bots "$n" --first "$first" \
       --rooms "$ROOMS" --per-room "$PER_ROOM" --ramp "$RAMP" --duration "$DURATION" --interval "$INTERVAL" \
       --json "$OUT/$name-$n.json" > /dev/null || log "$name: $n bots had failed logins or entries"
     local b=$(( $(date +%s) - t0 ))

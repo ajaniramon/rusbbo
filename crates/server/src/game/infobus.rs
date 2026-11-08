@@ -16,8 +16,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use havana_storage::InfobusPoll;
 use parking_lot::Mutex;
+use rusbbo_storage::InfobusPoll;
 use tracing::error;
 
 use crate::game::pathfinder::Position;
@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn the_closed_door_tile_is_not_walkable() {
-        let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "park_a".into(),
             model_name: "park_a".into(),
             door_x: 2,
@@ -272,7 +272,7 @@ mod tests {
     #[test]
     fn votes_count_once_and_only_for_the_current_poll() {
         let dir = tempfile::tempdir().unwrap();
-        let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+        let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
         let mut w = store.write().unwrap();
         w.put_infobus_poll(&InfobusPoll {
             id: 1,

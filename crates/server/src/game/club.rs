@@ -1,6 +1,6 @@
 //! Habbo Club (Java: `game/club/ClubSubscription.java` and `Player.refreshClub`).
 
-use havana_storage::{Transaction, User};
+use rusbbo_storage::{Transaction, User};
 use tracing::error;
 
 use crate::game::player::Player;

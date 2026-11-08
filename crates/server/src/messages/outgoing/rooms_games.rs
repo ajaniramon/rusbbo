@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/rooms/games` (the game-hall tables, `game::gamehall`).
 
-use havana_protocol::Message;
-use havana_protocol::body::latin1;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::latin1;
 
 /// Java: `ITEMMSG(String[])`: each command followed by two `\r`.
 pub fn item_msg(commands: &[&str]) -> Message {

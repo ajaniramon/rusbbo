@@ -1,11 +1,11 @@
-# havana-rs design
+# rusbbo design
 
 Status: block 2, first draft. Decisions marked **(review)** are the ones worth a second opinion
 before many agents build on them.
 
 ## Goals and non-goals
 
-- Same behaviour on the wire as the Java Havana in this repository, for the Shockwave (v31) and
+- Same behaviour on the wire as the Java Havana (the reference repository, `HAVANA_DIR`), for the Shockwave (v31) and
   Flash (r39) clients. "Same" is defined by the trace corpus (`traces/`), not by reading the code.
 - One small binary that runs on a Raspberry Pi: target under 50 MB RSS with a few dozen users.
 - No external database: the data lives in one embedded file.
@@ -100,7 +100,7 @@ Each table is ported when the first handler that needs it is ported, not all upf
 
 ## Import
 
-`havana-import --mysql mysql://user:pass@host:port/db --out havana.redb`. It reads the Java schema
+`rusbbo-import --mysql mysql://user:pass@host:port/db --out rusbbo.redb`. It reads the Java schema
 and writes a fresh redb file. Uses: migrating an existing hotel, and building the harness
 fixture from the same snapshot the Java oracle uses, so both servers start from identical data.
 
@@ -140,7 +140,7 @@ the harness). `TRY_LOGIN` and the ticket API check the Argon2 hashes the Java we
 ## Testing
 
 - Unit tests per crate (encodings, composers against literal byte strings from traces).
-- `havana-trace check` against the Rust server for every ported area. A trace that passes is never
+- `rusbbo-trace check` against the Rust server for every ported area. A trace that passes is never
   allowed to regress (CI runs the full corpus).
 - `harness/target-rs.sh reset` builds the fixture (import of the oracle's golden snapshot), restarts
   the Rust server and issues the bot tickets, the same way `oracle.sh reset` does for Java.

@@ -28,7 +28,7 @@ pub struct CataloguePage {
 }
 
 impl CataloguePage {
-    pub fn new(r: havana_storage::CataloguePage) -> Self {
+    pub fn new(r: rusbbo_storage::CataloguePage) -> Self {
         Self {
             id: r.id as i32,
             parent_id: r.parent_id,

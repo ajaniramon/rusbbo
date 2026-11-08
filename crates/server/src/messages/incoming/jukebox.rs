@@ -3,8 +3,8 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
-use havana_storage::SongDisk;
+use rusbbo_protocol::body::ClientReader;
+use rusbbo_storage::SongDisk;
 use tracing::error;
 
 use super::songs::{machine, playlist_message, send_hand};
@@ -25,7 +25,7 @@ fn has_rights(p: &Player, r: &Room) -> bool {
 }
 
 /// Java: `JUKEBOX_DISCS(JukeboxManager.getDisks(machine))`, `None` where it fails to compose.
-fn discs_message(world: &World, machine_id: i64) -> Option<havana_protocol::Message> {
+fn discs_message(world: &World, machine_id: i64) -> Option<rusbbo_protocol::Message> {
     let discs: Vec<_> = song::jukebox_disks(&world.store, machine_id)
         .into_iter()
         .map(|(disk, song)| {

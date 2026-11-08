@@ -22,7 +22,7 @@ pub use crate::game::item::base::{InteractionType as Interaction, ItemBehaviour 
 pub struct FlatItem {
     /// The `items` row. Position and custom data live on [`Item`] while the item is in the room
     /// and are copied back by [`Item::sync_record`].
-    pub record: havana_storage::Item,
+    pub record: rusbbo_storage::Item,
     pub definition: Arc<ItemDefinition>,
 }
 
@@ -284,7 +284,7 @@ fn parse_target(value: Option<&str>) -> Option<Position> {
 /// `ItemManager.getDefinitionBySprite`, for `PRIVATE_FURNITURE` items.
 pub fn public_items(
     model_id: &str,
-    rows: &[havana_storage::PublicItem],
+    rows: &[rusbbo_storage::PublicItem],
     definition_by_sprite: &dyn Fn(&str) -> Option<Arc<ItemDefinition>>,
 ) -> Vec<Item> {
     const ALPHABET: &[u8] = b"abcdefghijlmnopqrstuvwyz";
@@ -371,7 +371,7 @@ pub fn public_items(
                 item.behaviours = definition.behaviours().to_vec();
                 item.interaction = definition.interaction_type;
                 item.flat = Some(FlatItem {
-                    record: havana_storage::Item {
+                    record: rusbbo_storage::Item {
                         definition_id: def.id,
                         custom_data: item.custom_data.clone(),
                         expire_time: -1,
@@ -404,7 +404,7 @@ pub(crate) mod tests {
         allowed_rotations: &str,
     ) -> Arc<ItemDefinition> {
         Arc::new(
-            ItemDefinition::new(havana_storage::ItemDefinition {
+            ItemDefinition::new(rusbbo_storage::ItemDefinition {
                 id,
                 sprite: sprite.into(),
                 sprite_id,
@@ -533,7 +533,7 @@ pub(crate) mod tests {
         (x, y, rotation): (i32, i32, i32),
     ) -> Item {
         let mut item = Item::from_owned(crate::game::item::Item {
-            record: havana_storage::Item {
+            record: rusbbo_storage::Item {
                 id: virtual_id as u64,
                 custom_data: "0".into(),
                 expire_time: -1,
@@ -550,7 +550,7 @@ pub(crate) mod tests {
     #[test]
     fn parses_public_items() {
         let rows = [
-            havana_storage::PublicItem {
+            rusbbo_storage::PublicItem {
                 id: 656,
                 sprite: Some("broom_bench1".into()),
                 x: 4,
@@ -562,7 +562,7 @@ pub(crate) mod tests {
                 behaviour: "can_sit_on_top".into(),
                 ..Default::default()
             },
-            havana_storage::PublicItem {
+            rusbbo_storage::PublicItem {
                 sprite: Some("queue_tile2".into()),
                 behaviour: "invisible,can_stand_on_top".into(),
                 ..Default::default()
@@ -591,7 +591,7 @@ pub(crate) mod tests {
             "vending_machine",
             "2,4",
         );
-        let rows = [havana_storage::PublicItem {
+        let rows = [rusbbo_storage::PublicItem {
             id: 594,
             sprite: Some("bar_basic".into()),
             x: 10,

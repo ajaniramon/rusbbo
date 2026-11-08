@@ -1,8 +1,8 @@
 //! Pets in a room (Java: `FlatTrigger.onRoomEntry`, `PetNestInteractor`, `PetFoodInteractor`,
 //! `PetWaterBowlInteractor`, `PetToyInteractor`, `PetTask`, `PetManager.handleSpeech`).
 
-use havana_storage::Pet;
 use rand::RngExt;
+use rusbbo_storage::Pet;
 use tracing::error;
 
 use super::Room;
@@ -546,7 +546,7 @@ impl Room {
     /// Java: `PetManager.handleSpeech`, after a player's chat or shout in a room where they have
     /// rights (or the `fuse_mod` fuse): `"<pet name> <command>"` to a pet that is free to move.
     pub(super) fn pets_hear(&mut self, world: &World, speaker_idx: usize, message: &[u8]) {
-        let speech = havana_protocol::body::from_latin1(message);
+        let speech = rusbbo_protocol::body::from_latin1(message);
         let words: Vec<&str> = speech.split(' ').collect();
         if words.len() < 2 {
             return;
@@ -661,7 +661,7 @@ impl Room {
     }
 
     /// Java: `GETPETSTAT`: the instance id and stats of the pet with this id.
-    pub fn pet_stats(&self, pet_id: u32) -> Option<havana_protocol::Message> {
+    pub fn pet_stats(&self, pet_id: u32) -> Option<rusbbo_protocol::Message> {
         let e = self
             .entities
             .iter()

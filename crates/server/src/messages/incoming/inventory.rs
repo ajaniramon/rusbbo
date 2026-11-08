@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::messages::{Malformed, outgoing};
 use crate::session::Session;

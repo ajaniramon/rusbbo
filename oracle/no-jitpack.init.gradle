@@ -1,5 +1,5 @@
 // Oracle build without jitpack.io: drops chesslib and swaps GameChess for a stub.
-// Usage: ./gradlew -I havana-rs/oracle/no-jitpack.init.gradle :Havana-Server:shadowJar
+// Usage (in the Java Havana checkout): ./gradlew -I <rusbbo>/oracle/no-jitpack.init.gradle :Havana-Server:shadowJar
 def stubDir = new File(initscript.sourceFile.parentFile, 'chess-stub')
 
 allprojects {

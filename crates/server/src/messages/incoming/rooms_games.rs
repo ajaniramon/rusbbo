@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use super::latin1;
 use crate::game::room::{current_room, run_deferred};

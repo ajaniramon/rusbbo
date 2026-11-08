@@ -80,7 +80,7 @@ impl Room {
     }
 
     /// Java: G_STAT's `SHOWPROGRAM` for an item with a program value, for the user coming in.
-    pub(crate) fn program_of(&self, idx: usize) -> Option<havana_protocol::Message> {
+    pub(crate) fn program_of(&self, idx: usize) -> Option<rusbbo_protocol::Message> {
         let item = &self.mapping.items[idx];
         (!item.current_program_value.is_empty())
             .then(|| out::show_program(&[&item.current_program, &item.current_program_value]))

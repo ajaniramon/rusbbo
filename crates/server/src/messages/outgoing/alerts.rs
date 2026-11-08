@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/alerts`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 

@@ -3,7 +3,7 @@
 //! walkspace, say something now and then, and hand out drinks when a user asks for one nearby.
 //! The room side (adding them, the tick, hearing chat) is in `room/bots.rs`.
 
-use havana_storage::RoomBot;
+use rusbbo_storage::RoomBot;
 use tracing::warn;
 
 use crate::game::pathfinder::Position;

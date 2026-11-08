@@ -1,13 +1,13 @@
 //! Java: `messages/outgoing/catalogue`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use crate::game::catalogue::{CatalogueItem, CatalogueManager, CataloguePage};
 use crate::game::item::base::ItemBehaviour;
 use crate::settings::Settings;
 
-pub use havana_protocol::body::latin1;
+pub use rusbbo_protocol::body::latin1;
 
 /// Java: `CATALOGUE_PAGES`: the page tree this rank and club status can see.
 pub fn catalogue_pages(
@@ -182,8 +182,8 @@ mod tests {
         assert_eq!(latin1("\u{c3}\u{201a}\u{c2}\u{a3}"), b"\xc3?\xc2\xa3");
     }
 
-    fn window_definition() -> havana_storage::ItemDefinition {
-        havana_storage::ItemDefinition {
+    fn window_definition() -> rusbbo_storage::ItemDefinition {
+        rusbbo_storage::ItemDefinition {
             id: 550,
             sprite: "window_70s_narrow".into(),
             name: "Small 70s Window".into(),
@@ -201,7 +201,7 @@ mod tests {
     #[test]
     fn catalogue_page_matches_trace() {
         let items = ItemManager::new(vec![window_definition()]);
-        let page = CataloguePage::new(havana_storage::CataloguePage {
+        let page = CataloguePage::new(rusbbo_storage::CataloguePage {
             id: 53,
             layout: "default_3x3".into(),
             images: vec!["ctlg_windows_headline1_en".into()],
@@ -209,7 +209,7 @@ mod tests {
             ..Default::default()
         });
         let item = CatalogueItem::new(
-            havana_storage::CatalogueItem {
+            rusbbo_storage::CatalogueItem {
                 id: 653,
                 sale_code: Some("window_70s_narrow".into()),
                 page_id: Some("53".into()),
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn catalogue_index_lists_visible_pages() {
         let items = ItemManager::new(Vec::new());
-        let page = |id, parent_id, min_role, name: &str| havana_storage::CataloguePage {
+        let page = |id, parent_id, min_role, name: &str| rusbbo_storage::CataloguePage {
             id,
             parent_id,
             min_role,

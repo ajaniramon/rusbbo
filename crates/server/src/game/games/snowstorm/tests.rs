@@ -3,8 +3,8 @@
 //! 30,42 facing 3; the machine at 25,24 is object 1, the avatars 2 and 3); `testdata/` holds
 //! that recording's arena `HEIGHTMAP`, `OBJECTS_WORLD` and `FULLGAMESTATUS` bodies.
 
-use havana_protocol::Message;
-use havana_protocol::body::{ClientBody, ClientReader};
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::{ClientBody, ClientReader};
 
 use super::attributes::ActivityState;
 use super::events::TurnEvent;
@@ -143,8 +143,7 @@ fn non_empty(turns: &[Vec<u8>]) -> Vec<&[u8]> {
 #[test]
 fn every_arena_loads_from_the_files_like_java() {
     let embedded = SnowStormMaps::embedded();
-    let dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tools/snowstorm_maps");
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/snowstorm_maps");
     let from_dir = SnowStormMaps::load_dir(&dir);
     for id in maps::MAP_IDS {
         let a = embedded.get(id).expect("embedded arena");

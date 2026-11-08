@@ -6,7 +6,7 @@
 
 use std::sync::Arc;
 
-use havana_storage::{MessengerCategory, User};
+use rusbbo_storage::{MessengerCategory, User};
 use tracing::error;
 
 use super::{FriendView, Messenger, MessengerUser};

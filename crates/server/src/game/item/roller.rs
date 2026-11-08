@@ -318,7 +318,7 @@ pub(crate) mod tests {
     pub const MODEL_A: &str = "xxxxxxxxxxxx|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxx00000000|xxxxxxxxxxxx|xxxxxxxxxxxx";
 
     pub fn model_a() -> Arc<RoomModel> {
-        Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "model_a".into(),
             model_name: "model_a".into(),
             door_x: 3,

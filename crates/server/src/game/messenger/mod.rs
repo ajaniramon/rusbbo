@@ -9,7 +9,7 @@ pub mod manager;
 
 use std::collections::BTreeMap;
 
-use havana_storage::{MessengerCategory, Store, User};
+use rusbbo_storage::{MessengerCategory, Store, User};
 use tracing::error;
 
 use crate::game::now;

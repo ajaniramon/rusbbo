@@ -2,9 +2,9 @@
 //!
 //! Text from the database is written in ISO-8859-1 like Java's `NettyResponse.writeString`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::RoomCategory;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::RoomCategory;
 
 use crate::game::navigator::{PUBLIC_ROOM_OFFSET, RoomEntry, Viewer};
 

@@ -14,8 +14,8 @@
 //! The rows are written one by one as in Java, so the stored effects the player does not have
 //! in memory survive.
 
-use havana_protocol::Message;
-use havana_storage::Effect;
+use rusbbo_protocol::Message;
+use rusbbo_storage::Effect;
 use tracing::error;
 
 use crate::game::now;
@@ -143,7 +143,7 @@ pub fn totem_effect(world: &World, session: &Session, effect_id: i32) {
 /// Java: `CatalogueManager.purchaseEffect` inside the purchase's transaction: the effect is
 /// stored, not activated. The player does not get it until the next login (see the module docs).
 pub fn purchase_in(
-    w: &mut havana_storage::Writer,
+    w: &mut rusbbo_storage::Writer,
     user_id: u32,
     effect_id: i32,
 ) -> anyhow::Result<()> {

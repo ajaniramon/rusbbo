@@ -184,7 +184,7 @@ impl SnowStormMaps {
 
 macro_rules! arena_file {
     ($name:literal) => {
-        include_str!(concat!("../../../../../../../tools/snowstorm_maps/", $name))
+        include_str!(concat!("../../../../../../tools/snowstorm_maps/", $name))
     };
 }
 

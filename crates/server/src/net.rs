@@ -5,9 +5,9 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use anyhow::{Context, Result};
-use havana_protocol::Decoder;
-use havana_protocol::crypto::{Opener, Sealer};
 use rand::RngExt;
+use rusbbo_protocol::Decoder;
+use rusbbo_protocol::crypto::{Opener, Sealer};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::mpsc;

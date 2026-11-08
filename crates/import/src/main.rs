@@ -1,4 +1,4 @@
-//! `havana-import`: copies a Java Havana MariaDB database into a new redb file.
+//! `rusbbo-import`: copies a Java Havana MariaDB database into a new redb file.
 //!
 //! Only the tables the Rust server uses so far are imported; each newly ported table adds a
 //! function here. See `docs/DESIGN.md`.
@@ -12,14 +12,14 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
-use havana_storage::{
+use mysql::prelude::Queryable;
+use mysql::{Opts, Pool, Row};
+use rusbbo_storage::{
     AuditLogEntry, Ban, BanType, CatalogueItem, CataloguePackage, CataloguePage,
     CatalogueSaleBadge, IpLog, Item, ItemDefinition, MessengerCategory, MessengerMessage, Pet,
     PublicItem, Room, RoomBot, RoomCategory, RoomModel, RoomVote, Store, Transaction, User,
     Walkway, WordfilterWord,
 };
-use mysql::prelude::Queryable;
-use mysql::{Opts, Pool, Row};
 
 #[derive(Parser)]
 #[command(version, about)]

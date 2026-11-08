@@ -6,7 +6,7 @@ pub mod outgoing;
 
 use std::sync::Arc;
 
-use havana_protocol::{Message, ids};
+use rusbbo_protocol::{Message, ids};
 use tracing::{debug, warn};
 
 use crate::session::Session;
@@ -14,7 +14,7 @@ use crate::world::World;
 
 /// Handler signature (Java: `MessageEvent.handle`). Synchronous on purpose: see docs/DESIGN.md.
 pub type Handler =
-    fn(&World, &Arc<Session>, &mut havana_protocol::body::ClientReader) -> Result<(), Malformed>;
+    fn(&World, &Arc<Session>, &mut rusbbo_protocol::body::ClientReader) -> Result<(), Malformed>;
 
 /// A body that did not parse (Java: `MalformedPacketException`); the message is dropped.
 #[derive(Debug)]
@@ -27,7 +27,7 @@ pub fn handle(world: &World, session: &Arc<Session>, msg: Message) {
     let Some(handler) = incoming::handler(msg.header) else {
         return;
     };
-    let mut reader = havana_protocol::body::ClientReader::new(&msg.body);
+    let mut reader = rusbbo_protocol::body::ClientReader::new(&msg.body);
     let result = crate::game::contain_panic(
         format_args!("handler {name} ({}), conn {}", msg.header, session.id),
         || handler(world, session, &mut reader),

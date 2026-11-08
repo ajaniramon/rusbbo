@@ -2,8 +2,8 @@
 
 use std::time::Duration;
 
-use havana_protocol::body::{from_latin1, latin1};
 use rand::RngExt;
+use rusbbo_protocol::body::{from_latin1, latin1};
 use tracing::error;
 
 use super::entity::{EntityDetails, EntityKind, RoomEntity};

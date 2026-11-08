@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::game::navigator::{self, PUBLIC_ROOM_OFFSET, RoomEntry, Viewer};
 use crate::messages::Malformed;

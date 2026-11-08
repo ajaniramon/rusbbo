@@ -34,7 +34,7 @@
 //! bot = "a"                  # whose `wait_for` the step waits for; every bot's messages count
 //! rcon = "infobusdoorstatus" # instead of `send`: an RCON message to the server's RCON port
 //! rcon_values = { doorStatus = "1" } # (Java's `RconMessage`, what the website's housekeeping
-//!                            # sends); `havana-trace --rcon` says where, by default the
+//!                            # sends); `rusbbo-trace --rcon` says where, by default the
 //!                            # target's port minus 12
 //! ```
 
@@ -42,9 +42,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use havana_protocol::body::ClientBody;
-use havana_protocol::crypto::DiffieHellman;
-use havana_protocol::{escape, ids};
+use rusbbo_protocol::body::ClientBody;
+use rusbbo_protocol::crypto::DiffieHellman;
+use rusbbo_protocol::{escape, ids};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]

@@ -1,5 +1,5 @@
 //! The website's login API, for launchers (Java: `Havana-Web`'s `TicketController`, routes
-//! `/api/ticket` and `/api/login`). Optional: `havana-server --http 127.0.0.1:8095`.
+//! `/api/ticket` and `/api/login`). Optional: `rusbbo-server --http 127.0.0.1:8095`.
 //!
 //! - `GET /api/ticket?username=..&password=..`: on a good login, the JSON the HabboLauncher reads
 //!   (host, ports, client URLs from the `loader.*` and `site.path` settings, and an SSO ticket).
@@ -400,9 +400,9 @@ mod tests {
         use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
         let dir = tempfile::tempdir().unwrap();
-        let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+        let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
         store
-            .put_user(&havana_storage::User {
+            .put_user(&rusbbo_storage::User {
                 id: 25,
                 username: "tracepass".into(),
                 password: crate::game::password::tests_java_hash().into(),

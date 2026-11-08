@@ -4,11 +4,11 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
-use havana_storage::{
-    Achievement, Badge, Effect, STATISTIC_COLUMNS, Store, UserAchievement, UserStatistics,
-};
 use mysql::Row;
 use mysql::prelude::Queryable;
+use rusbbo_storage::{
+    Achievement, Badge, Effect, STATISTIC_COLUMNS, Store, UserAchievement, UserStatistics,
+};
 
 use crate::col;
 

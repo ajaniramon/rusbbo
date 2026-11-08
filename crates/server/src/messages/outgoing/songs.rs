@@ -4,9 +4,9 @@
 
 use std::collections::BTreeMap;
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
-use havana_storage::Song;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
+use rusbbo_storage::Song;
 
 use crate::game::song::calculate_song_length;
 

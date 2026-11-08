@@ -11,7 +11,7 @@
 use std::sync::Weak;
 use std::time::Duration;
 
-use havana_protocol::Message;
+use rusbbo_protocol::Message;
 
 use crate::game::item::roller;
 use crate::game::now;

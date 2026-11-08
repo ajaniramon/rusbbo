@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;

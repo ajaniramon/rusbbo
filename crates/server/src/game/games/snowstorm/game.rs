@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use havana_protocol::Message;
+use rusbbo_protocol::Message;
 use tracing::error;
 
 use super::attributes::{ActivityState, SnowStormAttributes};

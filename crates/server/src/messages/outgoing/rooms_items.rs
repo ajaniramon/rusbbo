@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/rooms/items` (furniture placed, moved, removed and toggled).
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 use super::rooms::{floor_item, wall_item};

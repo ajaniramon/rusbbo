@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/inventory`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::catalogue::latin1;
 use crate::game::inventory::HandView;
@@ -61,7 +61,7 @@ mod tests {
     /// The hand of `traces/catalogue.json` after buying `window_70s_narrow`.
     #[test]
     fn inventory_matches_trace() {
-        let definition = ItemDefinition::new(havana_storage::ItemDefinition {
+        let definition = ItemDefinition::new(rusbbo_storage::ItemDefinition {
             id: 550,
             sprite: "window_70s_narrow".into(),
             sprite_id: 1197,
@@ -73,7 +73,7 @@ mod tests {
         })
         .unwrap();
         let item = Item {
-            record: havana_storage::Item {
+            record: rusbbo_storage::Item {
                 custom_data: "0".into(),
                 ..Default::default()
             },

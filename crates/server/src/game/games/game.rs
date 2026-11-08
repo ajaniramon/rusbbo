@@ -5,7 +5,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use havana_protocol::Message;
+use rusbbo_protocol::Message;
 use tracing::error;
 
 use super::battleball::BattleBall;

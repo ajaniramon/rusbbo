@@ -1,7 +1,7 @@
 //! A player's `users_statistics` row (Java: `game/player/statistics/PlayerStatisticManager.java`).
 //! Values are loaded at login; every change is also written to the store, one column at a time.
 
-use havana_storage::{Store, UserStatistics};
+use rusbbo_storage::{Store, UserStatistics};
 use tracing::error;
 
 /// Column names (Java: `PlayerStatistic`).

@@ -2,8 +2,8 @@
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
-use havana_protocol::frame::encode_server;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::frame::encode_server;
 use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
 
 use super::entity::{EntityDetails, RoomEntity, StatusType};
@@ -18,12 +18,12 @@ use crate::world::World;
 
 fn world() -> (tempfile::TempDir, World) {
     let dir = tempfile::tempdir().unwrap();
-    let store = havana_storage::Store::create(&dir.path().join("t.redb")).unwrap();
+    let store = rusbbo_storage::Store::create(&dir.path().join("t.redb")).unwrap();
     (dir, World::new(store).unwrap())
 }
 
 fn room() -> Room {
-    let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+    let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
         model_id: "m".into(),
         model_name: "m".into(),
         door_x: 0,
@@ -32,7 +32,7 @@ fn room() -> Room {
         ..Default::default()
     }));
     Room {
-        data: havana_storage::Room {
+        data: rusbbo_storage::Room {
             id: 1000,
             ..Default::default()
         },

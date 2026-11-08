@@ -5,7 +5,7 @@
 //! Items are saved as soon as they change; Java queues `Item.save()`/`delete()` on the
 //! `GameScheduler` and flushes them every few seconds. Nothing on the wire depends on the delay
 //! while the room stays loaded, and a saved item that was deleted meanwhile stays deleted
-//! ([`havana_storage::Store::update_item`]), as Java's `UPDATE` does.
+//! ([`rusbbo_storage::Store::update_item`]), as Java's `UPDATE` does.
 
 use tracing::error;
 
@@ -596,7 +596,7 @@ mod tests {
 
     /// Room 1000 of `traces/flat-furni.json` once the chair, the lamp and the moved sofa are in.
     fn furni_flat(entities: &[(i32, Position)]) -> RoomMapping {
-        let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "model_a".into(),
             model_name: "model_a".into(),
             door_x: 3,

@@ -2,8 +2,8 @@
 //! `game::games`). The game-type parts of `GAMESTATUS`, `FULLGAMESTATUS` and `GAMERESET` are
 //! built by the game types themselves (`game::games::battleball`).
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 /// Java: `LOUNGEINFO`.
 pub fn lounge_info() -> Message {

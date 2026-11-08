@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn lights_then_flipboard() {
-        let model = Arc::new(RoomModel::parse(&havana_storage::RoomModel {
+        let model = Arc::new(RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "space_cafe".into(),
             model_name: "space_cafe".into(),
             heightmap: "000|000".into(),

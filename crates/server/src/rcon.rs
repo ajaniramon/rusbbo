@@ -12,7 +12,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use anyhow::Result;
-use havana_protocol::body::from_latin1;
+use rusbbo_protocol::body::from_latin1;
 use tokio::io::AsyncReadExt;
 use tokio::net::{TcpListener, TcpStream};
 use tracing::{info, warn};

@@ -11,8 +11,8 @@ pub mod powerups;
 
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::game::{Game, GameKind};
 use super::player::PlayerState;

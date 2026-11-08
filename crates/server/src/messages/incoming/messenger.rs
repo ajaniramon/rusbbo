@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use crate::game::messenger::manager::{
@@ -386,7 +386,7 @@ pub fn send_message(
         latin1(
             &world
                 .wordfilter
-                .filter_mandatory(&settings, &havana_protocol::body::latin1(&filtered)),
+                .filter_mandatory(&settings, &rusbbo_protocol::body::latin1(&filtered)),
         )
     };
     if message.trim().is_empty() {
@@ -445,7 +445,7 @@ pub fn send_message(
         latin1(
             &world
                 .wordfilter
-                .filter_sentence(&settings, &havana_protocol::body::latin1(&message)),
+                .filter_sentence(&settings, &rusbbo_protocol::body::latin1(&message)),
         )
     } else {
         message

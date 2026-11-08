@@ -7,11 +7,13 @@
 #   oracle.sh reset   stop server, restore the database snapshot, start server again
 #   oracle.sh status  show what is running
 #
-# Environment: ORACLE_JAVA_HOME (a JDK 25; defaults to /opt/jdk25, then JAVA_HOME), ORACLE_DB_PORT (13307).
+# Environment: HAVANA_DIR (the Java Havana checkout; ../aeyra-havana), ORACLE_JAVA_HOME (a JDK 25; defaults to /opt/jdk25, then JAVA_HOME), ORACLE_DB_PORT (13307).
 set -euo pipefail
 
 ORACLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(cd "$ORACLE_DIR/../.." && pwd)"
+# The Java Havana repository (the reference server: its sources, schema and data files), by
+# default a sibling checkout named aeyra-havana.
+REPO_DIR="${HAVANA_DIR:-$(cd "$ORACLE_DIR/../.." && pwd)/aeyra-havana}"
 RUN_DIR="$ORACLE_DIR/run"
 DB_CONTAINER="${ORACLE_DB_CONTAINER:-havana-oracle-db}"
 DB_PORT="${ORACLE_DB_PORT:-13307}"
@@ -45,7 +47,7 @@ server_running() { [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/n
 build_jar() {
   log "building Havana-Server jar"
   (cd "$REPO_DIR" && ./gradlew -q --console=plain -Porg.gradle.java.installations.paths="$JAVA_HOME" \
-     -I havana-rs/oracle/no-jitpack.init.gradle :Havana-Server:shadowJar)
+     -I "$ORACLE_DIR/no-jitpack.init.gradle" :Havana-Server:shadowJar)
   cp "$REPO_DIR/Havana-Server/build/libs/Havana-Server-unspecified.jar" "$RUN_DIR/Havana-Server.jar"
 }
 
@@ -116,7 +118,7 @@ EOF
   cp "$REPO_DIR/tools/figuredata.xml" "$RUN_DIR/"
   mkdir -p "$RUN_DIR/tools"
   rm -rf "$RUN_DIR/tools/snowstorm_maps"
-  cp -r "$REPO_DIR/tools/snowstorm_maps" "$RUN_DIR/tools/"
+  cp -r "$ORACLE_DIR/../tools/snowstorm_maps" "$RUN_DIR/tools/"
 }
 
 start_server() {

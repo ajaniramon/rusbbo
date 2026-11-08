@@ -1,7 +1,7 @@
 //! Java: `messages/outgoing/club`.
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 /// Java: `CLUB_INFO`.
 pub fn club_info(

@@ -23,8 +23,8 @@ pub mod tictactoe;
 
 use std::sync::Arc;
 
-use havana_protocol::Message;
 use rand::RngExt;
+use rusbbo_protocol::Message;
 
 use crate::game::room::Room;
 use crate::game::room::items::Interaction;
@@ -277,7 +277,7 @@ impl Room {
             p.send(chat_message(
                 ChatType::Chat,
                 id,
-                &havana_protocol::body::latin1(text),
+                &rusbbo_protocol::body::latin1(text),
                 0,
             ));
         }

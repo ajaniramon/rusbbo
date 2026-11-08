@@ -1,6 +1,6 @@
 //! Item definitions (Java: `game/item/base/ItemDefinition.java` and `ItemBehaviour.java`).
 
-use havana_storage::ItemDefinition as Record;
+use rusbbo_storage::ItemDefinition as Record;
 use tracing::warn;
 
 /// Java: `ItemBehaviour`. Names are the upper-cased values of `items_definitions.behaviour`.

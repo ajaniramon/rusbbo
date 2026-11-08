@@ -2,8 +2,8 @@
 
 use std::collections::BTreeMap;
 
-use havana_protocol::Message;
-use havana_protocol::body::{ServerBody, latin1};
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::{ServerBody, latin1};
 
 /// Java: `BUS_DOOR`: whether the Infobus's door in the park is open.
 pub fn bus_door(open: bool) -> Message {

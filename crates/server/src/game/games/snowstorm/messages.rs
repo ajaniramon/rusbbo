@@ -5,7 +5,7 @@
 //! whose game is started and who is in it), reads the event type and, for a SnowStorm game,
 //! calls [`SnowStormGame::handle_event`] with the rest of the body.
 
-use havana_protocol::body::ClientReader;
+use rusbbo_protocol::body::ClientReader;
 
 use super::attributes::ActivityState;
 use super::events::TurnEvent;

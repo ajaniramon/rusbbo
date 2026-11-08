@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use havana_protocol::body::ClientReader;
 use rand::RngExt;
+use rusbbo_protocol::body::ClientReader;
 
 use crate::game::games::game::ticket_cost;
 use crate::game::games::lobby::{self, Created, Param};

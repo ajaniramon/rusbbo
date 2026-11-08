@@ -1,9 +1,9 @@
 //! `infobus_polls` and `infobus_polls_answers` (Java: `InfobusDao`).
 
 use anyhow::{Context, Result};
-use havana_storage::{InfobusPoll, Store};
 use mysql::Row;
 use mysql::prelude::Queryable;
+use rusbbo_storage::{InfobusPoll, Store};
 
 use crate::col;
 

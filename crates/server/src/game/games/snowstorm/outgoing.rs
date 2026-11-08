@@ -2,8 +2,8 @@
 //! branches of `FULLGAMESTATUS`, `GAMEINSTANCE` and `INSTANCELIST`, and the arena's
 //! `HEIGHTMAP` and `OBJECTS_WORLD` from `G_HMAP`).
 
-use havana_protocol::Message;
-use havana_protocol::body::ServerBody;
+use rusbbo_protocol::Message;
+use rusbbo_protocol::body::ServerBody;
 
 use super::TURNS;
 use super::events::TurnEvent;

@@ -1,4 +1,4 @@
-//! `havana-trace`: records how the Java Havana server answers scripted bot sessions and checks
+//! `rusbbo-trace`: records how the Java Havana server answers scripted bot sessions and checks
 //! another server (the Rust rewrite) against those recordings.
 
 mod check;
@@ -14,7 +14,7 @@ use std::process::{Command, ExitCode};
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use havana_protocol::escape;
+use rusbbo_protocol::escape;
 
 use runner::{Runner, StepOutput};
 use scenario::{Scenario, Step};

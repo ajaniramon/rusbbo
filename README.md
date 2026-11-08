@@ -1,11 +1,12 @@
-# havana-rs
+# rusbbo
 
-A Rust rewrite of Havana, built for fun: small enough to run on a Raspberry Pi, with an embedded
+A Rust rewrite of Havana (formerly `havana-rs`), built for fun: small enough to run on a Raspberry Pi, with an embedded
 key-value store instead of MariaDB. It is in its early stages.
 
-The Java server in this repository is the reference. Anything the Rust server does is judged by one
+The Java server (the Havana repository, `HAVANA_DIR`, by default a sibling checkout named
+`aeyra-havana`) is the reference. Anything the Rust server does is judged by one
 question: **does it answer the clients exactly like the Java server does?** The trace harness in
-this directory answers that question automatically.
+this repository answers that question automatically.
 
 ## Layout
 
@@ -14,21 +15,21 @@ this directory answers that question automatically.
 | `docs/DESIGN.md` | Architecture decisions: crates, concurrency model, redb data model, import, handshake |
 | `crates/protocol` | FUSE wire protocol: Base64/VL64 encodings, framing, body builders, message id tables |
 | `crates/storage` | redb storage: typed tables with their secondary indexes, schema version |
-| `crates/server` | `havana-server`: the game server (tokio). Mirrors the Java packages: `messages/incoming`, `messages/outgoing`, `game` |
-| `crates/import` | `havana-import`: copies a Java Havana MariaDB database into a redb file |
-| `crates/trace` | `havana-trace`: scripted bots that record the Java server's answers and check another server against them |
+| `crates/server` | `rusbbo-server`: the game server (tokio). Mirrors the Java packages: `messages/incoming`, `messages/outgoing`, `game` |
+| `crates/import` | `rusbbo-import`: copies a Java Havana MariaDB database into a redb file |
+| `crates/trace` | `rusbbo-trace`: scripted bots that record the Java server's answers and check another server against them |
 | `scenarios/` | Bot scripts (TOML): what the bots send, step by step |
 | `traces/` | Recorded answers of the Java server (JSON). This is the conformance corpus |
 | `oracle/` | Runs the Java server + MariaDB as the reference (`oracle.sh`) |
-| `harness/target-rs.sh` | Runs the Rust server from the same data as the oracle, for `havana-trace check` |
-| `harness/bench.sh` | Load test of both servers on the same data (`havana-trace load`): start time, memory, CPU, latency |
+| `harness/target-rs.sh` | Runs the Rust server from the same data as the oracle, for `rusbbo-trace check` |
+| `harness/bench.sh` | Load test of both servers on the same data (`rusbbo-trace load`): start time, memory, CPU, latency |
 | `tools/gen_*.py` | Regenerate `ids.rs` (message ids) and `settings_defaults.rs` from the Java sources |
 
 ## Rust server
 
 ```sh
-cargo run -p havana-import -- --mysql mysql://user:pass@host:3306/havana --out havana.redb
-cargo run -p havana-server -- --db havana.redb --bind 127.0.0.1:12321
+cargo run -p rusbbo-import -- --mysql mysql://user:pass@host:3306/havana --out rusbbo.redb
+cargo run -p rusbbo-server -- --db rusbbo.redb --bind 127.0.0.1:12321
 ```
 
 Real users log in through the ticket API, as with Havana-Web: start the server with
@@ -44,7 +45,7 @@ limit is shared. A bad login is a `404` with an empty body (Java sends its 404 p
 To check it against the corpus (needs the oracle's MariaDB container for the fixture):
 
 ```sh
-cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
+cargo run -p rusbbo-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 ```
 
 Traces with `rcon` steps (the Infobus) send them to the target's port minus 12 (Java's 12321 and
@@ -168,7 +169,10 @@ contained (Java catches the exception and carries on); all text on the wire is I
 
 ### 1. Start the reference server
 
-Needs Docker and a JDK 25 (`ORACLE_JAVA_HOME`, or `/opt/jdk25`).
+Needs Docker, a JDK 25 (`ORACLE_JAVA_HOME`, or `/opt/jdk25`) and a checkout of the Java Havana
+repository (`HAVANA_DIR`, by default `../aeyra-havana`): `setup` builds its jar and loads its
+schema, migrations and `figuredata.xml`. The SnowStorm maps live in this repository
+(`tools/snowstorm_maps`, also compiled into the server).
 
 ```sh
 oracle/oracle.sh setup   # build the jar, start MariaDB, load schema + migrations + seed, snapshot it
@@ -186,7 +190,7 @@ the moderation users `tracestaff`, `tracemod`, `tracebanned`, `tracemachine` wit
 ### 2. Record
 
 ```sh
-cargo run -p havana-trace -- record scenarios/*.toml --reset "oracle/oracle.sh reset"
+cargo run -p rusbbo-trace -- record scenarios/*.toml --reset "oracle/oracle.sh reset"
 ```
 
 Each scenario is recorded 3 times (`--runs`). The recordings are compared to tell stable output from
@@ -202,19 +206,19 @@ volatile output:
 ### 3. Check another server
 
 ```sh
-cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12321 --reset "<reset command>"
+cargo run -p rusbbo-trace -- check traces/*.json --target 127.0.0.1:12321 --reset "<reset command>"
 ```
 
 Prints `scenario: N/M steps ok` per trace and every difference; exits 1 if anything differs. Running
 it against the Java server itself must always pass (that is how the corpus is validated).
 
-`havana-trace show traces/login.json` prints a trace readably.
+`rusbbo-trace show traces/login.json` prints a trace readably.
 
 ### Load test
 
 `harness/bench.sh [java|rust|both]` runs each server on a copy of the golden snapshot with one
 extra user per bot, times its start, samples its memory and CPU every second, and runs
-`havana-trace load` at 100, 300 and 500 bots: they log in, enter ordinary public rooms (25 each),
+`rusbbo-trace load` at 100, 300 and 500 bots: they log in, enter ordinary public rooms (25 each),
 then walk and chat every ~4 s. It reports login, room entry and chat round-trip percentiles, lost
 replies and dropped connections, in `harness/run/bench/`. Build with `cargo build --release`
 first; the knobs are environment variables listed at the top of the script.

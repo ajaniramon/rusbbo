@@ -30,7 +30,7 @@ pub mod wobble_squabble;
 use super::Handler;
 
 /// Client text as Java reads it (ISO-8859-1: one char per byte).
-pub(crate) use havana_protocol::body::from_latin1 as latin1;
+pub(crate) use rusbbo_protocol::body::from_latin1 as latin1;
 
 /// The handler for a message id, or `None` for ids nobody handles yet.
 pub fn handler(header: u16) -> Option<Handler> {

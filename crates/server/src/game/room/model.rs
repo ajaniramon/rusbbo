@@ -27,7 +27,7 @@ pub struct RoomModel {
 
 impl RoomModel {
     /// Java: `RoomModel` constructor and `parse`.
-    pub fn parse(row: &havana_storage::RoomModel) -> Self {
+    pub fn parse(row: &rusbbo_storage::RoomModel) -> Self {
         let lines: Vec<&str> = row.heightmap.split('|').collect();
         let size_y = lines.len() as i32;
         let size_x = lines.first().map_or(0, |l| l.chars().count()) as i32;
@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn parses_heightmap_and_door() {
-        let model = RoomModel::parse(&havana_storage::RoomModel {
+        let model = RoomModel::parse(&rusbbo_storage::RoomModel {
             model_id: "m".into(),
             model_name: "m".into(),
             door_x: 0,
