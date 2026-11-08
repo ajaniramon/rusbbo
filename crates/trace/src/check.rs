@@ -73,7 +73,13 @@ fn compare_messages(expected: &BotTrace, actual: &[Message]) -> Vec<String> {
         }
     } else {
         let mut used = vec![false; actual.len()];
-        for e in &expected.messages {
+        // Exact and masked bodies first, so a header-only expectation does not take a message
+        // that only an exact one could match (and leave the message it could have matched over).
+        let (headers, bodies): (Vec<_>, Vec<_>) = expected
+            .messages
+            .iter()
+            .partition(|e| e.check == crate::trace::Check::Header);
+        for e in bodies.into_iter().chain(headers) {
             let hit = actual
                 .iter()
                 .enumerate()
@@ -119,4 +125,40 @@ fn show_expected(e: &crate::trace::Expected) -> String {
 
 fn describe(m: &Message) -> String {
     format!("{} \"{}\"", label(m.header), escape::display(&m.body))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::trace::{Check, Expected};
+
+    fn expected(body: &str, check: Check) -> Expected {
+        Expected {
+            header: 34,
+            name: None,
+            body: body.into(),
+            check,
+            mask: None,
+            optional: false,
+        }
+    }
+
+    #[test]
+    fn header_only_messages_take_what_is_left() {
+        // Two exact statuses and one of any body, listed header-only first: the exact ones must
+        // still find their messages.
+        let trace = BotTrace {
+            ordered: false,
+            closed: Some(false),
+            messages: vec![
+                expected("a", Check::Header),
+                expected("a", Check::Exact),
+                expected("a", Check::Exact),
+            ],
+        };
+        let actual = [b"a", b"a", b"b"].map(|b| Message::new(34, b.to_vec()));
+        assert!(compare_messages(&trace, &actual).is_empty());
+        let actual = [b"a", b"b", b"b"].map(|b| Message::new(34, b.to_vec()));
+        assert_eq!(compare_messages(&trace, &actual).len(), 2);
+    }
 }
