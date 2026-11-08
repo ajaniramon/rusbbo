@@ -305,10 +305,21 @@ fn expected(header: u16, bodies: &[&[u8]], optional: bool) -> Expected {
 }
 
 /// Wall-clock values look stable when all recordings fall in the same minute, so dates and times
-/// are always masked: `dd-mm-yyyy`, `yyyy-mm-dd` and `hh:mm[:ss]`.
+/// are always masked: `dd-mm-yyyy`, `yyyy-mm-dd`, `hh:mm[:ss]`, and the burn date of a song disc
+/// (`\nday\nmonth\nyear\n` in its custom data, day and month without leading zeros). A date
+/// whose length changes (the 9th and the 10th) still differs.
 fn clock_bytes(body: &[u8]) -> Vec<bool> {
     // Pattern: 'd' = digit, anything else literal.
-    const PATTERNS: [&[u8]; 4] = [b"dd-dd-dddd", b"dddd-dd-dd", b"dd:dd:dd", b"dd:dd"];
+    const PATTERNS: [&[u8]; 8] = [
+        b"dd-dd-dddd",
+        b"dddd-dd-dd",
+        b"dd:dd:dd",
+        b"dd:dd",
+        b"\nd\nd\ndddd\n",
+        b"\ndd\nd\ndddd\n",
+        b"\nd\ndd\ndddd\n",
+        b"\ndd\ndd\ndddd\n",
+    ];
     let mut hit = vec![false; body.len()];
     for pattern in PATTERNS {
         for start in 0..body.len().saturating_sub(pattern.len() - 1) {
@@ -434,6 +445,17 @@ mod tests {
         assert_eq!(e.check, Check::Mask);
         assert!(e.matches(435, b"x\x0201-01-2027 09:00:00\x02"));
         assert!(!e.matches(435, b"y\x0201-01-2027 09:00:00\x02"));
+    }
+
+    #[test]
+    fn song_disc_burn_dates_are_masked() {
+        // traces/flat-trax.json: a disc burnt on 7 November 2026 (months from 0).
+        let disc = b"S\x02tracebot1\n7\n10\n2026\n16\nRenamed\x02";
+        let e = expected(140, &[disc, disc], false);
+        assert_eq!(e.check, Check::Mask);
+        assert!(e.matches(140, b"S\x02tracebot1\n8\n10\n2026\n16\nRenamed\x02"));
+        assert!(!e.matches(140, b"S\x02tracebot2\n8\n10\n2026\n16\nRenamed\x02"));
+        assert!(!e.matches(140, b"S\x02tracebot1\n8\n10\n2026\n18\nRenamed\x02"));
     }
 
     #[test]
