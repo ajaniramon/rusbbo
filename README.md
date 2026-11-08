@@ -17,7 +17,7 @@ must give the same bytes back.
   the Habbo Lido, the public room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop
   Rumble), the game hall tables, and BattleBall and SnowStorm. Details below; what is left is under
   [Known gaps](#known-gaps).
-- **Conformance**: the 75 traces in `traces/` pass against the Java server and against
+- **Conformance**: the 83 traces in `traces/` pass against the Java server and against
   `rusbbo-server` (`harness/ported.txt`). The real v31 client (HabboLauncher) has been played
   against it on a copy of a real hotel's database, including the Lido, the game hall, BattleBall
   and SnowStorm.
@@ -102,7 +102,10 @@ solid furni in the pathfinder, wallpaper and floor), and the interactors for tel
 (within a flat and between flats), rollers, post-its, gates and one-way doors, and presents
 (gift purchases and opening). Social actions (whispers, `LOOKTO`, dancing, carrying drinks,
 `GOAWAY`), the word filter, the ignore list in chat, the chat commands (`game/commands`; staff
-ones in `staff.rs`, `:bot`/`:shutdown` are `TODO(commands)`) and trading are ported too. So are the other furniture
+ones in `staff.rs`, among them `:shutdown` with the maintenance countdown
+(`game/maintenance.rs`: `INFO_HOTEL_CLOSING` to everyone, at login, instead of a purchase or a
+trade), `:bot` and `:reload`; the player peaks are counted on the game tick for `:uptime` and
+`:usersonline`) and trading are ported too. So are the other furniture
 interactors (`game/item/interactors`): beds (lying on the pillow), dice, the wheel of fortune, vending
 machines, the hockey light and scoreboard, the fortune teller, the love randomizer, totems, step
 lights, multi-height furniture and the American Idol hotspot and vote chairs, with the per-room
@@ -141,8 +144,11 @@ camera (`rooftop_rumble_trigger`, Lido B's); the Space Cafe's lights and flipboa
 (`BUS_DOOR`, the door tile closed, `TRYBUS`, `CHANGEWORLD`), the polls (`infobus_polls`:
 `POLL_QUESTION`, `VOTE`, `VOTE_RESULTS` 30 s later and on every new vote) and the end of the
 event. The website's housekeeping drives the Infobus over RCON; `--rcon <addr>` serves Java's
-RCON port (`rcon.rs`), so far only for the Infobus messages (`TODO(rcon)` for the others), and
-the trace harness has `rcon` steps (see `crates/trace/src/scenario.rs`).
+RCON port (`rcon.rs`), with every header of Java's `RconHeader`: the hotel, user and room
+alerts, the refreshes of looks, club, credits, the hand, the trade setting (a player who may trade
+again enters the room again), friend requests, messenger categories, the catalogue, and the ones
+that only reload a manager (those for groups, tags and photos do what Java does without them).
+The trace harness has `rcon` steps (see `crates/trace/src/scenario.rs`).
 
 The lobby games as in Java (`game/games`, `messages/incoming/games.rs`): the BattleBall and
 SnowStorm lobbies (`LOUNGEINFO` and everyone's points and rank on `G_STAT`, `GETINSTANCELIST`,
@@ -218,6 +224,11 @@ oracle/oracle.sh setup   # build the jar, start MariaDB, load schema + migration
 oracle/oracle.sh start
 ```
 
+`oracle.sh build` builds only the jar. Havana's chess needs chesslib, which only jitpack.io
+serves: by default (`ORACLE_CHESSLIB=auto`) the jar gets it when jitpack.io answers, and
+otherwise `oracle/no-jitpack.init.gradle` swaps `GameChess` for a stub that ignores every
+command (the chess traces then fail); `ORACLE_CHESSLIB=1` or `0` forces either.
+
 `oracle.sh reset` stops the server, restores the database snapshot, starts it again and re-issues the
 bots' SSO tickets (Havana clears all tickets on startup and on each login). It takes ~2-3 s and runs
 before every recording, so every scenario starts from the same state.
@@ -237,7 +248,9 @@ volatile output:
 
 - identical in every run → **exact** match required later;
 - same length but some bytes differ (random tokens, ids) → **mask**: the varying alphanumeric runs are
-  ignored, the rest must match. Dates and times are always masked;
+  ignored, the rest must match. Dates and times are always masked, and so are the random ids
+  of public room furniture in `OBJECTS_WORLD` (Java's `PublicItemParser`: a letter and 0-998,
+  e.g. `r697`), which become `<id>` before recordings and checked messages are compared;
 - different lengths → **header** only;
 - message order differs between runs → that bot's messages for that step are compared **as a set**,
   and messages that appeared only in some runs are **optional**.
@@ -331,6 +344,8 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
 | `moderation-login` | a user id ban and a machine id ban at login (kicked), expired and lifted bans that do not count, `TRY_LOGIN` with a wrong and a right password |
 | `moderation-autoban` | the word filter's automatic ban (chat, shout, console), the word filter on console messages, a muted console sender, the stored ban seen by `:ban` |
+| `staff-ops` | `:shutdown` (the countdown, `INFO_HOTEL_CLOSING` to everyone, at login and instead of a purchase, cancelling, a bad number), `:usersonline`, `:uptime` (by header: it shows the process), `:reload catalogue` (the heightmap and the catalogue index to everyone), `:reload games` |
+| `staff-bot` | `:bot`: random bots seen by everyone in the room and the task's first run (random: by header), a bad amount, a normal user |
 | `staff-commands` | the staff chat commands: `:help` for an administrator, `:ha`, `:ra`, `:roommute`, `:mute`/`:unmute`, credits, badges, `:tradeban`, `:teleport`, `:coords`, `:itemdebug`, `:talk`, `:packet`, `:setconfig`, `:reload`, `:resetpw`, `:dc`, `:ban`/`:unban`, and what a moderator may not do |
 | `moderation-tool` | `MODERATORACTION`: alert, kick, room alert, room kick and ban, what they refuse, and a normal user who sends it |
 | `call-for-help` | calls for help: submit (once), `REQUEST_CFH`, category, pick up, answer, withdraw, follow to the room |
@@ -346,7 +361,9 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `catalogue-effects` | buying an effect: as a gift (refused), for pixels (stored, nothing sent: Java's `newEffect` bug), too expensive |
 | `gamehall-tictactoe` | the TicTacToe hall: a game started alone and joined, `CHOOSETYPE`, `SETSECTOR` (turns, sides, taken squares), five in a row (winning tokens, the chat line), `RESTART`, walking off and back, `CLOSE` (and a move Java still lets through), leaving the room |
 | `gamehall-battleships` | the Battleships hall: `PLACESHIP` (bad type, too many), the start (`OPPONENTS`, `TURN`), shots out of turn, misses (the turn 2 s later), `HIT`/`HITTWICE`/`SINK` with the `SITUATION` grids, `GAMEEND`/`GAMEOVER`, `CLOSE`, leaving |
-| `gamehall-chess` | the Chess hall: waiting for a second player, the game for both, walking off ends it for both, a new game, leaving the room, the king chairs (the oracle's chess is a stub: moves are unit tests) |
+| `gamehall-chess` | the Chess hall: waiting for a second player, the game for both, walking off ends it for both, a new game, leaving the room, the king chairs |
+| `gamehall-chess-mate` | chess moves (chesslib): before the sides are chosen, `CHOOSETYPE`, out of turn, illegal, the same square, a bad square, the scholar's mate, moves after the end, `RESTART`, a check and a move that ignores it |
+| `gamehall-chess-draw` | the knights back and forth (no repetition draw: Havana's chesslib board keeps no history), `RESTART`, Sam Loyd's ten-move stalemate (the draw line) |
 | `gamehall-poker` | the Poker hall: `OPEN`, `STARTOVER` (cards by header only), a second player in the round, `CHANGE` (`CHANGED`, once per round), walking off (`OPPONENT_LOGOUT` on the next command), the round's end (the winner's line, `REVEALCARDS`), a `CHANGE` without a hand, `CLOSE` |
 | `wobble-squabble` | Rooftop Rumble's Wobble Squabble: onto the bridge through the join tile (walking, and in teleport mode), the queue tiles, `PT_PREPARE`/`PT_START`, `PTM` moves and `PT_STATUS` (walking, the bridge's ends, hits, rebalancing, `WALK` ignored), the fall (`PT_WIN`, `PT_END`, tickets, into the water) |
 | `wobble-squabble-queue` | a player waiting on a queue tile moves on when the game ends and starts the next one against the winner; leaving mid-game: the game goes on, and the one who left still pays a ticket |
@@ -355,12 +372,16 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `snowstorm-lobby` | the SnowStorm lobby up to the arena: its parameters, a bad map, too many teams, a one-team game (and its `STARTGAME` alert), the game length in the lists, joining, leaving, `STARTFAILED`, a missing parameter |
 | `battleball-game` | a BattleBall game end to end on Barebones Classic: `STARTGAME`, the arena, `FULLGAMESTATUS`, `GAMESTATUS` every 500 ms, the lobby's visitors in the navigator, moves colouring tiles, chat and typing in the arena, `GAMEEND`, the observer's finished game, the history and the points |
 | `battleball-restart` | a BattleBall game on Sky Peak with a spectator (`YOUARESPECTATOR`), unscored (the same-IP check), `GAMERESTART` by both (`GAMERESET`, the second game) and then by one only (both back to the lobby) |
+| `battleball-reload` | `:reload games` in the BattleBall lobby: the waiting game drops out (not listed, observable, startable or joinable), a new game takes the next id, its player joins it from the lost game |
 | `battleball-leave` | leaving a BattleBall game that is on: a player disconnecting, the last one going back to the lobby (the game is gone, also for the observer) |
 | `snowstorm-game` | a SnowStorm game end to end on arena 4: `STARTGAME`, the arena (`HEIGHTMAP`, `FULLGAMESTATUS`, `OBJECTS_WORLD`), `SNOWSTORM_GAMESTATUS` every 300 ms, nothing before `GAMESTART`, walking (random spawns: header only), long, quick and short throws and their hits, making a snowball, `REQUESTFULLGAMESTATUS`, instant hits that stun, no throwing while stunned, `GAMEEND` with the scores, the finished game, the points and xp |
+| `snowstorm-reward` | `snowstorm-game` with fixed credit rewards: the credits come on the game tick after `GAMEEND` |
 | `snowstorm-leave` | a one-team SnowStorm game on arena 7: a player leaving mid-game (their avatar gone, the game goes on for the other), `GAMEEND` with the leaver at 0, the last player leaving |
 | `rooftop-camera` | Rooftop Rumble's camera (`rooftop_rumble_trigger`): the first shot 3 s after the first `G_STAT`, the mode for a second user, following the other user when its user leaves |
 | `space-cafe` | the Space Cafe's lights (`space_cafe_trigger`): six random `SHOWPROGRAM`s 4.5 s after the first `G_STAT` |
 | `infobus-door` | the Infobus's door in the park: `BUS_DOOR`, `TRYBUS` and the door tile while closed, opening and closing it over RCON, walking into the bus and back out with `CHANGEWORLD` |
+| `rcon-users` | RCON: hotel, user and room alerts, refreshing credits, looks, club, hand and tags, friend requests, messenger categories, group permissions (no group), the catalogue, the manager reloads, a bad number, an unknown header, `disconnect` |
+| `rcon-trade` | RCON's `refreshtrade` in a Trade floor flat: on (`ACH_TraderPass`, the room entered again where the player stands, the trade sees it), off (in the room too), a missing value, an offline user |
 | `infobus-poll` | an Infobus poll over RCON: `POLL_QUESTION`, `VOTE` (out of range, twice), `VOTE_RESULTS` 30 s later and on a new vote, a poll that does not exist, the end of the event (everyone walks out into the park and hears it again there) |
 
 ## Known gaps
@@ -376,19 +397,15 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 
 - Only `login-encrypted` uses the RC4 layer (`encrypt = true` on a bot); every other scenario runs
   unencrypted. The Flash port (12323) is not covered.
-- `OBJECTS_WORLD` (public room furniture) changes length between runs of the same scenario, so it is
-  checked by header only. The cause is the random id each item gets on room load
-  (`PublicItemParser`: a letter and 0-998, e.g. `r697` or `o2`); masking those ids would make the
-  rest (sprites, positions, order) checkable.
-- The oracle is built without `chesslib` (served only by jitpack.io, which this environment cannot
-  reach): `oracle/no-jitpack.init.gradle` swaps `GameChess` for a stub, so chess does nothing.
-  The Rust chess (`game/gamehall/chess.rs`, `chess_board.rs`) follows the Java source and
-  chesslib 1.1.1 and is checked by unit tests only.
+- The chess traces need an oracle jar built with `chesslib` (jitpack.io, see
+  [Start the reference server](#1-start-the-reference-server)); a jar built with the stub fails
+  them. Promotion, castling and en passant are checked by unit tests only.
 - The Java checkout's `tools/migrations/aeyra-settings-20261025.sql` is not applied: its string literals lost their
   quotes and it fails to parse.
-- Games: `:reload games` (Java rebuilds the game manager) is not ported; a game's credit
-  rewards are paid at once, where Java pays them on the next 1 s scheduler tick
-  (`TODO(scheduler)`); a few spectator cases with a stale game id, and stopping a lobby walk on
-  the first game start, are `TODO(games)`.
-- RCON (`--rcon`) handles only the Infobus messages (`TODO(rcon)`); the `:bot` and `:shutdown`
-  commands, the room-hire interactor and the idol's songs are `TODO(...)` markers too.
+- Games: no trace covers a spectator whose game id went stale (a restart takes the id the newest
+  game was created with, Java's `getAndIncrement`), stopping a lobby walk on the first BattleBall
+  start, or a Wobble Squabble player who left for another room when the game ends; they follow
+  the Java source.
+- RCON's `clearphoto` and the group and tag refreshes do what Java does without photos, groups
+  or tags (`TODO(photos)`, `TODO(groups)`, `TODO(tags)`); the room-hire interactor and the idol's
+  songs are `TODO(...)` markers.
