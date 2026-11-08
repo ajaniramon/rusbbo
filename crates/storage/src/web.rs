@@ -533,7 +533,7 @@ impl Writer {
     }
 
     /// The next `AUTO_INCREMENT` id of `table`, whose highest id now is `last`.
-    fn take_next_id(&mut self, table: &str, last: u32) -> Result<u32> {
+    pub(crate) fn take_next_id(&mut self, table: &str, last: u32) -> Result<u32> {
         let mut meta = self.tx.open_table(WEB_META)?;
         let counter = meta.get(table)?.map(|v| v.value()).unwrap_or(0);
         let id = counter.max(last + 1);

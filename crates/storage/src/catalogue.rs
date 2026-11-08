@@ -37,6 +37,12 @@ pub struct CataloguePage {
     pub texts: Vec<String>,
     pub seasonal_start: Option<String>,
     pub seasonal_length: i32,
+    /// The `images` and `texts` columns as stored, for the housekeeping panel (which shows
+    /// them as they are).
+    #[serde(default)]
+    pub images_json: String,
+    #[serde(default)]
+    pub texts_json: String,
 }
 
 /// A row of `catalogue_items`. `page_id` is the comma separated page list, verbatim.
@@ -130,6 +136,71 @@ impl Store {
 }
 
 impl Writer {
+    fn next_id(&mut self, table: TableDefinition<u32, &[u8]>, name: &str) -> Result<u32> {
+        let last = {
+            let t = self.tx.open_table(table)?;
+            t.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        self.take_next_id(name, last)
+    }
+
+    /// The id the next `INSERT INTO catalogue_pages` gets (`AUTO_INCREMENT`).
+    pub fn next_catalogue_page_id(&mut self) -> Result<u32> {
+        self.next_id(CATALOGUE_PAGES, "catalogue_pages")
+    }
+
+    pub fn next_catalogue_item_id(&mut self) -> Result<u32> {
+        self.next_id(CATALOGUE_ITEMS, "catalogue_items")
+    }
+
+    pub fn next_catalogue_package_id(&mut self) -> Result<u32> {
+        self.next_id(CATALOGUE_PACKAGES, "catalogue_packages")
+    }
+
+    pub fn delete_catalogue_page(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(CATALOGUE_PAGES)?.remove(id)?;
+        Ok(())
+    }
+
+    pub fn delete_catalogue_item(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(CATALOGUE_ITEMS)?.remove(id)?;
+        Ok(())
+    }
+
+    pub fn delete_catalogue_package(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(CATALOGUE_PACKAGES)?.remove(id)?;
+        Ok(())
+    }
+
+    /// `INSERT INTO catalogue_sale_badges`, after the existing rows.
+    pub fn add_catalogue_sale_badge(&mut self, badge: &CatalogueSaleBadge) -> Result<()> {
+        let seq = {
+            let t = self.tx.open_table(CATALOGUE_SALE_BADGES)?;
+            t.last()?.map(|(k, _)| k.value() + 1).unwrap_or(0)
+        };
+        self.put_catalogue_sale_badge(seq, badge)
+    }
+
+    /// `DELETE FROM catalogue_sale_badges WHERE sale_code = ? AND badge_code = ?` (ignoring case,
+    /// as the collation does).
+    pub fn delete_catalogue_sale_badge(&mut self, sale_code: &str, badge_code: &str) -> Result<()> {
+        let mut t = self.tx.open_table(CATALOGUE_SALE_BADGES)?;
+        let mut gone = Vec::new();
+        for entry in t.iter()? {
+            let (k, v) = entry?;
+            let b: CatalogueSaleBadge = decode(v.value())?;
+            if b.sale_code.to_lowercase() == sale_code.to_lowercase()
+                && b.badge_code.to_lowercase() == badge_code.to_lowercase()
+            {
+                gone.push(k.value());
+            }
+        }
+        for k in gone {
+            t.remove(k)?;
+        }
+        Ok(())
+    }
+
     pub fn put_catalogue_page(&mut self, page: &CataloguePage) -> Result<()> {
         let bytes = encode(page)?;
         self.tx

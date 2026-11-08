@@ -108,7 +108,7 @@ pub fn search(conn: &mut Conn) -> WebResult {
         _ => filter.clear(),
     }
     match sort.as_str() {
-        "name" => users.sort_by_key(|u| u.username.to_lowercase()),
+        "name" => users.sort_by_key(|u| hk::collation_key(&u.username)),
         "credits" => users.sort_by_key(|u| std::cmp::Reverse(u.credits)),
         "last_online" => users.sort_by_key(|u| {
             (
@@ -311,7 +311,12 @@ pub fn view(conn: &mut Conn) -> WebResult {
         .into_iter()
         .filter_map(|(f, _)| world.store.user(f).ok().flatten())
         .collect();
-    friends.sort_by_key(|u| (std::cmp::Reverse(u.is_online), u.username.to_lowercase()));
+    friends.sort_by_key(|u| {
+        (
+            std::cmp::Reverse(u.is_online),
+            hk::collation_key(&u.username),
+        )
+    });
     tpl.set(
         "friends",
         Value::list(
@@ -378,7 +383,7 @@ pub fn view(conn: &mut Conn) -> WebResult {
             .filter(|u| u.machine_id == machine && u.id != id)
             .collect()
     };
-    same_machine.sort_by_key(|u| u.username.to_lowercase());
+    same_machine.sort_by_key(|u| hk::collation_key(&u.username));
     tpl.set(
         "machineAccounts",
         Value::list(

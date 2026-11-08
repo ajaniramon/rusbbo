@@ -489,7 +489,7 @@ pub fn present_open(
         .get(4)
         .and_then(|s| s.parse::<i64>().ok())
         .unwrap_or_else(now);
-    let Some(catalogue_item) = world.catalogue.item(sale_code).cloned() else {
+    let Some(catalogue_item) = world.catalogue.item(sale_code) else {
         let present = r.remove_flat_item(world, idx);
         if let Some(flat) = present.flat.as_ref() {
             if let Err(e) = world.store.delete_items(&[flat.record.id]) {

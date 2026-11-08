@@ -47,6 +47,9 @@ pub fn import_infobus(conn: &mut mysql::PooledConn, store: &Store) -> Result<usi
             col(row, "user_id")?,
         )?;
     }
+    if let Some(next) = crate::auto_increment(conn, "infobus_polls")? {
+        w.set_auto_increment("infobus_polls", next as u32)?;
+    }
     w.commit()?;
     Ok(polls.len() + answers.len())
 }

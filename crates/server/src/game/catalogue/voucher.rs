@@ -84,7 +84,7 @@ pub fn redeem(world: &World, details: &mut User, code: &str) -> Redeemed {
     }
     let mut items = Vec::new();
     for sale_code in &sale_codes {
-        let Some(item) = world.catalogue.item_by_sale_code(sale_code).cloned() else {
+        let Some(item) = world.catalogue.item_by_sale_code(sale_code) else {
             error!("Could not redeem voucher {code} with sale code: {sale_code}");
             continue;
         };

@@ -608,6 +608,8 @@ fn import_catalogue(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize
             layout: col(row, "layout")?,
             images: string_list(row, "images")?,
             texts: string_list(row, "texts")?,
+            images_json: col(row, "images")?,
+            texts_json: col(row, "texts")?,
             seasonal_start: col(row, "seasonal_start")?,
             seasonal_length: col(row, "seasonal_length")?,
         };
@@ -653,6 +655,11 @@ fn import_catalogue(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize
                 badge_code,
             },
         )?;
+    }
+    for table in ["catalogue_pages", "catalogue_items", "catalogue_packages"] {
+        if let Some(next) = auto_increment(conn, table)? {
+            w.set_auto_increment(table, next as u32)?;
+        }
     }
     w.commit()?;
     Ok(pages.len())

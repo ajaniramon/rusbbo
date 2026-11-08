@@ -423,6 +423,42 @@ impl AuditRow {
     }
 }
 
+/// A sort key that orders strings as MariaDB's `utf8mb4_uca1400_ai_ci` collation does for the
+/// characters the panel lists (DUCET order: spaces and punctuation, then symbols, digits and
+/// letters; case and accents ignored).
+pub fn collation_key(s: &str) -> Vec<u32> {
+    const PUNCTUATION: &str = " _-,;:!?.'\"()[]{}@*/\\&#%`^+<=>|~$";
+    s.chars()
+        .map(|c| {
+            if let Some(i) = PUNCTUATION.find(c) {
+                return 0x100 + i as u32;
+            }
+            if c.is_ascii_digit() {
+                return 0x200 + c as u32;
+            }
+            let base = fold_accent(c.to_lowercase().next().unwrap_or(c));
+            if base.is_ascii_lowercase() {
+                0x300 + base as u32
+            } else {
+                0x1000 + base as u32
+            }
+        })
+        .collect()
+}
+
+fn fold_accent(c: char) -> char {
+    match c {
+        'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' => 'a',
+        'é' | 'è' | 'ë' | 'ê' => 'e',
+        'í' | 'ì' | 'ï' | 'î' => 'i',
+        'ó' | 'ò' | 'ö' | 'ô' | 'õ' => 'o',
+        'ú' | 'ù' | 'ü' | 'û' => 'u',
+        'ñ' => 'n',
+        'ç' => 'c',
+        c => c,
+    }
+}
+
 /// `LIKE '%x%'` with `HkDao.like`'s escapes, ignoring case as the collation does.
 pub fn like(haystack: &str, needle: &str) -> bool {
     haystack.to_lowercase().contains(&needle.to_lowercase())

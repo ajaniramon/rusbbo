@@ -148,7 +148,7 @@ pub fn dashboard(conn: &mut Conn) -> WebResult {
         .records::<rusbbo_storage::RoomVisit>()
         .unwrap_or_default();
     let mut online: Vec<&User> = users.iter().filter(|u| u.is_online).collect();
-    online.sort_by_key(|u| u.username.to_lowercase());
+    online.sort_by_key(|u| hk::collation_key(&u.username));
     let online_rows: Vec<Value> = online
         .iter()
         .take(100)

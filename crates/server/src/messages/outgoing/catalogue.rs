@@ -25,7 +25,7 @@ pub fn catalogue_pages(
         .string(b"")
         .int(0)
         .int(tabs.len() as i32);
-    for tab in tabs {
+    for tab in &tabs {
         body = index_node(body, tab);
         body = recursive_index_node(body, tab, rank, has_club, catalogue, settings);
     }
@@ -51,7 +51,7 @@ fn recursive_index_node(
 ) -> ServerBody {
     let children = catalogue.child_pages(parent.id, rank, has_club, settings);
     body = body.int(children.len() as i32);
-    for child in children {
+    for child in &children {
         body = index_node(body, child);
         body = recursive_index_node(body, child, rank, has_club, catalogue, settings);
     }

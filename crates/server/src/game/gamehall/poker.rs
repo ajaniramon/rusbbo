@@ -622,7 +622,7 @@ fn give_rares(world: &World, session: &Arc<crate::session::Session>, rares: &[i3
                 bought.push(world.catalogue.purchase_in(
                     &mut w,
                     &details,
-                    item,
+                    &item,
                     "",
                     crate::game::now(),
                     None,

@@ -92,7 +92,7 @@ pub fn get_catalogue_page(
 ///
 /// While the hotel is closing (`:shutdown`) nothing is bought: `INFO_HOTEL_CLOSING`.
 /// TODO(collectables): collectable prices and page rules.
-/// TODO(badges): `catalogue_sale_badges` rewards via the badge manager.
+/// The badges the sale code rewards (`catalogue_sale_badges`) come last, gifts included.
 /// TODO(flash,rooms): `getView("new")` after buying, for Flash clients and players in a room.
 pub fn grpc(
     world: &World,
@@ -132,12 +132,8 @@ pub fn grpc(
     {
         Some(seasonal) => seasonal,
         None => {
-            let Some(page) = world
-                .catalogue
-                .pages()
-                .iter()
-                .find(|pg| found.has_page(pg.id))
-            else {
+            let pages = world.catalogue.pages();
+            let Some(page) = pages.iter().find(|pg| found.has_page(pg.id)) else {
                 return Ok(());
             };
             if page.min_role > rank || (page.is_club_only && !has_club) {
@@ -171,15 +167,16 @@ pub fn grpc(
         // Java: the receiver gets the present at once if online. Locked after the buyer is
         // released (never two players at once), so another receiver's hand updates after the
         // buyer's messages; a present to oneself was delivered by `buy_gift`.
-        let Some(present) = present else {
-            return Ok(());
-        };
-        if let Some(receiver) = world.player_by_id(present.record.user_id.unwrap_or(0)) {
+        if let Some(present) = present
+            && let Some(receiver) = world.player_by_id(present.record.user_id.unwrap_or(0))
+        {
             let mut rp = receiver.player.lock();
             rp.inventory.add_item(present);
             let hand = rp.inventory.get_view(&world.store, "new");
             receiver.send(outgoing::inventory::inventory(&hand));
         }
+        let mut p = session.player.lock();
+        award_sale_badges(world, session, &mut p, &item.sale_code);
         return Ok(());
     }
     let Some(details) = p.details.clone() else {
@@ -229,7 +226,21 @@ pub fn grpc(
     if let Some(details) = p.details.as_mut() {
         send_charge(session, details, charge);
     }
+    award_sale_badges(world, session, p, &item.sale_code);
     Ok(())
+}
+
+/// Java: `getBadgeRewards().get(saleCode)` given with `tryAddBadge`.
+fn award_sale_badges(
+    world: &World,
+    session: &Session,
+    p: &mut crate::game::player::Player,
+    sale_code: &str,
+) {
+    for code in world.catalogue.badge_rewards(sale_code) {
+        p.badges
+            .try_add_badge(&world.store, session, &code, None, 0);
+    }
 }
 
 /// A `users_transactions` row for a purchase (Java: `TransactionDao.createTransaction` in

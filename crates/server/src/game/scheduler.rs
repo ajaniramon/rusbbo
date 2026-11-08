@@ -80,6 +80,7 @@ fn tick(world: &World) {
     if tick_rate % 5 == 0 {
         crate::game::games::check_xp_expiry(world);
     }
+    crate::game::catalogue::collectables::check_expiries(world);
 }
 
 /// Java: `GameScheduler`'s daily credits for one player: queued (unless they already wait in

@@ -1,8 +1,10 @@
 //! Java: `game/catalogue/CatalogueManager.java`.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use parking_lot::RwLock;
 use rusbbo_storage::{Store, User, Writer};
 use tracing::error;
 
@@ -19,11 +21,16 @@ use crate::settings::Settings;
 /// Java: `PlayerRank.COMMUNITY_MANAGER`.
 pub const COMMUNITY_MANAGER_RANK: i32 = 6;
 
+/// The catalogue, reloaded as a whole when the housekeeping panel changes it (Java:
+/// `CatalogueManager.reset`); readers get copies of what they look up.
 pub struct CatalogueManager {
+    data: RwLock<Arc<Data>>,
+}
+
+struct Data {
     pages: Vec<CataloguePage>,
     items: Vec<CatalogueItem>,
     /// Sale code -> badge codes (Java: `badgeRewards`).
-    #[allow(dead_code)] // TODO(badges)
     badge_rewards: HashMap<String, Vec<String>>,
 }
 
@@ -37,6 +44,18 @@ impl CatalogueManager {
             store.catalogue_sale_badges()?,
             items,
         ))
+    }
+
+    /// Java: `CatalogueManager.reset`: everything read again from the store.
+    pub fn reload(&self, store: &Store, items: &ItemManager) -> Result<()> {
+        let fresh = Self::load(store, items)?;
+        let data = fresh.data.read().clone();
+        *self.data.write() = data;
+        Ok(())
+    }
+
+    fn data(&self) -> Arc<Data> {
+        self.data.read().clone()
     }
 
     pub fn new(
@@ -81,9 +100,11 @@ impl CatalogueManager {
                 .push(b.badge_code);
         }
         Self {
-            pages: pages.into_iter().map(CataloguePage::new).collect(),
-            items,
-            badge_rewards,
+            data: RwLock::new(Arc::new(Data {
+                pages: pages.into_iter().map(CataloguePage::new).collect(),
+                items,
+                badge_rewards,
+            })),
         }
     }
 
@@ -94,8 +115,9 @@ impl CatalogueManager {
         rank: i32,
         has_club: bool,
         settings: &Settings,
-    ) -> Vec<&CataloguePage> {
-        self.pages
+    ) -> Vec<CataloguePage> {
+        self.data()
+            .pages
             .iter()
             .filter(|page| {
                 page.parent_id == parent_id
@@ -103,26 +125,31 @@ impl CatalogueManager {
                     && (!page.is_club_only || has_club)
                     && (page.is_valid_seasonal(settings) || rank >= COMMUNITY_MANAGER_RANK)
             })
+            .cloned()
             .collect()
     }
 
     /// Java: `getCataloguePage`.
-    pub fn page(&self, id: i32) -> Option<&CataloguePage> {
-        self.pages.iter().find(|p| p.id == id)
+    pub fn page(&self, id: i32) -> Option<CataloguePage> {
+        self.data().pages.iter().find(|p| p.id == id).cloned()
     }
 
-    pub fn pages(&self) -> &[CataloguePage] {
-        &self.pages
+    pub fn pages(&self) -> Vec<CataloguePage> {
+        self.data().pages.clone()
     }
 
     /// Java: `getCatalogueItem(int)`.
-    pub fn item(&self, id: i32) -> Option<&CatalogueItem> {
-        self.items.iter().find(|i| i.id == id)
+    pub fn item(&self, id: i32) -> Option<CatalogueItem> {
+        self.data().items.iter().find(|i| i.id == id).cloned()
     }
 
     /// Java: `getCatalogueItem(String saleCode)`: the first item with that sale code.
-    pub fn item_by_sale_code(&self, sale_code: &str) -> Option<&CatalogueItem> {
-        self.items.iter().find(|i| i.sale_code == sale_code)
+    pub fn item_by_sale_code(&self, sale_code: &str) -> Option<CatalogueItem> {
+        self.data()
+            .items
+            .iter()
+            .find(|i| i.sale_code == sale_code)
+            .cloned()
     }
 
     /// Java: `ItemManager.createGift`, inside `w`: a present wrapping `sale_code` for
@@ -169,7 +196,8 @@ impl CatalogueManager {
 
     /// Java: `getSeasonalItems`: the items on sale today, at their seasonal prices.
     pub fn seasonal_items(&self) -> Vec<CatalogueItem> {
-        self.items
+        self.data()
+            .items
             .iter()
             .filter(|i| i.is_active())
             .map(|i| {
@@ -198,6 +226,7 @@ impl CatalogueManager {
             }
         }
         let mut items: Vec<CatalogueItem> = self
+            .data()
             .items
             .iter()
             .filter(|i| !i.hidden && i.has_page(page_id))
@@ -208,9 +237,12 @@ impl CatalogueManager {
     }
 
     /// Java: `getBadgeRewards().get(saleCode)`.
-    #[allow(dead_code)] // TODO(badges)
-    pub fn badge_rewards(&self, sale_code: &str) -> &[String] {
-        self.badge_rewards.get(sale_code).map_or(&[], Vec::as_slice)
+    pub fn badge_rewards(&self, sale_code: &str) -> Vec<String> {
+        self.data()
+            .badge_rewards
+            .get(sale_code)
+            .cloned()
+            .unwrap_or_default()
     }
 
     /// Java: `purchase(PlayerDetails, CatalogueItem, ...)`, inside `w`: creates the items (with

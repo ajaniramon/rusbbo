@@ -803,7 +803,7 @@ pub fn gift_room(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
     let Some(sale_code) = arg(args, 0) else {
         return;
     };
-    let Some(catalogue_item) = world.catalogue.item_by_sale_code(&sale_code).cloned() else {
+    let Some(catalogue_item) = world.catalogue.item_by_sale_code(&sale_code) else {
         talk_whisper(
             world,
             session,

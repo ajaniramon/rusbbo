@@ -240,6 +240,10 @@ fn handle(world: &World, message: &RconMessage) {
             }
         }
         "refreshcatalogue" => {
+            // Java: CatalogueManager.reset (and the badge rewards with it), then the index.
+            if let Err(e) = world.catalogue.reload(&world.store, &world.items) {
+                error!("reloading the catalogue: {e}");
+            }
             for session in world.players() {
                 crate::messages::incoming::catalogue::send_catalog_index(world, &session);
             }

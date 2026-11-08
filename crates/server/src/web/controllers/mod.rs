@@ -8,6 +8,7 @@ mod club;
 mod groups;
 mod habblets;
 mod habblets2;
+mod hk_catalogue;
 mod hk_content;
 mod hk_core;
 mod hk_tools;
@@ -400,6 +401,33 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HousekeepingRoomBadgesController::delete" => hk_content::delete_room_badge(conn)?,
         "HousekeepingRoomBadgesController::create" => hk_content::create_room_badge(conn)?,
         "HousekeepingCatalogueFrontpageController::edit" => hk_content::catalogue_frontpage(conn)?,
+        "HousekeepingCatalogueController::pages" => hk_catalogue::pages(conn)?,
+        "HousekeepingCatalogueController::editPage" => hk_catalogue::edit_page(conn)?,
+        "HousekeepingCatalogueController::deletePage" => hk_catalogue::delete_page(conn)?,
+        "HousekeepingCatalogueController::items" => hk_catalogue::items(conn)?,
+        "HousekeepingCatalogueController::editItem" => hk_catalogue::edit_item(conn)?,
+        "HousekeepingCatalogueController::deleteItem" => hk_catalogue::delete_item(conn)?,
+        "HousekeepingCatalogueController::packages" => hk_catalogue::packages(conn)?,
+        "HousekeepingCatalogueController::editPackage" => hk_catalogue::edit_package(conn)?,
+        "HousekeepingCatalogueController::deletePackage" => hk_catalogue::delete_package(conn)?,
+        "HousekeepingCatalogueController::saleBadges" => hk_catalogue::sale_badges(conn)?,
+        "HousekeepingCatalogueController::deleteSaleBadge" => {
+            hk_catalogue::delete_sale_badge(conn)?
+        }
+        "HousekeepingCatalogueController::collectables" => hk_catalogue::collectables(conn)?,
+        "HousekeepingCatalogueController::editCollectable" => hk_catalogue::edit_collectable(conn)?,
+        "HousekeepingCatalogueController::deleteCollectable" => {
+            hk_catalogue::delete_collectable(conn)?
+        }
+        "HousekeepingInfobusController::polls" => hk_catalogue::polls(conn)?,
+        "HousekeepingInfobusController::create_polls" => hk_catalogue::create_poll(conn)?,
+        "HousekeepingInfobusController::delete" => hk_catalogue::delete_poll(conn)?,
+        "HousekeepingInfobusController::edit" => hk_catalogue::edit_poll(conn)?,
+        "HousekeepingInfobusController::view_results" => hk_catalogue::view_results(conn)?,
+        "HousekeepingInfobusController::clear_results" => hk_catalogue::clear_results(conn)?,
+        "HousekeepingInfobusController::send_poll" => hk_catalogue::send_poll(conn)?,
+        "HousekeepingInfobusController::close_event" => hk_catalogue::close_event(conn)?,
+        "HousekeepingInfobusController::door_status" => hk_catalogue::door_status(conn)?,
         _ => return Ok(false),
     }
     Ok(true)

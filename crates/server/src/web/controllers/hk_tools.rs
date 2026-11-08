@@ -66,7 +66,7 @@ pub fn hotel_alert(conn: &mut Conn) -> WebResult {
         .into_iter()
         .filter(|u| u.is_online)
         .collect();
-    online.sort_by_key(|u| u.username.to_lowercase());
+    online.sort_by_key(|u| hk::collation_key(&u.username));
     tpl.set(
         "online",
         Value::list(
@@ -356,7 +356,7 @@ pub fn room_view(conn: &mut Conn) -> WebResult {
         ]),
     );
     let mut people = occupants(&world, rid);
-    people.sort_by_key(|u| u.username.to_lowercase());
+    people.sort_by_key(|u| hk::collation_key(&u.username));
     tpl.set(
         "occupants",
         Value::list(

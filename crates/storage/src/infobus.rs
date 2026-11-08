@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use redb::{TableDefinition, WriteTransaction};
+use redb::{ReadableTable, TableDefinition, WriteTransaction};
 use serde::{Deserialize, Serialize};
 
 use crate::{Result, Store, Writer, decode, encode};
@@ -60,6 +60,53 @@ impl Store {
             *out.entry(entry?.1.value()).or_insert(0) += 1;
         }
         Ok(out)
+    }
+
+    /// Java: `InfobusDao.getInfobusPolls`: every poll, newest first.
+    pub fn infobus_polls(&self) -> Result<Vec<InfobusPoll>> {
+        let tx = self.db.begin_read()?;
+        let mut out: Vec<InfobusPoll> = Vec::new();
+        for entry in tx.open_table(INFOBUS_POLLS)?.iter()? {
+            out.push(decode(entry?.1.value())?);
+        }
+        out.sort_by_key(|p| std::cmp::Reverse(p.created_at));
+        Ok(out)
+    }
+
+    /// Java: `InfobusDao.createInfobusPoll`: the new poll's id (`AUTO_INCREMENT`).
+    pub fn insert_infobus_poll(&self, poll: &InfobusPoll) -> Result<u32> {
+        let mut w = self.write()?;
+        let last = {
+            let table = w.tx.open_table(INFOBUS_POLLS)?;
+            table.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        let id = w.take_next_id("infobus_polls", last)?;
+        w.put_infobus_poll(&InfobusPoll { id, ..poll.clone() })?;
+        w.commit()?;
+        Ok(id)
+    }
+
+    /// Java: `InfobusDao.delete`.
+    pub fn delete_infobus_poll(&self, id: u32) -> Result<()> {
+        let w = self.write()?;
+        w.tx.open_table(INFOBUS_POLLS)?.remove(id)?;
+        w.commit()
+    }
+
+    /// Java: `InfobusDao.clearAnswers`.
+    pub fn clear_infobus_answers(&self, poll_id: u32) -> Result<()> {
+        let w = self.write()?;
+        {
+            let mut table = w.tx.open_table(INFOBUS_ANSWERS)?;
+            let keys: Vec<(u32, u32)> = table
+                .range((poll_id, 0)..=(poll_id, u32::MAX))?
+                .map(|e| e.map(|(k, _)| k.value()))
+                .collect::<std::result::Result<_, _>>()?;
+            for k in keys {
+                table.remove(k)?;
+            }
+        }
+        w.commit()
     }
 
     /// Java: `InfobusDao.addAnswer`.
