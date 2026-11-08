@@ -212,8 +212,8 @@ it against the Java server itself must always pass (that is how the corpus is va
 
 ### Load test
 
-`harness/bench.sh [java|rust|both]` runs each server on a copy of the golden snapshot with 500
-extra users, times its start, samples its memory and CPU every second, and runs
+`harness/bench.sh [java|rust|both]` runs each server on a copy of the golden snapshot with one
+extra user per bot, times its start, samples its memory and CPU every second, and runs
 `havana-trace load` at 100, 300 and 500 bots: they log in, enter ordinary public rooms (25 each),
 then walk and chat every ~4 s. It reports login, room entry and chat round-trip percentiles, lost
 replies and dropped connections, in `harness/run/bench/`. Build with `cargo build --release`

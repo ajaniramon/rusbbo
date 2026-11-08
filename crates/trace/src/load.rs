@@ -38,6 +38,7 @@ const HEIGHTMAP: u16 = 31;
 const USER_OBJECTS: u16 = 28;
 const CHAT_MESSAGE: u16 = 24;
 const PING: u16 = 50;
+const HOTEL_VIEW: u16 = 18;
 
 /// Longest a bot waits for a reply before counting it as lost.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(10);
@@ -65,6 +66,7 @@ struct Samples {
     failed_logins: usize,
     failed_entries: usize,
     lost_chats: usize,
+    left_room: usize,
     disconnects: usize,
     messages: u64,
     bytes: u64,
@@ -88,6 +90,8 @@ pub struct LoadReport {
     pub failed_logins: usize,
     pub failed_entries: usize,
     pub lost_chats: usize,
+    /// Bots that walked out of their room (onto its door); they stop acting.
+    pub left_room: usize,
     pub disconnects: usize,
     pub messages_per_s: f64,
     pub kbytes_per_s: f64,
@@ -157,6 +161,7 @@ pub fn run(opts: LoadOptions) -> Result<LoadReport> {
         failed_logins: s.failed_logins,
         failed_entries: s.failed_entries,
         lost_chats: s.lost_chats,
+        left_room: s.left_room,
         disconnects: s.disconnects,
         messages_per_s: s.messages as f64 / secs,
         kbytes_per_s: s.bytes as f64 / 1024.0 / secs,
@@ -353,8 +358,9 @@ impl BotPlan {
         let mut seq = 0u32;
         let mut next_action = Instant::now() + self.interval.mul_f64(rng.random_range(0.0..1.0));
         let (mut chat, mut lost, mut messages, mut bytes) = (Vec::new(), 0usize, 0u64, 0u64);
+        let mut left = false;
         while Instant::now() < self.end && !conn.closed {
-            if Instant::now() >= next_action {
+            if !left && Instant::now() >= next_action {
                 if rng.random_range(0..2) == 0 || tiles.is_empty() {
                     seq += 1;
                     let token = format!("b{}n{seq}", self.index).into_bytes();
@@ -372,6 +378,11 @@ impl BotPlan {
                 if at >= self.measure_from {
                     messages += 1;
                     bytes += size as u64;
+                }
+                if msg.header == HOTEL_VIEW {
+                    // Walked onto the door: out of the room, so no chat comes back any more.
+                    left = true;
+                    pending.clear();
                 }
                 if msg.header == CHAT_MESSAGE && !pending.is_empty() {
                     let hit = pending
@@ -397,6 +408,7 @@ impl BotPlan {
         let mut s = samples.lock().unwrap();
         s.chat.extend(chat);
         s.lost_chats += lost;
+        s.left_room += usize::from(left);
         s.messages += messages;
         s.bytes += bytes;
         if conn.closed {

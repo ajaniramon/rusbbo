@@ -3,13 +3,13 @@
 #
 #   harness/bench.sh [java|rust|both]    (default both; results in harness/run/bench/)
 #
-# For each server: start it on a scratch copy of the oracle's golden snapshot plus BENCH_USERS
-# bench users (havana_bench), time the start until the game port opens, sample its memory (RSS)
-# and CPU every second, measure it idle, then run `havana-trace load` at each BENCH_LEVELS bot
+# For each server: start it on a scratch copy of the oracle's golden snapshot plus one bench user
+# per bot of every level (havana_bench), time the start until the game port opens, sample its
+# memory (RSS) and CPU every second, measure it idle, then run `havana-trace load` at each BENCH_LEVELS bot
 # count in turn on the same process (the bots leave between levels). Both servers run with their
 # packet logging off. Needs the release binaries (cargo build --release) and the oracle jar.
 #
-# Environment: BENCH_USERS (500), BENCH_LEVELS ("100 300 500"), BENCH_RAMP (30 s), BENCH_DURATION
+# Environment: BENCH_LEVELS ("100 300 500"), BENCH_RAMP (30 s), BENCH_DURATION
 # (60 s), BENCH_INTERVAL (4000 ms between one bot's actions), BENCH_IDLE (20 s), BENCH_PER_ROOM
 # (25 bots per room), ORACLE_JAVA_HOME.
 set -euo pipefail
@@ -21,8 +21,9 @@ OUT="$HARNESS_DIR/run/bench"
 GOLDEN="$WS_DIR/oracle/run/golden.sql"
 DB_CONTAINER="${ORACLE_DB_CONTAINER:-havana-oracle-db}"
 DB_PORT="${ORACLE_DB_PORT:-13307}"
-USERS="${BENCH_USERS:-500}"
 LEVELS="${BENCH_LEVELS:-100 300 500}"
+# Each level logs in its own users: both servers clear an SSO ticket once it is used.
+USERS=0; for n in $LEVELS; do USERS=$((USERS + n)); done
 RAMP="${BENCH_RAMP:-30}"
 DURATION="${BENCH_DURATION:-60}"
 INTERVAL="${BENCH_INTERVAL:-4000}"
@@ -166,15 +167,16 @@ bench() {
   local sampler_pid=$!
   sleep "$IDLE"
   local idle; idle=$(window "$samples" $((IDLE / 2)) "$IDLE")
-  local levels="" n
+  local levels="" n first=$FIRST
   for n in $LEVELS; do
     log "$name: $n bots"
     local a=$(( $(date +%s) - t0 + RAMP + 5 ))
-    "$WS_DIR/target/release/havana-trace" load --target "127.0.0.1:$PORT" --bots "$n" --first "$FIRST" \
+    "$WS_DIR/target/release/havana-trace" load --target "127.0.0.1:$PORT" --bots "$n" --first "$first" \
       --rooms "$ROOMS" --per-room "$PER_ROOM" --ramp "$RAMP" --duration "$DURATION" --interval "$INTERVAL" \
       --json "$OUT/$name-$n.json" > /dev/null || log "$name: $n bots had failed logins or entries"
     local b=$(( $(date +%s) - t0 ))
     levels+="${levels:+, }\"$n\": {\"load\": $(cat "$OUT/$name-$n.json"), \"server\": $(window "$samples" "$a" "$b")}"
+    first=$((first + n))
     sleep 5
   done
   kill "$SERVER_PID" 2>/dev/null || true
