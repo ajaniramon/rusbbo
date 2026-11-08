@@ -27,6 +27,14 @@ pub async fn serve(web: Arc<Web>, bind: SocketAddr) -> Result<()> {
         .await
         .with_context(|| format!("binding the website to {bind}"))?;
     info!("website is listening on http://{bind}/");
+    // Java's watchdog fills its lists one second after start; here before the first request.
+    {
+        let w = web.clone();
+        tokio::task::spawn_blocking(move || w.watchdog.refresh(&w.world))
+            .await
+            .ok();
+    }
+    tokio::spawn(super::cache::run(web.clone()));
     loop {
         let (stream, peer) = match listener.accept().await {
             Ok(v) => v,

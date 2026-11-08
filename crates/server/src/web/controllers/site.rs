@@ -5,12 +5,17 @@ use rusbbo_pebble::Value;
 use super::{remove_html_tags, xss_clear};
 use crate::web::{Conn, WebResult};
 
-/// Java: `TagDao.getPopularTags(n)` (`WebCache.tagCloud`): (tag, uses), most used first.
+/// The watchdog's tag cloud of `n` tags (`TAG_CLOUD_10`/`TAG_CLOUD_20`) as `Pair`s.
 pub fn tag_cloud(conn: &Conn, n: usize) -> Value {
-    let tags = crate::web::data::popular_tags(conn.world(), n);
+    let snapshot = conn.web.watchdog.snapshot();
+    let tags = if n == 10 {
+        &snapshot.tag_cloud_10
+    } else {
+        &snapshot.tag_cloud_20
+    };
     Value::list(
-        tags.into_iter()
-            .map(|(tag, count)| crate::web::data::pair(tag, count))
+        tags.iter()
+            .map(|(tag, size)| crate::web::data::pair(tag.as_str(), *size))
             .collect::<Vec<_>>(),
     )
 }

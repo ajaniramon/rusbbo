@@ -105,7 +105,8 @@ pub fn site(web: &Web) -> Value {
     let s = web.world.settings.read();
     let get = |k: &str| s.string(k).to_string();
     let static_path = get("static.content.path");
-    let online = web.world.players_online();
+    let snapshot = web.watchdog.snapshot();
+    let online = snapshot.users_online;
     Map::new()
         .with("siteName", get("site.name"))
         .with("sitePath", get("site.path"))
@@ -150,7 +151,7 @@ pub fn site(web: &Web) -> Value {
             "formattedUsersOnline",
             rusbbo_pebble::number_format(online as f64, true, "#,##0"),
         )
-        .with("visits", web.world.store.web_last_visits().unwrap_or(0))
+        .with("visits", snapshot.visits)
         .with("housekeepingPath", super::routes_table::HOUSEKEEPING_PATH)
         .into()
 }

@@ -68,6 +68,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         262 => messenger::follow_friend,
         34 => messenger::invite_friend,
         8 => user::get_credits,
+        129 => user::redeem_voucher,
         // registerNavigatorPackets
         150 => navigator::navigate,
         264 => navigator::recommended_rooms,

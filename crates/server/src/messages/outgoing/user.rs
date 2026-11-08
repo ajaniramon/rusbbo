@@ -120,6 +120,26 @@ pub fn ping() -> Message {
     Message::new(50, vec![])
 }
 
+/// Java: `VOUCHER_REDEEM_OK`: one item's name and description, several names joined by ", " and
+/// an empty description, nothing for credits only.
+pub fn voucher_redeem_ok(items: &[(String, String)]) -> Message {
+    let mut body = ServerBody::new();
+    match items {
+        [] => {}
+        [(name, description)] => body = body.text(name).text(description),
+        many => {
+            let names: Vec<&str> = many.iter().map(|(n, _)| n.as_str()).collect();
+            body = body.text(&names.join(", ")).text("");
+        }
+    }
+    Message::new(212, body.build())
+}
+
+/// Java: `VOUCHER_REDEEM_ERROR` (1: invalid).
+pub fn voucher_redeem_error(code: i32) -> Message {
+    Message::new(213, ServerBody::new().text(&code.to_string()).build())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -424,7 +424,10 @@ pub fn more_info(conn: &mut Conn) -> WebResult {
     match hid.as_str() {
         "h21" => {
             let mut tpl = conn.template("habblet/staff_pick_rooms");
-            tpl.set("rooms", rooms(data::recommended_rooms(&world, true)));
+            tpl.set(
+                "rooms",
+                rooms(conn.web.watchdog.snapshot().staff_pick_rooms.clone()),
+            );
             conn.render(tpl)
         }
         "h122" => {
@@ -601,13 +604,14 @@ pub fn load_events(conn: &mut Conn) -> WebResult {
         .int("eventTypeId")
         .ok_or_else(|| crate::web::WebError("eventTypeId".into()))?;
     let world = conn.web.world.clone();
-    let now = now();
-    let events: Vec<Value> = world
-        .store
-        .room_events()?
-        .into_iter()
-        .filter(|e| e.expire_time > now && e.category_id == filter)
-        .map(|e| model::event(&world, &e))
+    let events: Vec<Value> = conn
+        .web
+        .watchdog
+        .snapshot()
+        .events
+        .iter()
+        .filter(|e| e.category_id == filter)
+        .map(|e| model::event(&world, e))
         .collect();
     let mut tpl = conn.template("habblet/load_events");
     tpl.set("events", Value::list(events));

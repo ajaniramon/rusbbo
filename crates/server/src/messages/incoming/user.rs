@@ -159,3 +159,54 @@ pub fn unignore_user(
     session.send(outgoing::user::ignore_user_result(3));
     Ok(())
 }
+
+/// Java: `REDEEM_VOUCHER`.
+pub fn redeem_voucher(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let code = rusbbo_protocol::body::from_latin1(reader.string().ok_or(Malformed)?);
+    let in_room = session.room_key().is_some();
+    let mut p = session.player.lock();
+    let Some(details) = p.details.as_mut() else {
+        return Ok(());
+    };
+    match crate::game::catalogue::voucher::redeem(world, details, &code) {
+        crate::game::catalogue::voucher::Redeemed::Failure => {
+            session.send(outgoing::user::voucher_redeem_error(1));
+        }
+        crate::game::catalogue::voucher::Redeemed::TooNew => {
+            session.send(outgoing::alerts::alert(
+                "Sorry, your account is too new and cannot redeem this voucher",
+            ));
+        }
+        crate::game::catalogue::voucher::Redeemed::Success { items, credits } => {
+            let names: Vec<(String, String)> = items
+                .iter()
+                .map(|i| {
+                    let d = i.definition.as_ref();
+                    (
+                        d.map(|d| d.record.name.clone()).unwrap_or_default(),
+                        d.map(|d| d.record.description.clone()).unwrap_or_default(),
+                    )
+                })
+                .collect();
+            session.send(outgoing::user::voucher_redeem_ok(&names));
+            if credits > 0 {
+                session.send(outgoing::user::credit_balance(details.credits));
+            }
+            if !items.is_empty() {
+                let Some(user_id) = p.user_id() else {
+                    return Ok(());
+                };
+                p.inventory.reload(&world.store, &world.items, user_id);
+                if in_room {
+                    // Java calls getView("new") and drops the result: nothing is sent.
+                    let _ = p.inventory.get_view(&world.store, "new");
+                }
+            }
+        }
+    }
+    Ok(())
+}

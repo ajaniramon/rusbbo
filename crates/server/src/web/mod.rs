@@ -11,6 +11,7 @@
 #![allow(dead_code)]
 
 mod beans;
+pub mod cache;
 mod captcha;
 mod controllers;
 pub mod data;
@@ -59,6 +60,7 @@ pub struct Web {
     pub engine: Engine,
     pub sessions: Sessions,
     pub figures: figure::Figures,
+    pub watchdog: cache::Watchdog,
     locale: RwLock<Option<(std::time::SystemTime, Arc<rusbbo_pebble::Map>)>>,
     pub api_limiter: crate::ticket_api::RateLimiter,
 }
@@ -74,6 +76,7 @@ impl Web {
             engine,
             sessions: Sessions::default(),
             figures,
+            watchdog: cache::Watchdog::default(),
             locale: RwLock::new(None),
             api_limiter: crate::ticket_api::RateLimiter::new(api_rate_limit),
         }

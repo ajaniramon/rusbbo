@@ -1,0 +1,113 @@
+description = "Tags (the tag pages, search, adding and removing, the tag fight and match), vouchers (credits, furni, too new, expired, used twice) and collectables"
+mask = ['<em class="tag-question">[^<]*</em>', 'expireSeconds = \d+', 'var secondsLeft = \d+', 'data-seconds="\d+"', 'countdown\(\d+\)', 'Collectibles\.init\(\d+\)']
+
+[[step]]
+get = "/tag"
+
+[[step]]
+get = "/tag?pageNumber=x"
+
+[[step]]
+get = "/tag/music"
+
+[[step]]
+get = "/tag/nothing"
+
+[[step]]
+get = "/tag?tag=games&pageNumber=2"
+
+[[step]]
+post = "/habblet/ajax/tagsearch"
+form = { tag = "music" }
+
+[[step]]
+post = "/habblet/ajax/tagfight"
+form = { tag1 = "music", tag2 = "games" }
+
+[[step]]
+post = "/habblet/ajax/tagfight"
+form = { tag1 = "x", tag2 = "y" }
+
+[[step]]
+post = "/myhabbo/tag/add"
+form = { tagName = "newtag" }
+
+[[step]]
+post = "/account/submit"
+form = { username = "tracepass", password = "tracepass123" }
+
+[[step]]
+post = "/myhabbo/tag/add"
+form = { tagName = "Trace <b>Tag</b>" }
+
+[[step]]
+post = "/myhabbo/tag/add"
+form = { tagName = "music" }
+
+[[step]]
+post = "/myhabbo/tag/add"
+form = { tagName = "x" }
+
+[[step]]
+post = "/myhabbo/tag/add"
+form = { tagName = "es" }
+
+[[step]]
+post = "/habblet/mytagslist"
+
+[[step]]
+get = "/tag/music"
+
+[[step]]
+post = "/myhabbo/tag/remove"
+form = { tagName = "pixels" }
+
+[[step]]
+post = "/habblet/ajax/tagmatch"
+form = { friendName = "tracebot1" }
+
+[[step]]
+post = "/habblet/ajax/tagmatch"
+form = { friendName = "tracebot5" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "TRACE-CREDITS" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "TRACE-CREDITS" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "trace-furni" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "TRACE-FURNI" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "TRACE-OLD" }
+
+[[step]]
+post = "/habblet/ajax/redeemvoucher"
+form = { voucherCode = "TRACE-EXPIRED" }
+
+[[step]]
+get = "/credits/history"
+
+[[step]]
+get = "/credits/collectables"
+
+[[step]]
+post = "/habblet/ajax/collectiblesConfirm"
+
+[[step]]
+post = "/habblet/ajax/collectiblesPurchase"
+
+[[step]]
+get = "/me"
+
+[[step]]
+get = "/remove_all_tags"

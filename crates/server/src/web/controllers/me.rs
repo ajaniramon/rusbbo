@@ -41,7 +41,12 @@ pub fn me(conn: &mut Conn) -> WebResult {
         tpl.set("hcDays", (user.club_expiration - now) / 86_400);
     }
 
-    let mut articles = data::top_news(&world, 5, user.rank > 1);
+    let snapshot = conn.web.watchdog.snapshot();
+    let mut articles = if user.rank > 1 {
+        snapshot.news_staff.clone()
+    } else {
+        snapshot.news.clone()
+    };
     while articles.len() < 5 {
         articles.push(model::no_news());
     }
@@ -105,12 +110,10 @@ pub fn me(conn: &mut Conn) -> WebResult {
     tpl.set("tags", Value::list(data::user_tags(&world, user.id)));
     tpl.set("lastOnline", jdate::friendly(user.last_online));
     tpl.set("tagRandomQuestion", random_question());
-    let events: Vec<Value> = world
-        .store
-        .room_events()?
-        .into_iter()
-        .filter(|e| e.expire_time > now)
-        .map(|e| model::event(&world, &e))
+    let events: Vec<Value> = snapshot
+        .events
+        .iter()
+        .map(|e| model::event(&world, e))
         .collect();
     tpl.set("events", Value::list(events));
     tpl.set(
@@ -205,7 +208,7 @@ fn birthday_years(joined: i64, now: i64) -> i64 {
     years
 }
 
-fn random_question() -> String {
+pub fn random_question() -> String {
     use rand::RngExt;
     let q = crate::web::tag_questions::TAG_QUESTIONS;
     q[rand::rng().random_range(0..q.len())].to_string()

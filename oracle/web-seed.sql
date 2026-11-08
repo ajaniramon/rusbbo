@@ -67,3 +67,9 @@ INSERT INTO cms_forum_replies (thread_id, message, poster_id, created_at, modifi
 
 INSERT INTO cms_guestbook_entries (user_id, home_id, group_id, message, created_at) VALUES
   (1, 25, 0, 'Nice home!', CURDATE() + INTERVAL 6 HOUR);
+
+INSERT INTO vouchers (voucher_code, credits, expiry_date, is_single_use, allow_new_users) VALUES
+  ('TRACE-CREDITS', 25, NULL, 1, 1), ('TRACE-FURNI', 0, NULL, 0, 1), ('TRACE-OLD', 10, NULL, 1, 0),
+  ('TRACE-EXPIRED', 5, '2020-01-01 00:00:00', 1, 1);
+INSERT INTO vouchers_items (voucher_code, catalogue_sale_code) VALUES
+  ('TRACE-FURNI', 'CF_20_moneybag'), ('TRACE-FURNI', 'floor'), ('TRACE-FURNI', 'nosuchcode');

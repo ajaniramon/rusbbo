@@ -16,7 +16,8 @@ pub fn community(conn: &mut Conn) -> WebResult {
     xss_clear(conn);
     let mut tpl = conn.template("community");
     let world = conn.web.world.clone();
-    let mut articles = data::top_news(&world, 5, false);
+    let snapshot = conn.web.watchdog.snapshot();
+    let mut articles = snapshot.news.clone();
     while articles.len() < 5 {
         articles.push(model::no_news());
     }
@@ -37,46 +38,39 @@ pub fn community(conn: &mut Conn) -> WebResult {
     tpl.set(
         "randomHabbos",
         Value::list(
-            data::random_habbos(&world, 18)
+            conn.web
+                .watchdog
+                .random_habbos(&world, 18)
                 .iter()
                 .map(|u| beans::player_details(&world, u))
                 .collect::<Vec<_>>(),
         ),
     );
     tpl.set("tagCloud", super::site::tag_cloud(conn, 10));
-    tpl.set("recentTopics", recent_discussions(&world, 10, 0));
-    tpl.set("recentHiddenTopics", recent_discussions(&world, 10, 10));
+    let topics = |list: &[crate::web::cache::Discussion]| {
+        Value::list(
+            list.iter()
+                .map(|d| {
+                    model::discussion_topic(
+                        &world,
+                        &d.thread,
+                        d.replies,
+                        d.last_message_at,
+                        0,
+                        "",
+                        "",
+                        false,
+                    )
+                })
+                .collect::<Vec<_>>(),
+        )
+    };
+    tpl.set("recentTopics", topics(&snapshot.recent_discussions));
+    tpl.set(
+        "recentHiddenTopics",
+        topics(&snapshot.next_recent_discussions),
+    );
     conn.render(tpl)
-}
-
-/// Java: `CommunityDao.getRecentDiscussions`: threads by their latest reply, newest first.
-fn recent_discussions(world: &Arc<World>, limit: usize, offset: usize) -> Value {
-    let threads = world
-        .store
-        .records::<rusbbo_storage::ForumThread>()
-        .unwrap_or_default();
-    let replies = world
-        .store
-        .records::<rusbbo_storage::ForumReply>()
-        .unwrap_or_default();
-    let mut rows: Vec<(i64, u32, &rusbbo_storage::ForumThread, usize)> = threads
-        .iter()
-        .filter_map(|t| {
-            let mine: Vec<_> = replies.iter().filter(|r| r.thread_id == t.id).collect();
-            let last = mine.iter().max_by_key(|r| r.id)?;
-            Some((last.created_at, last.id, t, mine.len()))
-        })
-        .collect();
-    rows.sort_by_key(|r| std::cmp::Reverse(r.0));
-    Value::list(
-        rows.into_iter()
-            .skip(offset)
-            .take(limit)
-            .map(|(last_at, _, t, count)| {
-                model::discussion_topic(world, t, count as i64, last_at, 0, "", "", false)
-            })
-            .collect::<Vec<_>>(),
-    )
 }
 
 /// `/articles...`.
@@ -161,7 +155,7 @@ fn news_page(conn: &mut Conn, page: &str, category: Option<&str>) -> WebResult {
             .ok()
             .flatten()
             .is_some_and(|u| u.rank > 1);
-    let all = world.store.records::<Article>().unwrap_or_default();
+    let all = conn.web.watchdog.all_news(&world);
     let mut article = all.iter().find(|a| a.id == article_id).cloned();
     if article.is_none() {
         article = top(&all, Key::All, 1, include_unpublished, &[], filter)

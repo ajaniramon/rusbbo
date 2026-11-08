@@ -13,7 +13,9 @@ mod pages;
 mod profile;
 mod recovery;
 mod register;
+mod shop;
 mod site;
+mod tags;
 
 use super::routes_table::HOUSEKEEPING_PATH;
 use super::tpl::Tpl;
@@ -233,6 +235,19 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "VerifyController::clear" => habblets2::verify_clear(conn)?,
         "AdvertisementController::getImg" => habblets2::ad_image(conn)?,
         "AdvertisementController::getUrl" => habblets2::ad_url(conn)?,
+        "VoucherController::redeemVoucher" => shop::redeem_voucher(conn)?,
+        "CollectablesController::collectables" => shop::collectables(conn)?,
+        "CollectablesController::confirm" => shop::confirm(conn)?,
+        "CollectablesController::purchase" => shop::purchase(conn)?,
+        "TagController::tag" => tags::tag(conn)?,
+        "TagController::search" => tags::search(conn)?,
+        "TagController::tagsearch" => tags::tag_search(conn)?,
+        "TagController::add" => tags::add(conn)?,
+        "TagController::remove" => tags::remove(conn)?,
+        "TagController::mytaglist" => tags::my_tag_list(conn)?,
+        "TagController::tagfight" => tags::tag_fight(conn)?,
+        "TagController::tagmatch" => tags::tag_match(conn)?,
+        "TagController::remove_all_tags" => tags::remove_all(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

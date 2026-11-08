@@ -516,10 +516,9 @@ pub fn popular_rooms(world: &World, limit: usize, offset: usize) -> Vec<rusbbo_s
         .unwrap_or_default()
 }
 
-/// Java: `PlayerDao.getRecentlyActiveHabbos(30 days, 500)` shuffled, `count` of them
-/// (`WebCache.randomHabbos`).
-pub fn random_habbos(world: &World, count: usize) -> Vec<rusbbo_storage::User> {
-    use rand::seq::SliceRandom;
+/// Java: `PlayerDao.getRecentlyActiveHabbos(30 days, 500)`: users online in the last 30 days
+/// (not the default figure), last seen first.
+pub fn recently_active(world: &World) -> Vec<rusbbo_storage::User> {
     const BLACKLIST: &str = "hd-180-1.hr-100-61.ch-210-66.lg-270-82.sh-290-80";
     let since = super::beans::now() - 30 * 86_400;
     let mut users: Vec<rusbbo_storage::User> = world
@@ -531,8 +530,6 @@ pub fn random_habbos(world: &World, count: usize) -> Vec<rusbbo_storage::User> {
         .collect();
     users.sort_by_key(|u| std::cmp::Reverse(u.last_online));
     users.truncate(500);
-    users.shuffle(&mut rand::rng());
-    users.truncate(count);
     users
 }
 
