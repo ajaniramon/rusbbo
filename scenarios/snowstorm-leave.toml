@@ -1,0 +1,177 @@
+name = "snowstorm-leave"
+description = "A one-team SnowStorm game on arena 7: STARTGAME, both players in the arena (the arena's HEIGHTMAP), a player who leaves mid-game (back to the lobby: GAMEDELETED, the game's GAMEINSTANCE without them, their avatar gone from FULLGAMESTATUS), the turns going on for the one left, GAMEEND (the one who left scores 0) and the last player leaving"
+
+# The SnowStorm lobby is room 67. s (tracestaff) shortens the game with :setconfig (4 s to prepare,
+# 4 s to play) and turns off the same-IP check. As in snowstorm-game, every step in the arena takes
+# one 300 ms turn (it ends 225 ms after it), STARTGAME's step waits 250 ms so that GAMESTART and
+# GAMEEND fall about 150 ms after a turn, and the FULLGAMESTATUS bodies are checked by header only
+# (random spawns).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig snowstorm.preparing.game.seconds 4"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig snowstorm.game.lifetime.seconds 4"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig games.same.ip.check.enabled false"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 7, "numTeams", false, 1, "gameLengthChoice", false, 2, "name", true, "Snow alone"]
+note = "One team on arena 7, 3 minutes (shortened to 4 s)"
+
+[[steps]]
+bot = "b"
+send = "INITIATEJOINGAME"
+args = [1, 0]
+
+[[steps]]
+bot = "s"
+send = "OBSERVEINSTANCE"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "STARTGAME"
+settle_ms = 250
+note = "Two players in the one team: the game starts"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+settle_ms = 225
+note = "Turn 0"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+settle_ms = 225
+header_only = ["FULLGAMESTATUS"]
+note = "Arena 7's HEIGHTMAP; turn 1"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+settle_ms = 225
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+settle_ms = 225
+header_only = ["FULLGAMESTATUS"]
+
+[[steps]]
+bot = "b"
+send = "GAMEEVENT"
+args = [3]
+wait_for = ["GAMESTART"]
+settle_ms = 225
+note = "Nothing before GAMESTART; the turns until it"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+wait_for = ["ROOM_READY"]
+settle_ms = 225
+note = "b leaves the game for the lobby"
+
+[[steps]]
+bot = "a"
+send = 173
+settle_ms = 225
+header_only = ["FULLGAMESTATUS"]
+note = "REQUESTFULLGAMESTATUS: only a's avatar"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [9]
+settle_ms = 225
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [9]
+wait_for = ["GAMEEND"]
+settle_ms = 225
+note = "The turns go on for a until GAMEEND: b, still on the team, scores 0"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+note = "The last player leaves"
+
+[[steps]]
+bot = "a"
+send = 159
+note = "The finished game"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "s"
+disconnect = true

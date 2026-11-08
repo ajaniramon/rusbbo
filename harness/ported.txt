@@ -55,6 +55,8 @@ public-room
 rooftop-camera
 room-bots
 room-two-bots
+snowstorm-game
+snowstorm-leave
 snowstorm-lobby
 social-actions
 social-dance-carry

@@ -1,0 +1,1591 @@
+{
+  "format": 1,
+  "scenario": "snowstorm-leave",
+  "description": "A one-team SnowStorm game on arena 7: STARTGAME, both players in the arena (the arena's HEIGHTMAP), a player who leaves mid-game (back to the lobby: GAMEDELETED, the game's GAMEINSTANCE without them, their avatar gone from FULLGAMESTATUS), the turns going on for the one left, GAMEEND (the one who left scores 0) and the last player leaving",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b",
+    "s"
+  ],
+  "steps": [
+    {
+      "bot": "s",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "904195967197570268788277\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-21",
+      "settle_ms": 1500,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#DD1A1FD3BC5A46ADA988CED9261BB399\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_mute\u0002fuse_kick\u0002fuse_receive_calls_for_help\u0002fuse_remove_photos\u0002fuse_remove_stickies\u0002fuse_mod\u0002fuse_moderator_access\u0002fuse_chat_log\u0002fuse_room_alert\u0002fuse_room_kick\u0002fuse_ignore_room_owner\u0002fuse_enter_full_rooms\u0002fuse_enter_locked_rooms\u0002fuse_see_all_roomowners\u0002fuse_search_users\u0002fuse_ban\u0002fuse_see_chat_log_link\u0002fuse_cancel_roomevent\u0002fuse_administrator_access\u0002fuse_any_room_controller\u0002fuse_pick_up_any_furni\u0002fuse_see_flat_ids\u0002fuse_credits\u0002fuse_debug_window\u0002fuse_housekeeping_alert\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISP",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_lobby_1\u0002SP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@m:setconfig snowstorm.preparing.game.seconds 4",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"snowstorm.preparing.game.seconds\" value has been updated from \"10\" to \"4\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@l:setconfig snowstorm.game.lifetime.seconds 4",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"snowstorm.game.lifetime.seconds\" value has been updated from \"0\" to \"4\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@l:setconfig games.same.ip.check.enabled false",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"games.same.ip.check.enabled\" value has been updated from \"true\" to \"false\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "179754901558690541405468\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#C4695BE57A9640069CE29F836EC61354\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "220281520973866266983820\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#5997948B31C64CBF99A8CA8B88D3FF03\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_lobby_1\u0002SP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_lobby_1\u0002SP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeHSA@HnumTeamsHI@PgameLengthChoiceHJ@DnameI@JSnow alone",
+      "note": "One team on arena 7, 3 minutes (shortened to 4 s)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HISnow alone\u0002Itracebot1\u0002JSAHIIItracebot1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IISnow alone\u0002Itracebot1\u0002PmSAHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IISnow alone\u0002Itracebot1\u0002PmSAHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IISnow alone\u0002Itracebot1\u0002PmSAHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "IH",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HISnow alone\u0002Itracebot1\u0002JSAHIJItracebot1\u0002Jtracebot2\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HISnow alone\u0002Itracebot1\u0002JSAHIJItracebot1\u0002Jtracebot2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 160,
+      "name": "OBSERVEINSTANCE",
+      "body": "I",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HISnow alone\u0002Itracebot1\u0002JSAHIJItracebot1\u0002Jtracebot2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 170,
+      "name": "STARTGAME",
+      "body": "",
+      "note": "Two players in the one team: the game starts",
+      "settle_ms": 250,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 241,
+              "name": "GAMELOCATION",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "PB",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 241,
+              "name": "GAMELOCATION",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "PB",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "IISnow alone\u0002tracebot1\u0002JSAIJtracebot1\u0002tracebot2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IM",
+      "note": "Turn 0",
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_arena_0\u0002H",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u0002null\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "note": "Arena 7's HEIGHTMAP; turn 1",
+      "settle_ms": 225,
+      "header_only": [
+        243
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx00xxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx000xxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx0000xxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxx0xxxxxxx00000xxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxx00xxxxxxx000000xxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxx000xxxxxxx0000000xxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxx0000xxxxxxx00000000xxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxx00000xxxxxxx00000x000xxxxxxxxxxxxxxxxx\rxxxxxxxxxxx000x00xxxxxxx0000000000xxxxxxxxxxxxxxxx\rxxxxxxxxxx0000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxxx00000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxx000000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxx00000x0000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxx000000000x0xxxxxxx00000000000xxx0xxxxxxxxxxx\rxxxxx000000000000xxxxxxx00000000000xxx00xxxxxxxxxx\rxxxx0000000000000xxxxxxx00000000000xxx000xxxxxxxxx\rxxx00000000000000000000000000000000xxx0000xxxxxxxx\rxx0000000000000000000000000000000000000000xxxxxxxx\rx0000000000000000xxx0xxx00000000000xxx0000x0xxxxxx\r00000000000000000xx000xx00000000000xxx0000x00xxxxx\r00000000000000000000x00000000x00000xxx0000x000xxxx\rx000000000000000000xxx0000000000x00xxx000000000xxx\rxx000000000000000000000000000000000xxx0000000000xx\rxxx00000000000000000000000000000000xxx0000xx00xxxx\rxxxx000000000000000x0x0000000x00000xxx0000x0000000\rxxxxx00000000000000xxx0000000000000xxx0000x0000000\rxxxxxx0000000000000xxx0000000xxx0xxxxx0000x00xx000\rxxxxxxx000000000000xxx000000xxxx0xxxxx0000x00x0000\rxxxxxxxx00000x00000xxx000000xxxx0xxxx00000x0000000\rxxxxxxxxx0000000000xxx000000xxx0000000000000000000\rxxxxxxxxxx000000x00xxx000000xxx000000000000000000x\rxxxxxxxxxxx0x000000xxx000000xxx000000x0000x00000xx\rxxxxxxxxxxxx0000000xxx000000xxx000000x0000x0000xxx\rxxxxxxxxxxxxx000000xxxxxxxxxxxx000000x0000x000xxxx\rxxxxxxxxxxxxxx00000xxxxxxxxxxxx000000x0000xxxxxxxx\rxxxxxxxxxxxxxxx00000xxxxxxxxxxx000000x000000xxxxxx\rxxxxxxxxxxxxxxxx000000000000xxx0000xxx00000xxxxxxx\rxxxxxxxxxxxxxxxxx0000000000000000000000000xxxxxxxx\rxxxxxxxxxxxxxxxxxx0000000x000000000xxx000xxxxxxxxx\rxxxxxxxxxxxxxxxxxxx0000000000x0000000x00xxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxx00000000xxx000000x0xxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxx00000x0xxx000000xxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxx000000x00000000xxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxx0000000000000xxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxx000xx0000xxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxxx00xxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxxxxxx\r",
+              "check": "exact"
+            },
+            {
+              "header": 243,
+              "name": "FULLGAMESTATUS",
+              "body": "IKPAJQAI`@PF``{BIPAQAHHHPHSC`@PF``{BHIHItracebot1\u0002trace bot one\u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002QAJ``FD`@[GJPAQAHHHQERI``FD`@[GHJHJtracebot2\u0002trace bot two\u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002F\u0002HIIIQAHHHHH",
+              "check": "header"
+            },
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "SLHa8d8ebbc\u0002sw_tree3\u0002QGQBHIH99cb8e10\u0002sw_tree2\u0002RCRBHIH74426c3b\u0002sw_tree4\u0002PCRCHIH79b81103\u0002sw_tree3\u0002SCSCHIH589f69b1\u0002sw_backround7\u0002HSDHHH87dd35d9\u0002block_basic\u0002RJSDHIH960e7c3a\u0002block_basic\u0002RJPEHIH7318b1c0\u0002block_basic\u0002RJQEHIH397d10ed\u0002sw_tree1\u0002QGREHIHc596e8ea\u0002block_basic\u0002RJREHIH701c51b7\u0002sw_tree4\u0002PHSEHIH8f607fed\u0002block_ice\u0002RJQFHIH26552f0f\u0002block_basic\u0002SJQFHIHa3b95832\u0002block_ice\u0002RKQFHIH829330ec\u0002block_basic\u0002SKQFHIH905b43ff\u0002block_ice\u0002PLQFHIH52705fc6\u0002sw_tree2\u0002QGRFHIH8a3e1259\u0002block_basic2\u0002RJRFHIHdb5ea148\u0002block_ice2\u0002RJSFHIH8a27b5ed\u0002block_basic2\u0002RJPGHIH32825425\u0002block_ice\u0002QKPGHIH4d427fa7\u0002block_basic\u0002RKPGHIH9d8fd5f3\u0002block_ice2\u0002RJQGHIH7441e61e\u0002block_basic\u0002QKQGHIH7bb98478\u0002sw_tree3\u0002QCRGHIH6fc4b8c4\u0002block_basic\u0002RJRGHIH188fcd85\u0002sw_tree1\u0002PDPHHIH24626334\u0002sw_tree2\u0002PCQHHIH26f3470b\u0002block_basic\u0002QIQHHIH3bd31c1f\u0002block_ice2\u0002RJQHHIHcf155ab4\u0002block_ice2\u0002QIRHHIHa3a1153f\u0002block_basic\u0002RJRHHIH4d1fa980\u0002block_basic3\u0002QISHHIHb8b0785b\u0002block_ice\u0002RJSHHIH77366372\u0002block_ice2\u0002QIPIHIHb7982e8c\u0002block_basic2\u0002RJPIHIH11d9c9e4\u0002block_ice\u0002SJPIHIHdc3f0bf4\u0002block_basic\u0002PKPIHIHd3ac4b65\u0002block_ice\u0002QKPI`hFFIH83066f03\u0002block_basic\u0002QIQIHIHd95e951f\u0002block_ice\u0002SHRIHIHe8697911\u0002block_ice\u0002PIRIHIH64f6438e\u0002block_ice\u0002QIRIHIH7d492951\u0002sw_tree3\u0002QFPJHIH66536b5b\u0002block_ice\u0002SHPJHIHaff69572\u0002block_ice\u0002PIPJHIH8c1bf81e\u0002block_ice\u0002QIPJHIH6d274d4b\u0002block_ice\u0002QIQJHIHdff1ea65\u0002block_ice\u0002QIRJHIH708b9444\u0002sw_tree4\u0002RFSJHIH6a848b4e\u0002block_ice\u0002QISJHI",
+              "check": "mask",
+              "mask": "???????????..........???????????????..........???????????????..........???????????????..........???????????????...............??????????????.............???????????????.............???????????????.............???????????????..........???????????????.............???????????????..........???????????????...........???????????????.............???????????????...........???????????????.............???????????????...........???????????????..........???????????????..............???????????????............???????????????..............???????????????...........???????????????.............???????????????............???????????????.............???????????????..........???????????????.............???????????????..........???????????????..........???????????????.............???????????????............???????????????............???????????????.............???????????????..............???????????????...........???????????????............???????????????..............???????????????...........???????????????.............???????????????................?????????????.............???????????????...........???????????????...........???????????????...........???????????????..........???????????????...........???????????????...........???????????????...........???????????????...........???????????????...........???????????????..........???????????????................."
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IM",
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_arena_0\u0002H",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u0002null\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 225,
+      "header_only": [
+        243
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx00xxxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx000xxxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx0000xxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxx0xxxxxxx00000xxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxx00xxxxxxx000000xxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxx000xxxxxxx0000000xxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxx0000xxxxxxx00000000xxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxx00000xxxxxxx00000x000xxxxxxxxxxxxxxxxx\rxxxxxxxxxxx000x00xxxxxxx0000000000xxxxxxxxxxxxxxxx\rxxxxxxxxxx0000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxxx00000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxx000000000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxx00000x0000xxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxx000000000x0xxxxxxx00000000000xxx0xxxxxxxxxxx\rxxxxx000000000000xxxxxxx00000000000xxx00xxxxxxxxxx\rxxxx0000000000000xxxxxxx00000000000xxx000xxxxxxxxx\rxxx00000000000000000000000000000000xxx0000xxxxxxxx\rxx0000000000000000000000000000000000000000xxxxxxxx\rx0000000000000000xxx0xxx00000000000xxx0000x0xxxxxx\r00000000000000000xx000xx00000000000xxx0000x00xxxxx\r00000000000000000000x00000000x00000xxx0000x000xxxx\rx000000000000000000xxx0000000000x00xxx000000000xxx\rxx000000000000000000000000000000000xxx0000000000xx\rxxx00000000000000000000000000000000xxx0000xx00xxxx\rxxxx000000000000000x0x0000000x00000xxx0000x0000000\rxxxxx00000000000000xxx0000000000000xxx0000x0000000\rxxxxxx0000000000000xxx0000000xxx0xxxxx0000x00xx000\rxxxxxxx000000000000xxx000000xxxx0xxxxx0000x00x0000\rxxxxxxxx00000x00000xxx000000xxxx0xxxx00000x0000000\rxxxxxxxxx0000000000xxx000000xxx0000000000000000000\rxxxxxxxxxx000000x00xxx000000xxx000000000000000000x\rxxxxxxxxxxx0x000000xxx000000xxx000000x0000x00000xx\rxxxxxxxxxxxx0000000xxx000000xxx000000x0000x0000xxx\rxxxxxxxxxxxxx000000xxxxxxxxxxxx000000x0000x000xxxx\rxxxxxxxxxxxxxx00000xxxxxxxxxxxx000000x0000xxxxxxxx\rxxxxxxxxxxxxxxx00000xxxxxxxxxxx000000x000000xxxxxx\rxxxxxxxxxxxxxxxx000000000000xxx0000xxx00000xxxxxxx\rxxxxxxxxxxxxxxxxx0000000000000000000000000xxxxxxxx\rxxxxxxxxxxxxxxxxxx0000000x000000000xxx000xxxxxxxxx\rxxxxxxxxxxxxxxxxxxx0000000000x0000000x00xxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxx00000000xxx000000x0xxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxx00000x0xxx000000xxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxx000000x00000000xxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxx0000000000000xxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxx00000000000xxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxx000xx0000xxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxxx00xxxxxxxxxxxxxxxxxxxxxx\rxxxxxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxxxxxx\r",
+              "check": "exact"
+            },
+            {
+              "header": 243,
+              "name": "FULLGAMESTATUS",
+              "body": "IJPAJQAI`@PF``{BIPAQAHHHPHSC`@PF``{BHIHItracebot1\u0002trace bot one\u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002QAJ``FD`@[GJPAQAHHHQERI``FD`@[GHJHJtracebot2\u0002trace bot two\u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002F\u0002HIIIQAHHHHH",
+              "check": "header"
+            },
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "SLH5d678ab9\u0002sw_tree3\u0002QGQBHIH03dab540\u0002sw_tree2\u0002RCRBHIH1e6d52e4\u0002sw_tree4\u0002PCRCHIHb75abbd1\u0002sw_tree3\u0002SCSCHIHefe5ae5f\u0002sw_backround7\u0002HSDHHH9a1a7936\u0002block_basic\u0002RJSDHIH0987981c\u0002block_basic\u0002RJPEHIHc094052e\u0002block_basic\u0002RJQEHIHd08afdf1\u0002sw_tree1\u0002QGREHIHb6a9d0e9\u0002block_basic\u0002RJREHIH003052ce\u0002sw_tree4\u0002PHSEHIH876000fe\u0002block_ice\u0002RJQFHIH11b59af1\u0002block_basic\u0002SJQFHIH795534c7\u0002block_ice\u0002RKQFHIH0c72c0dc\u0002block_basic\u0002SKQFHIH9542b60e\u0002block_ice\u0002PLQFHIHcc73ff86\u0002sw_tree2\u0002QGRFHIH7ac1b0c4\u0002block_basic2\u0002RJRFHIHe669dc3e\u0002block_ice2\u0002RJSFHIH55544ce6\u0002block_basic2\u0002RJPGHIHa6519950\u0002block_ice\u0002QKPGHIH1551b394\u0002block_basic\u0002RKPGHIHfba487a0\u0002block_ice2\u0002RJQGHIH655268fb\u0002block_basic\u0002QKQGHIHfd16c27c\u0002sw_tree3\u0002QCRGHIH6974b18d\u0002block_basic\u0002RJRGHIHbbbee157\u0002sw_tree1\u0002PDPHHIHdf5fe80c\u0002sw_tree2\u0002PCQHHIHf26d3ddc\u0002block_basic\u0002QIQHHIH2a57823d\u0002block_ice2\u0002RJQHHIH36f658bb\u0002block_ice2\u0002QIRHHIH9884498c\u0002block_basic\u0002RJRHHIHe199d3d0\u0002block_basic3\u0002QISHHIH11ed8cf4\u0002block_ice\u0002RJSHHIH88eaab8e\u0002block_ice2\u0002QIPIHIHe0629bca\u0002block_basic2\u0002RJPIHIH8937721e\u0002block_ice\u0002SJPIHIHa821e308\u0002block_basic\u0002PKPIHIH3f827725\u0002block_ice\u0002QKPI`hFFIHe3eafdcd\u0002block_basic\u0002QIQIHIHe319cc77\u0002block_ice\u0002SHRIHIH00fd6c18\u0002block_ice\u0002PIRIHIH91d2cadd\u0002block_ice\u0002QIRIHIH2fba1966\u0002sw_tree3\u0002QFPJHIH614f7061\u0002block_ice\u0002SHPJHIH7ff3fd2e\u0002block_ice\u0002PIPJHIH93ee2cf6\u0002block_ice\u0002QIPJHIH8781538c\u0002block_ice\u0002QIQJHIHf439f38e\u0002block_ice\u0002QIRJHIH12378e55\u0002sw_tree4\u0002RFSJHIH5b47035b\u0002block_ice\u0002QISJHI",
+              "check": "mask",
+              "mask": "???????????..........???????????????..........???????????????..........???????????????..........???????????????...............??????????????.............???????????????.............???????????????.............???????????????..........???????????????.............???????????????..........???????????????...........???????????????.............???????????????...........???????????????.............???????????????...........???????????????..........???????????????..............???????????????............???????????????..............???????????????...........???????????????.............???????????????............???????????????.............???????????????..........???????????????.............???????????????..........???????????????..........???????????????.............???????????????............???????????????............???????????????.............???????????????..............???????????????...........???????????????............???????????????..............???????????????...........???????????????.............???????????????................?????????????.............???????????????...........???????????????...........???????????????...........???????????????..........???????????????...........???????????????...........???????????????...........???????????????...........???????????????...........???????????????..........???????????????................."
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 171,
+      "name": "GAMEEVENT",
+      "body": "K",
+      "note": "Nothing before GAMESTART; the turns until it",
+      "wait_for": [
+        247
+      ],
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 247,
+              "name": "GAMESTART",
+              "body": "PA",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 247,
+              "name": "GAMESTART",
+              "body": "PA",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISP",
+      "note": "b leaves the game for the lobby",
+      "wait_for": [
+        69
+      ],
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "2\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "IISnow alone\u0002tracebot1\u0002JSAIItracebot1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_lobby_1\u0002SP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "IISnow alone\u0002tracebot1\u0002JSAIItracebot1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 173,
+      "name": "REQUESTFULLGAMESTATUS/<lambda>",
+      "body": "",
+      "note": "REQUESTFULLGAMESTATUS: only a's avatar",
+      "settle_ms": 225,
+      "header_only": [
+        243
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 243,
+              "name": "FULLGAMESTATUS",
+              "body": "IMPAIQAI`@PF``{BIPAQAHHHPHSC`@PF``{BHIHItracebot1\u0002trace bot one\u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002HIIIQAHHHHH",
+              "check": "header"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 171,
+      "name": "GAMEEVENT",
+      "body": "QB",
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 171,
+      "name": "GAMEEVENT",
+      "body": "QB",
+      "note": "The turns go on for a until GAMEEND: b, still on the team, scores 0",
+      "wait_for": [
+        248
+      ],
+      "settle_ms": 225,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            },
+            {
+              "header": 438,
+              "name": "ActivityPointNotification",
+              "body": "RBM",
+              "check": "exact"
+            },
+            {
+              "header": 437,
+              "name": "ACHIEVEMENT_NOTIFICATION",
+              "body": "HIACH_GamePlayed1\u0002\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 248,
+              "name": "GAMEEND",
+              "body": "RGIJItracebot1\u0002HJtracebot2\u0002HH",
+              "check": "exact"
+            },
+            {
+              "header": 244,
+              "name": "GAMESTATUS/SNOWSTORM_GAMESTATUS",
+              "body": "IIQAHHHHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "JHSnow alone\u0002tracebot1\u0002JSAIJtracebot1\u0002Htracebot2\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISP",
+      "note": "The last player leaves",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "snowwar_lobby_1\u0002SP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IPAQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IPAQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IPAQJPI1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 159,
+      "name": "GETINSTANCELIST/GETSELECTEDBADGES",
+      "body": "",
+      "note": "The finished game",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "HHIISnow alone\u0002tracebot1\u0002PmSA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "4\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "4\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "3\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}
