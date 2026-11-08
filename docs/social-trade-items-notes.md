@@ -1,8 +1,8 @@
 # Social actions, chat, trading and interactors: Java behaviour to replicate
 
 Notes from recording `traces/social-*.json`, `chat-filter`, `chat-commands`, `trade` and the interactor
-traces (`flat-teleport`, `flat-roller`, `flat-postit`, `flat-gates`, `flat-present`) against the
-Java server. They explain the traces; the traces stay the spec.
+traces (`flat-teleport`, `flat-roller`, `flat-postit`, `flat-gates`, `flat-present` and those listed
+under "The other interactors") against the Java server. They explain the traces; the traces stay the spec.
 
 ## Timing that shapes the scenarios
 - Java pings a connection 60 s after it opens (`IdleStateHandler(60, 0, 0)`; in the recordings it
@@ -146,6 +146,41 @@ Java server. They explain the traces; the traces stay the spec.
 - `PRESENTOPEN` (VL64 id, owner only): ordinary furni keep the item and its virtual id, changing its
   definition: `REMOVE_FLOORITEM`, `DELIVER_PRESENT ("s"|"i", sprite id, sprite)`, the hand.
   Teleporters, trophies, post-its, decorations and packages are bought anew instead.
+
+## The other interactors
+Notes from `flat-dice`, `flat-vending`, `flat-bed`, `flat-idol` and `flat-limits`.
+- Dice (`dice` behaviour, default interactor, which refuses to toggle them): `THROW_DICE` (VL64 id)
+  only from a touching square (`getDistanceSquared` <= 1, diagonals included) and not while rolling:
+  `DICE_VALUE (id, -1)` to the room at once, 2 s later `DICE_VALUE (id, n)` (1-6, the bottle 1-8)
+  and `STUFFDATAUPDATE n`. While rolling (`requiresUpdate`) it ignores throws and `DICE_OFF`, and
+  `MOVESTUFF` sends nothing at all. `DICE_OFF`: `STUFFDATAUPDATE 0`, `DICE_VALUE (id, 0)`. A user whose
+  `G_STAT` comes mid-roll gets `DICE_VALUE (id, 0)`; mid-spin, the wheel's `STUFFDATAUPDATE` again.
+- Wheel of fortune (wall item, `wheel_of_fortune`): `SPIN_WHEEL_OF_FORTUNE` with rights: `-1`, then
+  1-10 4.25 s later (`STUFFDATAUPDATE` 85 with the whole wall item).
+- Vending machines: from anywhere but the front square (or the squares on the user's left and right
+  side, by the user's body rotation) the user walks to the front; otherwise a standing user turns to
+  it, it opens (`1`), the user carries one of `drink_ids` 1 s later and it closes (`0`) after 2 s.
+- Hockey light (`lert`): three `STUFFDATAUPDATE`s at once, 0, 1, 0. Scoreboard: rights only; status
+  2 is the default interactor (+1), 1 counts down (below 0 is 99), 0 switches between a number and
+  `x` (`x` back to `0`).
+- Fortune teller (`fortune`): placed it is `8` (off); on it is `-1` and shows 0-7 1.5 s later; then
+  off again. The user turns to it (only the head when sitting).
+- Beds: `walkTo` a bed tile that is not a pillow walks to the pillow of that column (rotation 0) or
+  row; stopping on a pillow: `USER_DANCE 0` (always), `lay <top height>` with the bed's rotation. A
+  pillow taken by someone else leaves the user standing at the foot.
+- Idol: standing on the hotspot sends `OPEN_PERFORMER_GUI` (discs only with a sound machine in the
+  room) and makes that user the performer; sitting on a vote chair sends `JUDGE_GUI_STATUS 1` (no
+  performer, a chair that already voted, a judge who voted) or `2, performer user id`. Stepping off a
+  chair: `JUDGE_GUI_STATUS 0` (also when leaving the room from it). `START_PERFORMANCE` (performer):
+  `JUDGE_GUI_STATUS 2` to the judges, hotspot `0`. `VOTE_PERFORMANCE`: chair `1`/`2`, score +-1; when
+  no occupied chair is left at `0`, everyone waits again (`JUDGE_GUI_STATUS 1`, hotspot `-1`).
+  Stepping off the hotspot: header 492 (empty) to the performer, chairs back to `0`, the same stop.
+  These triggers run inside the room tick, before its `USER_STATUSES`.
+- `hasTooMany`: 35 rollers (60 with club, `CANNOT_PLACE_STUFF_FROM_STRIP 22`), one sound machine or
+  jukebox (23), one room dimmer (`ALERT roomdimmer_furni_limit`), one idol hotspot (`ALERT`), 3 pet
+  nests (21), 25 post-its (12, never reached: stickies are placed before the check).
+- `CONVERT_FURNI_TO_CREDITS` (owner): `REMOVE_FLOORITEM`, `CREDIT_BALANCE`; the amount is the number
+  in the sprite (`CF_50_goldbar`).
 
 ## Porting checklist
 Three groups that can be ported independently; each only needs what is already ported (rooms,

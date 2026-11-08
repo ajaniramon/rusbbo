@@ -1,0 +1,200 @@
+name = "flat-idol"
+description = "American Idol furniture: the hotspot (OPEN_PERFORMER_GUI for the performer standing on it, one per room) and the vote chair (JUDGE_GUI_STATUS when sitting and leaving), START_PERFORMANCE, VOTE_PERFORMANCE, and stepping off the hotspot"
+
+# Flat 1000 belongs to tracebot1 (a, the performer, user id 1); tracebot2 (b) judges.
+# Items: 1 ads_idol_hotspot (catalogue 1379) at (6,5), 2 ads_idol_voting_ch (1378) at (8,8),
+# 3 a second hotspot that may not be placed. Without a sound machine the performer has no discs
+# to choose from and no song plays. model_a: door at (3,5).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 1379, "", false]
+note = "ads_idol_hotspot: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 1378, "", false]
+note = "ads_idol_voting_ch: item 2"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 1379, "", false]
+note = "ads_idol_hotspot: item 3"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Idol Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 2"]
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 8 8 2"]
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["3 10 10 2"]
+note = "One hotspot per room: ALERT"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 3500
+note = "b sits on the vote chair: no performer yet, JUDGE_GUI_STATUS 1"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [6, 5]
+settle_ms = 2500
+note = "a steps onto the hotspot: OPEN_PERFORMER_GUI with no discs"
+
+[[steps]]
+bot = "b"
+send = "START_PERFORMANCE"
+args = [0]
+note = "Not the performer: ignored"
+
+[[steps]]
+bot = "a"
+send = "START_PERFORMANCE"
+args = [0]
+note = "JUDGE_GUI_STATUS 2 to the judges, the hotspot shows 0"
+
+[[steps]]
+bot = "a"
+send = "VOTE_PERFORMANCE"
+args = [true]
+note = "Not on a vote chair: ignored"
+
+[[steps]]
+bot = "b"
+send = "VOTE_PERFORMANCE"
+args = [true]
+note = "The chair shows 1, the score 1; nobody left to vote, so it stops"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [9, 9]
+settle_ms = 2000
+note = "Off the chair: JUDGE_GUI_STATUS 0"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 2000
+note = "Back on the chair, which still shows the vote: JUDGE_GUI_STATUS 1"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [5, 5]
+settle_ms = 2000
+note = "Off the hotspot: 492 to a, the chairs reset, the performance stops"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+note = "Leaving the room from the chair: JUDGE_GUI_STATUS 0"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

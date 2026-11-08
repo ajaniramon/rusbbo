@@ -1,0 +1,127 @@
+name = "flat-bed"
+description = "Beds: walking to any tile of a bed leads to its pillow (the nearest pillow column/row), the user lies down there with the bed's rotation and stops dancing; walking off stands up"
+
+# Flat 1000 belongs to tracebot1. Items: 1 bed_polyfon (catalogue 133, 2x3) at (6,8) rotation 0,
+# covering x 6-7, y 8-10 (pillows at (6,8) and (7,8)); 2 bed_polyfon_one (catalogue 134, 1x3) at
+# (9,8) rotation 2, covering x 9-11, y 8 (pillow at (9,8)). model_a: door at (3,5).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 133, "", false]
+note = "bed_polyfon: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 134, "", false]
+note = "bed_polyfon_one: item 2"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Bed Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 8 0"]
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 9 8 2"]
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [6, 10]
+settle_ms = 3500
+note = "The foot of the double bed: redirected to the pillow (6,8), lies down"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [7, 10]
+settle_ms = 2000
+note = "The other side: to the pillow (7,8)"
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [1, 0]
+note = "Beds have no states"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [8, 5]
+settle_ms = 3000
+note = "Off the bed: stands up"
+
+[[steps]]
+bot = "a"
+send = "DANCE"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [11, 8]
+settle_ms = 3000
+note = "The foot of the single bed: to its pillow (9,8), rotation 2, stops dancing"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [9, 9]
+settle_ms = 1500
+note = "Next to it"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

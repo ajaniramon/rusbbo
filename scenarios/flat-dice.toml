@@ -1,0 +1,214 @@
+name = "flat-dice"
+description = "Dice (THROW_DICE only next to it, DICE_VALUE while rolling and the result 2 s later, DICE_OFF, no moving or toggling while rolling) and the wheel of fortune (SPIN_WHEEL_OF_FORTUNE with rights, the result 4.25 s later), and a visitor whose G_STAT arrives mid-roll"
+
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits without rights.
+# Items: 1 edice (catalogue 154, solid, requires touching, dice), 2 habbowheel (catalogue 451, a
+# wall item). The dice lies at (6,5), east of the door (3,5). The results are random in Java, so
+# the steps where they arrive are checked by header only; message 288 has no handler in either
+# server and only makes a bot wait.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 154, "", false]
+note = "edice: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+wait_for = ["CREDIT_BALANCE"]
+args = [0, 451, "", false]
+note = "habbowheel: item 2"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Dice Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+note = "The dice at (6,5)"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 :w=6,1 l=8,32 r"]
+note = "The wheel on the wall"
+
+[[steps]]
+bot = "a"
+send = "THROW_DICE"
+args = [1]
+note = "From the door: not next to the dice, ignored"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [5, 5]
+settle_ms = 1500
+note = "Next to the dice"
+
+[[steps]]
+bot = "a"
+send = "THROW_DICE"
+args = [1]
+note = "DICE_VALUE (1, -1) to the room at once"
+
+[[steps]]
+bot = "a"
+send = "SPIN_WHEEL_OF_FORTUNE"
+args = [2]
+note = "STUFFDATAUPDATE -1 (the wall item)"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [1, 7, 5, 0]
+settle_ms = 150
+note = "Rolling: cannot be moved (not even MOVE_FLOORITEM back)"
+
+[[steps]]
+bot = "a"
+send = "DICE_OFF"
+args = [1]
+settle_ms = 150
+note = "Rolling: ignored"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+wait_for = ["DICE_VALUE"]
+note = "Mid-roll: the wheel's state again and DICE_VALUE (1, 0)"
+
+[[steps]]
+bot = "a"
+send = 288
+settle_ms = 1200
+header_only = ["DICE_VALUE", 88]
+note = "The dice's random result, 2 s after the throw"
+
+[[steps]]
+bot = "a"
+send = 288
+settle_ms = 2500
+header_only = [85]
+note = "The wheel's random result, 4.25 s after the spin"
+
+[[steps]]
+bot = "a"
+send = "DICE_OFF"
+args = [1]
+note = "STUFFDATAUPDATE 0 and DICE_VALUE (1, 0)"
+
+[[steps]]
+bot = "a"
+send = "USEFURNITURE"
+args = [1, 0]
+note = "Dice cannot be toggled"
+
+[[steps]]
+bot = "b"
+send = "SPIN_WHEEL_OF_FORTUNE"
+args = [2]
+note = "No rights: ignored"
+
+[[steps]]
+bot = "b"
+send = "THROW_DICE"
+args = [1]
+note = "Not next to it: ignored"
+
+[[steps]]
+bot = "a"
+send = "MOVESTUFF"
+args = [1, 7, 5, 0]
+note = "Moves again now that it stopped"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

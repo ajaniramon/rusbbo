@@ -48,9 +48,13 @@ solid furni in the pathfinder, wallpaper and floor), and the interactors for tel
 (within a flat and between flats), rollers, post-its, gates and one-way doors, and presents
 (gift purchases and opening). Social actions (whispers, `LOOKTO`, dancing, carrying drinks,
 `GOAWAY`), the word filter, the ignore list in chat, the rank-1 chat commands (`game/commands`;
-staff commands are `TODO(commands)`) and trading are ported too. Other interactors (dice,
-vending machines, games...) are `TODO(...)` markers. Every trace in `harness/ported.txt` passes
-against the Rust server.
+staff commands are `TODO(commands)`) and trading are ported too. So are the other furniture
+interactors (`game/item/interactors`): beds (lying on the pillow), dice, the wheel of fortune, vending
+machines, the hockey light and scoreboard, the fortune teller, the love randomizer, totems, step
+lights, multi-height furniture and the American Idol hotspot and vote chairs, with the per-room
+furniture limits and credit furni exchange; the pool, game and room-hire interactors, the totem's
+avatar effect and the idol's songs are `TODO(...)` markers. Every trace in `harness/ported.txt`
+passes against the Rust server.
 
 Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
 walkspace, talking now and then, and handing out drinks when a user nearby asks for one
@@ -164,6 +168,11 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-gates` | a gate (solid while closed) and a one-way door (`ENTER_ONEWAY_DOOR`) |
 | `flat-pets` | pet names (`APPROVE_PET_NAME`), buying a crocodile (and an invalid colour that buys nothing), its nest placed so the pet comes in (`USER_OBJECTS` type 2), `GETPETSTAT`, the nest picked up so it leaves |
 | `flat-present` | buying a gift for another user (unknown user, too soon again), placing and opening it (`PRESENTOPEN`, `DELIVER_PRESENT`) |
+| `flat-dice` | dice (`THROW_DICE` only next to it, `DICE_VALUE` while rolling and the random result, `DICE_OFF`, no moving or toggling while rolling), the wheel of fortune (`SPIN_WHEEL_OF_FORTUNE`), a visitor's `G_STAT` mid-roll |
+| `flat-vending` | a vending machine (walk to it, turn, open, the drink after 1 s, closed after 2 s), the hockey light, the scoreboard (`USEFURNITURE` status 0/1/2, rights only), the fortune teller, `SET_RANDOM_STATE` |
+| `flat-bed` | beds: any tile leads to a pillow, lying down with the bed's rotation (dancing stops), standing up off it |
+| `flat-idol` | American Idol: the hotspot (`OPEN_PERFORMER_GUI`, one per room), the vote chair (`JUDGE_GUI_STATUS`), `START_PERFORMANCE`, `VOTE_PERFORMANCE`, stepping off and leaving |
+| `flat-limits` | per-room limits: 35 rollers without club, one sound machine or jukebox (`CANNOT_PLACE_STUFF_FROM_STRIP`), one room dimmer (`ALERT`); `CONVERT_FURNI_TO_CREDITS` |
 | `text-latin1` | non-ASCII text (ñ, accents, ¡¿) in a room name, a post-it, chat and a console message, as ISO-8859-1 |
 | `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |
 | `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
