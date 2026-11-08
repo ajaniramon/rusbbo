@@ -5,6 +5,7 @@ pub mod catalogue;
 pub mod club;
 pub mod effects;
 pub mod handshake;
+pub mod infobus;
 pub mod inventory;
 pub mod jukebox;
 pub mod messenger;
@@ -22,6 +23,7 @@ pub mod rooms_user;
 pub mod songs;
 pub mod trade;
 pub mod user;
+pub mod wobble_squabble;
 
 use super::Handler;
 
@@ -183,6 +185,12 @@ pub fn handler(header: u16) -> Option<Handler> {
         105 => rooms_pool::btcks,
         106 => rooms_pool::dive,
         107 => rooms_pool::splash_position,
+        // registerInfobus
+        111 => infobus::change_world,
+        112 => infobus::vote,
+        113 => infobus::try_bus,
+        // registerWobbleSquabblePackets
+        114 => wobble_squabble::ptm,
         // registerEffects
         372 => effects::use_avatar_effect,
         373 => effects::activate_avatar_effect,

@@ -14,6 +14,9 @@ pub mod stat {
     pub const CLUB_MEMBER_TIME: &str = "club_member_time";
     pub const CLUB_MEMBER_TIME_UPDATED: &str = "club_member_time_updated";
     pub const MUTE_EXPIRES_AT: &str = "mute_expires_at";
+    pub const WOBBLE_SQUABBLE_GAMES_WON: &str = "wobble_squabble_games_won";
+    pub const WOBBLE_SQUABBLE_MONTHLY_SCORES: &str = "wobble_squabble_score_month";
+    pub const WOBBLE_SQUABBLE_POINTS_ALL_TIME: &str = "wobble_squabble_score_all_time";
 }
 
 #[derive(Default)]

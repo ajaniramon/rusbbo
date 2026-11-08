@@ -1,0 +1,2021 @@
+{
+  "format": 1,
+  "scenario": "wobble-squabble-queue",
+  "description": "Wobble Squabble's queue: q waits on a queue tile behind the player on the start tile; when the game ends the queue moves on and q's step onto the free start tile starts the next game against the winner; q then leaves mid-game (QUIT): the game goes on, and when p falls q, the winner, still loses a ticket (TICKET_BALANCE in the hotel view)",
+  "runs": 3,
+  "bots": [
+    "b",
+    "q",
+    "p"
+  ],
+  "steps": [
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "907869127080842981770819\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#3FDD498D5AED4D9084F1BC2ABF755C85\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRI",
+      "settle_ms": 600,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "md_a\u0002RI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 116,
+      "name": "SWIMSUIT",
+      "body": "ch=s02/255,115,131",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HKPA7.0\u0002JIF\u0002MMMch=s02/255,115,131\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "SBSB",
+      "note": "Down the ladder into the water, on to 13,11",
+      "settle_ms": 1200,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKPA7.0\u0002KK/mv 4,5,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPAQA7.0\u0002KK/mv 5,6,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQARA7.0\u0002JJ/mv 6,6,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRARA7.0\u0002JJ/mv 7,6,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSARA7.0\u0002KK/mv 8,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPBSA7.0\u0002JJ/mv 9,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBSA7.0\u0002KK/mv 10,8,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBPB7.0\u0002PAPA/mv 10,9,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBQB7.0\u0002PAPA/mv 10,10,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBRB7.0\u0002KK/mv 11,11,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSB4.0\u0002JJ/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSB4.0\u0002JJ/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "Splash0",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSB4.0\u0002JJ/mv 13,11,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCSB4.0\u0002JJ/swim/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QESA",
+      "note": "b on the start tile 21,11",
+      "settle_ms": 1200,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCSB4.0\u0002II/mv 14,10,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRCRB4.0\u0002JJ/mv 15,10,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSCRB4.0\u0002JJ/mv 16,10,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPDRB4.0\u0002II/mv 17,9,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQDQB4.0\u0002II/mv 18,8,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDPB4.0\u0002JJ/mv 19,8,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDPB4.0\u0002JJ/mv 20,8,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPEPB4.0\u0002II/mv 21,7,4.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPB8.0\u0002PAPA/mv 21,9,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEQB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEQB8.0\u0002PAPA/mv 21,10,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQERB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQERB8.0\u0002PAPA/mv 21,11,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQESB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "253944671047064985406571\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-22",
+      "settle_ms": 1500,
+      "received": {
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#C260664FED804E38ADA0E3778DDBD821\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_mute\u0002fuse_kick\u0002fuse_receive_calls_for_help\u0002fuse_remove_photos\u0002fuse_remove_stickies\u0002fuse_mod\u0002fuse_moderator_access\u0002fuse_chat_log\u0002fuse_room_alert\u0002fuse_room_kick\u0002fuse_ignore_room_owner\u0002fuse_enter_full_rooms\u0002fuse_enter_locked_rooms\u0002fuse_see_all_roomowners\u0002fuse_search_users\u0002fuse_ban\u0002fuse_see_chat_log_link\u0002fuse_cancel_roomevent\u0002fuse_housekeeping_alert\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRI",
+      "settle_ms": 600,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "md_a\u0002RI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@I:teleport",
+      "settle_ms": 300,
+      "received": {
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Teleport mode is set to: true\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QESA",
+      "note": "q warps to the join tile and onto the bridge, and waits on the queue tile 21,10: the start tile is taken",
+      "settle_ms": 1200,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IREtracemod\u0002trace mod \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQESA4.0\u0002HIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQESA4.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Ihd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002F\u0002trace mod\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/mv 21,9,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEQB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEQB8.0\u0002PAPA/mv 21,10,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQERB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IREtracemod\u0002trace mod \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQESA4.0\u0002HIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQESA4.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Ihd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002F\u0002trace mod\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEPB8.0\u0002PAPA/mv 21,9,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEQB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQEQB8.0\u0002PAPA/mv 21,10,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQERB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "152384678803089216757709\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-21",
+      "settle_ms": 1500,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#84518C334E19401BADCC3D7F5526A98A\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_mute\u0002fuse_kick\u0002fuse_receive_calls_for_help\u0002fuse_remove_photos\u0002fuse_remove_stickies\u0002fuse_mod\u0002fuse_moderator_access\u0002fuse_chat_log\u0002fuse_room_alert\u0002fuse_room_kick\u0002fuse_ignore_room_owner\u0002fuse_enter_full_rooms\u0002fuse_enter_locked_rooms\u0002fuse_see_all_roomowners\u0002fuse_search_users\u0002fuse_ban\u0002fuse_see_chat_log_link\u0002fuse_cancel_roomevent\u0002fuse_administrator_access\u0002fuse_any_room_controller\u0002fuse_pick_up_any_furni\u0002fuse_see_flat_ids\u0002fuse_credits\u0002fuse_debug_window\u0002fuse_housekeeping_alert\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRI",
+      "settle_ms": 600,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "md_a\u0002RI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJKPA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@I:teleport",
+      "settle_ms": 300,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Teleport mode is set to: true\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QESD",
+      "note": "p on the other start tile 21,15: PT_PREPARE (p is player 0)",
+      "settle_ms": 1200,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESD4.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESD4.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Jhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace staff\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/mv 21,17,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/mv 21,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/mv 21,15,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESC8.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESD4.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESD4.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Jhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace staff\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/mv 21,17,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/mv 21,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/mv 21,15,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESC8.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESD4.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESD4.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Jhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace staff\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQERD8.0\u0002HH/mv 21,17,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEQD8.0\u0002HH/mv 21,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQEPD8.0\u0002HH/mv 21,15,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQESC8.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "PB",
+      "note": "Move 8 is no move; PT_START 3 s after PT_PREPARE",
+      "wait_for": [
+        114
+      ],
+      "settle_ms": 400,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JH",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JH",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "settle_ms": 400,
+      "header_only": [
+        118
+      ],
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUJIH",
+              "check": "header"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUJIH",
+              "check": "header"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUJIH",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "settle_ms": 400,
+      "header_only": [
+        118
+      ],
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUSIH",
+              "check": "header"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUSIH",
+              "check": "header"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAUSIH",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "note": "b falls: PT_WIN, then PT_END, the tickets, b in the water, and the queue moves: q steps onto the start tile 21,11 and the next game is prepared",
+      "settle_ms": 2500,
+      "header_only": [
+        118
+      ],
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAW]IH",
+              "check": "header"
+            },
+            {
+              "header": 119,
+              "name": "PT_WIN",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 116,
+              "name": "PT_END",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "QB",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHPESB4.0\u0002PAPA/swim/\u0002IQERB8.0\u0002PAPA/mv 21,11,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JI",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQESB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAW]IH",
+              "check": "header"
+            },
+            {
+              "header": 119,
+              "name": "PT_WIN",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 116,
+              "name": "PT_END",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "QB",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHPESB4.0\u0002PAPA/swim/\u0002IQERB8.0\u0002PAPA/mv 21,11,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JI",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQESB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "OHHHPAW]IH",
+              "check": "header"
+            },
+            {
+              "header": 119,
+              "name": "PT_WIN",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 116,
+              "name": "PT_END",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB4.0\u0002PAPA/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHPESB4.0\u0002PAPA/swim/\u0002IQERB8.0\u0002PAPA/mv 21,11,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 115,
+              "name": "PT_PREPARE",
+              "body": "JI",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQESB8.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "PB",
+      "note": "Move 8 is no move; PT_START 3 s after PT_PREPARE",
+      "wait_for": [
+        114
+      ],
+      "settle_ms": 400,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JI",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JI",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 114,
+              "name": "PT_START",
+              "body": "JI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "note": "Jem joins and the camera is scheduled (its first shot 3 s later); see the header",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHJem\u0002Don't look down \u0002sd=001&sh=002/255,115,131&lg=005/255,115,131&ch=015/255,189,189&lh=001/230,200,162&rh=001/230,200,162&hd=001/230,200,162&ey=002&fc=001/230,200,162&hr=501/165,90,24&hrb=501/2,3,4&rs=003/230,200,162&ls=003/230,200,162&bd=001/230,200,162\u0002KIRB7.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESC8.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHJem\u0002Don't look down \u0002sd=001&sh=002/255,115,131&lg=005/255,115,131&ch=015/255,189,189&lh=001/230,200,162&rh=001/230,200,162&hd=001/230,200,162&ey=002&fc=001/230,200,162&hr=501/165,90,24&hrb=501/2,3,4&rs=003/230,200,162&ls=003/230,200,162&bd=001/230,200,162\u0002KIRB7.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "PAJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HPESB4.0\u0002PAIF\u0002MMMch=s02/255,115,131\u0002REtracemod\u0002trace mod \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQESB8.0\u0002PAIF\u0002MMM\u0002QEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESC8.0\u0002HIM\u0002MMM\u0002HJem\u0002Don't look down \u0002sd=001&sh=002/255,115,131&lg=005/255,115,131&ch=015/255,189,189&lh=001/230,200,162&rh=001/230,200,162&hd=001/230,200,162&ey=002&fc=001/230,200,162&hr=501/165,90,24&hrb=501/2,3,4&rs=003/230,200,162&ls=003/230,200,162&bd=001/230,200,162\u0002KIRB7.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "PAHPESB4.0\u0002PAPA/swim/\u0002IQESB8.0\u0002PAPA/\u0002JQESC8.0\u0002HH/\u0002KIRB7.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHJem\u0002Don't look down \u0002sd=001&sh=002/255,115,131&lg=005/255,115,131&ch=015/255,189,189&lh=001/230,200,162&rh=001/230,200,162&hd=001/230,200,162&ey=002&fc=001/230,200,162&hr=501/165,90,24&hrb=501/2,3,4&rs=003/230,200,162&ls=003/230,200,162&bd=001/230,200,162\u0002KIRB7.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JQESC8.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "disconnect",
+      "note": "Before the camera's first shot, which then can only watch p",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "note": "q leaves mid-game: the game goes on",
+      "settle_ms": 300,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "RA",
+      "note": "p still plays",
+      "settle_ms": 400,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "NHRAHPAHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "settle_ms": 400,
+      "header_only": [
+        118
+      ],
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "NUJIHPAHHH",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "settle_ms": 400,
+      "header_only": [
+        118
+      ],
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "NWTIHPAHHH",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "send",
+      "header": 114,
+      "name": "PTM",
+      "body": "I",
+      "note": "p falls: PT_WIN for q (player 1); PT_END, a ticket from q (in the hotel view) and from p, p in the water; the camera's first shot",
+      "settle_ms": 2200,
+      "header_only": [
+        118,
+        71
+      ],
+      "received": {
+        "p": {
+          "ordered": false,
+          "closed": false,
+          "messages": [
+            {
+              "header": 118,
+              "name": "PT_STATUS",
+              "body": "NV^IHPAHHH",
+              "check": "header"
+            },
+            {
+              "header": 119,
+              "name": "PT_WIN",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 targetcamera 2",
+              "check": "header"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 setcamera 1",
+              "check": "header"
+            },
+            {
+              "header": 116,
+              "name": "PT_END",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "PB",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPESC4.0\u0002HH/swim/\u0002",
+              "check": "header"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPESC4.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPESC4.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JJPESC4.0\u0002HH/swim/\u0002KHQB7.0\u0002HH/mv 0,8,7.0/\u0002",
+              "check": "exact",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKHPB7.0\u0002HH/\u0002",
+              "check": "exact",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKHPB7.0\u0002JJ/\u0002",
+              "check": "exact",
+              "optional": true
+            }
+          ]
+        },
+        "q": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "QB",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "q",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "q": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
+      "bot": "p",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "p": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+name = "wobble-squabble-tickets"
+description = "Wobble Squabble's join tile: while a game runs a player on it is not taken onto the bridge; buying tickets there (BTCKS) after the game takes them on, and their arrival on the free start tile starts the next game"
+
+# Rooftop Rumble (room 38, md_a): see wobble-squabble.toml for the way onto the bridge. b walks
+# there; the staff users p (tracestaff) and q (tracemod) use :teleport, so WALK warps them
+# straight onto a join tile (WobbleSquabbleJoinQueue switches teleport mode off again). Leaning
+# (PTM 1) changes the balance at random, so those steps check PT_STATUS by header only; three
+# leans always make a player fall (35-44 each, out of balance at 100).
+# Java's RooftopRumbleTrigger.onRoomLeave throws while the room's camera task does not exist
+# (it starts with the first G_STAT), skipping the rest of leaveRoom (no LOGOUT, the tile stays
+# taken). A real client always sends G_STAT, so the port does not do that: these scenarios send
+# one before anybody leaves a room with others in it, and stay within the 3 s before the camera's
+# first (random) shot, or check it by header only. G_STAT also brings in the NPC Jem, who may
+# start to wander 3 s later.
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "p"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "q"
+ticket = "trace-sso-22"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/255,115,131" }]
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [11, 11]
+settle_ms = 1200
+note = "Down the ladder into the water, on to 13,11"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [21, 7]
+settle_ms = 1200
+note = "b on the start tile 21,11"
+
+[[steps]]
+bot = "p"
+macro = "login"
+
+[[steps]]
+bot = "p"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "p"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "p"
+send = "WALK"
+args = [21, 19]
+settle_ms = 1200
+note = "p on the other start tile 21,15: PT_PREPARE (p is player 0)"
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [8]
+wait_for = ["PT_START"]
+settle_ms = 400
+note = "Move 8 is no move; PT_START 3 s after PT_PREPARE"
+
+[[steps]]
+bot = "q"
+macro = "login"
+
+[[steps]]
+bot = "q"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "q"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "q"
+send = "WALK"
+args = [21, 7]
+settle_ms = 1200
+note = "q warps onto the join tile: a game is on, so nothing more happens"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 2200
+header_only = ["PT_STATUS"]
+note = "b falls: PT_WIN, PT_END, the tickets, b in the water; q stays on the join tile"
+
+[[steps]]
+bot = "q"
+send = "BTCKS"
+args = [1, "tracemod"]
+settle_ms = 1500
+note = "Two tickets for q, on the join tile: warped onto the bridge, walks to the start tile 21,11, PT_PREPARE against p"
+
+[[steps]]
+bot = "q"
+send = "PTM"
+args = [8]
+wait_for = ["PT_START"]
+settle_ms = 400
+note = "Move 8 is no move; PT_START 3 s after PT_PREPARE"
+
+[[steps]]
+bot = "p"
+send = "G_STAT"
+note = "Jem joins and the camera is scheduled, so leaving works (see the header)"
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "q"
+disconnect = true
+
+[[steps]]
+bot = "p"
+disconnect = true
+

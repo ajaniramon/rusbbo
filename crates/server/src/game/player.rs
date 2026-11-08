@@ -60,6 +60,9 @@ pub struct Player {
     pub previous_respect_day: String,
     /// Java: `NettyPlayerNetwork.getIpAddress`, set when the connection opens.
     pub ip_address: String,
+    /// Java: `RoomEntity.packetQueueAfterRoomLeave`: what the Infobus's end sends again when the
+    /// player is back in the park (`InfobusParkTrigger`).
+    pub packet_queue_after_room_leave: Vec<havana_protocol::Message>,
 }
 
 impl Player {

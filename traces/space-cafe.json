@@ -1,0 +1,301 @@
+{
+  "format": 1,
+  "scenario": "space-cafe",
+  "description": "The Space Cafe's lights (space_cafe_trigger, SpaceCafeTask): the first G_STAT starts the task, and 4.5 s later the three lamps and their lights take random colours (SHOWPROGRAM lmpa/liga, lmpb/ligb, lmpc/ligc), all six at first because they start at no colour",
+  "runs": 3,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "425839409545165193430754\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#F8DA17F59AEA4AF8B098C03D43DE7ECE\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IPC",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "space_cafe\u0002PC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEQD1.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "x3333x333211111xxxxxxxxx\rx3333x333211111xx3333333\rxxxxxx333211111xx3333333\r33333333xx11111xx3333333\r33333333xx11111xx3333333\r33x333xxxx11111xx3333333\rxxx222xxx111111xx3333333\r22222222xx11111xx3333333\r22222222xxx1111xx3333333\r22222222xxxx1111x2222222\r22222222xxxx1111x1111111\r22222222xxxx111111111111\r22222222xxxx111111111111\rxxx222xxxxx1111111111111\rxxxx33xxxx11111111111111\rxxx333321111111111111111\rxxx333321111111111111111\rxxx333321111111111111111\rxxxxxxxxxxxxx1111xxxx11x\rxxxxxxxxxxxxx0000xxxx11x\rxxxxxxxxxx0000000xxxx11x\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "note": "Lofar joins; the task starts",
+      "settle_ms": 400,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHLofar\u0002Service without gravity :) \u0002sd=001&sh=001/194,227,232&lg=001/255,255,255&ch=001/255,255,255&lh=001/240,213,179&rh=001/240,213,179&hd=001/240,213,179&ey=001/254,202,150&fc=001/240,213,179&hr=888/255,255,255&rs=001/255,255,255&ls=001/255,255,255&bd=001/240,213,179\u0002IJH3.0\u0002PAK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HQEQD1.0\u0002HIM\u0002MMM\u0002HLofar\u0002Service without gravity :) \u0002sd=001&sh=001/194,227,232&lg=001/255,255,255&ch=001/255,255,255&lh=001/240,213,179&rh=001/240,213,179&hd=001/240,213,179&ey=001/254,202,150&fc=001/240,213,179&hr=888/255,255,255&rs=001/255,255,255&ls=001/255,255,255&bd=001/240,213,179\u0002IJH3.0\u0002PAK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHQEQD1.0\u0002HH/\u0002IJH3.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "note": "The first lights, 4.5 s after G_STAT",
+      "wait_for": [
+        71
+      ],
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "x3333x333211111xxxxxxxxx\rx3333x333211111xx3333333\rxxxxxx333211111xx3333333\r33333333xx11111xx3333333\r33333333xx11111xx3333333\r33x333xxxx11111xx3333333\rxxx222xxx111111xx3333333\r22222222xx11111xx3333333\r22222222xxx1111xx3333333\r22222222xxxx1111x2222222\r22222222xxxx1111x1111111\r22222222xxxx111111111111\r22222222xxxx111111111111\rxxx222xxxxx1111111111111\rxxxx33xxxx11111111111111\rxxx333321111111111111111\rxxx333321111111111111111\rxxx333321111111111111111\rxxxxxxxxxxxxx1111xxxx11x\rxxxxxxxxxxxxx0000xxxx11x\rxxxxxxxxxx0000000xxxx11x\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\rxxxxxxxxxx0000000xxxxxxx\r",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "lmpa ufol 1",
+              "check": "mask",
+              "mask": "..........?"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "liga litecol 1",
+              "check": "mask",
+              "mask": ".............?"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "lmpb ufol 1",
+              "check": "mask",
+              "mask": "..........?"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "ligb litecol 1",
+              "check": "mask",
+              "mask": ".............?"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "lmpc ufol 2",
+              "check": "mask",
+              "mask": "..........?"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "ligc litecol 2",
+              "check": "mask",
+              "mask": ".............?"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

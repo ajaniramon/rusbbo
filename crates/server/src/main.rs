@@ -3,6 +3,7 @@
 mod game;
 mod messages;
 mod net;
+mod rcon;
 mod session;
 mod settings;
 mod settings_defaults;
@@ -43,6 +44,10 @@ struct Cli {
     /// Ticket API requests allowed per client IP and minute (brute-force protection).
     #[arg(long, value_name = "N", default_value_t = ticket_api::DEFAULT_RATE_LIMIT)]
     http_rate_limit: u32,
+    /// Listen for the website's RCON messages (Java: `rcon.bind`/`rcon.port`, 127.0.0.1:12309)
+    /// on this address. Off by default; only the Infobus ones are ported.
+    #[arg(long, value_name = "ADDR")]
+    rcon: Option<SocketAddr>,
 }
 
 #[tokio::main]
@@ -88,6 +93,14 @@ async fn main() -> Result<()> {
         tokio::spawn(async move {
             if let Err(e) = ticket_api::serve(world, http, rate_limit).await {
                 tracing::error!("ticket API: {e:#}");
+            }
+        });
+    }
+    if let Some(addr) = cli.rcon {
+        let world = world.clone();
+        tokio::spawn(async move {
+            if let Err(e) = rcon::serve(world, addr).await {
+                tracing::error!("RCON: {e:#}");
             }
         });
     }

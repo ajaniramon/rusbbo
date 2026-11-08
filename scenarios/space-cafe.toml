@@ -1,0 +1,42 @@
+name = "space-cafe"
+description = "The Space Cafe's lights (space_cafe_trigger, SpaceCafeTask): the first G_STAT starts the task, and 4.5 s later the three lamps and their lights take random colours (SHOWPROGRAM lmpa/liga, lmpb/ligb, lmpc/ligc), all six at first because they start at no colour"
+
+# The Space Cafe is room 12 (space_cafe). The colours are 4, 1 or 2 at random, so SHOWPROGRAM is
+# masked there. Later rounds (every 5 s) only send the lamps whose colour changed, and the
+# flipboard turns after 60 s; both are left out. Its NPC, Lofar, joins with the first G_STAT and
+# may start to wander about 3 s later.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 12]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 400
+note = "Lofar joins; the task starts"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+wait_for = ["SHOWPROGRAM"]
+settle_ms = 800
+note = "The first lights, 4.5 s after G_STAT"
+
+[[steps]]
+bot = "a"
+send = "QUIT"

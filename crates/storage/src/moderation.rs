@@ -184,6 +184,30 @@ impl Store {
             .map(|l| l.ip_address.clone()))
     }
 
+    /// Java: `PlayerDao.getIpAddresses(userId, maxRows)` (`SELECT DISTINCT(ip_address) ... ORDER
+    /// BY created_at DESC LIMIT maxRows`): the user's addresses, latest first, each once.
+    pub fn ip_addresses(&self, user_id: u32, max_rows: usize) -> Result<Vec<String>> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(IP_LOGS)?;
+        let Some(bytes) = table.get(user_id)? else {
+            return Ok(Vec::new());
+        };
+        let mut logs: Vec<IpLog> = decode(bytes.value())?;
+        // Stable: of rows in the same second the last one written comes first.
+        logs.reverse();
+        logs.sort_by_key(|l| std::cmp::Reverse(l.created_at));
+        let mut out: Vec<String> = Vec::new();
+        for log in logs {
+            if out.len() == max_rows {
+                break;
+            }
+            if !out.contains(&log.ip_address) {
+                out.push(log.ip_address);
+            }
+        }
+        Ok(out)
+    }
+
     /// Java: `PlayerDao.logIpAddress`.
     pub fn log_ip(&self, user_id: u32, ip_address: &str, now: i64) -> Result<()> {
         let mut w = self.write()?;
@@ -346,6 +370,13 @@ mod tests {
         store.log_ip(1, "10.0.0.2", 9).unwrap();
         store.log_ip(1, "10.0.0.3", 7).unwrap();
         assert_eq!(store.latest_ip(1).unwrap().as_deref(), Some("10.0.0.2"));
+        store.log_ip(1, "10.0.0.1", 8).unwrap();
+        assert_eq!(
+            store.ip_addresses(1, 20).unwrap(),
+            ["10.0.0.2", "10.0.0.1", "10.0.0.3"]
+        );
+        assert_eq!(store.ip_addresses(1, 1).unwrap(), ["10.0.0.2"]);
+        assert!(store.ip_addresses(2, 20).unwrap().is_empty());
         let entry = AuditLogEntry {
             action: "room_alert".into(),
             user_id: -1,

@@ -9,6 +9,7 @@ pub mod commands;
 pub mod currency;
 pub mod effects;
 pub mod fuserights;
+pub mod infobus;
 pub mod inventory;
 pub mod item;
 pub mod java_set;

@@ -1,0 +1,116 @@
+name = "infobus-door"
+description = "The Infobus's door in The Park (infobus_park, park_a): BUS_DOOR on G_STAT, TRYBUS and the door tile 28,4 refused while it is closed, the door opened over RCON (infobusdoorstatus: BUS_DOOR to the park), TRYBUS walking to the door and the walkway into the bus (park_b), CHANGEWORLD walking to the bus's exit and back into the park, and the door closed again"
+
+# The Park is room 34 (park_a, door 2,15), the Infobus room 35 (park_b, door 11,2); neither has an
+# NPC. The website's housekeeping opens and closes the door with RCON messages (Java's
+# RconConnectionHandler, port 12309), which the `rcon` steps send.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 34]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+note = "BUS_DOOR: closed"
+
+[[steps]]
+bot = "a"
+send = "TRYBUS"
+note = "CANNOT_ENTER_BUS: the bus is closed"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [28, 4]
+note = "The closed door's tile is not walkable"
+
+[[steps]]
+bot = "a"
+rcon = "infobusdoorstatus"
+rcon_values = { doorStatus = "1" }
+note = "The park sees the door open"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [10, 14]
+settle_ms = 800
+note = "Closer to the bus, in legs shorter than a step's 10 s cap"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [18, 9]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "TRYBUS"
+settle_ms = 1200
+note = "Walks to the door and takes the walkway into the bus, at its door 11,2"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+note = "The bus's trigger (infobus_poll) sends nothing"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [9, 2]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "CHANGEWORLD"
+settle_ms = 1200
+note = "Walks to 11,2, the bus's exit, and through its walkway back to the park at 28,5"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+note = "BUS_DOOR: open"
+
+[[steps]]
+bot = "a"
+rcon = "infobusdoorstatus"
+rcon_values = { doorStatus = "0" }
+note = "The park sees the door close"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [28, 4]
+note = "Not walkable again"
+
+[[steps]]
+bot = "a"
+rcon = "infobusdoorstatus"
+note = "Without doorStatus Java throws: nothing happens"
+
+[[steps]]
+bot = "a"
+disconnect = true

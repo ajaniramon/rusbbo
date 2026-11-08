@@ -23,11 +23,13 @@ pub mod pool;
 #[cfg(test)]
 mod pool_tests;
 pub mod sound;
+mod space_cafe;
 pub mod tasks;
 pub mod trade;
 #[cfg(test)]
 mod trade_tests;
 pub mod walkways;
+pub mod wobble_squabble;
 
 use std::sync::{Arc, Weak};
 
@@ -145,6 +147,10 @@ pub struct Room {
     pub idol: crate::game::item::interactors::idol::IdolState,
     /// Java: the `DivingCamera` task of Lido B (`DivingDeckTrigger`), from its first `G_STAT`.
     camera: Option<pool::DivingCamera>,
+    /// Java: Rooftop Rumble's `WobbleGameTask`, while a game of Wobble Squabble is on.
+    wobble: Option<wobble_squabble::WobbleGame>,
+    /// Java: the Space Cafe's `SpaceCafeTask`, from the room's first entry.
+    space_cafe: Option<space_cafe::SpaceCafe>,
     /// Java: `EntityTask.queueAfterLoop`: sent to the room after the next entity tick's statuses.
     queue_after_loop: Vec<Message>,
     /// Set by `DELETEFLAT`: the row is gone and the room only waits to be unloaded. It still
@@ -176,6 +182,9 @@ impl Room {
             .filter(|w| w.room_id == id)
             .map(|w| w.destination.unwrap_or_else(|| model.door_location()))
             .collect();
+        if model.name == "park_a" {
+            mapping.bus_door = Some(world.infobus.door_open.clone());
+        }
         Some(Arc::new_cyclic(|weak| RoomHandle {
             id,
             model_name: model.name.clone(),
@@ -201,6 +210,8 @@ impl Room {
                 world: world.arc().as_ref().map(Arc::downgrade).unwrap_or_default(),
                 idol: Default::default(),
                 camera: None,
+                wobble: None,
+                space_cafe: None,
                 queue_after_loop: Vec::new(),
                 deleted: false,
             }),
@@ -455,14 +466,15 @@ impl Room {
     pub fn try_room_entry(&mut self, world: &World, session_id: u64) -> bool {
         let was_active = self.active;
         self.active = true;
-        // The model trigger's onRoomEntry. TODO(triggers): the Infobus and Space Cafe triggers;
-        // TODO(games): the game lobbies and Rooftop Rumble.
+        // The model trigger's onRoomEntry. TODO(games): the game lobbies.
         if let Some(idx) = self.entity_index(session_id) {
-            if matches!(
-                self.model.trigger.as_str(),
-                "habbo_lido_trigger" | "diving_deck_trigger"
-            ) {
-                self.pool_room_entry(world, idx);
+            match self.model.trigger.as_str() {
+                "habbo_lido_trigger" | "diving_deck_trigger" | "rooftop_rumble_trigger" => {
+                    self.pool_room_entry(world, idx);
+                }
+                "space_cafe_trigger" => self.space_cafe_room_entry(idx, !was_active),
+                "infobus_park" => self.infobus_park_room_entry(world, idx),
+                _ => {}
             }
         }
         if !was_active {
@@ -498,7 +510,8 @@ impl Room {
             );
         }
         if e.is_player() {
-            // TODO(triggers): the other models' onRoomLeave.
+            // Only the cameras' triggers do something (Lido B, Rooftop Rumble); the flat, Habbo
+            // Lido, Infobus and Space Cafe ones do nothing. TODO(games): the game lobbies'.
             self.pool_room_leave(e.session.id);
         }
         self.mapping.remove_entity(e.position, e.instance_id);
@@ -530,7 +543,8 @@ impl Room {
         if hotel_view {
             e.session.send(out_user::hotel_view());
         }
-        // TODO(games): Wobble Squabble and game leave. TODO(messenger): status update.
+        // Java ends a game of Wobble Squabble here, but never does (see `wobble_squabble`).
+        // TODO(games): game leave. TODO(messenger): status update.
         self.save_visitors(world);
         Some(e)
     }
@@ -578,6 +592,8 @@ impl Room {
             r.bots_active = false;
             r.last_bot_speech = None;
             r.camera = None;
+            r.wobble = None;
+            r.space_cafe = None;
             r.queue_after_loop.clear();
             world.unregister_room(&room);
         });
@@ -638,10 +654,10 @@ impl Room {
         self.entities[idx].goal = Some(goal);
         // Java: `:teleport` mode warps the user to the goal.
         if self.entities[idx].is_teleporting {
-            self.warp(idx, goal);
             // Unlike a teleporter arrival, no status follows on the next tick
-            // (traces/staff-commands.json).
-            self.entities[idx].needs_update = false;
+            // (traces/staff-commands.json), unless the height changed (Java's `updateNewHeight`
+            // from the goal's height 0: traces/wobble-squabble-tickets.json).
+            self.warp_to(idx, goal, true, true);
             let e = &self.entities[idx];
             let msg = rooms_user::figure_change(
                 e.instance_id,
@@ -817,7 +833,13 @@ impl Room {
             }
             self.pet_stopped_on(world, idx, i);
             self.pool_stop(world, idx, i);
-            // TODO(games): the Wobble Squabble and game triggers' onEntityStop.
+            match self.mapping.items[i].interaction {
+                Interaction::WsJoinQueue => self.ws_join_queue_stop(world, idx, i),
+                Interaction::WsQueueTile => self.ws_queue_tile_stop(world, idx),
+                Interaction::WsTileStart => self.ws_tile_start_stop(idx, i),
+                // TODO(games): the game triggers' onEntityStop.
+                _ => {}
+            }
             let item = &self.mapping.items[i];
             self.entities[idx].last_item_interaction = Some((item.virtual_id, item.interaction));
         }
@@ -1441,6 +1463,12 @@ fn enter_room_with(
         if from_room_task {
             if let Some(msg) = r.first_tick.take() {
                 r.send(msg);
+            } else if let Some(idx) = r.entity_index(session.id) {
+                // A room that was already running: Java's old room sets `needsUpdate` after the
+                // walkway (`EntityTask.processEntity` after `stopWalking`) and its loop takes it,
+                // so this room never sends the newcomer's status (traces/infobus-door.json).
+                // TODO(walkways): the old room sends it to its own users instead.
+                r.entities[idx].needs_update = false;
             }
         }
         if let Some((teleporter_id, _)) = teleporter {
@@ -1521,6 +1549,8 @@ impl Room {
             world: Weak::new(),
             idol: Default::default(),
             camera: None,
+            wobble: None,
+            space_cafe: None,
             queue_after_loop: Vec::new(),
             deleted: false,
         };

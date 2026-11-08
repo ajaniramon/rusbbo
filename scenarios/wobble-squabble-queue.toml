@@ -1,0 +1,192 @@
+name = "wobble-squabble-queue"
+description = "Wobble Squabble's queue: q waits on a queue tile behind the player on the start tile; when the game ends the queue moves on and q's step onto the free start tile starts the next game against the winner; q then leaves mid-game (QUIT): the game goes on, and when p falls q, the winner, still loses a ticket (TICKET_BALANCE in the hotel view)"
+
+# Rooftop Rumble (room 38, md_a): see wobble-squabble.toml for the way onto the bridge. b walks
+# there; the staff users p (tracestaff) and q (tracemod) use :teleport, so WALK warps them
+# straight onto a join tile (WobbleSquabbleJoinQueue switches teleport mode off again). Leaning
+# (PTM 1) changes the balance at random, so those steps check PT_STATUS by header only; three
+# leans always make a player fall (35-44 each, out of balance at 100).
+# Java's RooftopRumbleTrigger.onRoomLeave throws while the room's camera task does not exist
+# (it starts with the first G_STAT), skipping the rest of leaveRoom (no LOGOUT, the tile stays
+# taken). A real client always sends G_STAT, so the port does not do that: these scenarios send
+# one before anybody leaves a room with others in it, and stay within the 3 s before the camera's
+# first (random) shot, or check it by header only. G_STAT also brings in the NPC Jem, who may
+# start to wander 3 s later.
+# Java's leaveRoom ends the game only for a player still in a room (RoomEntity.reset clears
+# the room first), so leaving never ends it.
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "q"
+ticket = "trace-sso-22"
+
+[[bots]]
+name = "p"
+ticket = "trace-sso-21"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/255,115,131" }]
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [11, 11]
+settle_ms = 1200
+note = "Down the ladder into the water, on to 13,11"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [21, 7]
+settle_ms = 1200
+note = "b on the start tile 21,11"
+
+[[steps]]
+bot = "q"
+macro = "login"
+
+[[steps]]
+bot = "q"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "q"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "q"
+send = "WALK"
+args = [21, 7]
+settle_ms = 1200
+note = "q warps to the join tile and onto the bridge, and waits on the queue tile 21,10: the start tile is taken"
+
+[[steps]]
+bot = "p"
+macro = "login"
+
+[[steps]]
+bot = "p"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "p"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "p"
+send = "WALK"
+args = [21, 19]
+settle_ms = 1200
+note = "p on the other start tile 21,15: PT_PREPARE (p is player 0)"
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [8]
+wait_for = ["PT_START"]
+settle_ms = 400
+note = "Move 8 is no move; PT_START 3 s after PT_PREPARE"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+settle_ms = 2500
+header_only = ["PT_STATUS"]
+note = "b falls: PT_WIN, then PT_END, the tickets, b in the water, and the queue moves: q steps onto the start tile 21,11 and the next game is prepared"
+
+[[steps]]
+bot = "q"
+send = "PTM"
+args = [8]
+wait_for = ["PT_START"]
+settle_ms = 400
+note = "Move 8 is no move; PT_START 3 s after PT_PREPARE"
+
+[[steps]]
+bot = "p"
+send = "G_STAT"
+note = "Jem joins and the camera is scheduled (its first shot 3 s later); see the header"
+
+[[steps]]
+bot = "b"
+disconnect = true
+note = "Before the camera's first shot, which then can only watch p"
+
+[[steps]]
+bot = "q"
+send = "QUIT"
+note = "q leaves mid-game: the game goes on"
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [6]
+settle_ms = 400
+note = "p still plays"
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+
+[[steps]]
+bot = "p"
+send = "PTM"
+args = [1]
+settle_ms = 2200
+header_only = ["PT_STATUS", "SHOWPROGRAM"]
+note = "p falls: PT_WIN for q (player 1); PT_END, a ticket from q (in the hotel view) and from p, p in the water; the camera's first shot"
+
+[[steps]]
+bot = "q"
+disconnect = true
+
+[[steps]]
+bot = "p"
+disconnect = true
+

@@ -104,3 +104,9 @@ VALUES
    '2099-01-01 00:00:00', '2026-01-01 00:00:00', 21, 1),
   ('USER_ID', '25', 'Expired ban', '2026-01-02 00:00:00', '2026-01-01 00:00:00', 21, 1),
   ('USER_ID', '25', 'Lifted ban', '2099-01-01 00:00:00', '2026-01-01 00:00:00', 21, 0);
+
+-- An Infobus poll for the infobus-poll scenario: the website's housekeeping makes polls (Java has
+-- no other way), and sends `infobuspoll` with its id over RCON to ask it in the bus.
+INSERT INTO infobus_polls (id, initiated_by, poll_data, created_at)
+VALUES (1, 21, '{"question":"Which public room do you like best?","answers":["The Park","Rooftop Rumble","The Space Cafe"]}',
+        '2026-01-01 00:00:00');

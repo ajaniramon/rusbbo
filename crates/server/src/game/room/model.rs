@@ -17,9 +17,9 @@ pub struct RoomModel {
     pub size_y: i32,
     /// Rows joined with `\r`, each followed by one (what `HEIGHTMAP` sends).
     pub heightmap: String,
-    /// `trigger_class`. The Habbo Lido and Lido B triggers are in `pool`;
-    /// TODO(triggers): the Infobus and Space Cafe ones, TODO(games): the game lobbies and Rooftop
-    /// Rumble.
+    /// `trigger_class`. The Habbo Lido, Lido B and Rooftop Rumble triggers are in `pool` (Wobble
+    /// Squabble in `wobble_squabble`), the Space Cafe's in `space_cafe`, the Infobus ones in
+    /// `game::infobus`; TODO(games): the game lobbies.
     pub trigger: String,
     /// Indexed `x * size_y + y`; `None` is a closed tile.
     heights: Vec<Option<f64>>,
