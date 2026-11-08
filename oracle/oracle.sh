@@ -2,12 +2,15 @@
 # Runs the Java Havana server as the reference ("oracle") for trace scenarios.
 #
 #   oracle.sh setup   build the jar, start MariaDB, load schema + migrations + seed, take snapshot
+#   oracle.sh build   only build the jar into run/ (the database snapshot is kept)
 #   oracle.sh start   start the Java server (if not running) and wait for the game port
 #   oracle.sh stop    stop the Java server
 #   oracle.sh reset   stop server, restore the database snapshot, start server again
 #   oracle.sh status  show what is running
 #
-# Environment: HAVANA_DIR (the Java Havana checkout; ../aeyra-havana), ORACLE_JAVA_HOME (a JDK 25; defaults to /opt/jdk25, then JAVA_HOME), ORACLE_DB_PORT (13307).
+# Environment: HAVANA_DIR (the Java Havana checkout; ../aeyra-havana), ORACLE_JAVA_HOME (a JDK 25; defaults to /opt/jdk25, then JAVA_HOME), ORACLE_DB_PORT (13307),
+# ORACLE_CHESSLIB (auto, the default: the real chesslib when jitpack.io answers, else the chess
+# stub of no-jitpack.init.gradle; 1: always the real chesslib; 0: always the stub).
 set -euo pipefail
 
 ORACLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,10 +47,27 @@ wait_port() {
 
 server_running() { [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; }
 
+# Whether the jar gets the real chesslib (served only by jitpack.io) or the chess stub.
+use_chesslib() {
+  case "${ORACLE_CHESSLIB:-auto}" in
+    1) return 0 ;;
+    0) return 1 ;;
+    *) curl -fsS -o /dev/null --max-time 15 \
+         https://jitpack.io/com/github/bhlangonijr/chesslib/1.1.1/chesslib-1.1.1.pom ;;
+  esac
+}
+
 build_jar() {
-  log "building Havana-Server jar"
+  local init=()
+  if use_chesslib; then
+    log "building Havana-Server jar (with chesslib from jitpack.io)"
+  else
+    log "building Havana-Server jar (chess stub: jitpack.io unreachable or ORACLE_CHESSLIB=0)"
+    init=(-I "$ORACLE_DIR/no-jitpack.init.gradle")
+  fi
   (cd "$REPO_DIR" && ./gradlew -q --console=plain -Porg.gradle.java.installations.paths="$JAVA_HOME" \
-     -I "$ORACLE_DIR/no-jitpack.init.gradle" :Havana-Server:shadowJar)
+     "${init[@]}" :Havana-Server:shadowJar)
+  mkdir -p "$RUN_DIR"
   cp "$REPO_DIR/Havana-Server/build/libs/Havana-Server-unspecified.jar" "$RUN_DIR/Havana-Server.jar"
 }
 
@@ -157,6 +177,7 @@ case "${1:-}" in
     write_config
     log "setup done; run '$0 start'"
     ;;
+  build) build_jar ;;
   start) start_db; start_server ;;
   stop) stop_server ;;
   reset)
@@ -170,5 +191,5 @@ case "${1:-}" in
     docker ps --filter "name=$DB_CONTAINER" --format '{{.Names}} {{.Status}}'
     if server_running; then echo "server pid $(cat "$PID_FILE")"; else echo "server stopped"; fi
     ;;
-  *) sed -n '2,10p' "$0"; exit 1 ;;
+  *) sed -n '2,14p' "$0"; exit 1 ;;
 esac

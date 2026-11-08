@@ -1,8 +1,7 @@
 //! Java: `GameChess` (on chesslib, see `chess_board`). Two players; white moves first.
 //!
-//! The trace oracle is built without chesslib (`oracle/no-jitpack.init.gradle` swaps this class
-//! for a stub that ignores every command), so the commands here are checked by unit tests
-//! against the Java source, not by a trace.
+//! The moves are checked by `traces/gamehall-chess-mate.json` and `gamehall-chess-draw.json`
+//! (the oracle is built with chesslib), and by unit tests.
 
 use super::chess_board::{Board, Move, PieceType, Side, parse_square, square_name};
 use super::{Aborted, Command, GameInstance, GamePlayer, GameState, arg, arg_char};

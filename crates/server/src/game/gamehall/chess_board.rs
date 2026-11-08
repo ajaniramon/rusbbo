@@ -93,6 +93,10 @@ pub struct Board {
     /// Java: `enPassantTarget`: that pawn's square, only when an enemy pawn stands beside it.
     en_passant_target: Option<u8>,
     half_moves: i32,
+    /// Java: `updateHistory`. Havana's `new Board()` is `Board(new GameContext(), false)`, so it
+    /// is off and the history stays empty: `isDraw` never finds a repetition
+    /// (`traces/gamehall-chess-draw.json`).
+    update_history: bool,
     /// Java: `history`, one key per move made (the start position is not in it).
     history: Vec<Key>,
 }
@@ -182,6 +186,7 @@ impl Default for Board {
             en_passant: None,
             en_passant_target: None,
             half_moves: 0,
+            update_history: false,
             history: Vec::new(),
         }
     }
@@ -503,7 +508,9 @@ impl Board {
             self.half_moves = 0;
         }
         self.side = side.flip();
-        self.history.push(self.key());
+        if self.update_history {
+            self.history.push(self.key());
+        }
     }
 
     /// Java: `Board.isPromoRank(side, move)`.
@@ -584,6 +591,7 @@ impl Board {
             en_passant: None,
             en_passant_target: None,
             half_moves: 0,
+            update_history: false,
             history: Vec::new(),
         }
     }
@@ -696,8 +704,18 @@ mod tests {
 
     #[test]
     fn repetition_and_material_draws() {
-        let mut b = Board::default();
         let moves = [("g1", "f3"), ("g8", "f6"), ("f3", "g1"), ("f6", "g8")];
+        // Havana's board keeps no history: never a repetition.
+        let mut b = Board::default();
+        for (f, t) in moves.iter().cycle().take(16) {
+            assert!(mv(&mut b, f, t));
+            assert!(!b.is_draw());
+        }
+        // With chesslib's history on (`Board(context, true)`).
+        let mut b = Board {
+            update_history: true,
+            ..Board::default()
+        };
         for (n, (f, t)) in moves.iter().cycle().take(9).enumerate() {
             assert!(!b.is_draw());
             assert!(mv(&mut b, f, t));
