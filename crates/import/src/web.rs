@@ -474,6 +474,33 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    for r in rows(
+        conn,
+        "SELECT id, is_loading_ad, room_id, url, image, enabled FROM rooms_ads",
+    )? {
+        w.put_record(&RoomAd {
+            id: u(&r, "id")?,
+            is_loading_ad: b(&r, "is_loading_ad")?,
+            room_id: u(&r, "room_id")?,
+            url: col::<Option<String>>(&r, "url")?,
+            image: s(&r, "image")?,
+            enabled: b(&r, "enabled")?,
+        })?;
+        n += 1;
+    }
+    // verify_code is an Aeyra column (migration aeyra-cache): absent in older databases.
+    if let Ok(codes) = rows(
+        conn,
+        "SELECT user_id, verify_code FROM users_statistics WHERE verify_code IS NOT NULL",
+    ) {
+        for r in codes {
+            w.put_record(&VerifyCode {
+                id: u(&r, "user_id")?,
+                code: s(&r, "verify_code")?,
+            })?;
+            n += 1;
+        }
+    }
     // MariaDB's AUTO_INCREMENT counters, so new rows get the ids Java's INSERTs would.
     for table in [
         "users",

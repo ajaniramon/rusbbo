@@ -47,8 +47,11 @@ INSERT INTO messenger_requests (from_id, to_id) VALUES (3, 25);
 INSERT INTO groups_details (id, name, description, owner_id, room_id, badge, alias, created_at) VALUES
   (1, 'Trace Club', 'A [b]group[/b] for traces', 1, 0, 'b0503Xs09114s05013s05015', 'traceclub', CURDATE() - INTERVAL 10 DAY),
   (2, 'Second Group', 'Another group', 25, 0, 'b0503Xs09114s05013s05015', NULL, CURDATE() - INTERVAL 3 DAY);
-INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending) VALUES
-  (25, 1, '1', 0), (2, 1, '2', 0), (3, 2, '1', 1);
+-- Dated two days ago, so the hot groups (members who joined in the last month, up to midnight)
+-- count them: 2 for Trace Club, 1 for Second Group (Java orders ties in no fixed way).
+INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending, created_at) VALUES
+  (25, 1, '1', 0, CURDATE() - INTERVAL 2 DAY), (2, 1, '2', 0, CURDATE() - INTERVAL 2 DAY),
+  (3, 2, '1', 1, CURDATE() - INTERVAL 2 DAY);
 INSERT INTO cms_recommended (recommended_id, type, is_staff_pick) VALUES (1, 'GROUP', 0), (1, 'GROUP', 1), (2, 'GROUP', 0);
 
 INSERT INTO cms_minimail (target_id, sender_id, to_id, is_read, subject, message, date_sent, conversation_id) VALUES

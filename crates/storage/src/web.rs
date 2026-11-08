@@ -349,7 +349,27 @@ record!(
     }
 );
 
+record!(
+    /// `rooms_ads` (Java: `AdManager`, `AdvertisementsDao`).
+    RoomAd, "rooms_ads" {
+        is_loading_ad: bool,
+        room_id: u32,
+        url: Option<String>,
+        image: String,
+        enabled: bool,
+    }
+);
+
+record!(
+    /// `users_statistics.verify_code` (Java: `VerifyDao`), keyed by the user id.
+    VerifyCode, "users_verify_codes" {
+        code: String,
+    }
+);
+
 record_tables!(
+    RoomAd,
+    VerifyCode,
     Tag,
     Article,
     ArticleCategory,

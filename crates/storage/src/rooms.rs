@@ -219,6 +219,11 @@ impl Store {
         Ok(rooms)
     }
 
+    /// Every room, by id.
+    pub fn all_rooms(&self) -> Result<Vec<Room>> {
+        all::<Room>(self, ROOMS)
+    }
+
     /// Java: `RoomDao.getRecommendedRooms`: `SELECT * FROM rooms ... WHERE owner_id > 0 AND
     /// accesstype = 0 ORDER BY visitors_now DESC, rating DESC LIMIT ? OFFSET ?` (open private rooms).
     /// Ties come out by ascending id, the table scan order.

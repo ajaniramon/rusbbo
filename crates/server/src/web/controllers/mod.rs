@@ -6,6 +6,7 @@ mod api;
 mod client;
 mod club;
 mod habblets;
+mod habblets2;
 mod me;
 mod minimail;
 mod pages;
@@ -205,6 +206,33 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HabboClubHabblet::reminderRemove" => club::reminder_remove(conn)?,
         "CreditsController::credits" => club::credits(conn)?,
         "CreditsController::transactions" => club::history(conn)?,
+        "MinimailController::loadMessages" => habblets2::load_messages(conn)?,
+        "MinimailController::recipients" => habblets2::recipients(conn)?,
+        "MinimailController::preview" => habblets2::preview(conn)?,
+        "MinimailController::sendMessage" => habblets2::send_message(conn)?,
+        "MinimailController::loadMessage" => habblets2::load_message(conn)?,
+        "MinimailController::deleteMessage" => habblets2::delete_message(conn)?,
+        "MinimailController::undeleteMessage" => habblets2::undelete_message(conn)?,
+        "MinimailController::emptyTrash" => habblets2::empty_trash(conn)?,
+        "QuickmenuController::groups" => habblets2::quickmenu_groups(conn)?,
+        "QuickmenuController::friends" => habblets2::quickmenu_friends(conn)?,
+        "QuickmenuController::rooms" => habblets2::quickmenu_rooms(conn)?,
+        "ProxyHabblet::moreInfo" => habblets2::more_info(conn)?,
+        "ProxyHabblet::minimail" => habblets2::cproxy(conn)?,
+        "ProxyHabblet::clearhand" => habblets2::clear_hand(conn)?,
+        "ProxyHabblet::token_generate" => habblets2::token_generate(conn)?,
+        "UpdateMottoController::updatemotto" => habblets2::update_motto(conn)?,
+        "EventController::loadEvents" => habblets2::load_events(conn)?,
+        "NavigationComponent::navigation" => habblets2::navigation(conn)?,
+        "InviteController::inviteLink" => habblets2::invite_link(conn)?,
+        "InviteController::searchContent" => habblets2::search_content(conn)?,
+        "InviteController::confirmAddFriend" => habblets2::confirm_add_friend(conn)?,
+        "InviteController::addFriend" => habblets2::add_friend(conn)?,
+        "InviteController::add" => habblets2::add(conn)?,
+        "VerifyController::get" => habblets2::verify_get(conn)?,
+        "VerifyController::clear" => habblets2::verify_clear(conn)?,
+        "AdvertisementController::getImg" => habblets2::ad_image(conn)?,
+        "AdvertisementController::getUrl" => habblets2::ad_url(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

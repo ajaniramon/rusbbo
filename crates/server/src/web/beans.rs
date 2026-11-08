@@ -45,6 +45,7 @@ pub fn has_club(u: &User) -> bool {
 /// Java: `PlayerDetails` (the getters the templates use, under their bean names).
 pub fn player_details(world: &World, u: &User) -> Value {
     let online = world.player_by_id(u.id).is_some() || u.is_online;
+    let created_at = u.created_at;
     Map::new()
         .with("id", u.id)
         .with("name", u.username.as_str())
@@ -82,6 +83,20 @@ pub fn player_details(world: &World, u: &User) -> Value {
         .with("tradeBanExpiration", u.trade_ban_expiration)
         .with("tradeBanned", u.trade_ban_expiration > now())
         .with("favouriteGroupId", u.favourite_group)
+        .with(
+            "formattedLastOnline",
+            super::jdate::format(u.last_online, super::jdate::SHORT_DATE),
+        )
+        .with(
+            "createdAt",
+            super::jdate::format(u.created_at, "yyyy-MM-dd"),
+        )
+        .with_fn("formatJoinDate", move |args| {
+            Ok(Value::from(super::jdate::format(
+                created_at,
+                &args.first().map(Value::render).unwrap_or_default(),
+            )))
+        })
         .into()
 }
 

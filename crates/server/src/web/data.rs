@@ -557,3 +557,21 @@ pub fn has_trade_pass(world: &World, user_id: u32, email: &str) -> bool {
         })
         .is_some_and(|u| is_activated(world) && u.trade_enabled)
 }
+
+/// Java: `RoomDao.getHighestRatedRooms(limit, offset)`: user rooms by rating (ties by id, the scan
+/// order).
+pub fn highest_rated_rooms(
+    world: &World,
+    limit: usize,
+    offset: usize,
+) -> Vec<rusbbo_storage::Room> {
+    let mut rooms: Vec<rusbbo_storage::Room> = world
+        .store
+        .all_rooms()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|r| r.owner_id > 0)
+        .collect();
+    rooms.sort_by_key(|r| std::cmp::Reverse(r.rating));
+    rooms.into_iter().skip(offset).take(limit).collect()
+}

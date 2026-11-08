@@ -202,6 +202,19 @@ impl Store {
         Ok(table.get(item_id)?.map(|v| v.value()))
     }
 
+    /// Java: `ItemDao.deleteHandItems`: the user's furni in the hand that is not hidden or
+    /// being traded (`room_id = 0`).
+    pub fn delete_hand_items(&self, user_id: u32) -> Result<usize> {
+        let ids: Vec<u64> = self
+            .inventory_items(user_id)?
+            .into_iter()
+            .filter(|i| !i.is_hidden && !i.is_trading && i.room_id == 0)
+            .map(|i| i.id)
+            .collect();
+        self.delete_items(&ids)?;
+        Ok(ids.len())
+    }
+
     /// Java: `ItemDao.deleteItems`.
     pub fn delete_items(&self, ids: &[u64]) -> Result<()> {
         let mut w = self.write()?;

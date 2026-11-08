@@ -275,7 +275,13 @@ pub fn group_member(m: rusbbo_storage::GroupMember) -> Value {
         .with("userId", m.user_id)
         .with("groupId", m.group_id)
         .with("pending", m.is_pending)
-        .with("memberRank", enum_value(m.member_rank, rank))
+        .with(
+            "memberRank",
+            Map::new()
+                .with("rankId", m.member_rank)
+                .with("name", rank)
+                .with_fn("toString", move |_| Ok(Value::str(rank))),
+        )
         .into()
 }
 
