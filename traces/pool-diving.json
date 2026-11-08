@@ -1,0 +1,1281 @@
+{
+  "format": 1,
+  "scenario": "pool-diving",
+  "description": "Lido B diving: the queue walks a forward to the lift (SHOWPROGRAM door close, a ticket taken, TICKET_BALANCE, JUMPINGPLACE_OK), b holds up signs (SIGN, the vote for 0-7), DIVE (JUMPDATA to the room), SPLASH_POSITION (swim at 23,19, BIGSPLASH, the lift opens, the score a second later) and out of the water at 20,19 (Splash1)",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "096243637584138170369418\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#37AA35102E134E0EAB7D7843707BA857\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IPI",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains1 open",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "curtains2 open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "pool_a\u0002PI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJQF7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 116,
+      "name": "SWIMSUIT",
+      "body": "ch=s02/238,238,238",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HJQF7.0\u0002JIM\u0002MMMch=s02/238,238,238\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IQI",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "pool_b\u0002QI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "649458039947780727528387\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#2A133D0DC08B43DB983A6884C422135A\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IQI",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "pool_b\u0002QI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 106,
+      "name": "DIVE",
+      "body": "early",
+      "note": "Not on the lift: ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "PFQB",
+      "note": "Next to the queue",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBQE7.0\u0002II/mv 10,20,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBPE7.0\u0002II/mv 11,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSBSD7.0\u0002JJ/mv 12,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSD7.0\u0002JJ/mv 13,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCSD7.0\u0002II/mv 14,18,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRCRD7.0\u0002JJ/mv 15,18,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSCRD7.0\u0002II/mv 16,17,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPDQD7.0\u0002II/mv 17,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQDPD8.0\u0002II/mv 18,15,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDSC7.0\u0002II/mv 19,14,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDRC7.0\u0002II/mv 20,13,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPEQC7.0\u0002II/mv 21,12,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPC7.0\u0002II/mv 22,11,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRESB7.0\u0002II/mv 23,10,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSERB7.0\u0002II/mv 24,9,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFQB7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBQE7.0\u0002II/mv 10,20,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBPE7.0\u0002II/mv 11,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSBSD7.0\u0002JJ/mv 12,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSD7.0\u0002JJ/mv 13,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCSD7.0\u0002II/mv 14,18,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRCRD7.0\u0002JJ/mv 15,18,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSCRD7.0\u0002II/mv 16,17,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPDQD7.0\u0002II/mv 17,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQDPD8.0\u0002II/mv 18,15,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDSC7.0\u0002II/mv 19,14,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDRC7.0\u0002II/mv 20,13,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPEQC7.0\u0002II/mv 21,12,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQEPC7.0\u0002II/mv 22,11,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRESB7.0\u0002II/mv 23,10,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSERB7.0\u0002II/mv 24,9,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFQB7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "PFSA",
+      "note": "Onto the queue, which walks a on to the lift",
+      "settle_ms": 2000,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFQB7.0\u0002HH/mv 24,8,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFPB7.0\u0002HH/mv 24,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFSA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFSA7.0\u0002JJ/mv 25,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQFSA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQFSA7.0\u0002JJ/mv 26,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFSA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFSA7.0\u0002HH/mv 26,6,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFRA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFRA7.0\u0002HH/mv 26,5,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFQA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFQA7.0\u0002HH/mv 26,4,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door close",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "QB",
+              "check": "exact"
+            },
+            {
+              "header": 125,
+              "name": "JUMPINGPLACE_OK",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFPA7.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFQB7.0\u0002HH/mv 24,8,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFPB7.0\u0002HH/mv 24,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFSA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPFSA7.0\u0002JJ/mv 25,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQFSA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQFSA7.0\u0002JJ/mv 26,7,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFSA7.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFSA7.0\u0002HH/mv 26,6,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFRA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFRA7.0\u0002HH/mv 26,5,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFQA7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFQA7.0\u0002HH/mv 26,4,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door close",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRFPA7.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 104,
+      "name": "SIGN",
+      "body": "9",
+      "note": "A sign that is not a vote (its status on the next tick)",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/sign 9/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/sign 9/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 104,
+      "name": "SIGN",
+      "body": "x",
+      "note": "Not a number: ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 104,
+      "name": "SIGN",
+      "body": "7",
+      "note": "A vote of 10; the sign goes away 5-6 s later",
+      "settle_ms": 7000,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/sign 7/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/sign 7/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 106,
+      "name": "DIVE",
+      "body": "jumpdata123",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 74,
+              "name": "JUMPDATA",
+              "body": "0\rjumpdata123",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 74,
+              "name": "JUMPDATA",
+              "body": "0\rjumpdata123",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 107,
+      "name": "SPLASH_POSITION",
+      "body": "23,19",
+      "note": "Into the water at 23,19, the lift opens, the score 1 s later, out at 20,19",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "BIGSPLASH POSITION 23,19",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002RARA/mv 22,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRESD0.0\u0002RARA/mv 21,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 targetcamera 0",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 showtext tracebot1's\n score: 10.0",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQESD0.0\u0002RARA/mv 20,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "Splash1",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002RARA/mv 18,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDSD7.0\u0002RARA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002HH/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "BIGSPLASH POSITION 23,19",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSESD0.0\u0002RARA/mv 22,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRESD0.0\u0002RARA/mv 21,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 targetcamera 0",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "cam1 showtext tracebot1's\n score: 10.0",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQESD0.0\u0002RARA/mv 20,19,0.0/swim/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002HH/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "Splash1",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDSD7.0\u0002RARA/mv 18,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDSD7.0\u0002RARA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "note": "Starts the diving camera, whose first (random) shot comes 3 s later, after both left. Java throws in DivingDeckTrigger.onRoomLeave when someone leaves a Lido B without a camera while others stay",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQBQE7.0\u0002IIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRDSD7.0\u0002RAIM\u0002MMMch=s02/238,238,238\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQBQE7.0\u0002IIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHRDSD7.0\u0002RARA/\u0002IQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

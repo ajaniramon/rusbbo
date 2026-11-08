@@ -1,0 +1,506 @@
+{
+  "format": 1,
+  "scenario": "pool-tickets",
+  "description": "Lido tickets (BTCKS): 2 tickets for 1 credit as a gift to an online user (ALERT and TICKET_BALANCE for them), to an unknown user (NO_USER_FOUND), 20 for 6 credits for oneself; in Lido B without a pool figure: SWIMSUIT ignored there, the ladder out of reach, and the diving queue sending you back with an ALERT",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "816407363356675561919700\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#58C7A56694AC4108834662E466131387\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "681481431631319719587254\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#E9D2247F014D4C3FAABA97CA4A9552F2\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 105,
+      "name": "BTCKS",
+      "body": "I@Itracebot2",
+      "note": "1 credit, 2 tickets for b",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1119",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "tracebot1 has gifted you tickets!\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "PC",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 105,
+      "name": "BTCKS",
+      "body": "I@Tnobody_has_this_name",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 76,
+              "name": "NO_USER_FOUND",
+              "body": "nobody_has_this_name",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 105,
+      "name": "BTCKS",
+      "body": "J@Itracebot1",
+      "note": "6 credits, 20 tickets for a",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 124,
+              "name": "TICKET_BALANCE",
+              "body": "RG",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1113",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IQI",
+      "settle_ms": 600,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 71,
+              "name": "SHOWPROGRAM",
+              "body": "door open",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "pool_b\u0002QI",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBQE7.0\u0002II/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 116,
+      "name": "SWIMSUIT",
+      "body": "ch=s02/238,238,238",
+      "note": "Only in the Habbo Lido (and Rooftop Rumble): ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QDQE",
+      "note": "No pool figure: the ladder is out of reach",
+      "settle_ms": 1000,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QEQB",
+      "note": "No pool figure: the queue sends b back, facing 2, with an ALERT",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQBQE7.0\u0002II/mv 10,20,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRBPE7.0\u0002II/mv 11,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSBSD7.0\u0002JJ/mv 12,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPCSD7.0\u0002JJ/mv 13,19,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCSD7.0\u0002II/mv 14,18,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRCRD7.0\u0002II/mv 15,17,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSCQD7.0\u0002II/mv 16,16,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPDPD8.0\u0002HH/mv 16,15,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPDSC8.0\u0002II/mv 17,14,8.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQDRC8.0\u0002II/mv 18,13,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRDQC7.0\u0002II/mv 19,12,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHSDPC7.0\u0002II/mv 20,11,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPESB7.0\u0002HH/mv 20,10,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPERB7.0\u0002II/mv 21,9,7.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Necesitas ponerte el bañador antes de hacer cola para el trampolín.<br>Cámbiate en una de las cabinas del Habbo Lido.\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPERB7.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

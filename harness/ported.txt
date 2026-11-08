@@ -2,6 +2,7 @@
 # the Java oracle). Add a trace here in the same change that makes it pass.
 call-for-help
 catalogue
+catalogue-effects
 chat-commands
 chat-filter
 client-flow
@@ -35,6 +36,11 @@ moderation-autoban
 moderation-login
 moderation-tool
 navigator
+pool-booth
+pool-camera
+pool-diving
+pool-ladders
+pool-tickets
 public-room
 room-bots
 room-two-bots
@@ -48,5 +54,6 @@ user-badges
 user-badges-room
 user-club
 user-club-member
+user-effects
 user-ignore
 user-settings

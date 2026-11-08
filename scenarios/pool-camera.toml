@@ -1,0 +1,80 @@
+name = "pool-camera"
+description = "Lido B's diving camera (diving_deck_trigger): G_STAT shows the lift's program (SHOWPROGRAM door open), the camera's first shot 3 s after the first G_STAT (targetcamera on the only user, a random setcamera), the camera mode for a second user's G_STAT, and the camera following the other user when the one it watched leaves"
+
+# Lido B is room 37 (pool_b) and has no NPC. The camera mode (setcamera 1 or 2) is random, so the
+# steps that can carry it check SHOWPROGRAM by header only. Its next shot, 13 s after the first
+# G_STAT, is random too: both users are gone by then.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 37]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 800
+note = "SHOWPROGRAM door open for the lift"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+wait_for = ["SHOWPROGRAM"]
+header_only = ["SHOWPROGRAM"]
+settle_ms = 800
+note = "The camera's first shot: targetcamera on a, then a random setcamera"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 37]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+header_only = ["SHOWPROGRAM"]
+settle_ms = 800
+note = "The lift's program and the camera's (random) mode"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+note = "The camera turns to b"
+
+[[steps]]
+bot = "b"
+send = "QUIT"

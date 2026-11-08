@@ -1,0 +1,112 @@
+name = "pool-diving"
+description = "Lido B diving: the queue walks a forward to the lift (SHOWPROGRAM door close, a ticket taken, TICKET_BALANCE, JUMPINGPLACE_OK), b holds up signs (SIGN, the vote for 0-7), DIVE (JUMPDATA to the room), SPLASH_POSITION (swim at 23,19, BIGSPLASH, the lift opens, the score a second later) and out of the water at 20,19 (Splash1)"
+
+# a (tracebot1) gets a pool figure in the Habbo Lido (36) and goes to Lido B (37, pool_b, door
+# 9,21); b (tracebot2) watches from the door. The queue runs 21,9 - 21,7 - 26,7 - 26,5 and ends
+# at the lift (26,4). Nobody sends G_STAT: Lido B's first one starts the diving camera, whose
+# shots are random.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 36]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/238,238,238" }]
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 37]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 37]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "DIVE"
+args = [{ raw = "early" }]
+note = "Not on the lift: ignored"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [24, 9]
+settle_ms = 1500
+note = "Next to the queue"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [24, 7]
+settle_ms = 2000
+note = "Onto the queue, which walks a on to the lift"
+
+[[steps]]
+bot = "b"
+send = "SIGN"
+args = [{ raw = "9" }]
+settle_ms = 800
+note = "A sign that is not a vote (its status on the next tick)"
+
+[[steps]]
+bot = "b"
+send = "SIGN"
+args = [{ raw = "x" }]
+note = "Not a number: ignored"
+
+[[steps]]
+bot = "b"
+send = "SIGN"
+args = [{ raw = "7" }]
+settle_ms = 7000
+note = "A vote of 10; the sign goes away 5-6 s later"
+
+[[steps]]
+bot = "a"
+send = "DIVE"
+args = [{ raw = "jumpdata123" }]
+
+[[steps]]
+bot = "a"
+send = "SPLASH_POSITION"
+args = [{ raw = "23,19" }]
+settle_ms = 1500
+note = "Into the water at 23,19, the lift opens, the score 1 s later, out at 20,19"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 800
+note = "Starts the diving camera, whose first (random) shot comes 3 s later, after both left. Java throws in DivingDeckTrigger.onRoomLeave when someone leaves a Lido B without a camera while others stay"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
