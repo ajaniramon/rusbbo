@@ -1,0 +1,3208 @@
+{
+  "format": 1,
+  "scenario": "gamehall-battleships",
+  "description": "The Battleships hall (room 63, hallB): a game started alone and joined, PLACESHIP (bad ship type, one too many), the start once both placed ten ships (OPPONENTS, TURN), SHOOT out of turn, a miss (the turn passes 2 s later), hits keeping the turn (HIT, HITTWICE, SINK, SITUATION grids), sinking every ship (GAMEEND, GAMEOVER), no shots after, CLOSE and leaving the room",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "219107542499746155004076\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#61DEC211D25B4FC89C14E10E6C11415B\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "669747886068060369880208\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#AF8B9BDC24BE4B15B60FED884DD2EDA6\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISO",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallB\u0002SO",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHIH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HIH1.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHIH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISO",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIIH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallB\u0002SO",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIIH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IIH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HIH1.0\u0002PAIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IIH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHIH1.0\u0002PAPA/\u0002IIH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "JPA",
+      "note": "One player starts the game",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHIH1.0\u0002KK/mv 2,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJI1.0\u0002PAPA/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "R8ZQj9\tBattleShip\t",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPA1.0\u0002PAPA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHIH1.0\u0002KK/mv 2,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJI1.0\u0002PAPA/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPA1.0\u0002PAPA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "JRA",
+      "note": "b joins it",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIIH1.0\u0002KK/mv 2,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJI1.0\u0002KK/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKJ1.0\u0002PAPA/mv 3,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKK1.0\u0002PAPA/mv 3,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKPA1.0\u0002PAPA/mv 3,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA1.0\u0002QAQA/mv 2,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRA1.0\u0002HH/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIIH1.0\u0002KK/mv 2,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJI1.0\u0002KK/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKJ1.0\u0002PAPA/mv 3,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKK1.0\u0002PAPA/mv 3,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKPA1.0\u0002PAPA/mv 3,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA1.0\u0002QAQA/mv 2,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "R8ZQj9\tBattleShip\t",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRA1.0\u0002HH/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 9 0 0 1 0",
+      "note": "No such ship: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 0",
+      "note": "Before b placed anything: no opponent, nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 5 0 0 4 0",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 4 0 2 3 2",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 4 0 4 3 4",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 6 2 6",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 8 2 8",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 10 2 10",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 0 7 0",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 2 7 2",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 4 7 4",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 6 7 6",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 9 9 10 9",
+      "note": "A fifth destroyer: refused",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 5 0 0 4 0",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 4 0 2 3 2",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 4 0 4 3 4",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 6 2 6",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 8 2 8",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 3 0 10 2 10",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 0 7 0",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 2 7 2",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 4 7 4",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid PLACESHIP 2 6 6 7 6",
+      "note": "b's tenth ship: OPPONENTS, then TURN 1 (b shoots first)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rOPPONENTS\r\r0 tracebot1\r1 tracebot2\r\r",
+              "check": "mask",
+              "mask": "??????......................................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rOPPONENTS\r\r0 tracebot1\r1 tracebot2\r\r",
+              "check": "mask",
+              "mask": "??????......................................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 0",
+      "note": "Not a's turn: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 12 11",
+      "note": "A miss: SITUATION, MISS, and TURN 0 two seconds later",
+      "settle_ms": 2600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\r------------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rMISS\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\r------------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rMISS\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 0",
+      "note": "Not b's turn any more",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 0",
+      "note": "A hit: the turn stays (TURN 0)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rX-----------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rX-----------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 0",
+      "note": "Hit twice",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX----------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX----------------------------------------------------------------------------------------------------------------------------------------------------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r0\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 12 10",
+      "note": "Miss: TURN 1 two seconds later",
+      "settle_ms": 2600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rMISS\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\r-----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rMISS\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 0",
+      "note": "Not a's turn",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rX----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rX----------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXX---------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXX---------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXXX--------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXXX--------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 3 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXXXX-------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rXXXX-------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 4 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS------------------------------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------X--------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------X--------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------XX-------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------XX-------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------XXX------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------XXX------------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 3 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS-----------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS-----------------------------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------X------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------X------------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------XX-----------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------XX-----------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------XXX----------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------XXX----------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 3 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS---------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS---------------------------------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 6",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------X----------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------X----------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 6",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------XX---------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------XX---------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 6",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS--------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS--------------------------------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 8",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------X--------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------X--------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 8",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------XX-------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------XX-------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 8",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS------------------------------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 0 10",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------X------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------X------------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 1 10",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------XX-----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------XX-----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHITTWICE\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 2 10",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS---------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 6 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-X-------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-X-------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 7 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS----------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 6 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--X-------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--X-------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 7 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS----------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 6 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--X-------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--X-------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 7 4",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS-----------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 6 6",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS---X-------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS---X-------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rHIT\r\r",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 7 6",
+      "note": "The last ship sinks: GAMEEND tracebot2, GAMEOVER",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS---SS------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rGAMEEND\r\rtracebot2\r\r",
+              "check": "mask",
+              "mask": "??????......................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rGAMEOVER\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSITUATION\r\r\r\rSSSSS-SS------------------SSSS--SS------------------SSSS--SS------------------SSS---SS------------------SSS-----------------------SSS----------------------O\r\r\r\rXX--------------------------------------------------------------------------------------------------------------------------------------------O-------------\r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rSINK\r\r",
+              "check": "mask",
+              "mask": "??????........"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rTURN\r\r1\r\r",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rGAMEEND\r\rtracebot2\r\r",
+              "check": "mask",
+              "mask": "??????......................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "R8ZQj9\r\rGAMEOVER\r\r",
+              "check": "mask",
+              "mask": "??????............"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SHOOT 12 9",
+      "note": "Game over: no more shots",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CLOSE",
+      "note": "CLOSEGAMEBOARD to a only",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "R8ZQj9\tBattleShip\t",
+              "check": "mask",
+              "mask": "??????............"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "note": "The last player leaves: CLOSEGAMEBOARD",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "R8ZQj9\tBattleShip\t",
+              "check": "mask",
+              "mask": "??????............"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+name = "gamehall-chess"
+description = "The Chess hall (room 64, hallC): one player waits, the second one starts the game (OPENGAMEBOARD to both), a commands with another game id, one player walking off ends it for both (CLOSEGAMEBOARD), sitting down again starts a new game, the king chairs, leaving the room mid-game"
+
+# hallC: door 0,0; chairs 2,7 + 2,9 and the king chairs 12,12 + 12,14 (ChessTrigger). No NPCs.
+# The oracle is built without chesslib (oracle/no-jitpack.init.gradle): its GameChess stub
+# ignores every command, so this trace only covers joining and leaving; the moves are unit
+# tests (game/gamehall/chess.rs).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 64]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 64]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [2, 7]
+settle_ms = 3500
+note = "Sits alone: chess needs two"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "null CHOOSETYPE w" }]
+note = "No game yet: ignored"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [2, 9]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 1500
+note = "The second player: OPENGAMEBOARD to both"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "abcdef CHOOSETYPE w" }]
+note = "Another game id: ignored"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [4, 7]
+settle_ms = 2000
+note = "a walks off: too few players, CLOSEGAMEBOARD to both"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [2, 7]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 2000
+note = "Back: a new game for both"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 800
+note = "b leaves the room: CLOSEGAMEBOARD to both"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [12, 12]
+settle_ms = 6000
+note = "The king chair: alone again"
+
+[[steps]]
+bot = "a"
+send = "QUIT"

@@ -27,6 +27,10 @@ flat-teleport
 flat-trax
 flat-vending
 flat-visit
+gamehall-battleships
+gamehall-chess
+gamehall-poker
+gamehall-tictactoe
 idle-timeout
 login
 login-encrypted

@@ -40,6 +40,9 @@ pub struct Session {
     /// Java: `RoomEntity.effectId` of the player's room user, which Java keeps from room to
     /// room (its `reset` leaves it). A leaf value, so a room can change it under its own lock.
     effect_id: AtomicI32,
+    /// Java: `RoomPlayer.currentGameId`: the game-hall game (`game::gamehall`) the player sits
+    /// at. Java keeps it on the player from room to room (its `reset` leaves it). A leaf lock.
+    pub current_game_id: Mutex<Option<String>>,
 }
 
 impl Session {
@@ -54,6 +57,7 @@ impl Session {
             encrypted: AtomicBool::new(false),
             ping_ok: AtomicBool::new(true),
             effect_id: AtomicI32::new(0),
+            current_game_id: Mutex::new(None),
         }
     }
 

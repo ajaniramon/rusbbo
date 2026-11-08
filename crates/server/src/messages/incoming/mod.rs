@@ -13,6 +13,7 @@ pub mod navigator;
 pub mod pets;
 pub mod rooms;
 pub mod rooms_dimmer;
+pub mod rooms_games;
 pub mod rooms_idol;
 pub mod rooms_items;
 pub mod rooms_moderation;
@@ -132,6 +133,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         88 => rooms_user::stop,
         80 => rooms_user::carry_drink,
         87 => rooms_user::carry_item,
+        117 => rooms_games::iim,
         115 => rooms_user::go_away,
         100 => catalogue::grpc,
         101 => catalogue::get_catalog_index,

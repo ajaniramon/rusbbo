@@ -62,8 +62,17 @@ ones in `staff.rs`, `:bot`/`:shutdown` are `TODO(commands)`) and trading are por
 interactors (`game/item/interactors`): beds (lying on the pillow), dice, the wheel of fortune, vending
 machines, the hockey light and scoreboard, the fortune teller, the love randomizer, totems, step
 lights, multi-height furniture and the American Idol hotspot and vote chairs, with the per-room
-furniture limits and credit furni exchange; the game and room-hire interactors and the idol's songs
-are `TODO(...)` markers. Every trace in `harness/ported.txt` passes against the Rust server.
+furniture limits and credit furni exchange; the room-hire interactor and the idol's songs are
+`TODO(...)` markers. Every trace in `harness/ported.txt` passes against the Rust server.
+
+The game-hall tables as in Java (`game/gamehall`, `messages/incoming/rooms_games.rs`): sitting on a
+table's chairs in the TicTacToe, Battleships, Chess and Poker halls starts or joins its game
+(`OPENGAMEBOARD`), walking off, `CLOSE` or leaving the room leaves it (`CLOSEGAMEBOARD`), and `IIM`
+carries the commands: five in a row on the 23 x 24 board, placing ships and shooting (a miss passes
+the turn 2 s later), chess with chesslib's rules (legal moves, castling, en passant, promotion to a
+queen, mate, the draws) and five-card draw poker (dealing, changing, the round's end, the
+`poker.*` entry price and rewards), with Java's quirks and the places where its commands throw.
+The game id is random, so scenarios write `$gameid` in `IIM` bodies (`crates/trace/src/scenario.rs`).
 
 The Habbo Lido as in Java (`game/room/pool.rs`, `messages/incoming/rooms_pool.rs`): the changing
 booths (curtains, `OPEN_UIMAKOPPI`, `SWIMSUIT`, `CLOSE_UIMAKOPPI`), the ladders in and out of the
@@ -239,6 +248,10 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `pool-camera` | Lido B's diving camera: the lift's program on `G_STAT`, the first shot 3 s after the first `G_STAT`, the camera mode for a second user, the camera following the other user when its user leaves |
 | `user-effects` | avatar effects: activating (copies, not owned), wearing in and out of a room, waving refused, a visitor's `G_STAT`, drinks and effects stopping each other, `:sit` re-sending it, switching it off, the effect kept into the next room |
 | `catalogue-effects` | buying an effect: as a gift (refused), for pixels (stored, nothing sent: Java's `newEffect` bug), too expensive |
+| `gamehall-tictactoe` | the TicTacToe hall: a game started alone and joined, `CHOOSETYPE`, `SETSECTOR` (turns, sides, taken squares), five in a row (winning tokens, the chat line), `RESTART`, walking off and back, `CLOSE` (and a move Java still lets through), leaving the room |
+| `gamehall-battleships` | the Battleships hall: `PLACESHIP` (bad type, too many), the start (`OPPONENTS`, `TURN`), shots out of turn, misses (the turn 2 s later), `HIT`/`HITTWICE`/`SINK` with the `SITUATION` grids, `GAMEEND`/`GAMEOVER`, `CLOSE`, leaving |
+| `gamehall-chess` | the Chess hall: waiting for a second player, the game for both, walking off ends it for both, a new game, leaving the room, the king chairs (the oracle's chess is a stub: moves are unit tests) |
+| `gamehall-poker` | the Poker hall: `OPEN`, `STARTOVER` (cards by header only), a second player in the round, `CHANGE` (`CHANGED`, once per round), walking off (`OPPONENT_LOGOUT` on the next command), the round's end (the winner's line, `REVEALCARDS`), a `CHANGE` without a hand, `CLOSE` |
 
 ## Known gaps
 
@@ -259,5 +272,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   rest (sprites, positions, order) checkable.
 - The oracle is built without `chesslib` (served only by jitpack.io, which this environment cannot
   reach): `oracle/no-jitpack.init.gradle` swaps `GameChess` for a stub, so chess does nothing.
+  The Rust chess (`game/gamehall/chess.rs`, `chess_board.rs`) follows the Java source and
+  chesslib 1.1.1 and is checked by unit tests only.
 - `tools/migrations/aeyra-settings-20261025.sql` is not applied: its string literals lost their
   quotes and it fails to parse.

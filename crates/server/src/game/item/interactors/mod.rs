@@ -13,7 +13,8 @@
 //!
 //! Not ported: `TeleportRoomHireInteractor` (`ROOM_HIRE`), which builds a temporary room that is
 //! not in the database (TODO(room-hire); no definition in the golden snapshot uses it), the pool
-//! interactors live with the pool handler (`game::room::pool`), and the game ones are TODO(games).
+//! interactors live with the pool handler (`game::room::pool`), and the game-hall tables' triggers
+//! with the games (`game::gamehall`).
 
 pub mod bed;
 pub mod dice;
@@ -70,7 +71,7 @@ impl Room {
             Interaction::StepLight => self.step_light_step(item),
             Interaction::PoolLadder => self.pool_ladder_step(idx, item),
             Interaction::PoolQueue => self.pool_queue_step(idx, old),
-            // TODO(games): Wobble Squabble and the game triggers.
+            // TODO(games): Wobble Squabble (the game-hall triggers have no onEntityStep).
             _ => {}
         }
     }
@@ -93,7 +94,12 @@ impl Room {
             Interaction::PoolBooth | Interaction::PoolLift => {
                 self.pool_open_on_leave(item, walking)
             }
-            // TODO(games): the game triggers.
+            Interaction::GameTicTacToe
+            | Interaction::GameChess
+            | Interaction::GameBattleships
+            | Interaction::GamePoker => {
+                self.game_trigger_leave(interaction, item, session, is_player)
+            }
             _ => {}
         }
     }

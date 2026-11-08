@@ -1,0 +1,1580 @@
+{
+  "format": 1,
+  "scenario": "gamehall-tictactoe",
+  "description": "The TicTacToe hall (room 62, hallA): sitting at a table starts a game alone (OPENGAMEBOARD), a second player joins it mid-game, CHOOSETYPE (the other player gets the other side, TYPERESERVED), SETSECTOR (not your turn, wrong side, taken square, out of the board), five in a row wins (winning tokens, the chat line), no moves after the end, RESTART, a bad game id, walking off the table and leaving the room mid-game (CLOSEGAMEBOARD)",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "463213749093275753700126\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#8CD67059C69044FC93D4F7B54CB2C7F6\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "603009161673939914796927\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#D046E0A3FBBE47E6A1E8A95D44062C0D\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRO",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallA\u0002RO",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "11xxxxxxxxxxxxxxx\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r11111111111111111\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HHH1.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRO",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallA\u0002RO",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IHH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HHH1.0\u0002PAIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IHH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHHH1.0\u0002PAPA/\u0002IHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHOOSETYPE O",
+      "note": "Not at a table: ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QAPA",
+      "note": "Sits down: one player is enough to start (OPENGAMEBOARD)",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002JJ/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKJ1.0\u0002KK/mv 4,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPAK1.0\u0002KK/mv 5,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQAPA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002JJ/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKJ1.0\u0002KK/mv 4,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHPAK1.0\u0002KK/mv 5,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQAPA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QAQA",
+      "note": "Joins the running game: OPENGAMEBOARD only to b",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJJ1.0\u0002JJ/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKJ1.0\u0002JJ/mv 4,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAJ1.0\u0002KK/mv 5,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAK1.0\u0002KK/mv 6,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRAPA1.0\u0002QAQA/mv 5,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJJ1.0\u0002JJ/mv 3,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKJ1.0\u0002JJ/mv 4,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAJ1.0\u0002KK/mv 5,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAK1.0\u0002KK/mv 6,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRAPA1.0\u0002QAQA/mv 5,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHOOSETYPE Z",
+      "note": "No such side: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "wrong1 CHOOSETYPE O",
+      "note": "Another game id: ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHOOSETYPE O",
+      "note": "a is O, b gets X, OPPONENTS to both",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rSELECTTYPE O\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rOPPONENTS\r\rO tracebot1\r\r\r\r",
+              "check": "mask",
+              "mask": "??????............................"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rSELECTTYPE X\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rOPPONENTS\r\rO tracebot1\r\r\r\r",
+              "check": "mask",
+              "mask": "??????............................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHOOSETYPE O",
+      "note": "Taken: TYPERESERVED",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rTYPERESERVED\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 0 1",
+      "note": "Not b's turn: TYPERESERVED",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rTYPERESERVED\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 0 0",
+      "note": "Not a's side: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 30 0",
+      "note": "Off the board: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 0 0",
+      "note": "BOARDDATA, b's turn",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 0 0",
+      "note": "Taken square: TYPERESERVED",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rTYPERESERVED\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 0 1",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rO                        X                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rO                        X                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 1 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOO                       X                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOO                       X                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 1 1",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOO                       XX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOO                       XX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 2 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOOO                      XX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOOO                      XX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 2 1",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOOO                      XXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOOO                      XXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 3 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOOOO                     XXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rOOOO                     XXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 3 1",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOOOO                     XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rOOOO                     XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 4 0",
+      "note": "Five in a row: winning tokens, the chat line, BOARDDATA again",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rqqqqq                    XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 24,
+              "name": "CHAT_MESSAGE.CHAT",
+              "body": "Htracebot1 has won the game in 5 moves\u0002H",
+              "check": "exact"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rqqqqq                    XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rqqqqq                    XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            },
+            {
+              "header": 24,
+              "name": "CHAT_MESSAGE.CHAT",
+              "body": "Itracebot1 has won the game in 5 moves\u0002H",
+              "check": "exact"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rqqqqq                    XXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 5 0",
+      "note": "Game over: TYPERESERVED",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rTYPERESERVED\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid RESTART",
+      "note": "An empty board, a's turn",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid  SETSECTOR O 0 0",
+      "note": "Two spaces: the command is empty, nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR O 0 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rX tracebot2\r\r\r\rO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "SASA",
+      "note": "Off the chair: CLOSEGAMEBOARD to b only, the game goes on",
+      "settle_ms": 2500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002KK/mv 6,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRARA1.0\u0002KK/mv 7,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IISASA1.0\u0002KK/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002KK/mv 6,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRARA1.0\u0002KK/mv 7,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IISASA1.0\u0002KK/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QAQA",
+      "note": "Back on the chair: joins again",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 2500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IISASA1.0\u0002SASA/mv 6,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRARA1.0\u0002SASA/mv 5,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IISASA1.0\u0002SASA/mv 6,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRARA1.0\u0002SASA/mv 5,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQA1.0\u0002RARA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHOOSETYPE X",
+      "note": "Both sides are still taken",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rTYPERESERVED\r\r",
+              "check": "mask",
+              "mask": "??????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CLOSE",
+      "note": "Closes the board: CLOSEGAMEBOARD to b, still sitting",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid SETSECTOR X 1 1",
+      "note": "No longer at the table but still b's turn with a side: Java lets the move through (BOARDDATA to a only)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "yHCoOc\r\rBOARDDATA\r\rO tracebot1\r\r\r\rO                         X                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \r\r",
+              "check": "mask",
+              "mask": "??????............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "note": "Leaving the room: the last player, CLOSEGAMEBOARD to a and the game ends",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "yHCoOc\tTicTacToe\t",
+              "check": "mask",
+              "mask": "??????..........."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

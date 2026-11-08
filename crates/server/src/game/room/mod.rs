@@ -143,6 +143,8 @@ pub struct Room {
     pub(crate) world: Weak<World>,
     /// Java: `RoomIdolManager`.
     pub idol: crate::game::item::interactors::idol::IdolState,
+    /// The game-hall tables of the room (Java: the game triggers' `GamehallGame` instances).
+    pub(crate) gamehall: crate::game::gamehall::GameHalls,
     /// Java: the `DivingCamera` task of Lido B (`DivingDeckTrigger`), from its first `G_STAT`.
     camera: Option<pool::DivingCamera>,
     /// Java: `EntityTask.queueAfterLoop`: sent to the room after the next entity tick's statuses.
@@ -200,6 +202,7 @@ impl Room {
                 deferred: Vec::new(),
                 world: world.arc().as_ref().map(Arc::downgrade).unwrap_or_default(),
                 idol: Default::default(),
+                gamehall: Default::default(),
                 camera: None,
                 queue_after_loop: Vec::new(),
                 deleted: false,
@@ -813,11 +816,15 @@ impl Room {
                 Interaction::Bed => self.bed_stop(idx, i),
                 Interaction::IdolVoteChair => self.idol_chair_stop(idx, i, is_rotation),
                 Interaction::IdolScoreboard => self.idol_scoreboard_stop(idx, i, is_rotation),
+                Interaction::GameTicTacToe
+                | Interaction::GameChess
+                | Interaction::GameBattleships
+                | Interaction::GamePoker => self.game_trigger_stop(idx, i),
                 _ => {}
             }
             self.pet_stopped_on(world, idx, i);
             self.pool_stop(world, idx, i);
-            // TODO(games): the Wobble Squabble and game triggers' onEntityStop.
+            // TODO(games): the Wobble Squabble triggers' onEntityStop.
             let item = &self.mapping.items[i];
             self.entities[idx].last_item_interaction = Some((item.virtual_id, item.interaction));
         }
@@ -1520,6 +1527,7 @@ impl Room {
             deferred: Vec::new(),
             world: Weak::new(),
             idol: Default::default(),
+            gamehall: Default::default(),
             camera: None,
             queue_after_loop: Vec::new(),
             deleted: false,

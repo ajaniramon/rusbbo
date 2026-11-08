@@ -1,0 +1,152 @@
+name = "gamehall-poker"
+description = "The Poker hall (room 65, hallD): a game started alone and joined, OPEN (OPPONENTS), STARTOVER (the deck, YOURCARDS, OPPONENTS to everyone in the game), a second player joining the round, CHANGE (CHANGED to the others, the new cards), changing twice, a player walking off (CLOSEGAMEBOARD, then OPPONENT_LOGOUT on the next command), the round ending once everyone changed (the winner's chat line, REVEALCARDS), CLOSE ending the game"
+
+# hallD: door 0,0; the nearest table's chairs are 2,8, 2,10, 3,9 and 1,9 (PokerTrigger). No NPCs.
+# The cards are random (ThreadLocalRandom), so the messages that carry them (YOURCARDS,
+# REVEALCARDS) and the winner's line are checked by header only. The round ends with one
+# player in it on purpose: with two, Java's reward code throws for a single winner (the empty
+# `poker.reward.rares` has no catalogue item) and only a tie reveals the cards, which is random.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 65]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 65]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [2, 8]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 1500
+note = "One player starts the game"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid OPEN" }]
+note = "OPPONENTS: just a, nobody in the game yet"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [2, 10]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 1500
+note = "b joins"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid OPEN" }]
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid STARTOVER" }]
+header_only = ["ITEMMSG"]
+note = "A new deck: a's cards (random) and OPPONENTS"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid OPEN" }]
+note = "b is not in the game yet: only a in its OPPONENTS"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid STARTOVER" }]
+header_only = ["ITEMMSG"]
+note = "b joins the round: b's cards, OPPONENTS to both"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHANGE 0 4 9 4" }]
+header_only = ["ITEMMSG"]
+note = "a changes cards 0 and 4 (9 is out of range): CHANGED to b, a's new cards, OPPONENTS"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHANGE 1" }]
+note = "Only once per round: OPPONENTS again"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [5, 9]
+settle_ms = 2500
+note = "b walks off the table: CLOSEGAMEBOARD to b"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid OPEN" }]
+note = "OPPONENT_LOGOUT for b, then OPPONENTS"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHANGE" }]
+header_only = [24, "ITEMMSG"]
+note = "Already changed; everyone left in the round has: the winner's line and REVEALCARDS"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHANGE 0" }]
+note = "No round, no hand: Java's changeCards throws (NullPointerException), nothing is sent"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CLOSE" }]
+note = "The last player: CLOSEGAMEBOARD, the game ends"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid OPEN" }]
+note = "The game is gone: ignored"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+
+[[steps]]
+bot = "b"
+send = "QUIT"

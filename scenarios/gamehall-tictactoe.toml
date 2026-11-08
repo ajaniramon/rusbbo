@@ -1,0 +1,231 @@
+name = "gamehall-tictactoe"
+description = "The TicTacToe hall (room 62, hallA): sitting at a table starts a game alone (OPENGAMEBOARD), a second player joins it mid-game, CHOOSETYPE (the other player gets the other side, TYPERESERVED), SETSECTOR (not your turn, wrong side, taken square, out of the board), five in a row wins (winning tokens, the chat line), no moves after the end, RESTART, a bad game id, walking off the table and leaving the room mid-game (CLOSEGAMEBOARD)"
+
+# hallA: door 0,0; the tables' chairs are pairs (TicTacToeTrigger): 5,4 + 5,5 is the nearest.
+# No NPCs. IIM bodies are "<game id> <command> <args>"; `$gameid` is the id of the bot's last
+# OPENGAMEBOARD (random in Java, masked in the trace).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 62]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 62]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHOOSETYPE O" }]
+note = "Not at a table: ignored"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [5, 4]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 1500
+note = "Sits down: one player is enough to start (OPENGAMEBOARD)"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [5, 5]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 1500
+note = "Joins the running game: OPENGAMEBOARD only to b"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHOOSETYPE Z" }]
+note = "No such side: nothing"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "wrong1 CHOOSETYPE O" }]
+note = "Another game id: ignored"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid CHOOSETYPE O" }]
+note = "a is O, b gets X, OPPONENTS to both"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid CHOOSETYPE O" }]
+note = "Taken: TYPERESERVED"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 0 1" }]
+note = "Not b's turn: TYPERESERVED"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 0 0" }]
+note = "Not a's side: nothing"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 30 0" }]
+note = "Off the board: nothing"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 0 0" }]
+note = "BOARDDATA, b's turn"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 0 0" }]
+note = "Taken square: TYPERESERVED"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 0 1" }]
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 1 0" }]
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 1 1" }]
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 2 0" }]
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 2 1" }]
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 3 0" }]
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 3 1" }]
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 4 0" }]
+note = "Five in a row: winning tokens, the chat line, BOARDDATA again"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 5 0" }]
+note = "Game over: TYPERESERVED"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid RESTART" }]
+note = "An empty board, a's turn"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid  SETSECTOR O 0 0" }]
+note = "Two spaces: the command is empty, nothing"
+
+[[steps]]
+bot = "a"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR O 0 0" }]
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [7, 7]
+settle_ms = 2500
+note = "Off the chair: CLOSEGAMEBOARD to b only, the game goes on"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [5, 5]
+wait_for = ["OPENGAMEBOARD"]
+settle_ms = 2500
+note = "Back on the chair: joins again"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid CHOOSETYPE X" }]
+note = "Both sides are still taken"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid CLOSE" }]
+note = "Closes the board: CLOSEGAMEBOARD to b, still sitting"
+
+[[steps]]
+bot = "b"
+send = "IIM"
+args = [{ raw = "$gameid SETSECTOR X 1 1" }]
+note = "No longer at the table but still b's turn with a side: Java lets the move through (BOARDDATA to a only)"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 800
+note = "Leaving the room: the last player, CLOSEGAMEBOARD to a and the game ends"
+
+[[steps]]
+bot = "b"
+send = "QUIT"

@@ -1,0 +1,1221 @@
+{
+  "format": 1,
+  "scenario": "gamehall-poker",
+  "description": "The Poker hall (room 65, hallD): a game started alone and joined, OPEN (OPPONENTS), STARTOVER (the deck, YOURCARDS, OPPONENTS to everyone in the game), a second player joining the round, CHANGE (CHANGED to the others, the new cards), changing twice, a player walking off (CLOSEGAMEBOARD, then OPPONENT_LOGOUT on the next command), the round ending once everyone changed (the winner's chat line, REVEALCARDS), CLOSE ending the game",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "637929153022308783924040\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#F0C4E13E78044F3BB6D6D38DD3DF8F2F\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "567056873804339919913676\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#0694903229F347D681DF454E49579612\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IQP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallD\u0002QP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HHH1.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IQP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "hallD\u0002QP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IHH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HHH1.0\u0002PAIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IHH1.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHHH1.0\u0002PAPA/\u0002IHH1.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "JPB",
+      "note": "One player starts the game",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPA1.0\u0002PAPA/mv 2,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJQA1.0\u0002PAPA/mv 2,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJRA1.0\u0002PAPA/mv 2,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJSA1.0\u0002PAPA/mv 2,8,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "fiLFyc\tPoker\t",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPB1.0\u0002PAPA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPA1.0\u0002PAPA/mv 2,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJQA1.0\u0002PAPA/mv 2,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJRA1.0\u0002PAPA/mv 2,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJSA1.0\u0002PAPA/mv 2,8,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJPB1.0\u0002PAPA/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid OPEN",
+      "note": "OPPONENTS: just a, nobody in the game yet",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 0\r\r",
+              "check": "mask",
+              "mask": "??????.........................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "JRB",
+      "note": "b joins",
+      "wait_for": [
+        145
+      ],
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJPA1.0\u0002KK/mv 3,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA1.0\u0002PAPA/mv 3,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRA1.0\u0002PAPA/mv 3,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKSA1.0\u0002KK/mv 4,8,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAPB1.0\u0002PAPA/mv 4,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAQB1.0\u0002QAQA/mv 3,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRB1.0\u0002RARA/mv 2,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRB1.0\u0002HH/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIHH1.0\u0002KK/mv 1,1,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIII1.0\u0002KK/mv 2,2,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJJ1.0\u0002PAPA/mv 2,3,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJK1.0\u0002PAPA/mv 2,4,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJPA1.0\u0002KK/mv 3,5,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA1.0\u0002PAPA/mv 3,6,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRA1.0\u0002PAPA/mv 3,7,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKSA1.0\u0002KK/mv 4,8,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAPB1.0\u0002PAPA/mv 4,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAQB1.0\u0002QAQA/mv 3,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRB1.0\u0002RARA/mv 2,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 480,
+              "name": "USER_DANCE",
+              "body": "IH",
+              "check": "exact"
+            },
+            {
+              "header": 145,
+              "name": "OPENGAMEBOARD",
+              "body": "fiLFyc\tPoker\t",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRB1.0\u0002HH/sit 1.0/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid OPEN",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\r\r",
+              "check": "mask",
+              "mask": "??????.........................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid STARTOVER",
+      "note": "A new deck: a's cards (random) and OPPONENTS",
+      "settle_ms": 300,
+      "header_only": [
+        144
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 0\r\r",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rYOURCARDS 0/0,0/s8/d11/h13/c1/c13\r\r",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 0\r\r",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid OPEN",
+      "note": "b is not in the game yet: only a in its OPPONENTS",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\rtracebot1 0\r\r",
+              "check": "mask",
+              "mask": "??????......................................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid STARTOVER",
+      "note": "b joins the round: b's cards, OPPONENTS to both",
+      "settle_ms": 300,
+      "header_only": [
+        144
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 0\rtracebot2 0\r\r",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 0\rtracebot2 0\r\r",
+              "check": "header"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\rtracebot1 0\r\r",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rYOURCARDS 0/0,0/d5/s1/c4/c7/c6\r\r",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\rtracebot1 0\r\r",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHANGE 0 4 9 4",
+      "note": "a changes cards 0 and 4 (9 is out of range): CHANGED to b, a's new cards, OPPONENTS",
+      "settle_ms": 300,
+      "header_only": [
+        144
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\rYOURCARDS 0/1,3/d6/d11/h13/c1/h3",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 3\rtracebot2 0\r\r",
+              "check": "header"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\rCHANGED\rtracebot1/0 4 4",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\rtracebot1 3\r\r",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHANGE 1",
+      "note": "Only once per round: OPPONENTS again",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 3\rtracebot2 0\r\r",
+              "check": "mask",
+              "mask": "??????......................................"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot2 0\rtracebot1 3\r\r",
+              "check": "mask",
+              "mask": "??????......................................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "QAQB",
+      "note": "b walks off the table: CLOSEGAMEBOARD to b",
+      "settle_ms": 2500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRB1.0\u0002JJ/mv 3,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRB1.0\u0002II/mv 4,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAQB1.0\u0002JJ/mv 5,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQB1.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "fiLFyc\tPoker\t",
+              "check": "mask",
+              "mask": "??????......."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJRB1.0\u0002JJ/mv 3,10,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKRB1.0\u0002II/mv 4,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPAQB1.0\u0002JJ/mv 5,9,1.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQAQB1.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid OPEN",
+      "note": "OPPONENT_LOGOUT for b, then OPPONENTS",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\rOPPONENT_LOGOUT\rtracebot2",
+              "check": "mask",
+              "mask": "??????.........................."
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 3\r\r",
+              "check": "mask",
+              "mask": "??????.........................."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHANGE",
+      "note": "Already changed; everyone left in the round has: the winner's line and REVEALCARDS",
+      "settle_ms": 300,
+      "header_only": [
+        24,
+        144
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rOPPONENTS\r\rtracebot1 3\r\r",
+              "check": "header"
+            },
+            {
+              "header": 24,
+              "name": "CHAT_MESSAGE.CHAT",
+              "body": "Htracebot1 wins this round with an high card. Congratulations!\u0002H",
+              "check": "header"
+            },
+            {
+              "header": 144,
+              "name": "ITEMMSG",
+              "body": "fiLFyc\r\rREVEALCARDS\r\rtracebot1/1,3/d6/d11/h13/c1/h3\r\r",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CHANGE 0",
+      "note": "No round, no hand: Java's changeCards throws (NullPointerException), nothing is sent",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid CLOSE",
+      "note": "The last player: CLOSEGAMEBOARD, the game ends",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 146,
+              "name": "CLOSEGAMEBOARD",
+              "body": "fiLFyc\tPoker\t",
+              "check": "mask",
+              "mask": "??????......."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 117,
+      "name": "IIM",
+      "body": "$gameid OPEN",
+      "note": "The game is gone: ignored",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}
