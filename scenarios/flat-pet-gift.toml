@@ -101,13 +101,14 @@ bot = "b"
 send = "PLACESTUFF"
 args = ["3 6 5 0"]
 header_only = ["USER_STATUSES"]
-note = "The nest at (6,5): Gnasher comes in on it"
+settle_ms = 2000
+note = "The nest at (6,5): Gnasher comes in on it and acts on its first tick (within a second)"
 
 [[steps]]
 bot = "b"
 send = "GETPETSTAT"
 args = [1, "Gnasher"]
-header_only = ["PETSTAT", "USER_STATUSES"]
+header_only = ["PETSTAT"]
 
 [[steps]]
 bot = "b"

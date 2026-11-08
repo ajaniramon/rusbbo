@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "431699122819372135675882\u0002I",
+              "body": "750510453040930410184781\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#9E3B58FAC8674BFC97BA5AC8E475BE52\u0002",
+              "body": "#964162CB013F47E2BB388B6D7E300E5A\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -140,7 +140,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "271231259072077686602581\u0002I",
+              "body": "940198171531043303769241\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -172,7 +172,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#E9693B7F19EA49F2AED52475E3CA485E\u0002",
+              "body": "#630E7B8E0752426B8CF331B562E0B3CF\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -241,7 +241,7 @@
             {
               "header": 140,
               "name": "INVENTORY",
-              "body": "IIHS\u0002IXXEI\u0002HIIM\u0002MI",
+              "body": "IIHS\u0002IXWEI\u0002HIIM\u0002MI",
               "check": "header"
             }
           ]
@@ -267,7 +267,7 @@
             {
               "header": 140,
               "name": "INVENTORY",
-              "body": "IJHS\u0002J[VEI\u0002IIIM\u0002MI",
+              "body": "IJHS\u0002JXWEI\u0002HIIM\u0002MI",
               "check": "header"
             },
             {
@@ -543,7 +543,7 @@
             {
               "header": 93,
               "name": "PLACE_FLOORITEM",
-              "body": "IXXERARAH0.0\u0002H!A pet\u0002M",
+              "body": "IXWERARAH0.0\u0002H!A pet\u0002M",
               "check": "header"
             }
           ]
@@ -619,14 +619,14 @@
       "header": 90,
       "name": "PLACESTUFF",
       "body": "@G3 6 5 0",
-      "note": "The nest at (6,5): Gnasher comes in on it",
-      "settle_ms": 300,
+      "note": "The nest at (6,5): Gnasher comes in on it and acts on its first tick (within a second)",
+      "settle_ms": 2000,
       "header_only": [
         34
       ],
       "received": {
         "b": {
-          "ordered": true,
+          "ordered": false,
           "closed": false,
           "messages": [
             {
@@ -646,6 +646,68 @@
               "name": "USER_OBJECTS",
               "body": "IIGnasher\u0002null \u00022 2 96E75A\u0002IRAQA0.0\u0002PAJ",
               "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRAQA0.0\u0002KK/mv 7,6,0.0/\u0002",
+              "check": "header"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IISARA0.0\u0002KK/mv 8,7,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPBSA0.0\u0002PAPA/mv 8,8,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPBPB0.0\u0002PAPA/mv 8,9,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIPBQB0.0\u0002KK/mv 9,10,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBRB0.0\u0002PAPA/mv 9,11,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBSB0.0\u0002PAPA/mv 9,12,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQBPC0.0\u0002KK/mv 10,13,0.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRBQC0.0\u0002KK/\u0002",
+              "check": "header",
+              "optional": true
             }
           ]
         }
@@ -659,8 +721,7 @@
       "body": "I@GGnasher",
       "settle_ms": 300,
       "header_only": [
-        210,
-        34
+        210
       ],
       "received": {
         "b": {
@@ -670,13 +731,7 @@
             {
               "header": 210,
               "name": "PETSTAT",
-              "body": "IHRAKRAKI",
-              "check": "header"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "IIRAQA0.0\u0002QAQA/mv 5,6,0.0/\u0002",
+              "body": "IHRAKRAPAPA",
               "check": "header"
             }
           ]
@@ -952,7 +1007,7 @@
             {
               "header": 93,
               "name": "PLACE_FLOORITEM",
-              "body": "J[VERARAH0.0\u0002H!\u0002M",
+              "body": "JXWERARAH0.0\u0002H!\u0002M",
               "check": "header"
             }
           ]
