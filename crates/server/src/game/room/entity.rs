@@ -240,6 +240,9 @@ pub struct EntityDetails {
     pub trade_ban_expiration: i64,
     /// Java: `PlayerDetails.isWordFilterEnabled`, for the chat a receiver gets.
     pub wordfilter_enabled: bool,
+    /// The `xp_earned_month` statistic `USER_OBJECTS` shows (Java reads it when composing; here
+    /// it is the value at entry).
+    pub xp_month: i32,
 }
 
 impl EntityDetails {
