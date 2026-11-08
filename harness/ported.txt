@@ -12,12 +12,15 @@ flat-dice
 flat-furni
 flat-gates
 flat-idol
+flat-jukebox
 flat-limits
+flat-moodlight
 flat-pets
 flat-postit
 flat-present
 flat-roller
 flat-teleport
+flat-trax
 flat-vending
 flat-visit
 idle-timeout

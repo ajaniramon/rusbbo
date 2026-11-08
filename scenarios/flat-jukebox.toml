@@ -1,0 +1,339 @@
+name = "flat-jukebox"
+description = "The jukebox: songs burnt to discs while a jukebox is the room's sound machine, the discs in the hand (GET_USER_SONG_DISCS) and in the jukebox (GET_JUKEBOX_DISCS), loading discs into slots (bad slots, a taken slot), queueing songs (JUKEBOX_PLAYLIST_ADD, also by a visitor without rights), taking a disc out, RESET_JUKEBOX, and picking the jukebox up with a disc inside"
+
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits without rights.
+# Catalogue items: 1332 sound_machine (item 1), 453 jukebox*1 (item 2), 74 sound_set_1 (item 3).
+# Songs 1 and 2 are made in the sound machine at (6,5); it is then picked up and the jukebox
+# goes to (8,5). BURN_SONG works with any sound machine or jukebox in the room. Disc A (song 1)
+# is item 4, disc B (song 2) item 5.
+# Java lists the discs of a jukebox and of the hand from HashMaps keyed by objects without a
+# hashCode, so their order is random: the scenario never has two discs in either list (disc
+# B is burnt only once disc A is back in the hand and B goes straight into the jukebox).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1332, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_machine: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 453, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "jukebox*1: item 2"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 74, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_1: item 3"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Juke Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "GET_JUKEBOX_DISCS"
+note = "No jukebox: nothing"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_NEW"
+args = ["Song A", "1:1,4;2,4:2:3,2:3:0,1:4:0,1:"]
+note = "Song 1"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_NEW"
+args = ["Song B", "1:1,1:2:3,2:3:0,1:4:0,1:"]
+note = "Song 2"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 1]
+note = "The sound machine goes"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [1]
+note = "No sound machine or jukebox: nothing"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 8 5 0"]
+note = "The jukebox"
+
+[[steps]]
+bot = "a"
+send = "GET_PLAY_LIST"
+note = "The jukebox's (empty) playlist"
+
+[[steps]]
+bot = "a"
+send = "GET_JUKEBOX_DISCS"
+note = "No discs loaded"
+
+[[steps]]
+bot = "a"
+send = "GET_USER_SONG_DISCS"
+note = "No discs in the hand"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [1]
+wait_for = ["CREDIT_BALANCE"]
+note = "Disc A (item 4) from song 1"
+
+[[steps]]
+bot = "a"
+send = "GET_USER_SONG_DISCS"
+
+[[steps]]
+bot = "a"
+send = "ADD_JUKEBOX_DISC"
+args = [4, 11]
+note = "No slot 11: nothing, the disc stays in the hand"
+
+[[steps]]
+bot = "a"
+send = "ADD_JUKEBOX_DISC"
+args = [3, 1]
+note = "A sound set is no disc: nothing"
+
+[[steps]]
+bot = "a"
+send = "ADD_JUKEBOX_DISC"
+args = [4, 1]
+note = "Disc A into slot 1: the hand, JUKEBOX_DISCS for the room, the hand's discs"
+
+[[steps]]
+bot = "a"
+send = "JUKEBOX_PLAYLIST_ADD"
+args = [2]
+note = "Song 2 is in no loaded disc: nothing"
+
+[[steps]]
+bot = "a"
+send = "JUKEBOX_PLAYLIST_ADD"
+args = [1]
+note = "Song 1 queued"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "GET_PLAY_LIST"
+note = "What the client asks on entering a room with a jukebox: the playlist"
+
+[[steps]]
+bot = "b"
+send = "GET_JUKEBOX_DISCS"
+note = "and the discs, which need rights: nothing"
+
+[[steps]]
+bot = "b"
+send = "JUKEBOX_PLAYLIST_ADD"
+args = [1]
+note = "Queueing needs no rights in Java: song 1 again, at the end"
+
+[[steps]]
+bot = "b"
+send = "REMOVE_JUKEBOX_DISC"
+args = [1]
+note = "No rights: nothing"
+
+[[steps]]
+bot = "b"
+send = "RESET_JUKEBOX"
+note = "No rights: nothing"
+
+[[steps]]
+bot = "a"
+send = "REMOVE_JUKEBOX_DISC"
+args = [2]
+note = "An empty slot: nothing"
+
+[[steps]]
+bot = "a"
+send = "REMOVE_JUKEBOX_DISC"
+args = [1]
+note = "Disc A back to the hand: the song leaves the playlist"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [2]
+wait_for = ["CREDIT_BALANCE"]
+note = "Disc B (item 5) from song 2"
+
+[[steps]]
+bot = "a"
+send = "ADD_JUKEBOX_DISC"
+args = [5, 3]
+note = "Disc B into slot 3 (disc A stays the only disc in the hand)"
+
+[[steps]]
+bot = "a"
+send = "ADD_JUKEBOX_DISC"
+args = [4, 3]
+note = "Slot 3 is taken: nothing"
+
+[[steps]]
+bot = "a"
+send = "JUKEBOX_PLAYLIST_ADD"
+args = [2]
+
+[[steps]]
+bot = "a"
+send = "GET_JUKEBOX_DISCS"
+
+[[steps]]
+bot = "a"
+send = "RESET_JUKEBOX"
+note = "The playlist is emptied for the room"
+
+[[steps]]
+bot = "a"
+send = "GET_PLAY_LIST"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 2]
+note = "The jukebox goes back to the hand with disc B inside"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Disc B stays hidden"
+
+[[steps]]
+bot = "a"
+send = "GET_USER_SONG_DISCS"
+note = "No jukebox: nothing"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 8 5 0"]
+note = "The jukebox again"
+
+[[steps]]
+bot = "a"
+send = "GET_JUKEBOX_DISCS"
+note = "Disc B is still loaded"
+
+[[steps]]
+bot = "a"
+send = "GET_USER_SONG_DISCS"
+note = "Disc A in the hand"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

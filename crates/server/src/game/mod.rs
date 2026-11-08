@@ -18,6 +18,7 @@ pub mod pet;
 pub mod player;
 pub mod room;
 pub mod scheduler;
+pub mod song;
 pub mod statistics;
 pub mod wordfilter;
 

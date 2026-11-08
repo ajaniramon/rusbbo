@@ -1,0 +1,315 @@
+name = "flat-moodlight"
+description = "The room dimmer: one per room (roomdimmer_furni_limit), presets created by the owner's first MSG_ROOMDIMMER_GET_PRESETS (a visitor gets none before), saving a preset (only the allowed colours, a bad preset id), switching it on and off, what a visitor sees on entry, :rainbow (started, stopped by a preset, without a dimmer), picking it up switches it off"
+
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits without rights.
+# Catalogue item 452 is roomdimmer (12 credits, item 1) and 1670 dimmer_buttn (3 credits,
+# item 2), both wall items with ROOMDIMMER and the default custom data "1,1,1,#000000,255".
+# MSG_ROOMDIMMER_SET_PRESET: preset id, background state, colour, strength.
+# :rainbow starts a task that runs at once and then every N seconds (30 here, stopped well
+# before), so its first STUFFDATAUPDATE races the whispers.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 452, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "roomdimmer: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1670, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "dimmer_buttn: item 2"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "Not in a room: nothing"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Dimmer Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "No dimmer in the room: nothing"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_CHANGE_STATE"
+note = "No dimmer: nothing"
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = [":rainbow"]
+note = "No dimmer: an alert"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 :w=6,1 l=12,40 r"]
+note = "The roomdimmer goes on the wall"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 :w=8,1 l=12,40 r"]
+note = "A second dimmer: roomdimmer_furni_limit"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "A visitor before the owner opened the dimmer: no presets yet, nothing"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "The owner: the presets are created, MOODLIGHT_PRESETS"
+
+[[steps]]
+bot = "b"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "Now the visitor gets them too"
+
+[[steps]]
+bot = "b"
+send = "MSG_ROOMDIMMER_CHANGE_STATE"
+note = "A visitor cannot switch it"
+
+[[steps]]
+bot = "b"
+send = "MSG_ROOMDIMMER_SET_PRESET"
+args = [2, 2, "#74F5F5", 128]
+note = "Nor save a preset"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_SET_PRESET"
+args = [2, 2, "#74F5F5", 128]
+note = "Preset 2: the dimmer is on with it (STUFFDATAUPDATE for both)"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_SET_PRESET"
+args = [3, 1, "#123456", 80]
+note = "A colour the client palette does not have: nothing"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_SET_PRESET"
+args = [4, 1, "#E759DE", 80]
+note = "There is no preset 4: nothing"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "Preset 2 is current and changed"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_CHANGE_STATE"
+note = "Off"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_CHANGE_STATE"
+note = "On again, with the current preset"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+note = "The dimmer is on as the visitor comes back"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = [":rainbow x"]
+note = "Not a number: an alert"
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = [":rainbow 30"]
+settle_ms = 600
+note = "Started: whispered to the user and to the owner (the same bot), first colour at once"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_SET_PRESET"
+args = [1, 2, "#0053F7", 200]
+settle_ms = 600
+note = "A preset stops the rainbow (whisper) and is applied"
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = [":rainbow 30"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_CHANGE_STATE"
+settle_ms = 600
+note = "Switching it stops the rainbow too"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 1]
+note = "Picked up while on"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Back in the hand switched off"
+
+[[steps]]
+bot = "b"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "No dimmer in the room any more"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 :w=8,1 l=12,40 r"]
+note = "Now the second dimmer can go up"
+
+[[steps]]
+bot = "a"
+send = "MSG_ROOMDIMMER_GET_PRESETS"
+note = "Its own presets, new"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

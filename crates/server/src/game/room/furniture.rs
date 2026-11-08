@@ -198,8 +198,8 @@ impl Room {
         self.mapping.items.push(item);
         let idx = self.mapping.items.len() - 1;
         if wall {
+            // A room dimmer becomes the room's moodlight (`Room::moodlight`).
             self.send(out::place_wallitem(&self.mapping.items[idx]));
-            // TODO(moodlight): a room dimmer becomes the room's moodlight.
         } else {
             self.handle_item_adjustment(world, idx, false);
             self.mapping.add_item_tiles(idx);
@@ -305,7 +305,7 @@ impl Room {
             if item.custom_data.starts_with('2') {
                 item.custom_data.replace_range(..1, "1");
             }
-            // TODO(moodlight): the room loses its moodlight.
+            // The room loses its moodlight (`Room::moodlight` finds the next one, if any).
         }
         if item.sprite == "totem_head" {
             crate::game::item::interactors::totem::head_picked_up(&mut item);

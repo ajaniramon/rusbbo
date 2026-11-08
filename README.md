@@ -61,6 +61,14 @@ walkspace, talking now and then, and handing out drinks when a user nearby asks 
 (`game/bot.rs`, `game/room/bots.rs`). Bots are room entities with a detached session and
 `EntityKind::Bot`; they never count as players.
 
+The room dimmer (`items_moodlight_presets`) as in Java: one per room, its three presets created
+on the owner's first look (`MSG_ROOMDIMMER_GET_PRESETS`), saved (`SET_PRESET`, only the client's
+palette) and switched on and off (`CHANGE_STATE`), and `:rainbow` cycling its colour
+(`game/room/sound.rs`, `messages/incoming/rooms_dimmer.rs`). The sound machine and the jukebox
+(TRAX, the `soundmachine_*` tables) as in Java: one per room, sound sets in the machine's slots,
+songs made, edited, deleted and burnt to discs, the playlist, and discs loaded into a jukebox
+(`game/song.rs`, `messages/incoming/songs.rs`, `messages/incoming/jukebox.rs`).
+
 Pets (`items_pets`) as in Java: bought with their nest (name, race, colour), in the room while
 the nest is placed, acting on their own every 10-25 s (walking, sitting, lying down, now and then
 a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
@@ -167,6 +175,9 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-postit` | post-it pad placed on the wall, read and written by the owner and a visitor without rights, deleted |
 | `flat-gates` | a gate (solid while closed) and a one-way door (`ENTER_ONEWAY_DOOR`) |
 | `flat-pets` | pet names (`APPROVE_PET_NAME`), buying a crocodile (and an invalid colour that buys nothing), its nest placed so the pet comes in (`USER_OBJECTS` type 2), `GETPETSTAT`, the nest picked up so it leaves |
+| `flat-moodlight` | the room dimmer: one per room, presets created by the owner's first look (none for a visitor before), saving a preset (palette colours only, a bad preset id), on/off, what a visitor sees on entry, `:rainbow` (started, stopped by a preset or a switch, without a dimmer), picked up switched off |
+| `flat-trax` | the sound machine: one per room (error 23, a jukebox too), sound sets in and out, a song saved, listed, read and edited, the playlist seen by a visitor, burning a disc (then `SONG_LOCKED`, or a copy under another title), deleting songs, the machine picked up |
+| `flat-jukebox` | the jukebox: discs burnt, listed in the hand and in the jukebox (needs rights), loaded into slots (bad and taken slots), queueing songs (no rights needed), a disc taken out, `RESET_JUKEBOX`, the jukebox picked up with a disc inside |
 | `flat-present` | buying a gift for another user (unknown user, too soon again), placing and opening it (`PRESENTOPEN`, `DELIVER_PRESENT`) |
 | `flat-dice` | dice (`THROW_DICE` only next to it, `DICE_VALUE` while rolling and the random result, `DICE_OFF`, no moving or toggling while rolling), the wheel of fortune (`SPIN_WHEEL_OF_FORTUNE`), a visitor's `G_STAT` mid-roll |
 | `flat-vending` | a vending machine (walk to it, turn, open, the drink after 1 s, closed after 2 s), the hockey light, the scoreboard (`USEFURNITURE` status 0/1/2, rights only), the fortune teller, `SET_RANDOM_STATE` |
@@ -183,9 +194,9 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 - The bots' `login` macro is shorter than what the real client sends; `client-flow` covers the
   difference that was found by logging in with the real v31 client (HabboLauncher and dirplayer)
   against a copy of a real hotel's database. That session also showed what the client asks for and
-  the server does not answer yet: moodlight presets (`MSG_ROOMDIMMER_GET_PRESETS`) and the jukebox
-  (`GET_PLAY_LIST`, `GET_JUKEBOX_DISCS`); ids 288, 301, 302, 315 and 321 have no handler in Java
-  either.
+  the server did not answer then: moodlight presets (`MSG_ROOMDIMMER_GET_PRESETS`) and the jukebox
+  (`GET_PLAY_LIST`, `GET_JUKEBOX_DISCS`), ported since (`flat-moodlight`, `flat-trax`,
+  `flat-jukebox`); ids 288, 301, 302, 315 and 321 have no handler in Java either.
 - There is no website login yet: tickets come from `--dev-ticket` (or are written to the database
   before the server opens it), so a real deployment still needs a ticket API.
 

@@ -112,11 +112,6 @@ impl Inventory {
     }
 
     /// Java: `getItems().stream().anyMatch(sprite.equalsIgnoreCase(..))`.
-    /// Java: `getItems()`: every item in the hand.
-    pub fn items(&self) -> &[Item] {
-        &self.items
-    }
-
     pub fn has_sprite(&self, sprite: &str) -> bool {
         self.items
             .iter()
@@ -164,6 +159,16 @@ impl Inventory {
     pub fn take_item(&mut self, virtual_id: i32) -> Option<Item> {
         let index = self.items.iter().position(|i| i.virtual_id == virtual_id)?;
         Some(self.items.remove(index))
+    }
+
+    /// Java: `getItems()`, in hand order (hidden items too).
+    pub fn items(&self) -> &[Item] {
+        &self.items
+    }
+
+    /// [`Inventory::items`], to change them in place.
+    pub fn items_mut(&mut self) -> &mut [Item] {
+        &mut self.items
     }
 
     /// Java: `addItem`: the newest item goes first.

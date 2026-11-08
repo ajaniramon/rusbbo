@@ -3,6 +3,7 @@
 //! Only the tables the Rust server uses so far are imported; each newly ported table adds a
 //! function here. See `docs/DESIGN.md`.
 
+mod sound;
 mod user;
 
 use std::path::PathBuf;
@@ -60,6 +61,8 @@ fn main() -> Result<()> {
     let bots = import_room_bots(&mut conn, &store)?;
     let pets = import_pets(&mut conn, &store)?;
     let user_rows = user::import_user_data(&mut conn, &store)?;
+    let sound_rows = sound::import_sound(&mut conn, &store)?;
+    eprintln!("[import] {sound_rows} moodlight preset/sound machine rows");
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \
