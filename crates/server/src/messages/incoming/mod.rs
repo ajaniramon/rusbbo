@@ -4,6 +4,7 @@ pub mod badges;
 pub mod catalogue;
 pub mod club;
 pub mod effects;
+pub mod events;
 pub mod games;
 pub mod handshake;
 pub mod infobus;
@@ -64,6 +65,8 @@ pub fn handler(header: u16) -> Option<Handler> {
         40 => messenger::remove_buddy,
         41 => messenger::find_user,
         233 => messenger::get_requests,
+        262 => messenger::follow_friend,
+        34 => messenger::invite_friend,
         8 => user::get_credits,
         // registerNavigatorPackets
         150 => navigator::navigate,
@@ -74,6 +77,9 @@ pub fn handler(header: u16) -> Option<Handler> {
         16 => navigator::own_rooms,
         17 => navigator::search_rooms,
         154 => navigator::get_space_node_users,
+        18 => navigator::get_favourite_rooms,
+        19 => navigator::add_favourite_room,
+        20 => navigator::del_favourite_room,
         // registerRoomPackets
         57 | 391 => rooms::try_flat,
         182 => rooms::get_interest,
@@ -109,6 +115,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         410 => rooms_idol::start_performance,
         411 => rooms_idol::vote_performance,
         98 => rooms_moderation::let_user_in,
+        261 => rooms_user::rate_flat,
         // registerRoomSettingsPackets
         21 => rooms_settings::get_flat_info,
         29 => rooms_settings::create_flat,
@@ -211,6 +218,13 @@ pub fn handler(header: u16) -> Option<Handler> {
         // registerEffects
         372 => effects::use_avatar_effect,
         373 => effects::activate_avatar_effect,
+        // registerEventPackets
+        345 => events::can_create_room_event,
+        346 => events::create_room_event,
+        348 => events::edit_room_event,
+        347 => events::quit_room_event,
+        349 => events::get_room_event_type_count,
+        350 => events::get_room_events_by_type,
         _ => return None,
     })
 }

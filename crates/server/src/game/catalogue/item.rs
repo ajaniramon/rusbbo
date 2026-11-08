@@ -80,6 +80,14 @@ impl CatalogueItem {
         self.pages.contains(&page_id)
     }
 
+    /// A single trophy (a package's items get no extra data, so no engraving).
+    pub fn has_trophy(&self) -> bool {
+        !self.is_package
+            && self.definition.as_ref().is_some_and(|d| {
+                d.has_behaviour(crate::game::item::base::ItemBehaviour::PrizeTrophy)
+            })
+    }
+
     /// Java: `getPackages`. A plain item is a package of one: itself.
     pub fn packages(&self) -> Vec<CataloguePackage> {
         if self.is_package {

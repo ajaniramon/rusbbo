@@ -45,6 +45,9 @@ pub struct Player {
     pub last_gift_time: i64,
     /// Loaded at login (Java: `Player.messenger`).
     pub messenger: Option<Messenger>,
+    /// The room of the friend last followed with `FOLLOW_FRIEND`, until `NAVIGATE` forwards to
+    /// it again (Java: `Messenger.followed`).
+    pub followed_room: Option<crate::game::room::RoomRef>,
     /// Java: `Player.badgeManager`, loaded at login.
     pub badges: BadgeManager,
     /// Java: `Player.statisticManager`, loaded at login.

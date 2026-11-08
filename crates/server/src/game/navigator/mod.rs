@@ -8,8 +8,6 @@
 //!
 //! `RoomData.getVisitorsNow/Max` add the players and capacity of started BattleBall and SnowStorm
 //! games to their lobby rooms ([`game_visitors`]).
-//! TODO(votes): `ratingSantiyCheck` recounts the votes of rooms nobody is in; `rooms_votes` is not
-//! ported, so stored ratings are shown as they are.
 
 use std::collections::HashMap;
 
@@ -235,15 +233,65 @@ pub fn room_entries(world: &World, rows: Vec<Room>) -> Vec<RoomEntry> {
         .collect()
 }
 
+/// Java: `ADD_FAVORITE_ROOM.MAX_FAVOURITES`.
+pub const MAX_FAVOURITES: usize = 30;
+
+/// Java: `RoomManager.getRoomById(id) != null`: a loaded room or a stored one.
+pub fn room_exists(world: &World, id: u32) -> bool {
+    world.loaded_room(id).is_some() || world.store.room(id).ok().flatten().is_some()
+}
+
+/// Java: `RoomManager.getFavouriteRooms(userId, false)`: the user's favourite rooms that exist,
+/// the newest favourite first (the stored order, by room id, reversed), as stored rows (a loaded
+/// room's live row).
+pub fn favourite_rooms(world: &World, user_id: u32) -> Vec<Room> {
+    let mut ids = world.store.room_favourites(user_id).unwrap_or_else(|e| {
+        tracing::error!(user = user_id, "loading favourite rooms: {e}");
+        Vec::new()
+    });
+    ids.reverse();
+    ids.into_iter()
+        .filter_map(|id| match world.loaded_room(id) {
+            Some(room) => Some(room.lock().data.clone()),
+            None => world.store.room(id).ok().flatten(),
+        })
+        .collect()
+}
+
 /// Java: `RoomManager.sortRooms`: most visitors (walkway totals included) first, then best rated.
 /// The sort is stable, like `List.sort`, so ties keep the order of the query.
 pub fn sort_rooms(rooms: &mut [RoomEntry]) {
     rooms.sort_by_key(|r| std::cmp::Reverse((r.total_visitors_now, r.rating)));
 }
 
-/// Java: `RoomManager.ratingSantiyCheck`. TODO(votes): see the module docs; nothing to recount
-/// until room votes are stored.
-pub fn rating_sanity_check(_rooms: &[RoomEntry]) {}
+/// Java: `RoomManager.ratingSantiyCheck`: for the flats nobody is in, the expired votes are
+/// deleted and the rating is counted again; a changed rating is stored (only in the row, as in
+/// Java: a loaded room keeps showing the one it has, and this list was composed before). The
+/// first room with no rating ends the check (Java's `return` where `continue` was meant).
+pub fn rating_sanity_check(world: &World, rooms: &[RoomEntry]) {
+    for room in rooms {
+        if room.is_public() || room.visitors_now > 0 {
+            continue;
+        }
+        if room.rating <= 0 {
+            return;
+        }
+        let now = crate::game::now();
+        if let Err(e) = world.store.remove_expired_room_votes(room.id, now) {
+            tracing::error!(room = room.id, "removing expired votes: {e}");
+        }
+        let rating = crate::game::room::counted_votes(world, room.id)
+            .iter()
+            .map(|v| v.vote)
+            .sum::<i32>()
+            .max(0);
+        if rating != room.rating {
+            if let Err(e) = world.store.update_room(room.id, |r| r.rating = rating) {
+                tracing::error!(room = room.id, "saving the rating: {e}");
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,4 @@
-//! Java: `messages/incoming/navigator`.
-//!
-//! TODO(favourites): ADD_FAVORITE_ROOM, DEL_FAVORITE_ROOM, GETFVRF. TODO(recommended):
-//! RECOMMENDED_ROOMS. TODO(flash): the Flash-only navigator messages.
+//! Java: `messages/incoming/navigator`. TODO(flash): the Flash-only navigator messages.
 
 use std::sync::Arc;
 
@@ -77,7 +74,7 @@ pub fn navigate(
         .filter(|r| !(hide_full && r.visitors_now >= r.visitors_max))
         .collect();
     navigator::sort_rooms(&mut rooms);
-    navigator::rating_sanity_check(&rooms);
+    navigator::rating_sanity_check(world, &rooms);
 
     let subs: Vec<SubCategory> = sub_categories
         .into_iter()
@@ -90,6 +87,7 @@ pub fn navigate(
             }
         })
         .collect();
+    // A composer that throws fails in Netty's encoder, which does not stop the handler.
     if let Some(msg) = out::nav_node_info(
         &viewer,
         category,
@@ -102,9 +100,98 @@ pub fn navigate(
         session.send(msg);
     }
 
-    // TODO(messenger): when `was_follow` and the player has a followed friend, forward them to the
-    // friend's room (`messenger.getFollowed().forward(player, false)`), then clear it.
-    let _ = was_follow;
+    // Java: after following a friend into a public room the client opens its category; the
+    // player is forwarded to the followed room once more (`getFollowed().forward(player, false)`).
+    if was_follow {
+        let followed = session.player.lock().followed_room.take();
+        if let Some(room) = followed {
+            crate::game::moderation::forward(world, session, &room);
+        }
+    }
+    Ok(())
+}
+
+/// The room id of `ADD_FAVORITE_ROOM`/`DEL_FAVORITE_ROOM`: type 1 is a public room, sent as its
+/// id plus the offset.
+fn favourite_room_id(reader: &mut ClientReader) -> Result<i32, Malformed> {
+    let room_type = reader.int().ok_or(Malformed)?;
+    let room_id = reader.int().ok_or(Malformed)?;
+    Ok(if room_type == 1 {
+        room_id.wrapping_sub(PUBLIC_ROOM_OFFSET)
+    } else {
+        room_id
+    })
+}
+
+/// Java: `GETFVRF`: the favourite rooms, flats and public rooms apart.
+pub fn get_favourite_rooms(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(viewer) = viewer(session) else {
+        return Ok(());
+    };
+    let rooms = navigator::room_entries(world, navigator::favourite_rooms(world, viewer.user_id));
+    let (public_rooms, flats): (Vec<RoomEntry>, Vec<RoomEntry>) =
+        rooms.into_iter().partition(RoomEntry::is_public);
+    if let Some(msg) = out::favourite_room_results(&viewer, &public_rooms, &flats) {
+        session.send(msg);
+    }
+    Ok(())
+}
+
+/// Java: `ADD_FAVORITE_ROOM`: a room that exists, not a favourite yet, while the user has fewer
+/// than [`navigator::MAX_FAVOURITES`] (flats and public rooms together). Shockwave gets no
+/// answer.
+pub fn add_favourite_room(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let room_id = favourite_room_id(reader)?;
+    let Some(viewer) = viewer(session) else {
+        return Ok(());
+    };
+    let Some(room_id) = u32::try_from(room_id)
+        .ok()
+        .filter(|id| navigator::room_exists(world, *id))
+    else {
+        return Ok(());
+    };
+    let favourites = navigator::favourite_rooms(world, viewer.user_id);
+    if favourites.len() >= navigator::MAX_FAVOURITES || favourites.iter().any(|r| r.id == room_id) {
+        return Ok(());
+    }
+    if let Err(e) = world.store.add_room_favourite(viewer.user_id, room_id) {
+        tracing::error!(
+            user = viewer.user_id,
+            room = room_id,
+            "adding a favourite: {e}"
+        );
+    }
+    Ok(())
+}
+
+/// Java: `DEL_FAVORITE_ROOM`.
+pub fn del_favourite_room(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let room_id = favourite_room_id(reader)?;
+    let Some(viewer) = viewer(session) else {
+        return Ok(());
+    };
+    if let Ok(room_id) = u32::try_from(room_id) {
+        if let Err(e) = world.store.remove_room_favourite(viewer.user_id, room_id) {
+            tracing::error!(
+                user = viewer.user_id,
+                room = room_id,
+                "removing a favourite: {e}"
+            );
+        }
+    }
     Ok(())
 }
 
@@ -146,7 +233,7 @@ pub fn own_rooms(
         session.send(out::no_flats_for_user(&viewer.name));
     } else {
         navigator::sort_rooms(&mut rooms);
-        navigator::rating_sanity_check(&rooms);
+        navigator::rating_sanity_check(world, &rooms);
         session.send(out::flat_results(&rooms));
     }
     Ok(())
@@ -165,7 +252,7 @@ pub fn recommended_rooms(
     let rows = world.store.recommended_rooms(3, 0).unwrap_or_default();
     let mut rooms = navigator::room_entries(world, rows);
     navigator::sort_rooms(&mut rooms);
-    navigator::rating_sanity_check(&rooms);
+    navigator::rating_sanity_check(world, &rooms);
     session.send(out::recommended_room_list(&rooms, &viewer));
     Ok(())
 }
@@ -215,7 +302,7 @@ pub fn search_rooms(
         session.send(out::no_flats());
     } else {
         navigator::sort_rooms(&mut rooms);
-        navigator::rating_sanity_check(&rooms);
+        navigator::rating_sanity_check(world, &rooms);
         session.send(out::search_flat_results(&rooms, &viewer));
     }
     Ok(())

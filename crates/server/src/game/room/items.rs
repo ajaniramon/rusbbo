@@ -58,6 +58,9 @@ pub struct Item {
     /// Java: `requiresUpdate`: a dice rolling, a wheel spinning, a vending machine or a
     /// randomizer busy; the item ignores new requests and cannot be moved meanwhile.
     pub requires_update: bool,
+    /// Java: `Item.trophyData`, what the room shows of a trophy, worked out when the item enters
+    /// a room ([`crate::game::item::trophy::display`]).
+    pub trophy_data: Option<String>,
 }
 
 impl Item {
@@ -97,6 +100,7 @@ impl Item {
             rolling: None,
             current_roll_blocked: false,
             requires_update: false,
+            trophy_data: None,
         }
     }
 
@@ -324,6 +328,7 @@ pub fn public_items(
             rolling: None,
             current_roll_blocked: false,
             requires_update: false,
+            trophy_data: None,
         };
         let trigger = match sprite.as_str() {
             "poolEnter" | "poolExit" => Some(Interaction::PoolLadder),

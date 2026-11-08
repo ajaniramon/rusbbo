@@ -27,6 +27,70 @@ fn visible_owner(room: &RoomEntry, viewer: &Viewer) -> Vec<u8> {
     }
 }
 
+/// A public room in a node list (`NAVNODEINFO`, `FAVOURITEROOMRESULTS`). `None` when Java's
+/// composer throws: a description such as `abc/x` whose door part is not a number.
+fn public_room(body: ServerBody, room: &RoomEntry) -> Option<ServerBody> {
+    // The description may carry the door after a slash: `description/door`.
+    let (description, door) = match room.description.split_once('/') {
+        Some((text, rest)) => {
+            // Java: split("/")[1], parsed with Integer.parseInt.
+            let part = rest.split('/').next().unwrap_or("");
+            (text, part.parse::<i32>().ok()?)
+        }
+        None => (room.description.as_str(), 0),
+    };
+    Some(
+        body.int(room.id as i32 + PUBLIC_ROOM_OFFSET)
+            .int(1)
+            .string(&latin1(&room.name))
+            .int(room.total_visitors_now)
+            .int(room.total_visitors_max)
+            .int(room.category)
+            .string(&latin1(description))
+            .int(room.id as i32)
+            .int(door)
+            .string(&latin1(&room.ccts))
+            .int(0)
+            .int(1),
+    )
+}
+
+/// A private room in a node list (`NAVNODEINFO`, `FAVOURITEROOMRESULTS`).
+fn flat(body: ServerBody, room: &RoomEntry, viewer: &Viewer) -> ServerBody {
+    body.int(room.id as i32)
+        .string(&latin1(&room.name))
+        .string(&visible_owner(room, viewer))
+        .text(room.access_type_name())
+        .int(room.visitors_now)
+        .int(room.visitors_max)
+        .string(&latin1(&room.description))
+}
+
+/// Java: `FAVOURITEROOMRESULTS`: a node of type 2 holding the favourite flats, then the
+/// favourite public rooms. `None` when Java's composer throws (see [`public_room`]).
+pub fn favourite_room_results(
+    viewer: &Viewer,
+    public_rooms: &[RoomEntry],
+    flats: &[RoomEntry],
+) -> Option<Message> {
+    let mut body = ServerBody::new()
+        .int(0)
+        .int(0)
+        .int(2)
+        .string(b"")
+        .int(0)
+        .int(0)
+        .int(0)
+        .int(flats.len() as i32);
+    for room in flats {
+        body = flat(body, room, viewer);
+    }
+    for room in public_rooms {
+        body = public_room(body, room)?;
+    }
+    Some(Message::new(61, body.build()))
+}
+
 /// Java: `NAVNODEINFO`. `None` when Java's composer would throw (a public room description such
 /// as `abc/x` whose door part is not a number): the client gets nothing.
 pub fn nav_node_info(
@@ -50,39 +114,11 @@ pub fn nav_node_info(
         body = body.int(rooms.len() as i32);
     }
     for room in rooms {
-        if room.is_public() {
-            // The description may carry the door after a slash: `description/door`.
-            let (description, door) = match room.description.split_once('/') {
-                Some((text, rest)) => {
-                    // Java: split("/")[1], parsed with Integer.parseInt.
-                    let part = rest.split('/').next().unwrap_or("");
-                    (text, part.parse::<i32>().ok()?)
-                }
-                None => (room.description.as_str(), 0),
-            };
-            body = body
-                .int(room.id as i32 + PUBLIC_ROOM_OFFSET)
-                .int(1)
-                .string(&latin1(&room.name))
-                .int(room.total_visitors_now)
-                .int(room.total_visitors_max)
-                .int(room.category)
-                .string(&latin1(description))
-                .int(room.id as i32)
-                .int(door)
-                .string(&latin1(&room.ccts))
-                .int(0)
-                .int(1);
+        body = if room.is_public() {
+            public_room(body, room)?
         } else {
-            body = body
-                .int(room.id as i32)
-                .string(&latin1(&room.name))
-                .string(&visible_owner(room, viewer))
-                .text(room.access_type_name())
-                .int(room.visitors_now)
-                .int(room.visitors_max)
-                .string(&latin1(&room.description));
-        }
+            flat(body, room, viewer)
+        };
     }
     for sub in sub_categories {
         body = body
@@ -289,5 +325,53 @@ mod tests {
     fn empty_results_match_trace() {
         assert_eq!(no_flats().body, b"");
         assert_eq!(no_flats_for_user("tracebot1").body, b"tracebot1\x02");
+    }
+
+    /// traces/navigator-favourites.json: tracebot2's favourites, two of tracebot1's flats (the
+    /// second shows no owner), then tracebot1's with the Theatredome.
+    #[test]
+    fn favourite_room_results_match_trace() {
+        let flat = |id: u32, name: &str, access_type, show_owner_name| RoomEntry {
+            id,
+            owner_id: 1,
+            owner_name: "tracebot1".into(),
+            name: name.into(),
+            access_type,
+            show_owner_name,
+            visitors_max: 25,
+            ..Default::default()
+        };
+        let flats = [
+            flat(1001, "Fav Flat Two", 1, false),
+            flat(1000, "Fav Flat One", 0, true),
+        ];
+        let empty = favourite_room_results(&viewer(), &[], &[]).unwrap();
+        assert_eq!((empty.header, empty.body), (61, b"HHJ\x02HHHH".to_vec()));
+        let bob = Viewer {
+            user_id: 2,
+            ..viewer()
+        };
+        assert_eq!(
+            favourite_room_results(&bob, &[], &flats).unwrap().body,
+            b"HHJ\x02HHHJYzCFav Flat Two\x02-\x02closed\x02HQF\x02XzCFav Flat One\x02tracebot1\x02open\x02HQF\x02"
+        );
+        let theatre = RoomEntry {
+            id: 2,
+            name: "Theatredome".into(),
+            description: "theatredrome".into(),
+            category: 5,
+            ccts: "hh_room_theater".into(),
+            total_visitors_max: 100,
+            ..Default::default()
+        };
+        assert_eq!(
+            favourite_room_results(&viewer(), &[theatre], &flats[..1]).unwrap().body,
+            b"HHJ\x02HHHIYzCFav Flat Two\x02tracebot1\x02closed\x02HQF\x02ZzCITheatredome\x02HPYQAtheatredrome\x02JHhh_room_theater\x02HI"
+        );
+        let bad_door = RoomEntry {
+            description: "hall/x".into(),
+            ..Default::default()
+        };
+        assert!(favourite_room_results(&viewer(), &[bad_door], &[]).is_none());
     }
 }

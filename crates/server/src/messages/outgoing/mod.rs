@@ -4,6 +4,7 @@ pub mod alerts;
 pub mod catalogue;
 pub mod club;
 pub mod effects;
+pub mod events;
 pub mod games;
 pub mod handshake;
 pub mod infobus;

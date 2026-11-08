@@ -55,6 +55,10 @@ pub struct World {
     pub infobus: crate::game::infobus::InfobusManager,
     /// Java: `GameManager` (BattleBall, SnowStorm).
     pub games: crate::game::games::GameManager,
+    /// Java: `EventsManager`, loaded at startup.
+    pub events: crate::game::events::EventsManager,
+    /// Java: `ChatManager`'s queue of room chat for `room_chatlogs`.
+    pub chat_log: crate::game::chatlog::ChatLogQueue,
     /// The games' arenas (Java keeps them out of `RoomManager`), by their keys.
     arenas: Mutex<HashMap<u32, RoomRef>>,
     next_arena_key: std::sync::atomic::AtomicU32,
@@ -82,6 +86,7 @@ impl World {
         let achievements = AchievementManager::new(store.achievements()?);
         let effect_durations = store.effect_durations()?;
         let games = crate::game::games::GameManager::new(&store);
+        let events = crate::game::events::EventsManager::load(&store);
         Ok(Self {
             store,
             settings: RwLock::new(settings),
@@ -98,6 +103,8 @@ impl World {
             cfh: Default::default(),
             infobus: Default::default(),
             games,
+            events,
+            chat_log: Default::default(),
             arenas: Mutex::new(HashMap::new()),
             next_arena_key: std::sync::atomic::AtomicU32::new(ARENA_KEY_BASE),
             self_ref: OnceLock::new(),

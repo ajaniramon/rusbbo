@@ -100,10 +100,47 @@ pub struct Receiver {
 /// Java: `VoteData`, a stored vote with what `hasVoted` compares.
 pub struct Vote {
     pub user_id: u32,
-    #[allow(dead_code)] // TODO(votes): RATEFLAT sums them into the rating.
     pub vote: i32,
+    /// The voter's IP addresses (Java's `getRatings` joins `users_ip_logs`; `addVote` takes the
+    /// voter's latest 20). Never empty: no addresses is `[""]`, Java's `"".split(",")`.
+    pub ip_addresses: Vec<String>,
     /// The voter's machine id (Java's `getRatings` joins `users`).
     pub machine_id: String,
+}
+
+/// Java: `RoomTradeManager.TRADE_BAN_IP_HISTORY_LIMIT`, the IP addresses `hasVoted` and
+/// `addVote` read.
+const VOTE_IP_HISTORY_LIMIT: usize = 20;
+
+/// Java: `RoomVoteDao.vote`'s expiry: 60 days.
+const VOTE_EXPIRE_SECONDS: i64 = 60 * 24 * 60 * 60;
+
+/// Java: `RoomVoteDao.getRatings`: the room's votes that have not expired, of voters who exist
+/// (`INNER JOIN users`) and have logged an IP address (`INNER JOIN users_ip_logs`).
+pub fn counted_votes(world: &World, room_id: u32) -> Vec<Vote> {
+    let votes = match world.store.room_votes(room_id, now()) {
+        Ok(votes) => votes,
+        Err(e) => {
+            error!(room = room_id, "loading votes: {e}");
+            return Vec::new();
+        }
+    };
+    votes
+        .into_iter()
+        .filter_map(|v| {
+            let user = world.store.user(v.user_id).ok().flatten()?;
+            let ip_addresses = world.store.ip_addresses(v.user_id, usize::MAX).ok()?;
+            if ip_addresses.is_empty() {
+                return None;
+            }
+            Some(Vote {
+                user_id: v.user_id,
+                vote: v.vote,
+                ip_addresses,
+                machine_id: user.machine_id,
+            })
+        })
+        .collect()
 }
 
 /// Java: `Room` with its `RoomData`, entity list and managers.
@@ -451,7 +488,7 @@ impl Room {
         if entering.is_some() {
             world.games.entered_game(session.id);
         }
-        // TODO(messenger): sendStatusUpdate so friends see the room.
+        // Java's `sendStatusUpdate` comes at the end of `enter_room`, once the room lock is free.
         self.save_visitors(world);
     }
 
@@ -510,23 +547,7 @@ impl Room {
             Ok(rights) => self.rights = rights,
             Err(e) => error!(room = self.id(), "loading rights: {e}"),
         }
-        match world.store.room_votes(self.id(), now()) {
-            Ok(votes) => {
-                self.votes = votes
-                    .into_iter()
-                    .filter_map(|v| {
-                        // INNER JOIN users: votes of deleted users do not count.
-                        let user = world.store.user(v.user_id).ok().flatten()?;
-                        Some(Vote {
-                            user_id: v.user_id,
-                            vote: v.vote,
-                            machine_id: user.machine_id,
-                        })
-                    })
-                    .collect();
-            }
-            Err(e) => error!(room = self.id(), "loading votes: {e}"),
-        }
+        self.votes = counted_votes(world, self.id());
     }
 
     /// Java: `RoomTaskManager.startTasks`: the 500 ms entity task and 1 s status task, both
@@ -679,7 +700,8 @@ impl Room {
         }
         // Java ends a game of Wobble Squabble here, but never does (see `wobble_squabble`).
         // Java: a player who leaves a room while in a game (not on the way to its arena) leaves
-        // the game. TODO(messenger): status update.
+        // the game. The friends' status update follows once the player forgot the room
+        // (`leave_current_room`, `Deferred::Left`).
         if e.is_player() {
             let session_id = e.session.id;
             world.games.run(world, Some(self), |games, op| {
@@ -720,7 +742,10 @@ impl Room {
             if r.dispose_generation != generation || r.players() > 0 {
                 return;
             }
-            // TODO(events): remove the room's event.
+            // Java: the room's event ends with it.
+            if world.events.event_by_room(r.id()).is_some() {
+                world.events.remove(&world.store, r.id());
+            }
             r.save_pet_coordinates(&world);
             r.reset_item_states(&world);
             r.counter = 0;
@@ -1265,8 +1290,9 @@ impl Room {
             self.bots_hear(world, idx, message);
             self.pets_hear(world, idx, message);
         }
-        if save {
-            // TODO(chatlog): ChatManager.queue (room_chatlogs).
+        if save && self.entities[idx].is_player() {
+            let user_id = self.entities[idx].details.user_id;
+            world.chat_log.queue(user_id, self.wire_id(), message, kind);
             self.reset_room_timer(world, idx);
         }
     }
@@ -1316,9 +1342,9 @@ impl Room {
     }
 
     /// Java: `Room.hasVoted`. Users who joined the hotel less than an hour ago count as having
-    /// voted, and so does anyone whose user id or machine id voted. TODO(ip-log): Java also
-    /// matches the voters' IP history (`users_ip_logs`).
-    pub fn has_voted(&self, details: &EntityDetails) -> bool {
+    /// voted, and so does anyone whose user id, machine id or one of whose latest 20 IP
+    /// addresses voted.
+    pub fn has_voted(&self, world: &World, details: &EntityDetails) -> bool {
         let mins_since_joined = (now() - details.created_at) / 60;
         if mins_since_joined <= 60 {
             return true;
@@ -1326,11 +1352,60 @@ impl Room {
         if self.votes.iter().any(|v| v.user_id == details.user_id) {
             return true;
         }
-        self.votes.iter().any(|v| {
+        if self.votes.iter().any(|v| {
             !is_blank(v.machine_id.as_bytes())
                 && !is_blank(details.machine_id.as_bytes())
                 && v.machine_id.to_lowercase() == details.machine_id.to_lowercase()
-        })
+        }) {
+            return true;
+        }
+        let history = world
+            .store
+            .ip_addresses(details.user_id, VOTE_IP_HISTORY_LIMIT)
+            .unwrap_or_default();
+        // Java: StringUtil.hasValue both ways, which is any address in common.
+        self.votes
+            .iter()
+            .any(|v| v.ip_addresses.iter().any(|ip| history.contains(ip)))
+    }
+
+    /// Java: `Room.addVote`: the vote counts at once, the rating (never below 0) is stored, the
+    /// owner and everyone in the room who has voted get it, and the vote is stored for 60 days.
+    pub fn add_vote(&mut self, world: &World, answer: i32, details: &EntityDetails) {
+        let history = world
+            .store
+            .ip_addresses(details.user_id, VOTE_IP_HISTORY_LIMIT)
+            .unwrap_or_default();
+        self.votes.push(Vote {
+            user_id: details.user_id,
+            vote: answer,
+            // Java: String.join(",", history), split again by VoteData.
+            ip_addresses: if history.is_empty() {
+                vec![String::new()]
+            } else {
+                history
+            },
+            machine_id: details.machine_id.clone(),
+        });
+        let rating = self.votes.iter().map(|v| v.vote).sum::<i32>().max(0);
+        self.data.rating = rating;
+        if let Err(e) = world.store.update_room(self.id(), |r| r.rating = rating) {
+            error!(room = self.id(), "saving the rating: {e}");
+        }
+        for e in self.entities.iter().filter(|e| e.is_player()) {
+            if self.has_voted(world, &e.details) || self.is_owner(e.details.user_id) {
+                e.session.send(out_rooms::update_votes(rating));
+            }
+        }
+        let vote = rusbbo_storage::RoomVote {
+            user_id: details.user_id,
+            room_id: self.id(),
+            vote: answer,
+            expire_time: now() + VOTE_EXPIRE_SECONDS,
+        };
+        if let Err(e) = world.store.add_room_vote(&vote) {
+            error!(room = self.id(), "saving a vote: {e}");
+        }
     }
 
     /// Java: `Room.refreshRights(player, sendStatus)`: tells the user what they may do and sets
@@ -1520,10 +1595,14 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
     for action in deferred {
         match action {
             Deferred::Left { session, room_id } => {
-                let mut p = session.player.lock();
-                if p.room_id == Some(room_id) {
-                    p.room_id = None;
+                {
+                    let mut p = session.player.lock();
+                    if p.room_id == Some(room_id) {
+                        p.room_id = None;
+                    }
                 }
+                // Java: the end of `RoomEntityManager.leaveRoom`.
+                crate::game::messenger::manager::send_status_update(world, &session);
             }
             Deferred::Walkway {
                 session,
@@ -1630,6 +1709,13 @@ fn enter_room_with(
         (details, teleporter)
     };
     let (details, teleporter) = details;
+    // Java: `ROOMEEVENT_INFO(getEventByRoomId(...))`, composed before the room's lock is taken
+    // (the hoster's name may need a player's lock).
+    let event_info = if send_entry {
+        crate::game::events::event_info(world, room.id)
+    } else {
+        None
+    };
     let deferred = {
         let mut r = room.lock();
         if r.deleted {
@@ -1681,14 +1767,16 @@ fn enter_room_with(
                 }
                 // The owner never votes on their own room.
                 let details = &r.entities[idx].details;
-                let voted = r.is_owner(details.user_id) || r.has_voted(details);
+                let voted = r.is_owner(details.user_id) || r.has_voted(world, details);
                 session.send(out_rooms::update_votes(if voted {
                     r.data.rating
                 } else {
                     -1
                 }));
             }
-            session.send(out_rooms::room_event_info_none());
+            if let Some(msg) = &event_info {
+                session.send(msg.clone());
+            }
         }
         if let Some(msg) = r.first_tick.take() {
             r.send(msg);

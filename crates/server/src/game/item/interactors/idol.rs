@@ -281,7 +281,7 @@ impl Room {
             self.idol_force_stop();
         }
         // TODO(achievements): ACH_AIPerformanceVote for the performer when the voter's IP differs
-        // from the performer's and from the voter's recent ones (users_ip_logs is not ported).
+        // from the performer's and from the voter's recent ones (`Store::ip_addresses`).
         let session_id = self.entities[entity].session.id;
         self.idol.voted.push(session_id);
     }

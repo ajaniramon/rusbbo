@@ -13,9 +13,10 @@ use crate::game::pathfinder::Position;
 use crate::game::room::trade::TradeState;
 use crate::session::Session;
 
-/// Java: `StatusType`.
+/// Java: `StatusType`. `Talk`, `UseDrink`, `JoinGame` and `PetSleep` are kept for the full list,
+/// though no Java code sets them.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[allow(dead_code)] // TODO(rooms): most are set by handlers not ported yet (carry, dance, trade...).
+#[allow(dead_code)]
 pub enum StatusType {
     Move,
     Sit,

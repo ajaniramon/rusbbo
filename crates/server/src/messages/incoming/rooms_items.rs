@@ -9,8 +9,8 @@ use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use super::latin1;
-use crate::game::catalogue::CatalogueManager;
 use crate::game::item::interactors::teleport;
+use crate::game::item::trophy::Engraving;
 use crate::game::now;
 use crate::game::pathfinder::Position;
 use crate::game::player::Player;
@@ -489,7 +489,6 @@ pub fn present_open(
         .get(4)
         .and_then(|s| s.parse::<i64>().ok())
         .unwrap_or_else(now);
-    let _ = (received_from, timestamp); // TODO(trophies): the giver and date of a trophy.
     let Some(catalogue_item) = world.catalogue.item(sale_code).cloned() else {
         let present = r.remove_flat_item(world, idx);
         if let Some(flat) = present.flat.as_ref() {
@@ -530,21 +529,35 @@ pub fn present_open(
         ));
         p.inventory.add_item(owned);
     } else {
-        if CatalogueManager::unsupported(&catalogue_item).is_some() {
-            return Ok(()); // Nothing this port can create; leave the present closed.
-        }
         let Some(owner) = p.details.clone() else {
             return Ok(());
+        };
+        // Java: a trophy names the sender (`overrideName`, looked up by name: someone who does
+        // not exist throws, and the present stays closed) and the present's date.
+        let engraving = match world.store.user_by_name(received_from) {
+            Ok(Some(sender)) => Engraving {
+                user_id: sender.id,
+                date: timestamp,
+            },
+            _ if catalogue_item.has_trophy() => return Ok(()),
+            _ => Engraving {
+                user_id: owner.id,
+                date: timestamp,
+            },
         };
         let present_id = r.mapping.items[idx].flat.as_ref().map(|f| f.record.id);
         // One transaction: what the present holds is created (a pet nest with its pet, a
         // teleporter pair...) and the present is deleted, or neither happens.
         let written = (|| -> anyhow::Result<crate::game::catalogue::Purchase> {
             let mut w = world.store.write()?;
-            let bought =
-                world
-                    .catalogue
-                    .purchase_in(&mut w, &owner, &catalogue_item, extra_data, now())?;
+            let bought = world.catalogue.purchase_in(
+                &mut w,
+                &owner,
+                &catalogue_item,
+                extra_data,
+                now(),
+                Some(engraving),
+            )?;
             if let Some(id) = present_id {
                 w.delete_item(id)?;
             }

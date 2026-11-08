@@ -8,6 +8,8 @@ mod session;
 mod settings;
 mod settings_defaults;
 #[cfg(test)]
+mod social_tests;
+#[cfg(test)]
 mod testkit;
 mod ticket_api;
 #[cfg(test)]
@@ -86,6 +88,7 @@ async fn main() -> Result<()> {
     );
 
     let world = World::new(store)?.into_arc();
+    game::chatlog::purge_old_logs(&world);
     tokio::spawn(game::scheduler::run(world.clone()));
     if let Some(http) = cli.http {
         let world = world.clone();
@@ -140,6 +143,8 @@ async fn shutdown(world: &world::World) {
         "shutting down: disconnecting {} players",
         world.players_online()
     );
+    // Java: `Havana.dispose` saves the queued chat first.
+    world.chat_log.save(world);
     let now = chrono::Local::now();
     for session in world.players() {
         session.send(messages::outgoing::handshake::info_hotel_closed(

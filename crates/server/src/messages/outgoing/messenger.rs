@@ -134,7 +134,7 @@ pub struct SearchEntry {
     pub username: String,
     pub motto: String,
     pub online: bool,
-    /// TODO(rooms): whether the user is online and in a room, and that room's name.
+    /// The name of the room the user is in, when online and in one.
     pub room_name: Option<String>,
     pub male: bool,
     pub figure: String,
@@ -162,6 +162,23 @@ pub fn messenger_search(friends: &[SearchEntry], others: &[SearchEntry]) -> Mess
     Message::new(435, body.build())
 }
 
+/// Java: `FOLLOW_ERROR`: why `FOLLOW_FRIEND` failed (0 not a friend, 1 offline, 2 on the hotel
+/// view, 3 does not allow following).
+pub fn follow_error(error_id: i32) -> Message {
+    Message::new(349, ServerBody::new().int(error_id).build())
+}
+
+/// Java: `INSTANT_MESSAGE_INVITATION`: a friend invites you to their room.
+pub fn instant_message_invitation(from_id: u32, message: &str) -> Message {
+    let body = ServerBody::new().int(from_id as i32).string(&text(message));
+    Message::new(135, body.build())
+}
+
+/// Java: `INVITATION_ERROR`.
+pub fn invitation_error() -> Message {
+    Message::new(262, ServerBody::new().int(0).build())
+}
+
 /// Java: `ROOMFORWARD`: tells the client to go to a room (a teleporter to another flat).
 pub fn room_forward(is_public: bool, room_id: i32) -> Message {
     Message::new(286, ServerBody::new().bool(is_public).int(room_id).build())
@@ -180,6 +197,26 @@ mod tests {
     fn room_forward_matches_trace() {
         let msg = room_forward(false, 1001);
         assert_eq!((msg.header, msg.body.as_slice()), (286, &b"HYzC"[..]));
+    }
+
+    /// traces/messenger-follow.json.
+    #[test]
+    fn follow_and_invitations_match_trace() {
+        assert_eq!(room_forward(true, 1007).body, b"I[{C");
+        assert_eq!(
+            (follow_error(2).header, follow_error(2).body),
+            (349, b"J".to_vec())
+        );
+        assert_eq!(follow_error(0).body, b"H");
+        let msg = instant_message_invitation(1, "come to the stadium");
+        assert_eq!(
+            (msg.header, msg.body),
+            (135, b"Icome to the stadium\x02".to_vec())
+        );
+        assert_eq!(
+            (invitation_error().header, invitation_error().body),
+            (262, b"H".to_vec())
+        );
     }
 
     fn user(id: u32, name: &str, motto: &str, figure: &str, male: bool) -> FriendView {

@@ -38,16 +38,18 @@ pub fn online_details(world: &World, user_id: u32) -> Option<User> {
     p.details.clone()
 }
 
+/// The room an online user is in (Java: `getPlayerById(id).getRoomUser().getRoom()`).
+pub fn room_of(world: &World, user_id: u32) -> Option<crate::game::room::RoomRef> {
+    let session = world.player_by_id(user_id)?;
+    let room_id = session.player.lock().room_id;
+    room_id.and_then(|id| world.loaded_room(id))
+}
+
 /// Java: `MessengerUser.canFollowFriend`: the friend is connected (whatever their online status
 /// setting) and in a room that is not a game arena. TODO(flash): Flash viewers are also refused
 /// public rooms that have no navigator style.
-fn can_follow_friend(world: &World, user_id: u32) -> bool {
-    let Some(session) = world.player_by_id(user_id) else {
-        return false;
-    };
-    let room_id = session.player.lock().room_id;
-    room_id
-        .and_then(|id| world.loaded_room(id))
+pub fn can_follow_friend(world: &World, user_id: u32) -> bool {
+    room_of(world, user_id)
         .is_some_and(|room| !room.model_name.starts_with("bb_") && room.model_name != "snowwar")
 }
 
