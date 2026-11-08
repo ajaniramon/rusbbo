@@ -29,7 +29,8 @@ pub fn parse(rows: &[havana_storage::Walkway]) -> Vec<WalkwayEntrance> {
 
 fn parse_one(row: &havana_storage::Walkway) -> Option<WalkwayEntrance> {
     let mut from_coords = Vec::new();
-    for coord in row.coords_map.as_deref()?.split(' ') {
+    // Java's `split(" ")` drops trailing empty strings, so "5,25 " is one tile there.
+    for coord in row.coords_map.as_deref()?.trim_end_matches(' ').split(' ') {
         let (x, y) = coord.split_once(',')?;
         let y = y.split(',').next()?;
         from_coords.push(Position::new(x.parse().ok()?, y.parse().ok()?));
@@ -89,5 +90,18 @@ mod tests {
         );
         assert_eq!(w[0].destination.unwrap().body_rotation, 2);
         assert!(w[1].destination.is_none());
+    }
+
+    #[test]
+    fn trailing_space_like_java_split() {
+        let rows = [havana_storage::Walkway {
+            room_id: 22,
+            to_id: 21,
+            coords_map: Some("5,25 ".into()),
+            door_position: Some("15,1,4,4".into()),
+        }];
+        let w = parse(&rows);
+        assert_eq!(w.len(), 1);
+        assert_eq!(w[0].from_coords, [Position::new(5, 25)]);
     }
 }
