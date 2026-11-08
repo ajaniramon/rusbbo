@@ -1,0 +1,391 @@
+name = "flat-trax"
+description = "The sound machine and its song editor: one sound machine per room (CANNOT_PLACE_STUFF_FROM_STRIP 23, also for a jukebox), sound sets in and out of the machine, a new song saved, listed, read and edited, the playlist (UPDATE_PLAY_LIST) seen by a visitor, a song burnt to a disc (and then locked: SONG_LOCKED, a copy saved instead), songs deleted, and what is left once the machine is picked up"
+
+# Flat 1000 belongs to tracebot1 (a); tracebot2 (b) visits without rights.
+# Catalogue items: 1332 sound_machine (8 credits, items 1 and 2), 453 jukebox*1 (3 credits,
+# item 3), 74 sound_set_1, 75 sound_set_2 and 76 sound_set_4 (3 credits each, items 4-6).
+# The sound machine goes to (6,5). INSERT_SOUND_PACKAGE and EJECT_SOUND_PACKAGE take the sound
+# set number (the sprite's sound_set_N), not an item id; the first free slot (1-4) is used.
+# Song data is the trax format "1:sample,length;...:2:...:3:...:4:...:", one part per track.
+# Songs are numbered from 1; the burnt disc is item 7.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1332, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_machine: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1332, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "another one: item 2"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 453, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "jukebox*1: item 3"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 74, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_1: item 4"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 75, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_2: item 5"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 76, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_4: item 6"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Trax Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "GET_PLAY_LIST"
+note = "No sound machine: nothing"
+
+[[steps]]
+bot = "a"
+send = "NEW_SONG"
+note = "No sound machine: nothing"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+note = "The sound machine"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 8 5 0"]
+note = "A second one: error 23"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["3 8 7 0"]
+note = "A jukebox counts as one too"
+
+[[steps]]
+bot = "a"
+send = "GET_PLAY_LIST"
+note = "The (empty) playlist"
+
+[[steps]]
+bot = "a"
+send = "GET_SONG_LIST"
+note = "No songs"
+
+[[steps]]
+bot = "a"
+send = "NEW_SONG"
+note = "The machine's sound sets (none) and the ones in the hand"
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [1]
+note = "sound_set_1 into slot 1: it leaves the hand"
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [4]
+note = "sound_set_4 into slot 2"
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [9]
+note = "Not in the hand: nothing"
+
+[[steps]]
+bot = "a"
+send = "EJECT_SOUND_PACKAGE"
+args = [1]
+note = "Slot 1 out: sound_set_1 back in the hand"
+
+[[steps]]
+bot = "a"
+send = "EJECT_SOUND_PACKAGE"
+args = [3]
+note = "An empty slot: nothing"
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [2]
+note = "sound_set_2 into the free slot 1"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_NEW"
+args = ["First Song", "1:1,4;2,4:2:3,2:3:0,1:4:0,1:"]
+note = "Song 1: SOUND_PACKAGES and SONG_NEW with the machine's id"
+
+[[steps]]
+bot = "a"
+send = "GET_SONG_LIST"
+note = "Song 1, 16 s long (sent halved)"
+
+[[steps]]
+bot = "a"
+send = "GET_SONG_INFO"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "GET_SONG_INFO"
+args = [99]
+note = "No such song: nothing (Java fails composing it)"
+
+[[steps]]
+bot = "a"
+send = "EDIT_SONG"
+args = [1]
+note = "The song, the machine's sets and the hand's"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_EDIT"
+args = [1, "Renamed", "1:1,6;2,2:2:3,2:3:0,1:4:0,1:"]
+note = "Saved: SONG_INFO, SONG_UPDATE, SONG_LIST and the playlist"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_NEW"
+args = ["Odd", "garbage"]
+note = "Song 2, whose length cannot be worked out (0)"
+
+[[steps]]
+bot = "a"
+send = "UPDATE_PLAY_LIST"
+args = [2, 1, 2]
+note = "Both songs on the playlist, for the room"
+
+[[steps]]
+bot = "a"
+send = "UPDATE_PLAY_LIST"
+args = [6, 1, 1, 1, 1, 1, 1]
+note = "Too many: nothing"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "GET_PLAY_LIST"
+note = "What the client asks on entering a room with a sound machine"
+
+[[steps]]
+bot = "b"
+send = "GET_SONG_LIST"
+note = "Anyone in the room may list the songs"
+
+[[steps]]
+bot = "b"
+send = "NEW_SONG"
+note = "Not the owner: nothing"
+
+[[steps]]
+bot = "b"
+send = "BURN_SONG"
+args = [1]
+note = "No rights: nothing"
+
+[[steps]]
+bot = "b"
+send = "UPDATE_PLAY_LIST"
+args = [0]
+note = "Not the owner: nothing"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [99]
+note = "No such song: nothing"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [1]
+wait_for = ["CREDIT_BALANCE"]
+note = "A disc (item 7) in the hand, 1 credit"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "a"
+send = "EDIT_SONG"
+args = [1]
+note = "Burnt: SONG_LOCKED first"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_EDIT"
+args = [1, "Renamed", "1:1,2;2,2:2:3,2:3:0,1:4:0,1:"]
+note = "Burnt and the same title: SONG_LOCKED only"
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_EDIT"
+args = [1, "Remix", "1:1,2;2,2:2:3,2:3:0,1:4:0,1:"]
+note = "Burnt, another title: saved as a new song 3"
+
+[[steps]]
+bot = "a"
+send = "DELETE_SONG"
+args = [99]
+note = "No such song: nothing"
+
+[[steps]]
+bot = "a"
+send = "DELETE_SONG"
+args = [1]
+note = "Off the playlist and the list (the disc keeps it)"
+
+[[steps]]
+bot = "a"
+send = "GET_SONG_LIST"
+
+[[steps]]
+bot = "b"
+send = "GET_PLAY_LIST"
+
+[[steps]]
+bot = "a"
+send = "ADDSTRIPITEM"
+args = [0, 1]
+note = "The sound machine back to the hand"
+
+[[steps]]
+bot = "a"
+send = "GET_PLAY_LIST"
+note = "No machine: nothing"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "The sound sets stay in the machine"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 8 5 0"]
+note = "The other sound machine can go in now"
+
+[[steps]]
+bot = "a"
+send = "NEW_SONG"
+note = "Its own (empty) slots"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

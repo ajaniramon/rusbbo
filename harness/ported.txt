@@ -9,11 +9,14 @@ flat-decor
 flat-delete
 flat-furni
 flat-gates
+flat-jukebox
+flat-moodlight
 flat-pets
 flat-postit
 flat-present
 flat-roller
 flat-teleport
+flat-trax
 flat-visit
 idle-timeout
 login
