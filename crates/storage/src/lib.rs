@@ -25,6 +25,7 @@ mod soundmachine;
 mod texts;
 mod transactions;
 mod user;
+mod web;
 mod wordfilter;
 
 use std::collections::BTreeMap;
@@ -49,6 +50,7 @@ pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
 pub use soundmachine::{PlaylistEntry, Song, SongDisk, SoundMachineTrack};
 pub use transactions::Transaction;
 pub use user::{Achievement, Badge, Effect, STATISTIC_COLUMNS, UserAchievement, UserStatistics};
+pub use web::*;
 pub use wordfilter::WordfilterWord;
 
 /// Bump when a record layout or table changes, and add a migration in [`Store::open`].
@@ -182,6 +184,7 @@ impl Store {
             texts::create_tables(&tx)?;
             transactions::create_tables(&tx)?;
             user::create_tables(&tx)?;
+            web::create_tables(&tx)?;
             wordfilter::create_tables(&tx)?;
         }
         tx.commit()?;

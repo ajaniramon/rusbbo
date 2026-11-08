@@ -1,0 +1,14 @@
+[package]
+name = "rusbbo-pebble"
+version = "0.1.0"
+description = "A Pebble 3.1 template engine for the subset Havana-Web's templates use"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+parking_lot = "0.12.5"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3.27.0"

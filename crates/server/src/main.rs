@@ -12,6 +12,7 @@ mod testkit;
 mod ticket_api;
 #[cfg(test)]
 mod txn_tests;
+mod web;
 mod world;
 
 use std::net::SocketAddr;
@@ -48,6 +49,22 @@ struct Cli {
     /// on this address. Off by default; only the Infobus ones are ported.
     #[arg(long, value_name = "ADDR")]
     rcon: Option<SocketAddr>,
+    /// Serve the website (a port of Havana-Web) on this address, e.g. 0.0.0.0:80. It includes the
+    /// ticket API, so `--http` is not needed with it.
+    #[arg(long, value_name = "ADDR")]
+    web: Option<SocketAddr>,
+    /// The website's template directory (Havana's `tools/www-tpl`, holding `locale-en.ini`).
+    #[arg(long, value_name = "DIR", default_value = "tools/www-tpl")]
+    web_templates: PathBuf,
+    /// The template set inside `--web-templates`.
+    #[arg(long, value_name = "NAME", default_value = "default")]
+    web_template_name: String,
+    /// The website's static files (Havana's `tools/www`).
+    #[arg(long, value_name = "DIR", default_value = "tools/www")]
+    web_site: PathBuf,
+    /// Re-read the templates on every request (for editing them).
+    #[arg(long)]
+    web_reload_templates: bool,
 }
 
 #[tokio::main]
@@ -93,6 +110,24 @@ async fn main() -> Result<()> {
         tokio::spawn(async move {
             if let Err(e) = ticket_api::serve(world, http, rate_limit).await {
                 tracing::error!("ticket API: {e:#}");
+            }
+        });
+    }
+    if let Some(addr) = cli.web {
+        web::data::apply_web_defaults(&world)?;
+        let web = std::sync::Arc::new(web::Web::new(
+            world.clone(),
+            web::WebConfig {
+                template_dir: cli.web_templates.clone(),
+                template_name: cli.web_template_name.clone(),
+                site_dir: cli.web_site.clone(),
+                reload_templates: cli.web_reload_templates,
+            },
+            cli.http_rate_limit,
+        ));
+        tokio::spawn(async move {
+            if let Err(e) = web::serve(web, addr).await {
+                tracing::error!("website: {e:#}");
             }
         });
     }

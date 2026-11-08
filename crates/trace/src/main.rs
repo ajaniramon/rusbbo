@@ -8,6 +8,7 @@ mod scenario;
 #[cfg(test)]
 mod scenario_tests;
 mod trace;
+mod web;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
@@ -67,6 +68,35 @@ enum Cmd {
     },
     /// Print a trace in readable form.
     Show { trace: PathBuf },
+    /// Record web scenarios (`scenarios/web/*.toml`) against the Java Havana-Web.
+    WebRecord {
+        #[arg(required = true)]
+        scenarios: Vec<PathBuf>,
+        #[arg(long, default_value = "127.0.0.1:12380")]
+        target: String,
+        #[arg(long)]
+        reset: Option<String>,
+        /// Recordings per scenario; they must agree once masked.
+        #[arg(long, default_value_t = 2)]
+        runs: usize,
+        #[arg(long, default_value = "traces/web")]
+        out_dir: PathBuf,
+    },
+    /// Check web traces against a web server. Exits 1 on any mismatch.
+    WebCheck {
+        #[arg(required = true)]
+        traces: Vec<PathBuf>,
+        #[arg(long, default_value = "127.0.0.1:12380")]
+        target: String,
+        #[arg(long)]
+        reset: Option<String>,
+    },
+    /// Run a web scenario once and print every response.
+    WebProbe {
+        scenario: PathBuf,
+        #[arg(long, default_value = "127.0.0.1:12380")]
+        target: String,
+    },
     /// Load test: bots log in, enter public rooms, walk and chat; prints latency percentiles.
     Load {
         #[arg(long, default_value = "127.0.0.1:12321")]
@@ -142,6 +172,33 @@ fn run(cli: Cli) -> Result<bool> {
                 all_ok &= check_trace(&path, &target, &rcon, reset.as_deref())?;
             }
             Ok(all_ok)
+        }
+        Cmd::WebRecord {
+            scenarios,
+            target,
+            reset,
+            runs,
+            out_dir,
+        } => {
+            for path in scenarios {
+                web::record(&path, &target, reset.as_deref(), runs, &out_dir)?;
+            }
+            Ok(true)
+        }
+        Cmd::WebCheck {
+            traces,
+            target,
+            reset,
+        } => {
+            let mut all_ok = true;
+            for path in traces {
+                all_ok &= web::check(&path, &target, reset.as_deref())?;
+            }
+            Ok(all_ok)
+        }
+        Cmd::WebProbe { scenario, target } => {
+            web::probe(&scenario, &target)?;
+            Ok(true)
         }
         Cmd::Show { trace } => {
             show(&load_trace(&trace)?);

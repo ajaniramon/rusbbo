@@ -11,6 +11,11 @@ impl Settings {
         Self { values }
     }
 
+    /// Every setting.
+    pub fn all(&self) -> &BTreeMap<String, String> {
+        &self.values
+    }
+
     pub fn string(&self, key: &str) -> &str {
         self.values.get(key).map(String::as_str).unwrap_or("")
     }

@@ -14,6 +14,8 @@
 #   TARGET_RCON_PORT  RCON port (TARGET_PORT - 12: what rusbbo-trace assumes without --rcon)
 #   FIXTURE_DB     scratch MariaDB database used to build the fixture (rusbbo_fixture)
 #   ORACLE_GOLDEN  golden.sql to build the fixture from (oracle/run/golden.sql of this checkout)
+#   TARGET_WEB_PORT  also serve the website on this port, from $HAVANA_DIR's templates and files
+#                    (web traces: rusbbo-trace web-check --target 127.0.0.1:$TARGET_WEB_PORT)
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,6 +28,11 @@ DB_PORT="${ORACLE_DB_PORT:-13307}"
 PORT="${TARGET_PORT:-12331}"
 RCON_PORT="${TARGET_RCON_PORT:-$((PORT - 12))}"
 PID_FILE="$RUN_DIR/server.pid"
+WEB_ARGS=()
+if [[ -n "${TARGET_WEB_PORT:-}" ]]; then
+  HAVANA="${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}"
+  WEB_ARGS=(--web "127.0.0.1:$TARGET_WEB_PORT" --web-templates "$HAVANA/tools/www-tpl" --web-site "$HAVANA/tools/www")
+fi
 
 log() { echo "[target-rs] $*" >&2; }
 
@@ -68,10 +75,11 @@ case "${1:-}" in
     stop_server
     build_fixture
     cp "$RUN_DIR/fixture.redb" "$RUN_DIR/rusbbo.redb"
-    nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" \
+    nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" "${WEB_ARGS[@]}"\
       --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 --dev-ticket 3=trace-sso-3 --dev-ticket 4=trace-sso-4 --dev-ticket 5=trace-sso-5 --dev-ticket 6=trace-sso-6 --dev-ticket 21=trace-sso-21 --dev-ticket 22=trace-sso-22 --dev-ticket 23=trace-sso-23 --dev-ticket 24=trace-sso-24 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port
+    if [[ -n "${TARGET_WEB_PORT:-}" ]]; then PORT=$TARGET_WEB_PORT wait_port; fi
     ;;
   stop) stop_server ;;
   *) sed -n '2,10p' "$0"; exit 1 ;;

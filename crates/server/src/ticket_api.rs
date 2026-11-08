@@ -95,7 +95,7 @@ fn web_bool(settings: &Settings, key: &str) -> bool {
 /// Java: `TicketController.JsonDetails`, in field order (Gson writes declaration order).
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct JsonDetails {
+pub(crate) struct JsonDetails {
     host: String,
     site: String,
     mus_port: String,
@@ -111,7 +111,7 @@ struct JsonDetails {
     sso_ticket: String,
 }
 
-fn json_details(settings: &Settings, sso_ticket: String) -> JsonDetails {
+pub(crate) fn json_details(settings: &Settings, sso_ticket: String) -> JsonDetails {
     let get = |key: &str| web_setting(settings, key);
     JsonDetails {
         host: get("loader.game.ip"),
@@ -132,7 +132,7 @@ fn json_details(settings: &Settings, sso_ticket: String) -> JsonDetails {
 
 /// Java: `TicketController`'s login part: `PlayerDao.login`, then the ticket (a new one when
 /// `reset.sso.after.login` is on or the user has none). `None` for a bad login.
-fn issue_ticket(world: &World, username: &str, password: &str) -> Option<String> {
+pub(crate) fn issue_ticket(world: &World, username: &str, password: &str) -> Option<String> {
     if username.trim().is_empty() || password.trim().is_empty() {
         return None;
     }

@@ -1166,6 +1166,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rusbbo-pebble"
+version = "0.1.0"
+dependencies = [
+ "parking_lot",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "rusbbo-protocol"
 version = "0.1.0"
 dependencies = [
@@ -1186,6 +1195,8 @@ dependencies = [
  "hyper-util",
  "parking_lot",
  "rand",
+ "regex",
+ "rusbbo-pebble",
  "rusbbo-protocol",
  "rusbbo-storage",
  "serde",
@@ -1215,6 +1226,7 @@ dependencies = [
  "anyhow",
  "clap",
  "rand",
+ "regex",
  "rusbbo-protocol",
  "serde",
  "serde_json",
