@@ -94,7 +94,6 @@ pub fn user_statuses<'a>(
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ChatType {
     Chat = 24,
-    #[allow(dead_code)] // TODO(rooms): WHISPER.
     Whisper = 25,
     Shout = 26,
 }

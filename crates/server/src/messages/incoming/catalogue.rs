@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use rusbbo_protocol::body::ClientReader;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use super::rooms_items::trade_ban_alert;
-use crate::game::catalogue::{CatalogueItem, CatalogueManager, Purchase, transaction_description};
+use crate::game::catalogue::{CatalogueItem, Purchase, transaction_description};
 use crate::game::currency::{Charge, charge_in};
 use crate::game::item::Item;
 use crate::game::item::base::ItemBehaviour;
@@ -173,10 +173,6 @@ pub fn grpc(
         }
         return Ok(());
     }
-    if let Some(what) = CatalogueManager::unsupported(&item) {
-        debug!("purchase needs {what}, which is not ported; ignoring");
-        return Ok(());
-    }
     let Some(details) = p.details.clone() else {
         return Ok(());
     };
@@ -193,7 +189,7 @@ pub fn grpc(
         let mut w = world.store.write()?;
         let bought = world
             .catalogue
-            .purchase_in(&mut w, &details, &item, &extra_data, t)?;
+            .purchase_in(&mut w, &details, &item, &extra_data, t, None)?;
         if bought.is_empty() && !is_film {
             return Ok(None); // `w` is dropped: the film of nothing, if any, is not kept either.
         }

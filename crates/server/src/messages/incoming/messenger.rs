@@ -1,7 +1,5 @@
-//! Java: `messages/incoming/messenger`.
-//!
-//! Not ported yet: `FOLLOW_FRIEND` (262) and `INVITE_FRIEND` (34), which need rooms
-//! (TODO(rooms)), and `MESSENGER_GETMESSAGES` (191), which Java leaves unregistered.
+//! Java: `messages/incoming/messenger`. `MESSENGER_GETMESSAGES` (191) is not ported: Java leaves
+//! it unregistered.
 
 use std::sync::Arc;
 
@@ -9,8 +7,8 @@ use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
 use crate::game::messenger::manager::{
-    add_friend, add_request, categories_of, online_details, remove_friend, resolve_all,
-    send_friends_update, with_messenger,
+    add_friend, add_request, can_follow_friend, categories_of, online_details, remove_friend,
+    resolve_all, room_of, send_friends_update, with_messenger,
 };
 use crate::game::messenger::{MessengerError, MessengerErrorType, filter_input};
 use crate::game::{format_local, now};
@@ -122,13 +120,18 @@ pub fn find_user(
         if !is_friend && details.username == HIDDEN_USER {
             continue;
         }
+        // Java: `isOnline && player.getRoomUser().getRoom() != null`, then the room's name.
+        let online = live.as_ref().is_some_and(|d| d.online_status_visible);
+        let room_name = online
+            .then(|| room_of(world, id))
+            .flatten()
+            .map(|room| room.lock().data.name.clone());
         let entry = SearchEntry {
             user_id: id,
             username: details.username.clone(),
             motto: details.motto.clone(),
-            online: live.as_ref().is_some_and(|d| d.online_status_visible),
-            // TODO(rooms): name of the room the user is in.
-            room_name: None,
+            online,
+            room_name,
             male: details.sex.eq_ignore_ascii_case("m"),
             figure: details.figure.clone(),
             last_online: details.last_online,
@@ -479,5 +482,88 @@ pub fn friendlist_update(
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
     send_friends_update(world, session);
+    Ok(())
+}
+
+fn has_friend(session: &Session, id: Option<u32>) -> bool {
+    let Some(id) = id else {
+        return false;
+    };
+    let p = session.player.lock();
+    p.messenger.as_ref().is_some_and(|m| m.has_friend(id))
+}
+
+/// Java: `FOLLOW_FRIEND`: `FOLLOW_ERROR` (0 not a friend, 1 offline, 2 in no room or in a game,
+/// 3 does not allow following), or `ROOMFORWARD` to the friend's room, remembered so that the
+/// navigator can forward again (`NAVIGATE`'s `wasFollow`).
+pub fn follow_friend(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let friend_id = user_id(reader.int().ok_or(Malformed)?);
+    if me(session).is_none() {
+        return Ok(());
+    }
+    if !has_friend(session, friend_id) {
+        session.send(out::follow_error(0));
+        return Ok(());
+    }
+    let Some(friend) = friend_id.and_then(|id| world.player_by_id(id)) else {
+        session.send(out::follow_error(1));
+        return Ok(());
+    };
+    let friend_id = friend_id.unwrap_or_default();
+    let room = room_of(world, friend_id);
+    let Some(room) = room.filter(|_| can_follow_friend(world, friend_id)) else {
+        session.send(out::follow_error(2));
+        return Ok(());
+    };
+    let allows_stalking = friend
+        .player
+        .lock()
+        .details
+        .as_ref()
+        .is_some_and(|d| d.allow_stalking);
+    if !allows_stalking {
+        session.send(out::follow_error(3));
+        return Ok(());
+    }
+    session.player.lock().followed_room = Some(room.clone());
+    crate::game::moderation::forward(world, session, &room);
+    Ok(())
+}
+
+/// Java: `INVITE_FRIEND`: from a room, invites friends to it. A user who is not a friend gets
+/// `INVITATION_ERROR` and ends the list (the ids after it are not read, as in Java); an offline
+/// friend gets one too and is skipped.
+pub fn invite_friend(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(my_id) = me(session) else {
+        return Ok(());
+    };
+    if session.player.lock().room_id.is_none() {
+        return Ok(());
+    }
+    let users = reader.int().ok_or(Malformed)?;
+    let mut friends = Vec::new();
+    for _ in 0..users.max(0) {
+        let id = user_id(reader.int().ok_or(Malformed)?);
+        if !has_friend(session, id) {
+            session.send(out::invitation_error());
+            break;
+        }
+        match id.and_then(|id| world.player_by_id(id)) {
+            Some(friend) => friends.push(friend),
+            None => session.send(out::invitation_error()),
+        }
+    }
+    let message = filter_input(&latin1(reader.string().ok_or(Malformed)?), false);
+    for friend in friends {
+        friend.send(out::instant_message_invitation(my_id, &message));
+    }
     Ok(())
 }

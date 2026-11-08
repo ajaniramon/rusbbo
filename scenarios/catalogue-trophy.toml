@@ -1,0 +1,198 @@
+name = "catalogue-trophy"
+description = "Trophies (PRIZE_TROPHY): bought with an engraving, the TrophyExtraData JSON in the hand, the giver's name, date and message in the room, and a trophy bought as a gift engraved with the sender's name"
+
+# Catalogue item 233 is prizetrophy2*3 (8 credits). a (tracebot1) owns room 1000; b (tracebot2) visits,
+# opens the present in a room of its own (1001). The engraving date is masked by the harness.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 233, "Best trace bot ñ", false]
+note = "A trophy for a: item 1, engraved with a's name, the date and the message"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "The hand shows the stored TrophyExtraData JSON"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 233, "<b>&\"x\"='y'	tab", true, "tracebot2", "A trophy for you"]
+header_only = ["INVENTORY"]
+note = "A trophy as a gift for b: item 2, a random present wrapping"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Trophy Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+ignore_status = ["flatctrl"]
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+ignore_status = ["flatctrl"]
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 6 5 0"]
+note = "The room sees the giver's name, the date and the message"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+note = "b sees the trophy in ACTIVE_OBJECTS"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "CREATEFLAT"
+args = ["Gift Flat", "model_a", "open", true]
+note = "Only a room's owner opens presents: b's room 1001"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1001, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1001]
+settle_ms = 600
+ignore_status = ["flatctrl"]
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+ignore_status = ["flatctrl"]
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["2 8 5 0"]
+header_only = ["PLACE_FLOORITEM"]
+
+[[steps]]
+bot = "b"
+send = "PRESENTOPEN"
+args = [2]
+note = "The trophy (a new item) is engraved with the sender's name and the present's date"
+
+[[steps]]
+bot = "b"
+send = "GETSTRIP"
+args = [3]
+note = "The present is gone; the trophy is a new item, 3"
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["3 8 5 0"]
+note = "b's room shows a's name"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true

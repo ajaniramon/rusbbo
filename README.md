@@ -17,7 +17,7 @@ must give the same bytes back.
   the Habbo Lido, the public room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop
   Rumble), the game hall tables, and BattleBall and SnowStorm. Details below; what is left is under
   [Known gaps](#known-gaps).
-- **Conformance**: the 75 traces in `traces/` pass against the Java server and against
+- **Conformance**: the 80 traces in `traces/` pass against the Java server and against
   `rusbbo-server` (`harness/ported.txt`). The real v31 client (HabboLauncher) has been played
   against it on a copy of a real hotel's database, including the Lido, the game hall, BattleBall
   and SnowStorm.
@@ -94,9 +94,10 @@ Ported so far: the Shockwave handshake including the encrypted transport (`GENER
 login, `GET_INFO`, `GET_CREDITS`, the daily credits handout from the game tick, public rooms
 (entering, heightmap, furniture, users, walking with the Java pathfinder and the 500 ms room tick,
 chat, shout, wave, typing, leaving, AFK), the navigator (`NAVIGATE`, `GETUSERFLATCATS`, `SUSERF`,
-`SRCHF`, `GETSPACENODEUSERS`), the catalogue (index, pages, buying, the hand), the messenger
-(console, search, friend requests, private messages, status updates) and private rooms (room
-kiosk, settings, doorbell and password, rights, kick, delete) with their furniture (placing,
+`SRCHF`, `GETSPACENODEUSERS`, favourite rooms), the catalogue (index, pages, buying, the hand,
+engraved trophies), the messenger (console, search, friend requests, private messages, status
+updates, following friends and invitations to rooms) and private rooms (room kiosk, settings,
+doorbell and password, rights, kick, delete, ratings, room events) with their furniture (placing,
 moving, rotating and picking up floor and wall items, the default on/off interactor, chairs,
 solid furni in the pathfinder, wallpaper and floor), and the interactors for teleporters
 (within a flat and between flats), rollers, post-its, gates and one-way doors, and presents
@@ -184,6 +185,18 @@ the nest is placed, acting on their own every 10-25 s (walking, sitting, lying d
 a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
 (`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`). A pet can be
 a gift: it travels in the present and is created when the present is opened.
+
+The social side as in Java: favourite rooms (`users_room_favourites`: `ADD_FAVORITE_ROOM`,
+`DEL_FAVORITE_ROOM`, `GETFVRF`, at most 30, newest room id first), following friends
+(`FOLLOW_FRIEND` and its errors, the navigator's second forward after a public room follow,
+`INVITE_FRIEND`, the friend's room in the console and in `FINDUSER`), room ratings
+(`users_room_votes`: `RATEFLAT`, `UPDATE_VOTES`, voters matched by user, machine id and the IP
+addresses of `users_ip_logs`, `ratingSantiyCheck` in the navigator), room events (`rooms_events`:
+creating, editing and ending them, `ROOMEEVENT_INFO`, the navigator's lists by type, the event
+ending with its room; `game/events.rs`), trophies engraved with the buyer's or the sender's name,
+the date and a message (`game/item/trophy.rs`), and the room chat log (`room_chatlogs`, saved
+every 60 s and at shutdown, purged at startup after `delete.chatlogs.after.x.age`, with the IP
+logs after `delete.iplogs.after.x.age`; `game/chatlog.rs`).
 
 Purchases, gifts, club subscriptions, finished trades and opened presents are each one redb
 transaction (Java commits step by step), with their `users_transactions` audit rows; memory
@@ -297,6 +310,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `login` | handshake, SSO login, user info, credits |
 | `login-encrypted` | the same with `GENERATEKEY`: Diffie-Hellman, then every message over the RC4 layer |
 | `navigator` | public/guest categories, flat categories, own rooms, search |
+| `navigator-favourites` | favourite rooms: `ADD_FAVORITE_ROOM` (flats and public rooms, twice, rooms that do not exist), `GETFVRF` (newest room id first, the owner shown or `-`, a gamehall room's door), `DEL_FAVORITE_ROOM`, the limit of 30 |
 | `public-room` | enter a public room, heightmap/objects/users, walk, chat, shout, wave, leave |
 | `room-bots` | public room NPCs: Harry joins the Welcome Lounge with its first visitor (`USER_OBJECTS` type 3), and counts neither as a visitor nor in the room's user list |
 | `room-two-bots` | two users seeing each other enter, talk, walk and leave |
@@ -328,6 +342,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-limits` | per-room limits: 35 rollers without club, one sound machine or jukebox (`CANNOT_PLACE_STUFF_FROM_STRIP`), one room dimmer (`ALERT`); `CONVERT_FURNI_TO_CREDITS` |
 | `text-latin1` | non-ASCII text (ñ, accents, ¡¿) in a room name, a post-it, chat and a console message, as ISO-8859-1 |
 | `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |
+| `messenger-follow` | `FOLLOW_FRIEND` (not a friend, on the hotel view, into a public room and `NAVIGATE`'s second forward, into a flat, offline), the friend's room in `FINDUSER`, `INVITE_FRIEND`, friends' consoles on entering and leaving rooms |
 | `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
 | `moderation-login` | a user id ban and a machine id ban at login (kicked), expired and lifted bans that do not count, `TRY_LOGIN` with a wrong and a right password |
 | `moderation-autoban` | the word filter's automatic ban (chat, shout, console), the word filter on console messages, a muted console sender, the stored ban seen by `:ban` |
@@ -335,6 +350,8 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `moderation-tool` | `MODERATORACTION`: alert, kick, room alert, room kick and ban, what they refuse, and a normal user who sends it |
 | `call-for-help` | calls for help: submit (once), `REQUEST_CFH`, category, pick up, answer, withdraw, follow to the room |
 | `flat-moderation` | the word filter on room names and descriptions, `BANUSER` and what it refuses, `:unacceptable` |
+| `flat-votes` | room ratings: `RATEFLAT` (bad answers, twice, by the owner), `UPDATE_VOTES` on entry and after a vote, a voter matched by IP address, a new user counting as voted, a negative rating shown as 0, the rating ordering the navigator |
+| `flat-events` | room events: `CAN_CREATE_ROOMEVENT`, `CREATE_ROOMEVENT` (out of a room, bad types, twice), `ROOMEEVENT_INFO` to the room and on entry, `GET_ROOMEVENTS_BY_TYPE`, `EDIT_ROOMEVENT`/`QUIT_ROOMEVENT` by the owner and a visitor, the event ending when its room unloads |
 | `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
 | `flat-pet-gift` | a pet nest bought as a gift (unchecked), opened into the nest with its pet, and a gift with a bad pet that opens into nothing |
 | `pool-booth` | the Habbo Lido's changing booths: walking in (`OPEN_UIMAKOPPI`, the curtain closes), `SWIMSUIT`, `CLOSE_UIMAKOPPI`, a visitor's `G_STAT` with the curtains' programs, leaving from inside a booth; the room's re-initialisation without `G_STAT` showing the programs again |
@@ -344,6 +361,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `pool-camera` | Lido B's diving camera: the lift's program on `G_STAT`, the first shot 3 s after the first `G_STAT`, the camera mode for a second user, the camera following the other user when its user leaves |
 | `user-effects` | avatar effects: activating (copies, not owned), wearing in and out of a room, waving refused, a visitor's `G_STAT`, drinks and effects stopping each other, `:sit` re-sending it, switching it off, the effect kept into the next room |
 | `catalogue-effects` | buying an effect: as a gift (refused), for pixels (stored, nothing sent: Java's `newEffect` bug), too expensive |
+| `catalogue-trophy` | trophies: bought with an engraving (the `TrophyExtraData` JSON in the hand, the name, date and message in the room), and as a gift, engraved with the sender's name once opened |
 | `gamehall-tictactoe` | the TicTacToe hall: a game started alone and joined, `CHOOSETYPE`, `SETSECTOR` (turns, sides, taken squares), five in a row (winning tokens, the chat line), `RESTART`, walking off and back, `CLOSE` (and a move Java still lets through), leaving the room |
 | `gamehall-battleships` | the Battleships hall: `PLACESHIP` (bad type, too many), the start (`OPPONENTS`, `TURN`), shots out of turn, misses (the turn 2 s later), `HIT`/`HITTWICE`/`SINK` with the `SITUATION` grids, `GAMEEND`/`GAMEOVER`, `CLOSE`, leaving |
 | `gamehall-chess` | the Chess hall: waiting for a second player, the game for both, walking off ends it for both, a new game, leaving the room, the king chairs (the oracle's chess is a stub: moves are unit tests) |

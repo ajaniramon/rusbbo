@@ -11,6 +11,9 @@
 
 mod bots;
 mod catalogue;
+mod chatlogs;
+mod events;
+mod favourites;
 mod games;
 mod infobus;
 mod items;
@@ -37,6 +40,8 @@ use serde::de::DeserializeOwned;
 
 pub use bots::RoomBot;
 pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge};
+pub use chatlogs::ChatLog;
+pub use events::RoomEvent;
 pub use games::{GameMap, GameRank, GameSpawn, PlayedGame};
 pub use infobus::InfobusPoll;
 pub use items::{Item, ItemDefinition};
@@ -172,6 +177,9 @@ impl Store {
             bots::create_tables(&tx)?;
             rooms::create_tables(&tx)?;
             catalogue::create_tables(&tx)?;
+            chatlogs::create_tables(&tx)?;
+            events::create_tables(&tx)?;
+            favourites::create_tables(&tx)?;
             games::create_tables(&tx)?;
             infobus::create_tables(&tx)?;
             items::create_tables(&tx)?;

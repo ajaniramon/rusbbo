@@ -5,6 +5,7 @@
 
 mod games;
 mod infobus;
+mod social;
 mod sound;
 mod user;
 
@@ -72,6 +73,8 @@ fn main() -> Result<()> {
     eprintln!("[import] {infobus_rows} infobus poll/answer rows");
     let game_rows = games::import_games(&mut conn, &store)?;
     eprintln!("[import] {game_rows} game map/spawn/rank/history rows");
+    let social_rows = social::import_social(&mut conn, &store)?;
+    eprintln!("[import] {social_rows} favourite room/room event/chat log rows");
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \

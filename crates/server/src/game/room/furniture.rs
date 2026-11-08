@@ -67,6 +67,13 @@ pub fn reset_extra_data(item: &mut Item, _room_load: bool) -> bool {
     false
 }
 
+/// Java: `Item.trophyData`, worked out once the item is in a room.
+fn engrave(world: &World, item: &mut Item) {
+    if item.has(Behaviour::PrizeTrophy) && item.trophy_data.is_none() {
+        item.trophy_data = Some(crate::game::item::trophy::display(world, &item.custom_data));
+    }
+}
+
 impl Room {
     /// Java: `ItemDao.getRoomItems(roomData)` (each row gets a fresh virtual id) followed by
     /// `RoomItemManager.resetItemStates`.
@@ -80,7 +87,9 @@ impl Room {
         };
         for row in rows {
             if let Some(owned) = world.items.make_item(row) {
-                self.mapping.items.push(Item::from_owned(owned));
+                let mut item = Item::from_owned(owned);
+                engrave(world, &mut item);
+                self.mapping.items.push(item);
             }
         }
         self.reset_item_states(world);
@@ -194,6 +203,7 @@ impl Room {
         item.rolling = None;
         // Java also sets lastPlacedTime, which only commented-out code in WALK reads.
         reset_extra_data(&mut item, false);
+        engrave(world, &mut item);
         let wall = item.has(Behaviour::WallItem);
         if item.has(Behaviour::Teleporter) {
             item.custom_data = "0".into(); // TELEPORTER_CLOSE

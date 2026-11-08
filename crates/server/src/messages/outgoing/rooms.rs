@@ -1,5 +1,5 @@
-//! Java: `messages/outgoing/rooms` (room entry and furniture), plus `ROOMEEVENT_INFO` and
-//! `CANTCONNECT` which room entry sends.
+//! Java: `messages/outgoing/rooms` (room entry and furniture), plus `CANTCONNECT` which room
+//! entry sends.
 
 use rusbbo_protocol::Message;
 use rusbbo_protocol::body::ServerBody;
@@ -36,11 +36,6 @@ pub fn flat_property(property: &str, value: &str) -> Message {
 /// Java: `UPDATE_VOTES`; -1 makes the client show the vote buttons.
 pub fn update_votes(rating: i32) -> Message {
     Message::new(345, ServerBody::new().int(rating).build())
-}
-
-/// Java: `ROOMEEVENT_INFO` with no event. TODO(events): rooms_events.
-pub fn room_event_info_none() -> Message {
-    Message::new(370, ServerBody::new().string(b"-1").build())
 }
 
 /// Java: `HEIGHTMAP`: the model's rows, each followed by `\r`, written raw.
@@ -124,9 +119,9 @@ pub(crate) fn floor_item(body: ServerBody, item: &Item) -> ServerBody {
         crate::game::format_local(created, "%d-%m-%Y")
     } else if item.has(Behaviour::Redeemable) {
         item.sprite.split('_').nth(1).unwrap_or("").to_string()
+    } else if item.has(Behaviour::PrizeTrophy) {
+        item.trophy_data.clone().unwrap_or_default()
     } else {
-        // TODO(trophies): PRIZE_TROPHY shows the giver's name, date and message
-        // (TrophyExtraData) instead.
         item.custom_data.clone()
     };
     let expire = item.expire_time();
@@ -294,7 +289,10 @@ mod tests {
             b"landscape\x020.0\x02"
         );
         assert_eq!(update_votes(-1).body, b"M");
-        assert_eq!(room_event_info_none().body, b"-1\x02");
+        assert_eq!(
+            crate::messages::outgoing::events::room_event_info(None).body,
+            b"-1\x02"
+        );
         assert_eq!(active_objects(std::iter::empty()).body, b"H");
         assert_eq!(heightmap("xx0\r00\r").body, b"xx0\r00\r");
         assert_eq!(cant_connect(ConnectError::ClubOnly).body, b"Kc\x02");
@@ -342,6 +340,7 @@ mod tests {
             rolling: None,
             current_roll_blocked: false,
             requires_update: false,
+            trophy_data: None,
         };
         // From traces/public-room.json: "QNH" + "r697\x02broom_bench1\x02PAHPAPA" ...
         assert_eq!(

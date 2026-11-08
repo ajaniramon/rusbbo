@@ -39,9 +39,17 @@ fn tick(world: &World) {
         crate::game::effects::expire(world, &session);
     }
 
+    // Java: "Purge expired rows" once a day (the first tick included).
+    if tick_rate % 86_400 == 0 {
+        world.events.remove_expired(&world.store);
+    }
     // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
     if tick_rate % 60 == 0 {
         world.cfh.purge_expired(world);
+    }
+    // Java: "Save chat messages every 60 seconds".
+    if tick_rate % 60 == 0 {
+        world.chat_log.save(world);
     }
     // Java: "Check xp expiry once every day", every 5 s.
     if tick_rate % 5 == 0 {

@@ -625,6 +625,7 @@ fn give_rares(world: &World, session: &Arc<crate::session::Session>, rares: &[i3
                     item,
                     "",
                     crate::game::now(),
+                    None,
                 )?);
             }
         }

@@ -84,9 +84,8 @@ impl Store {
             .is_some_and(|expire_at| expire_at.value() > now))
     }
 
-    /// Java: `RoomVoteDao.getRatings`: the votes of a room that expire after `now`, by user id.
-    /// TODO(ip-log): Java joins `users_ip_logs` (a vote only counts if its user has logged IPs)
-    /// and keeps the voter's IPs; that table is not stored yet, so the join is not applied.
+    /// Java: `RoomVoteDao.getRatings` without its joins: the votes of a room that expire after
+    /// `now`, by user id. The server joins `users` and `users_ip_logs` (see `game::room`).
     pub fn room_votes(&self, room_id: u32, now: i64) -> Result<Vec<RoomVote>> {
         let tx = self.db.begin_read()?;
         let table = tx.open_table(VOTES)?;
@@ -98,6 +97,33 @@ impl Store {
             }
         }
         Ok(out)
+    }
+
+    /// Java: `RoomVoteDao.vote`.
+    pub fn add_room_vote(&self, vote: &RoomVote) -> Result<()> {
+        let mut w = self.write()?;
+        w.put_room_vote(vote)?;
+        w.commit()
+    }
+
+    /// Java: `RoomVoteDao.removeExpiredVotes`: the votes of a room with `expire_time < now`.
+    pub fn remove_expired_room_votes(&self, room_id: u32, now: i64) -> Result<()> {
+        let w = self.write()?;
+        {
+            let mut table = w.tx.open_table(VOTES)?;
+            let mut expired = Vec::new();
+            for entry in table.range((room_id, 0)..=(room_id, u32::MAX))? {
+                let (key, bytes) = entry?;
+                let vote: RoomVote = decode(bytes.value())?;
+                if vote.expire_time < now {
+                    expired.push(key.value());
+                }
+            }
+            for key in expired {
+                table.remove(key)?;
+            }
+        }
+        w.commit()
     }
 }
 
@@ -161,5 +187,19 @@ mod tests {
         assert!(!store.has_room_ban(1000, 3, 0).unwrap());
         assert_eq!(store.room_votes(1000, 99).unwrap().len(), 1);
         assert!(store.room_votes(1000, 100).unwrap().is_empty());
+        store
+            .add_room_vote(&RoomVote {
+                user_id: 3,
+                room_id: 1000,
+                vote: -1,
+                expire_time: 200,
+            })
+            .unwrap();
+        // `expire_time < now`: the vote expiring at 100 stays at 100 and goes at 101.
+        store.remove_expired_room_votes(1000, 100).unwrap();
+        assert_eq!(store.room_votes(1000, 0).unwrap().len(), 2);
+        store.remove_expired_room_votes(1000, 101).unwrap();
+        let left = store.room_votes(1000, 0).unwrap();
+        assert_eq!((left.len(), left[0].user_id), (1, 3));
     }
 }

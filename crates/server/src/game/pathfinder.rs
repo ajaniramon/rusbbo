@@ -156,7 +156,6 @@ pub fn walk_direction(x: i32, y: i32, to_x: i32, to_y: i32) -> i32 {
 }
 
 /// Java: `Rotation.calculateHumanDirection`.
-#[allow(dead_code)] // TODO(rooms): LOOKTO and body turns use it.
 pub fn human_direction(x1: i32, y1: i32, x2: i32, y2: i32) -> i32 {
     if x1 > x2 && y1 > y2 {
         7

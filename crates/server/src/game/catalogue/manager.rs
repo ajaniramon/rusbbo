@@ -9,6 +9,7 @@ use tracing::error;
 use super::{CatalogueItem, CataloguePackage, CataloguePage};
 use crate::game::currency;
 use crate::game::item::base::{InteractionType, ItemBehaviour, ItemDefinition};
+use crate::game::item::trophy::Engraving;
 use crate::game::item::{DEFAULT_ROOMDIMMER_CUSTOM_DATA, ItemManager};
 use crate::game::player::Player;
 use crate::messages::outgoing;
@@ -212,24 +213,11 @@ impl CatalogueManager {
         self.badge_rewards.get(sale_code).map_or(&[], Vec::as_slice)
     }
 
-    /// What this port cannot sell yet. The caller refuses the purchase before charging anything.
-    ///
-    /// TODO(trophies): `PRIZE_TROPHY` extra data (TrophyExtraData JSON, player lookup).
-    pub fn unsupported(item: &CatalogueItem) -> Option<&'static str> {
-        for package in item.packages() {
-            let Some(def) = &package.definition else {
-                continue;
-            };
-            if def.has_behaviour(ItemBehaviour::PrizeTrophy) {
-                return Some("trophies");
-            }
-        }
-        None
-    }
-
     /// Java: `purchase(PlayerDetails, CatalogueItem, ...)`, inside `w`: creates the items (with
     /// their pets, teleporter links and film) for `owner`. Nothing changes in memory: once `w`
     /// is committed, [`Purchase::apply`] hands the items over; dropping `w` undoes it all.
+    /// `engraving` is who and when a trophy names (Java's `overrideName` and `timestamp`): by
+    /// default `owner`, now.
     pub fn purchase_in(
         &self,
         w: &mut Writer,
@@ -237,7 +225,12 @@ impl CatalogueManager {
         item: &CatalogueItem,
         extra_data: &str,
         now: i64,
+        engraving: Option<Engraving>,
     ) -> anyhow::Result<Purchase> {
+        let engraving = engraving.unwrap_or(Engraving {
+            user_id: owner.id,
+            date: now,
+        });
         let mut bought = Purchase::default();
         if !item.is_package {
             let Some(def) = &item.definition else {
@@ -251,6 +244,7 @@ impl CatalogueManager {
                     Some(extra_data),
                     &item.item_special_id,
                     now,
+                    engraving,
                     &mut bought,
                 )?;
             }
@@ -267,6 +261,7 @@ impl CatalogueManager {
                         None,
                         &package.special_sprite_id,
                         now,
+                        engraving,
                         &mut bought,
                     )?;
                 }
@@ -362,7 +357,8 @@ pub fn transaction_description(item: &CatalogueItem) -> Option<String> {
 }
 
 /// Java: `purchase(PlayerDetails, ItemDefinition, ...)`: creates one item for `owner` inside
-/// `w` and records it in `bought`.
+/// `w` and records it in `bought` (Java's method takes as many arguments).
+#[allow(clippy::too_many_arguments)]
 fn purchase_one(
     w: &mut Writer,
     owner: &User,
@@ -370,6 +366,7 @@ fn purchase_one(
     extra_data: Option<&str>,
     special_sprite_id: &str,
     now: i64,
+    engraving: Engraving,
     bought: &mut Purchase,
 ) -> anyhow::Result<()> {
     // Java: `purchaseEffect`: an effect is not an item either, the special sprite id is the
@@ -402,7 +399,9 @@ fn purchase_one(
         if def.interaction_type == InteractionType::Scoreboard {
             custom_data = "x".into();
         }
-        // TODO(trophies): PRIZE_TROPHY builds TrophyExtraData JSON here.
+        if def.has_behaviour(ItemBehaviour::PrizeTrophy) {
+            custom_data = crate::game::item::trophy::extra_data(engraving, extra);
+        }
         if def.has_behaviour(ItemBehaviour::Roomdimmer) {
             custom_data = DEFAULT_ROOMDIMMER_CUSTOM_DATA.into();
         }

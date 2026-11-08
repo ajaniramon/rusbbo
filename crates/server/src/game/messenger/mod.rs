@@ -74,7 +74,7 @@ pub struct FriendView {
     pub username: String,
     pub male: bool,
     pub online: bool,
-    /// TODO(rooms): `MessengerUser.canFollowFriend`; needs the friend's room.
+    /// Java: `MessengerUser.canFollowFriend` ([`manager::can_follow_friend`]).
     pub can_follow: bool,
     /// Empty when the friend is offline.
     pub figure: String,

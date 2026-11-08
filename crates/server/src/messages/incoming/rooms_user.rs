@@ -485,6 +485,34 @@ pub fn go_away(
     Ok(())
 }
 
+/// Java: `RATEFLAT`: a vote of 1 or -1 on the flat the user is in, once, never by its owner.
+pub fn rate_flat(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let mut r = room.lock();
+    let Some(idx) = r.entity_index(session.id) else {
+        return Ok(());
+    };
+    if r.is_public() || r.is_owner(r.entities[idx].details.user_id) {
+        return Ok(());
+    }
+    let answer = reader.int().ok_or(Malformed)?;
+    if answer != 1 && answer != -1 {
+        return Ok(());
+    }
+    let details = r.entities[idx].details.clone();
+    if r.has_voted(world, &details) {
+        return Ok(());
+    }
+    r.add_vote(world, answer, &details);
+    Ok(())
+}
+
 /// Java: `WAVE`.
 pub fn wave(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
     let Some(room) = current_room(world, session) else {

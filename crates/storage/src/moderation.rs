@@ -208,6 +208,39 @@ impl Store {
         Ok(out)
     }
 
+    /// Java: `LogDao.deleteIpAddressLogs`: the rows logged before `cutoff` (`created_at <
+    /// cutoff`). Returns how many went.
+    pub fn delete_ip_logs_before(&self, cutoff: i64) -> Result<usize> {
+        let w = self.write()?;
+        let mut deleted = 0;
+        {
+            let mut table = w.tx.open_table(IP_LOGS)?;
+            let mut changed: Vec<(u32, Vec<IpLog>)> = Vec::new();
+            for entry in table.iter()? {
+                let (user_id, bytes) = entry?;
+                let logs: Vec<IpLog> = decode(bytes.value())?;
+                let kept: Vec<IpLog> = logs
+                    .iter()
+                    .filter(|l| l.created_at >= cutoff)
+                    .cloned()
+                    .collect();
+                if kept.len() != logs.len() {
+                    deleted += logs.len() - kept.len();
+                    changed.push((user_id.value(), kept));
+                }
+            }
+            for (user_id, kept) in changed {
+                if kept.is_empty() {
+                    table.remove(user_id)?;
+                } else {
+                    table.insert(user_id, encode(&kept)?.as_slice())?;
+                }
+            }
+        }
+        w.commit()?;
+        Ok(deleted)
+    }
+
     /// Java: `PlayerDao.logIpAddress`.
     pub fn log_ip(&self, user_id: u32, ip_address: &str, now: i64) -> Result<()> {
         let mut w = self.write()?;
@@ -376,6 +409,10 @@ mod tests {
             ["10.0.0.2", "10.0.0.1", "10.0.0.3"]
         );
         assert_eq!(store.ip_addresses(1, 1).unwrap(), ["10.0.0.2"]);
+        assert!(store.ip_addresses(2, 20).unwrap().is_empty());
+        store.log_ip(2, "10.0.0.9", 3).unwrap();
+        assert_eq!(store.delete_ip_logs_before(8).unwrap(), 3);
+        assert_eq!(store.ip_addresses(1, 20).unwrap(), ["10.0.0.2", "10.0.0.1"]);
         assert!(store.ip_addresses(2, 20).unwrap().is_empty());
         let entry = AuditLogEntry {
             action: "room_alert".into(),
