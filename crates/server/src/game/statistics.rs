@@ -13,6 +13,7 @@ pub mod stat {
     pub const GIFTS_DUE: &str = "gifts_due";
     pub const CLUB_MEMBER_TIME: &str = "club_member_time";
     pub const CLUB_MEMBER_TIME_UPDATED: &str = "club_member_time_updated";
+    pub const MUTE_EXPIRES_AT: &str = "mute_expires_at";
 }
 
 #[derive(Default)]

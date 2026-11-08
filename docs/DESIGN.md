@@ -124,8 +124,10 @@ Java's decoder re-decrypts a header when the body has not fully arrived, which g
 across TCP reads; the Rust decoder remembers the header.
 
 SSO tickets: like Java, the server clears all tickets at startup and each ticket on use. Tickets
-are issued by the web layer; until it exists, `--dev-ticket <user_id>=<ticket>` sets one at startup
-(used by the harness).
+are issued by the ticket API (`--http`, `src/ticket_api.rs`, Havana-Web's `/api/ticket`), a small
+hyper service in the same process; `--dev-ticket <user_id>=<ticket>` sets one at startup (used by
+the harness). `TRY_LOGIN` and the ticket API check the Argon2 hashes the Java web wrote
+(`game/password.rs`).
 
 ## Testing
 

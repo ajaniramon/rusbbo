@@ -72,6 +72,14 @@ impl Session {
         let _ = self.out.send(Outgoing::Frame(encode_server(&msg)));
     }
 
+    /// Queues bytes that are already a whole frame (Java: `sendObject`, used by `:packet`).
+    pub fn send_raw(&self, frame: Vec<u8>) {
+        if self.closing.load(Ordering::Relaxed) {
+            return;
+        }
+        let _ = self.out.send(Outgoing::Frame(frame));
+    }
+
     /// Switches the connection to the encrypted transport (Java: `Player.setDecoder`). Everything
     /// sent before this call stays plain; incoming bytes are decrypted from the reader's next read.
     pub fn enable_encryption(&self, crypto: Crypto) {

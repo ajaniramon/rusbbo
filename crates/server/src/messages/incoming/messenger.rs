@@ -369,24 +369,45 @@ pub fn remove_buddy(
     Ok(())
 }
 
-/// Java: `MESSENGER_SENDMSG`.
-///
-/// TODO(wordfilter): `filterMandatorySentence`, the bannable-sentence check and the receiver's
-/// `filterSentence`. TODO(mute): the muted-player alert.
+/// Java: `MESSENGER_SENDMSG`: the mandatory word filter for everyone, the automatic ban for a
+/// bannable sentence, the muted alert, and the receiver's own word filter. The stored message is
+/// the original text.
 pub fn send_message(
     world: &World,
     session: &Arc<Session>,
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let to = reader.int().ok_or(Malformed)?;
-    let original = latin1(reader.string().ok_or(Malformed)?);
-    let message = filter_input(&original, false);
+    let original_bytes = reader.string().ok_or(Malformed)?;
+    let original = latin1(original_bytes);
+    let message = {
+        let settings = world.settings.read();
+        let filtered = filter_input(&original, false);
+        latin1(
+            &world
+                .wordfilter
+                .filter_mandatory(&settings, &havana_protocol::body::latin1(&filtered)),
+        )
+    };
     if message.trim().is_empty() {
         return Ok(());
     }
     let Some(my_id) = me(session) else {
         return Ok(());
     };
+    let created_at = session
+        .player
+        .lock()
+        .details
+        .as_ref()
+        .map_or(0, |d| d.created_at);
+    if super::rooms_user::is_bannable(world, created_at, original_bytes) {
+        crate::game::moderation::perform_wordfilter_ban(world, my_id);
+        return Ok(());
+    }
+    if crate::game::moderation::check_muted(session) {
+        return Ok(());
+    }
     let friend_id = user_id(to).filter(|id| {
         session
             .player
@@ -412,6 +433,22 @@ pub fn send_message(
     // Offline: the message stays unread and is delivered at the receiver's next MESSENGERINIT.
     let Some(friend) = world.player_by_id(friend_id) else {
         return Ok(());
+    };
+    let filter = friend
+        .player
+        .lock()
+        .details
+        .as_ref()
+        .is_some_and(|d| d.wordfilter_enabled);
+    let message = if filter {
+        let settings = world.settings.read();
+        latin1(
+            &world
+                .wordfilter
+                .filter_sentence(&settings, &havana_protocol::body::latin1(&message)),
+        )
+    } else {
+        message
     };
     friend.send(out::messenger_msg(my_id, &message));
     if let Err(e) = world.store.messenger_mark_read(message_id) {

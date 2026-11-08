@@ -43,3 +43,9 @@ user-club
 user-club-member
 user-ignore
 user-settings
+moderation-login
+staff-commands
+moderation-tool
+call-for-help
+moderation-autoban
+flat-moderation

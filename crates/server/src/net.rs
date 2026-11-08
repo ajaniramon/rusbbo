@@ -46,9 +46,13 @@ pub async fn serve(world: Arc<World>, bind: SocketAddr) -> Result<()> {
 
 async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()> {
     stream.set_nodelay(true)?;
+    let stream_peer = stream.peer_addr();
     let (mut reader, mut writer) = stream.into_split();
     let (tx, mut rx) = mpsc::unbounded_channel();
     let session = Arc::new(Session::new(id, tx));
+    if let Ok(peer) = stream_peer {
+        session.player.lock().ip_address = peer.ip().to_string();
+    }
 
     let mut writer_task = tokio::spawn(async move {
         // Set by `Outgoing::Encrypt`; frames are encrypted here, in queue order, because the

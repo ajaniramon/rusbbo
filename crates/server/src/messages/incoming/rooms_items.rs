@@ -703,7 +703,14 @@ pub fn use_furniture(
             return Ok(());
         }
     }
-    // TODO(commands): the item debug alert (":debugfurniture").
+    // Java: `:itemdebug` shows the item's details, then the item is used as usual.
+    if r.entity_index(session.id)
+        .is_some_and(|e| r.entities[e].has_item_debug)
+    {
+        session.send(crate::messages::outgoing::alerts::alert(
+            &r.mapping.items[idx].debug_alert(),
+        ));
+    }
     use_item(world, session, r, idx, status, teleporting);
     Ok(())
 }

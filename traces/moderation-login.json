@@ -1,0 +1,356 @@
+{
+  "format": 1,
+  "scenario": "moderation-login",
+  "description": "Hotel bans at login (a user id ban, a machine id ban; expired and lifted bans do not count) and TRY_LOGIN with a password (wrong, then right with another letter case)",
+  "runs": 3,
+  "bots": [
+    "banned",
+    "machine",
+    "pass"
+  ],
+  "steps": [
+    {
+      "bot": "banned",
+      "action": "connect",
+      "note": "USER_ID ban: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {
+        "banned": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "banned",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "note": "USER_ID ban: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {
+        "banned": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "275892717815677628630481\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "banned",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "note": "USER_ID ban: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "banned",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-23",
+      "note": "USER_ID ban: HOTEL_LOGOUT and closed",
+      "settle_ms": 1500,
+      "received": {
+        "banned": {
+          "ordered": true,
+          "closed": true,
+          "messages": [
+            {
+              "header": 287,
+              "name": "HOTEL_LOGOUT",
+              "body": "M",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "machine",
+      "action": "connect",
+      "note": "MACHINE_ID ban on the stored machine id: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {
+        "machine": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "machine",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "note": "MACHINE_ID ban on the stored machine id: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {
+        "machine": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "977721434035754471106078\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "machine",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "note": "MACHINE_ID ban on the stored machine id: HOTEL_LOGOUT and closed",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "machine",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-24",
+      "note": "MACHINE_ID ban on the stored machine id: HOTEL_LOGOUT and closed",
+      "settle_ms": 1500,
+      "received": {
+        "machine": {
+          "ordered": true,
+          "closed": true,
+          "messages": [
+            {
+              "header": 287,
+              "name": "HOTEL_LOGOUT",
+              "body": "M",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "928035889253940437158754\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 4,
+      "name": "TRY_LOGIN",
+      "body": "@Itracepass@Nwrong-password",
+      "note": "LOCALISED_ERROR Login incorrect; the connection stays open",
+      "settle_ms": 1500,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 33,
+              "name": "LOCALISED_ERROR",
+              "body": "Login incorrect",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 4,
+      "name": "TRY_LOGIN",
+      "body": "@Fnobody@Ltracepass123",
+      "note": "Unknown user: the same error",
+      "settle_ms": 1500,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 33,
+              "name": "LOCALISED_ERROR",
+              "body": "Login incorrect",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 4,
+      "name": "TRY_LOGIN",
+      "body": "@ITracePass@Ltracepass123",
+      "note": "Logged in (the user name matches in any case); its expired and inactive bans do not count",
+      "settle_ms": 1500,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#DA55E63D9C664C2F9E5DD44D22A418EE\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 7,
+      "name": "GET_INFO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 5,
+              "name": "USER_OBJECT",
+              "body": "25\u0002tracepass\u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace pass\u0002RB\u0002RBHHK",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "pass",
+      "action": "send",
+      "header": 4,
+      "name": "TRY_LOGIN",
+      "body": "@Itracepass@Ltracepass123",
+      "note": "Already logged in: nothing",
+      "settle_ms": 1500,
+      "received": {}
+    },
+    {
+      "bot": "pass",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "pass": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

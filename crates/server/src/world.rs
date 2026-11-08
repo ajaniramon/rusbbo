@@ -45,6 +45,8 @@ pub struct World {
     pub walkways: Vec<WalkwayEntrance>,
     /// Java: `WordfilterManager`, loaded at startup.
     pub wordfilter: WordFilter,
+    /// Java: `CallForHelpManager`.
+    pub cfh: crate::game::moderation::cfh::CallForHelpManager,
     /// Set once the world is in its `Arc`, so room tasks can hold on to it.
     self_ref: OnceLock<Weak<World>>,
 }
@@ -81,6 +83,7 @@ impl World {
             room_categories,
             walkways,
             wordfilter,
+            cfh: Default::default(),
             self_ref: OnceLock::new(),
         })
     }
@@ -225,6 +228,14 @@ impl World {
             .ok()
             .flatten()
             .unwrap_or_else(|| key.to_string())
+    }
+
+    /// Java: `GameConfiguration.reset`: reads the settings again (`:setconfig`, `:reload`).
+    pub fn reload_settings(&self) {
+        match load_settings(&self.store) {
+            Ok(values) => *self.settings.write() = Settings::new(values),
+            Err(e) => tracing::error!("reloading settings: {e}"),
+        }
     }
 
     /// Sessions logged in as `user_id`.

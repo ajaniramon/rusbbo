@@ -58,14 +58,23 @@ pub fn room_by_client_id(world: &World, id: i32) -> Option<RoomRef> {
     u32::try_from(id).ok().and_then(|id| world.room_by_id(id))
 }
 
+/// Java: `WordfilterManager.filterSentence`, for room names and descriptions.
+fn filter_sentence(world: &World, text: &[u8]) -> Vec<u8> {
+    let settings = world.settings.read();
+    world.wordfilter.filter_sentence(&settings, text)
+}
+
 /// Java: `CREATEFLAT`: the room kiosk. Answers `GOTO_FLAT` and lets the creator in.
 pub fn create_flat(
     world: &World,
     session: &Arc<Session>,
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    // TODO(wordfilter): WordfilterManager.filterSentence.
-    let name = latin1(&filter_input(reader.string().ok_or(Malformed)?));
+    // Java: WordfilterManager.filterSentence(StringUtil.filterInput(name, true)).
+    let name = latin1(&filter_sentence(
+        world,
+        &filter_input(reader.string().ok_or(Malformed)?),
+    ));
     let model = latin1(reader.string().ok_or(Malformed)?);
     let access = if reader.remaining().is_empty() {
         String::new()
@@ -142,8 +151,11 @@ pub fn set_flat_info(
     if !room.lock().is_owner(user_id) {
         return Ok(());
     }
-    // TODO(wordfilter): WordfilterManager.filterSentence on the description.
-    let description = latin1(&filter_input(reader.string().ok_or(Malformed)?));
+    // Java: StringUtil.filterInput(WordfilterManager.filterSentence(description), true).
+    let description = latin1(&filter_input(&filter_sentence(
+        world,
+        reader.string().ok_or(Malformed)?,
+    )));
     let password = latin1(&filter_input(reader.string().ok_or(Malformed)?));
     let all_super_users = reader.int().ok_or(Malformed)?;
     let max_visitors = if reader.remaining().is_empty() {
@@ -304,8 +316,11 @@ pub fn update_flat(
     if !room.lock().is_owner(user_id) {
         return Ok(());
     }
-    // TODO(wordfilter): WordfilterManager.filterSentence.
-    let name = latin1(&filter_input(reader.string().ok_or(Malformed)?));
+    // Java: WordfilterManager.filterSentence(StringUtil.filterInput(name, true)).
+    let name = latin1(&filter_sentence(
+        world,
+        &filter_input(reader.string().ok_or(Malformed)?),
+    ));
     let access = latin1(reader.string().ok_or(Malformed)?);
     let show_owner = reader.bool().ok_or(Malformed)?;
     let data = {

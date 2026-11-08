@@ -88,6 +88,15 @@ pub fn walk(
     if r.model.name == "park_a" && goal_x == 28 && goal_y == 4 {
         return Ok(());
     }
+    if r.entities[idx].has_item_debug {
+        let goal = crate::game::pathfinder::Position::new(goal_x, goal_y);
+        if let Some(item) = r.mapping.highest_item(goal) {
+            session.send(crate::messages::outgoing::alerts::alert(
+                &item.debug_alert(),
+            ));
+            return Ok(());
+        }
+    }
     r.walk_to_player(world, idx, goal_x, goal_y);
     Ok(())
 }
@@ -138,19 +147,27 @@ fn mandatory_filtered(world: &World, text: &[u8]) -> Vec<u8> {
 }
 
 /// Java: `WordfilterManager.hasBannableSentence`: only users who joined at most 30 minutes ago.
-/// TODO(bans): `performBan` writes a 20-year ban and disconnects; the bans tables are not ported,
-/// so the message is only dropped.
-fn is_bannable(world: &World, speaker: &Speaker, sentence: &[u8]) -> bool {
-    let minutes_since_joined = (now() - speaker.created_at).div_euclid(60);
+pub(crate) fn is_bannable(world: &World, created_at: i64, sentence: &[u8]) -> bool {
+    let minutes_since_joined = (now() - created_at).div_euclid(60);
     if minutes_since_joined > 30 {
         return false;
     }
     let settings = world.settings.read();
-    let bannable = world.wordfilter.has_bannable_sentence(&settings, sentence);
-    if bannable {
-        tracing::warn!(user = %speaker.name, "bannable sentence (the ban is not implemented)");
+    world.wordfilter.has_bannable_sentence(&settings, sentence)
+}
+
+/// `hasBannableSentence` then `performBan`: true when the speaker was banned (and the message
+/// must go nowhere).
+fn banned_for(world: &World, session: &Session, speaker: &Speaker, sentence: &[u8]) -> bool {
+    if !is_bannable(world, speaker.created_at, sentence) {
+        return false;
     }
-    bannable
+    // The player lock must be released first: the ban locks every online player.
+    let user_id = session.player.lock().user_id();
+    if let Some(user_id) = user_id {
+        crate::game::moderation::perform_wordfilter_ban(world, user_id);
+    }
+    true
 }
 
 /// What `CHAT` and `SHOUT` share.
@@ -171,14 +188,16 @@ fn talk(
     if is_blank(&message) {
         return Ok(());
     }
-    if is_bannable(world, &speaker, original) {
+    if banned_for(world, session, &speaker, original) {
         return Ok(());
     }
     if commands::has_command(speaker.rank, original) {
         commands::invoke_command(world, session, original);
         return Ok(());
     }
-    // TODO(moderation): muted users (users_mutes).
+    if crate::game::moderation::check_muted(session) {
+        return Ok(());
+    }
     let deferred = {
         let mut r = room.lock();
         let Some(idx) = r.entity_index(session.id) else {
@@ -217,10 +236,12 @@ pub fn whisper(
     let Some(speaker) = speaker(session) else {
         return Ok(());
     };
-    if is_bannable(world, &speaker, &text) {
+    if banned_for(world, session, &speaker, &text) {
         return Ok(());
     }
-    // TODO(moderation): muted users.
+    if crate::game::moderation::check_muted(session) {
+        return Ok(());
+    }
     let mut receivers = vec![Receiver {
         session: session.clone(),
         filter: speaker.filter,

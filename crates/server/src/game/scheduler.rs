@@ -17,7 +17,11 @@ pub async fn run(world: Arc<World>) {
     }
 }
 
+/// Java: `GameScheduler.tickRate`, incremented at the end of every tick.
+static TICK_RATE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 fn tick(world: &World) {
+    let tick_rate = TICK_RATE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     // Java checks sleep and AFK per player in a room; here per room, one room lock at a time.
     for room in world.loaded_rooms() {
         let deferred = {
@@ -52,6 +56,11 @@ fn tick(world: &World) {
             Ok(None) => {}
             Err(e) => error!(user = user.id, "daily credits: {e}"),
         }
+    }
+
+    // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
+    if tick_rate % 60 == 0 {
+        world.cfh.purge_expired(world);
     }
 }
 

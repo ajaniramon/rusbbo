@@ -143,6 +143,20 @@ pub fn hotel_view() -> Message {
     Message::new(18, vec![])
 }
 
+/// Java: `FIGURE_CHANGE`: a user's look and motto changed (also after `:givebadge` and a
+/// `:teleport` warp).
+pub fn figure_change(instance_id: i32, figure: &str, sex: &str, motto: &str) -> Message {
+    Message::new(
+        266,
+        ServerBody::new()
+            .int(instance_id)
+            .text(figure)
+            .text(sex)
+            .text(motto)
+            .build(),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

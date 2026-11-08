@@ -7,6 +7,7 @@ pub mod handshake;
 pub mod inventory;
 pub mod jukebox;
 pub mod messenger;
+pub mod moderation;
 pub mod navigator;
 pub mod rooms;
 pub mod rooms_dimmer;

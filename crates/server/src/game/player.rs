@@ -9,7 +9,7 @@ use crate::game::badges::BadgeManager;
 use crate::game::inventory::Inventory;
 use crate::game::messenger::{Messenger, manager as messenger_manager};
 use crate::game::statistics::{PlayerStatistics, stat};
-use crate::game::{club, fuserights, now, today_short};
+use crate::game::{club, fuserights, moderation, now, today_short};
 use crate::messages::outgoing;
 use crate::session::Session;
 use crate::world::World;
@@ -58,6 +58,8 @@ pub struct Player {
     pub process_login_steps: bool,
     /// Java: `PlayerDetails.previousRespectDay`: the respect day as stored before this login.
     pub previous_respect_day: String,
+    /// Java: `NettyPlayerNetwork.getIpAddress`, set when the connection opens.
+    pub ip_address: String,
 }
 
 impl Player {
@@ -91,6 +93,17 @@ pub fn kick(world: &World, session: &Arc<Session>) {
     dispose(world, session);
 }
 
+/// Java: `PlayerDao.login`: the user with that name (`username = ?`, case-insensitive like the
+/// MariaDB collation) whose stored Argon2 hash matches the password. Used by `TRY_LOGIN` and the
+/// ticket API.
+pub fn check_login(world: &World, username: &str, password: &str) -> Option<User> {
+    let user = world.store.user_by_name(username).unwrap_or_else(|e| {
+        error!("login lookup: {e}");
+        None
+    })?;
+    crate::game::password::matches(&user.password, password).then_some(user)
+}
+
 /// Logs in `user` on `session` (Java: `Player.login`).
 pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     // Kill other sessions of the same user before registering this one.
@@ -117,7 +130,33 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     p.process_login_steps = true;
     p.previous_respect_day = user.respect_day.clone();
 
-    // TODO(bans): kick banned users once the bans tables are ported (Java: details.isBanned()).
+    // Java: `details.isBanned()` (user id, then the stored machine id) kicks the user. What
+    // Java saved before this point (last online, the reset SSO ticket) is saved first.
+    if let Some(ban) = moderation::active_ban(world, user.id, &user.machine_id) {
+        info!(
+            user = user.id,
+            until = ban.banned_until,
+            "banned user logged in: kicked"
+        );
+        if let Err(e) = world.store.update_user(user.id, |stored| {
+            if save_last_online {
+                stored.last_online = user.last_online;
+                stored.is_online = true;
+            }
+            stored.sso_ticket = user.sso_ticket.clone();
+        }) {
+            error!(user = user.id, "saving login: {e}");
+        }
+        let online = world.players_online().to_string();
+        if let Err(e) = world.store.put_setting("players.online", &online) {
+            error!("saving players.online: {e}");
+        }
+        p.details = Some(user);
+        drop(p);
+        drop(settings);
+        kick(world, session);
+        return;
+    }
 
     let machine_id_valid = user.machine_id.len() == 33 && user.machine_id.starts_with('#');
     if !machine_id_valid {
@@ -128,7 +167,13 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
         session.send(outgoing::handshake::unique_id(&p.client_machine_id));
     }
 
-    // TODO(ip-log): users_ip_logs.
+    // Java: the connection's IP is logged when it differs from the latest one.
+    let latest_ip = world.store.latest_ip(user.id).unwrap_or_default();
+    if latest_ip.as_deref() != Some(p.ip_address.as_str()) {
+        if let Err(e) = world.store.log_ip(user.id, &p.ip_address, now()) {
+            error!(user = user.id, "logging the IP address: {e}");
+        }
+    }
 
     // Java: EffectDao.removeEffects drops used-up effects, then the rest are loaded.
     let mut effects = world.store.effects(user.id).unwrap_or_default();

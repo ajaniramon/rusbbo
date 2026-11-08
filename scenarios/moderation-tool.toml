@@ -1,0 +1,254 @@
+name = "moderation-tool"
+description = "The in-client moderation tool (MODERATORACTION): alert a user, kick a user, room alert, room kick, ban (and what it refuses), and a normal user who sends it"
+
+# Room 7 (ballroom, no NPCs). s = tracestaff (ADMINISTRATOR), m = tracemod (MODERATOR), a =
+# tracebot1, b = tracebot2. MODERATORACTION: target type (0 user, 1 room), action type (user:
+# 0 alert, 1 kick, 2 ban; room: 0 alert, 1 kick), the alert message and notes, then for user
+# actions the name, and for a ban the hours and two booleans (ban the machine id, ban the IP:
+# ignored, as in Java).
+# A kicked user walks to the door and leaves (HOTEL_VIEW, then MODERATOR_ALERT).
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "m"
+ticket = "trace-sso-22"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "s"
+send = "WALK"
+args = [10, 8]
+settle_ms = 2000
+
+[[steps]]
+bot = "m"
+macro = "login"
+
+[[steps]]
+bot = "m"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "m"
+send = "G_HMAP"
+
+[[steps]]
+bot = "m"
+send = "G_USRS"
+
+[[steps]]
+bot = "m"
+send = "G_OBJS"
+
+[[steps]]
+bot = "m"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "m"
+send = "WALK"
+args = [16, 8]
+settle_ms = 2500
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [12, 8]
+settle_ms = 2500
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [12, 10]
+settle_ms = 2500
+
+# --- User actions ---
+
+[[steps]]
+bot = "a"
+send = "MODERATORACTION"
+args = [0, 0, "Hi", "notes", "tracebot2"]
+note = "No fuse_room_alert: nothing"
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 0, "Please behave", "first warning", "tracebot1"]
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 0, "Hello?", "", "nobody"]
+
+[[steps]]
+bot = "m"
+send = "MODERATORACTION"
+args = [0, 1, "Out", "", "tracestaff"]
+note = "The target may kick too: modtool_rankerror"
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 1, "Out you go", "kick notes", "tracebot1"]
+settle_ms = 2500
+note = "a walks to the door and leaves"
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 1, "Again", "", "tracebot1"]
+note = "a is in no room: Java throws, nothing is sent"
+
+# --- Room actions ---
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [1, 0, "Room alert", "room notes"]
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [1, 1, "Room closed", ""]
+settle_ms = 2500
+note = "b leaves; s and m have fuse_room_kick and stay"
+
+# --- Ban ---
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 2, "Banned by the tool", "ban notes", "tracebot1", 2, true, false]
+note = "a is disconnected (no HOTEL_LOGOUT)"
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 2, "Banned again", "", "tracebot1", 2, false, false]
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 2, "No", "", "tracemod", 2, false, false]
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 2, "No", "", "tracestaff", 2, false, false]
+
+[[steps]]
+bot = "s"
+send = "MODERATORACTION"
+args = [0, 2, "No", "", "nobody", 2, false, false]
+
+[[steps]]
+bot = "m"
+send = "MODERATORACTION"
+args = [0, 2, "Mods ban too", "", "tracebot2", 1, false, true]
+note = "b is in the hotel view and gets disconnected"
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "m"
+disconnect = true
+
+[[steps]]
+bot = "s"
+disconnect = true

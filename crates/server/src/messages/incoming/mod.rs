@@ -7,6 +7,7 @@ pub mod handshake;
 pub mod inventory;
 pub mod jukebox;
 pub mod messenger;
+pub mod moderation;
 pub mod navigator;
 pub mod pets;
 pub mod rooms;
@@ -162,6 +163,17 @@ pub fn handler(header: u16) -> Option<Handler> {
         256 => jukebox::remove_jukebox_disc,
         257 => jukebox::jukebox_playlist_add,
         260 => jukebox::reset_jukebox,
+        // registerModerationPackets
+        200 => moderation::moderator_action,
+        237 => moderation::request_cfh,
+        86 => moderation::submit_cfh,
+        48 => moderation::pick_call_for_help,
+        199 => moderation::message_to_caller,
+        198 => moderation::change_call_category,
+        238 => moderation::delete_cry,
+        323 => moderation::follow_cry_for_help,
+        320 => rooms_moderation::ban_user,
+        4 | 756 => handshake::try_login,
         _ => return None,
     })
 }
