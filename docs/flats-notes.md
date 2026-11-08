@@ -65,3 +65,8 @@ traces stay the spec.
 - A visitor's `QUIT` sends `LOGOUT` (leaver's instance id) to the others. `DELETEFLAT` with users
   inside: the owner gets `HOTEL_VIEW`; the visitor `LOGOUT` for the owner, then `HOTEL_VIEW`. Furni
   in a deleted room is deleted, not returned to the hand.
+- A deleted room stays registered until the dispose timer unloads it (`room.dispose.timer.seconds`)
+  and still answers `GETFLATINFO` and `TRYFLAT` (`FLAT_LETIN`) meanwhile, as `flat-delete` records.
+  Java also lets `GOTOFLAT` re-enter it, and whatever is placed there then is lost with the room.
+  **Deliberate deviation**: the Rust server ignores `GOTOFLAT` (and any other entry) into a deleted
+  room, as Java does for a room that does not exist. No trace covers that sequence.

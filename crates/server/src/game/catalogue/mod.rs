@@ -5,5 +5,5 @@ mod manager;
 mod page;
 
 pub use item::{CatalogueItem, CataloguePackage};
-pub use manager::CatalogueManager;
+pub use manager::{CatalogueManager, Purchase, transaction_description};
 pub use page::CataloguePage;

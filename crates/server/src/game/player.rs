@@ -106,18 +106,22 @@ pub fn check_login(world: &World, username: &str, password: &str) -> Option<User
 
 /// Logs in `user` on `session` (Java: `Player.login`).
 pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
-    // Kill other sessions of the same user before registering this one.
-    for other in world.sessions_of(user.id) {
-        if other.id != session.id {
-            kick(world, &other);
-        }
+    // Kill other sessions of the same user (Java: `disconnectSession`, then `addPlayer`); the
+    // registry swaps them atomically, so of two racing logins only the later one stays.
+    for other in world.register_login(session, user.id) {
+        kick(world, &other);
     }
 
     let settings = world.settings.read();
     let mut p = session.player.lock();
+    if session.is_closing() {
+        // A racing login of the same user replaced this one (and its kick found nothing to log
+        // out yet): stop here, so the closed connection never counts as logged in.
+        world.remove_player(session);
+        return;
+    }
     p.logged_in = true;
     p.time_connected = now();
-    world.add_player(session);
 
     user.last_online = now();
     user.is_online = true;

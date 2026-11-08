@@ -15,7 +15,7 @@ use redb::{ReadableTable, TableDefinition, WriteTransaction};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-use crate::{Result, Store, decode, encode};
+use crate::{Result, Store, Writer, decode, encode};
 
 const BADGES: TableDefinition<u32, &[u8]> = TableDefinition::new("users_badges");
 const MUTES: TableDefinition<u32, &[u8]> = TableDefinition::new("users_mutes");
@@ -222,17 +222,8 @@ impl Store {
     /// Java: `PlayerStatisticsDao.updateStatistic`: `UPDATE users_statistics SET column = value`,
     /// one column, so it never overwrites the others. Does nothing without a row.
     pub fn update_statistic(&self, user_id: u32, column: &str, value: i64) -> Result<()> {
-        let w = self.write()?;
-        {
-            let mut table = w.tx.open_table(STATISTICS)?;
-            let current: Option<UserStatistics> =
-                table.get(user_id)?.map(|v| decode(v.value())).transpose()?;
-            if let Some(mut stats) = current {
-                stats.values.insert(column.to_string(), value);
-                let bytes = encode(&stats)?;
-                table.insert(user_id, bytes.as_slice())?;
-            }
-        }
+        let mut w = self.write()?;
+        w.update_statistic(user_id, column, value)?;
         w.commit()
     }
 
@@ -268,6 +259,21 @@ impl Store {
 
     pub fn put_user_achievements(&self, user_id: u32, rows: &[UserAchievement]) -> Result<()> {
         self.write_record(USER_ACHIEVEMENTS, user_id, &rows.to_vec())
+    }
+}
+
+impl Writer {
+    /// [`Store::update_statistic`] inside this transaction.
+    pub fn update_statistic(&mut self, user_id: u32, column: &str, value: i64) -> Result<()> {
+        let mut table = self.tx.open_table(STATISTICS)?;
+        let current: Option<UserStatistics> =
+            table.get(user_id)?.map(|v| decode(v.value())).transpose()?;
+        if let Some(mut stats) = current {
+            stats.values.insert(column.to_string(), value);
+            let bytes = encode(&stats)?;
+            table.insert(user_id, bytes.as_slice())?;
+        }
+        Ok(())
     }
 }
 

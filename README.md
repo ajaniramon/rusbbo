@@ -82,7 +82,12 @@ songs made, edited, deleted and burnt to discs, the playlist, and discs loaded i
 Pets (`items_pets`) as in Java: bought with their nest (name, race, colour), in the room while
 the nest is placed, acting on their own every 10-25 s (walking, sitting, lying down, now and then
 a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
-(`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`).
+(`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`). A pet can be
+a gift: it travels in the present and is created when the present is opened.
+
+Purchases, gifts, club subscriptions, finished trades and opened presents are each one redb
+transaction (Java commits step by step), with their `users_transactions` audit rows; memory
+changes only after the commit (`docs/DESIGN.md`, `crates/server/src/txn_tests.rs`).
 
 Moderation as in Java (`game/moderation`): hotel bans (`users_bans`: a user id or machine id
 ban kicks the user at login; IP bans are stored but, as in Java, not enforced), the word filter's
@@ -214,6 +219,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `call-for-help` | calls for help: submit (once), `REQUEST_CFH`, category, pick up, answer, withdraw, follow to the room |
 | `flat-moderation` | the word filter on room names and descriptions, `BANUSER` and what it refuses, `:unacceptable` |
 | `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
+| `flat-pet-gift` | a pet nest bought as a gift (unchecked), opened into the nest with its pet, and a gift with a bad pet that opens into nothing |
 
 ## Known gaps
 

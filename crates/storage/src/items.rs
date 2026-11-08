@@ -176,12 +176,23 @@ impl Store {
     /// Returns whether the row existed.
     pub fn update_item(&self, item: &Item) -> Result<bool> {
         let mut w = self.write()?;
-        if w.item_in_tx(item.id)?.is_none() {
-            return Ok(false);
-        }
-        w.put_item(item)?;
+        let existed = w.update_item(item)?;
         w.commit()?;
-        Ok(true)
+        Ok(existed)
+    }
+
+    /// [`Store::update_item`] for several items, in one transaction. Returns how many rows
+    /// existed (and were written).
+    pub fn update_items<'a>(&self, items: impl IntoIterator<Item = &'a Item>) -> Result<usize> {
+        let mut w = self.write()?;
+        let mut written = 0;
+        for item in items {
+            if w.update_item(item)? {
+                written += 1;
+            }
+        }
+        w.commit()?;
+        Ok(written)
     }
 
     /// Java: `TeleporterDao.getTeleporterId`: the teleporter `item_id` leads to.
@@ -233,6 +244,20 @@ impl Writer {
         let table = self.tx.open_table(ITEMS)?;
         let row = table.get(id)?;
         row.map(|v| decode(v.value())).transpose()
+    }
+
+    /// [`Store::update_item`] inside this transaction: writes the item only if its row exists.
+    pub fn update_item(&mut self, item: &Item) -> Result<bool> {
+        if self.item_in_tx(item.id)?.is_none() {
+            return Ok(false);
+        }
+        self.put_item(item)?;
+        Ok(true)
+    }
+
+    /// The row of an item as this transaction sees it.
+    pub fn item(&mut self, id: u64) -> Result<Option<Item>> {
+        self.item_in_tx(id)
     }
 
     /// Inserts or replaces an item and keeps the owner index in step. The item must have an id.

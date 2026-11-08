@@ -33,8 +33,8 @@ pub struct World {
     pub achievements: AchievementManager,
     /// Effect lengths in seconds by effect id (Java: `EffectsManager`, from `settings_effects`).
     pub effect_durations: std::collections::BTreeMap<i32, i32>,
-    /// Logged-in sessions by connection id (Java: `PlayerManager.players`).
-    players: Mutex<HashMap<u64, Arc<Session>>>,
+    /// Logged-in sessions (Java: `PlayerManager.players`).
+    players: Mutex<Players>,
     /// Loaded rooms (Java: `RoomManager.roomMap`). Never lock a room while holding this.
     rooms: Mutex<HashMap<u32, RoomRef>>,
     /// Room models by `model_id` (Java: `RoomModelManager`), loaded at startup.
@@ -77,7 +77,7 @@ impl World {
             catalogue,
             achievements,
             effect_durations,
-            players: Mutex::new(HashMap::new()),
+            players: Mutex::new(Players::default()),
             rooms: Mutex::new(HashMap::new()),
             room_models,
             room_categories,
@@ -183,21 +183,36 @@ impl World {
         }
     }
 
-    pub fn add_player(&self, session: &Arc<Session>) {
-        self.players.lock().insert(session.id, session.clone());
+    /// Registers `session` as the one session of `user_id` and returns the sessions it replaces,
+    /// for the caller to kick (Java: `disconnectSession` then `addPlayer`). Both happen under the
+    /// registry's lock, so two logins of the same user racing each other (the same ticket on
+    /// two connections) never both stay registered: the later one replaces the earlier.
+    pub fn register_login(&self, session: &Arc<Session>, user_id: u32) -> Vec<Arc<Session>> {
+        let mut players = self.players.lock();
+        let mut replaced = Vec::new();
+        if let Some(previous) = players.by_user.insert(user_id, session.id) {
+            if previous != session.id {
+                replaced.extend(players.sessions.remove(&previous));
+            }
+        }
+        players.sessions.insert(session.id, session.clone());
+        replaced
     }
 
     pub fn remove_player(&self, session: &Session) {
-        self.players.lock().remove(&session.id);
+        let mut players = self.players.lock();
+        if players.sessions.remove(&session.id).is_some() {
+            players.by_user.retain(|_, id| *id != session.id);
+        }
     }
 
     /// Snapshot of the online players, so callers can lock each one without holding the registry.
     pub fn players(&self) -> Vec<Arc<Session>> {
-        self.players.lock().values().cloned().collect()
+        self.players.lock().sessions.values().cloned().collect()
     }
 
     pub fn players_online(&self) -> usize {
-        self.players.lock().len()
+        self.players.lock().sessions.len()
     }
 
     /// The session logged in as `user_id` (Java: `PlayerManager.getPlayerById`). Locks each
@@ -229,7 +244,9 @@ impl World {
             .flatten()
             .unwrap_or_else(|| key.to_string())
     }
+}
 
+impl World {
     /// Java: `GameConfiguration.reset`: reads the settings again (`:setconfig`, `:reload`).
     pub fn reload_settings(&self) {
         match load_settings(&self.store) {
@@ -237,14 +254,13 @@ impl World {
             Err(e) => tracing::error!("reloading settings: {e}"),
         }
     }
+}
 
-    /// Sessions logged in as `user_id`.
-    pub fn sessions_of(&self, user_id: u32) -> Vec<Arc<Session>> {
-        self.players()
-            .into_iter()
-            .filter(|s| s.player.lock().user_id() == Some(user_id))
-            .collect()
-    }
+/// The player registry: sessions by connection id, and which session each user is logged in on.
+#[derive(Default)]
+struct Players {
+    sessions: HashMap<u64, Arc<Session>>,
+    by_user: HashMap<u32, u64>,
 }
 
 /// Reads `settings`, first writing every default that is missing (Java: `GameConfiguration`).

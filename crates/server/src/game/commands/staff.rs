@@ -807,16 +807,21 @@ pub fn gift_room(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
         let Some(user_id) = user.player.lock().user_id() else {
             continue;
         };
-        let item = world.catalogue.create_gift(
-            &world.store,
-            &world.items,
-            user_id,
-            &me.username,
-            &catalogue_item.sale_code,
-            "You have just received a gift from Classic Habbo",
-            "",
-            now(),
-        );
+        let item = (|| -> anyhow::Result<Option<crate::game::item::Item>> {
+            let mut w = world.store.write()?;
+            let row = world.catalogue.create_gift_in(
+                &mut w,
+                &world.items,
+                user_id,
+                &me.username,
+                &catalogue_item.sale_code,
+                "You have just received a gift from Classic Habbo",
+                "",
+                now(),
+            )?;
+            w.commit()?;
+            Ok(world.items.make_item(row))
+        })();
         match item {
             Ok(Some(item)) => {
                 let mut p = user.player.lock();

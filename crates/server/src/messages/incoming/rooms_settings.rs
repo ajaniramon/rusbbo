@@ -351,7 +351,8 @@ pub fn delete_flat(
 
 /// Java: `DELETEFLAT.delete`: everybody inside goes to the hotel view, the room is unloaded
 /// after the dispose delay and its row is deleted. Until the room is unloaded it still answers
-/// `GETFLATINFO` and `TRYFLAT`, as in Java.
+/// `GETFLATINFO` and `TRYFLAT`, as in Java, but unlike Java nobody can enter it again
+/// ([`crate::game::room::Room::deleted`]): what they placed there would be lost with it.
 pub fn delete(world: &World, room_id: i32, user_id: u32) {
     let Some(room) = room_by_client_id(world, room_id) else {
         return;
@@ -361,6 +362,7 @@ pub fn delete(world: &World, room_id: i32, user_id: u32) {
         if !r.is_owner(user_id) {
             return;
         }
+        r.deleted = true;
         // Java: `item.delete()` for each room item; they are not returned to the hand.
         r.delete_flat_items(world);
         let sessions: Vec<Arc<Session>> = r

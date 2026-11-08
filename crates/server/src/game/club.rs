@@ -1,6 +1,6 @@
 //! Habbo Club (Java: `game/club/ClubSubscription.java` and `Player.refreshClub`).
 
-use havana_storage::User;
+use havana_storage::{Transaction, User};
 use tracing::error;
 
 use crate::game::player::Player;
@@ -95,7 +95,9 @@ fn send_hc_days(p: &Player, session: &Session) {
     ));
 }
 
-/// Java: `ClubSubscription.subscribeClub`: whether the purchase went through.
+/// Java: `ClubSubscription.subscribeClub`: whether the purchase went through. The gifts due, the
+/// new expiry, the charge and the transaction row are one transaction (Java commits each on its
+/// own); the details change only once it is committed.
 pub fn subscribe_club(world: &World, p: &mut Player, choice: i32) -> bool {
     let (credits, days) = choice_data(choice);
     if days <= 0 {
@@ -109,31 +111,50 @@ pub fn subscribe_club(world: &World, p: &mut Player, choice: i32) -> bool {
     }
     let now = now();
     let seconds_to_add = DAY * i64::from(days);
-
-    if details.club_subscribed == 0 {
-        // The statistics are written to the store only; the player's loaded copy keeps its
-        // values until the next login, as in Java.
-        if let Err(e) = world.store.update_statistic(details.id, stat::GIFTS_DUE, 1) {
-            error!(user = details.id, "saving gifts due: {e}");
-        }
-        // TODO(club-gifts): CLUB_GIFT_DUE (a datetime statistic) is not stored.
-    }
-
-    details.club_expiration = if details.club_expiration - now <= 0 {
+    let expiration = if details.club_expiration - now <= 0 {
         now + seconds_to_add + 1
     } else {
         details.club_expiration + seconds_to_add
     };
-    let (id, first, expiration) = (details.id, details.club_subscribed, details.club_expiration);
-    if let Err(e) = world.store.update_user(id, |u| {
-        u.club_subscribed = first;
-        u.club_expiration = expiration;
-    }) {
-        error!(user = id, "saving subscription: {e}");
+    let written = (|| -> anyhow::Result<i32> {
+        let mut w = world.store.write()?;
+        if details.club_subscribed == 0 {
+            // The statistics are written to the store only; the player's loaded copy keeps its
+            // values until the next login, as in Java.
+            w.update_statistic(details.id, stat::GIFTS_DUE, 1)?;
+            // TODO(club-gifts): CLUB_GIFT_DUE (a datetime statistic) is not stored.
+        }
+        let first = details.club_subscribed;
+        w.update_user(details.id, |u| {
+            u.club_subscribed = first;
+            u.club_expiration = expiration;
+        })?;
+        let balance = currency::decrease_credits_in(&mut w, details, credits)?;
+        w.insert_transaction(&Transaction {
+            user_id: details.id,
+            item_id: "0".into(),
+            catalogue_id: "0".into(),
+            amount: days,
+            description: "Habbo Club purchase".into(),
+            credit_cost: credits,
+            pixel_cost: 0,
+            created_at: now,
+            is_visible: true,
+        })?;
+        w.commit()?;
+        Ok(balance)
+    })();
+    match written {
+        Ok(balance) => {
+            details.club_expiration = expiration;
+            details.credits = balance;
+            true
+        }
+        Err(e) => {
+            error!(user = details.id, "club subscription: {e}");
+            false
+        }
     }
-    currency::decrease_credits(&world.store, details, credits);
-    // TODO(transactions): TransactionDao.createTransaction("Habbo Club purchase").
-    true
 }
 
 /// Java: `getChoiceData`: `(credits, days)`, or `(-1, -1)` for an unknown choice.

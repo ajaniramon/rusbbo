@@ -6,16 +6,18 @@ use havana_protocol::body::ClientReader;
 use tracing::{debug, error, info};
 
 use super::rooms_items::trade_ban_alert;
-use crate::game::catalogue::{CatalogueItem, CatalogueManager};
+use crate::game::catalogue::{CatalogueItem, CatalogueManager, Purchase, transaction_description};
+use crate::game::currency::{Charge, charge_in};
 use crate::game::item::Item;
 use crate::game::item::base::ItemBehaviour;
 use crate::game::player::Player;
 use crate::game::room::filter_input;
 use crate::game::room::items::is_numeric;
-use crate::game::{currency, fuserights, now};
+use crate::game::{fuserights, now};
 use crate::messages::{Malformed, outgoing};
 use crate::session::Session;
 use crate::world::World;
+use havana_storage::Transaction;
 
 use super::latin1;
 
@@ -84,7 +86,6 @@ pub fn get_catalogue_page(
 ///
 /// TODO(maintenance): `PlayerManager.isMaintenance` answers `INFO_HOTEL_CLOSING`.
 /// TODO(collectables): collectable prices and page rules.
-/// TODO(transactions): `TransactionDao.createTransaction` for every purchase.
 /// TODO(badges): `catalogue_sale_badges` rewards via the badge manager.
 /// TODO(flash,rooms): `getView("new")` after buying, for Flash clients and players in a room.
 pub fn grpc(
@@ -147,15 +148,16 @@ pub fn grpc(
         return Ok(());
     }
 
-    let mut extra_data = latin1(reader.string().ok_or(Malformed)?);
+    let extra_data = latin1(reader.string().ok_or(Malformed)?);
     let is_gift = reader.bool().ok_or(Malformed)?;
     if is_gift {
-        let Some(present) = buy_gift(world, session, p, &item, &mut extra_data, reader)? else {
+        let Some(gift) = check_gift(world, session, p, &item, extra_data, reader)? else {
             return Ok(());
         };
-        if let Some(details) = p.details.as_mut() {
-            charge(world, session, details, price_coins, price_pixels);
-        }
+        let Some(present) = buy_gift(world, session, p, &item, gift, price_coins, price_pixels)
+        else {
+            return Ok(());
+        };
         drop(guard);
         // Java: the receiver gets the present at once if online. Locked after the buyer is
         // released (never two players at once), so another receiver's hand updates after the
@@ -175,53 +177,88 @@ pub fn grpc(
         debug!("purchase needs {what}, which is not ported; ignoring");
         return Ok(());
     }
-
-    let bought = world
-        .catalogue
-        .purchase(
-            &world.store,
-            &world.items,
-            session,
-            p,
-            &item,
-            &extra_data,
-            now(),
-        )
-        .map_err(|e| {
-            tracing::error!("purchase: {e}");
-            Malformed
-        })?;
+    let Some(details) = p.details.clone() else {
+        return Ok(());
+    };
 
     // Nothing was given: no charge (film is not an item but is still a sale).
     let is_film = item
         .definition
         .as_ref()
         .is_some_and(|d| d.sprite() == "film");
-    if bought.is_empty() && !is_film {
-        return Ok(());
-    }
-
-    let Some(details) = p.details.as_mut() else {
-        return Ok(());
+    // One transaction: the items, their pets and links, the charge and the transaction row
+    // (Java commits each separately, so a failure midway gave items away or lost credits).
+    let t = now();
+    let written = (|| -> anyhow::Result<Option<(Purchase, Charge)>> {
+        let mut w = world.store.write()?;
+        let bought = world
+            .catalogue
+            .purchase_in(&mut w, &details, &item, &extra_data, t)?;
+        if bought.is_empty() && !is_film {
+            return Ok(None); // `w` is dropped: the film of nothing, if any, is not kept either.
+        }
+        let charge = charge_in(&mut w, &details, price_coins, price_pixels)?;
+        if let Some(description) = transaction_description(&item) {
+            w.insert_transaction(&purchase_transaction(
+                details.id,
+                bought.id_list(),
+                &item,
+                description,
+                price_coins,
+                price_pixels,
+                t,
+            ))?;
+        }
+        w.commit()?;
+        Ok(Some((bought, charge)))
+    })();
+    let (bought, charge) = match written {
+        Ok(Some(written)) => written,
+        Ok(None) => return Ok(()),
+        Err(e) => {
+            error!(user = details.id, "purchase of {}: {e}", item.id);
+            return Ok(());
+        }
     };
-    charge(world, session, details, price_coins, price_pixels);
+    bought.apply(&world.items, session, p);
+    if let Some(details) = p.details.as_mut() {
+        send_charge(session, details, charge);
+    }
     Ok(())
 }
 
-/// The end of Java's `GRPC`: takes the price and tells the client.
-fn charge(
-    world: &World,
-    session: &Session,
-    details: &mut havana_storage::User,
+/// A `users_transactions` row for a purchase (Java: `TransactionDao.createTransaction` in
+/// `GRPC`).
+fn purchase_transaction(
+    user_id: u32,
+    item_ids: String,
+    item: &CatalogueItem,
+    description: String,
     price_coins: i32,
     price_pixels: i32,
-) {
-    if price_coins > 0 {
-        currency::decrease_credits(&world.store, details, price_coins);
+    now: i64,
+) -> Transaction {
+    Transaction {
+        user_id,
+        item_id: item_ids,
+        catalogue_id: item.id.to_string(),
+        amount: item.amount,
+        description,
+        credit_cost: price_coins,
+        pixel_cost: price_pixels,
+        created_at: now,
+        is_visible: true,
+    }
+}
+
+/// The end of Java's `GRPC` once the charge is committed: copies the balances into the details
+/// and tells the client.
+fn send_charge(session: &Session, details: &mut havana_storage::User, charge: Charge) {
+    charge.apply(details);
+    if charge.credits.is_some() {
         session.send(outgoing::user::credit_balance(details.credits));
     }
-    if price_pixels > 0 {
-        currency::decrease_pixels(&world.store, details, price_pixels);
+    if charge.pixels.is_some() {
         session.send(outgoing::user::activity_points(
             details.pixels,
             outgoing::user::PointAlert::Sound,
@@ -229,21 +266,28 @@ fn charge(
     }
 }
 
-/// The gift part of Java's `GRPC`: reads the receiver and the note, checks them and wraps the
-/// item in a present for the receiver. `None` when nothing is bought; otherwise the present
-/// still to hand to another (possibly online) receiver, or `Some(None)` when the buyer gave it to
-/// themselves and already has it.
+/// A gift that passed [`check_gift`]: who gets it, and what goes in the present.
+struct Gift {
+    receiver: havana_storage::User,
+    /// The name the buyer typed (Java: `giftedUser`), for the transaction rows.
+    gifted_user: String,
+    note: String,
+    /// What the present carries as the item's extra data.
+    extra_data: String,
+}
+
+/// The checks of the gift part of Java's `GRPC`: reads the receiver and the note and checks
+/// them. `None` when nothing is bought (the client was told why, if Java tells it).
 ///
 /// TODO(trade): a `REDEEMABLE` gift to another user on the same IP trade-bans the buyer.
-/// TODO(transactions): the two "Gift purchase from ..." transactions.
-fn buy_gift(
+fn check_gift(
     world: &World,
     session: &Session,
     p: &mut Player,
     item: &CatalogueItem,
-    extra_data: &mut String,
+    mut extra_data: String,
     reader: &mut ClientReader,
-) -> Result<Option<Option<Item>>, Malformed> {
+) -> Result<Option<Gift>, Malformed> {
     let Some(user) = p.details.clone() else {
         return Ok(None);
     };
@@ -279,40 +323,101 @@ fn buy_gift(
         )));
         return Ok(None);
     }
-    if item.definition.as_ref().is_some_and(|d| {
-        d.has_behaviour(ItemBehaviour::Effect)
-                // TODO(pets): a pet nest as a gift (the pet is created when it is opened).
-                || d.interaction_type == crate::game::item::base::InteractionType::PetNest
-    }) {
+    // Java: an effect cannot be a gift. A pet nest can: its `name\nrace\ncolour` travels in the
+    // present unchecked, and the pet is created (and checked, against the opener's name) when
+    // the present is opened.
+    if item
+        .definition
+        .as_ref()
+        .is_some_and(|d| d.has_behaviour(ItemBehaviour::Effect))
+    {
         return Ok(None);
     }
     let note = reader.string().map(latin1).unwrap_or_default();
-    *extra_data = extra_data.replace('|', "");
+    extra_data = extra_data.replace('|', "");
     let note = note.replace('|', "");
     if !item.item_special_id.trim().is_empty() && is_numeric(&item.item_special_id) {
-        *extra_data = item.item_special_id.clone();
+        extra_data = item.item_special_id.clone();
     }
     let note: String = filter_input(&note.chars().map(|c| c as u8).collect::<Vec<u8>>())
         .iter()
         .map(|&b| char::from(b))
         .collect();
-    let present = match world.catalogue.create_gift(
-        &world.store,
-        &world.items,
-        receiver.id,
-        &user.username,
-        &item.sale_code,
-        &note,
+    Ok(Some(Gift {
+        receiver,
+        gifted_user,
+        note,
         extra_data,
-        t,
-    ) {
-        Ok(Some(present)) => present,
-        Ok(None) => return Ok(None),
+    }))
+}
+
+/// The rest of the gift part of Java's `GRPC`: wraps the item in a present for the receiver and
+/// charges the buyer, in one transaction with the three transaction rows. `None` when nothing
+/// was bought; otherwise the present still to hand to another (possibly online) receiver, or
+/// `Some(None)` when the buyer gave it to themselves and already has it.
+fn buy_gift(
+    world: &World,
+    session: &Session,
+    p: &mut Player,
+    item: &CatalogueItem,
+    gift: Gift,
+    price_coins: i32,
+    price_pixels: i32,
+) -> Option<Option<Item>> {
+    let user = p.details.clone()?;
+    let t = now();
+    let receiver = &gift.receiver;
+    let written = (|| -> anyhow::Result<(havana_storage::Item, Charge)> {
+        let mut w = world.store.write()?;
+        let present = world.catalogue.create_gift_in(
+            &mut w,
+            &world.items,
+            receiver.id,
+            &user.username,
+            &item.sale_code,
+            &gift.note,
+            &gift.extra_data,
+            t,
+        )?;
+        let charge = charge_in(&mut w, &user, price_coins, price_pixels)?;
+        if let Some(description) = transaction_description(item) {
+            let ids = present.id.to_string();
+            w.insert_transaction(&purchase_transaction(
+                user.id,
+                ids.clone(),
+                item,
+                description.clone(),
+                price_coins,
+                price_pixels,
+                t,
+            ))?;
+            let gifted = format!(
+                "Gift purchase from {} for {} - {description}",
+                user.username, gift.gifted_user
+            );
+            for user_id in [receiver.id, user.id] {
+                w.insert_transaction(&purchase_transaction(
+                    user_id,
+                    ids.clone(),
+                    item,
+                    gifted.clone(),
+                    price_coins,
+                    price_pixels,
+                    t,
+                ))?;
+            }
+        }
+        w.commit()?;
+        Ok((present, charge))
+    })();
+    let (present, charge) = match written {
+        Ok(written) => written,
         Err(e) => {
-            error!("creating a gift: {e}");
-            return Ok(None);
+            error!(user = user.id, "gift purchase of {}: {e}", item.id);
+            return None;
         }
     };
+    let present = world.items.make_item(present)?;
     let to_self = receiver.id == user.id;
     let present = if to_self {
         p.inventory.add_item(present);
@@ -328,5 +433,8 @@ fn buy_gift(
             .replace("%user%", &receiver.username),
     ));
     p.last_gift_time = t;
-    Ok(Some(present))
+    if let Some(details) = p.details.as_mut() {
+        send_charge(session, details, charge);
+    }
+    Some(present)
 }

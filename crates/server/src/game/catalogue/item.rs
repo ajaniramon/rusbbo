@@ -8,7 +8,7 @@ use crate::game::item::base::ItemDefinition;
 #[derive(Clone, Debug)]
 pub struct CataloguePackage {
     pub sale_code: String,
-    #[allow(dead_code)] // kept for the transaction log, TODO(transactions)
+    #[allow(dead_code)] // Java keeps it too; nothing reads it (the transaction log uses names)
     pub definition_id: i32,
     pub special_sprite_id: String,
     pub amount: i32,

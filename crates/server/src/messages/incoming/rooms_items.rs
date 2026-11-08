@@ -100,17 +100,34 @@ pub fn place_stuff(
     // TODO(trade): a redeemable placed in someone else's room from the owner's IP trade-bans the
     // placer (RoomTradeManager.addTradeBan).
     if !is_owner {
-        let owner_banned = world
-            .store
-            .user(r.data.owner_id)
-            .ok()
-            .flatten()
+        let owner = world.store.user(r.data.owner_id).ok().flatten();
+        let owner_banned = owner
+            .as_ref()
             .is_some_and(|o| o.trade_ban_expiration > 0 && o.trade_ban_expiration > now());
         if owner_banned {
             session.send(alerts::alert("The room owner is trade banned."));
             return Ok(());
         }
-        // TODO(transactions): TransactionDao.createTransaction ("Placed item ... into ...'s room").
+        // Java logs the placement before checking where the item goes (credit and pixel cost
+        // hold the room and its owner).
+        let owner_name = owner.map(|o| o.username).unwrap_or_else(|| "null".into());
+        let row = havana_storage::Transaction {
+            user_id: user.id,
+            item_id: owned.record.id.to_string(),
+            catalogue_id: owned.definition.record.id.to_string(),
+            amount: 1,
+            description: format!(
+                "Placed item {} into {owner_name}'s room: {}",
+                owned.definition.record.name, r.data.id
+            ),
+            credit_cost: r.data.id as i32,
+            pixel_cost: r.data.owner_id as i32,
+            created_at: now(),
+            is_visible: false,
+        };
+        if let Err(e) = world.store.insert_transaction(&row) {
+            error!(user = user.id, "logging a placement: {e}");
+        }
     }
 
     let mut item = Item::from_owned(owned);
@@ -514,21 +531,32 @@ pub fn present_open(
         if CatalogueManager::unsupported(&catalogue_item).is_some() {
             return Ok(()); // Nothing this port can create; leave the present closed.
         }
-        let bought = match world.catalogue.purchase(
-            &world.store,
-            &world.items,
-            session,
-            &mut p,
-            &catalogue_item,
-            extra_data,
-            now(),
-        ) {
+        let Some(owner) = p.details.clone() else {
+            return Ok(());
+        };
+        let present_id = r.mapping.items[idx].flat.as_ref().map(|f| f.record.id);
+        // One transaction: what the present holds is created (a pet nest with its pet, a
+        // teleporter pair...) and the present is deleted, or neither happens.
+        let written = (|| -> anyhow::Result<crate::game::catalogue::Purchase> {
+            let mut w = world.store.write()?;
+            let bought =
+                world
+                    .catalogue
+                    .purchase_in(&mut w, &owner, &catalogue_item, extra_data, now())?;
+            if let Some(id) = present_id {
+                w.delete_item(id)?;
+            }
+            w.commit()?;
+            Ok(bought)
+        })();
+        let bought = match written {
             Ok(bought) => bought,
             Err(e) => {
                 error!("opening a present: {e}");
                 return Ok(());
             }
         };
+        let bought = bought.apply(&world.items, session, &mut p);
         if let Some(first) = bought
             .first()
             .and_then(|id| p.inventory.item_by_database_id(*id))
@@ -540,12 +568,7 @@ pub fn present_open(
             let hand = p.inventory.get_view(&world.store, "new");
             session.send(out_inventory::inventory(&hand));
         }
-        let present = r.remove_flat_item(world, idx);
-        if let Some(flat) = present.flat.as_ref() {
-            if let Err(e) = world.store.delete_items(&[flat.record.id]) {
-                error!(item = flat.record.id, "deleting a present: {e}");
-            }
-        }
+        r.remove_flat_item(world, idx);
         return Ok(());
     }
     let hand = p.inventory.get_view(&world.store, "new");
