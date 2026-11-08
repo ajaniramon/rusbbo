@@ -103,6 +103,22 @@ event. The website's housekeeping drives the Infobus over RCON; `--rcon <addr>` 
 RCON port (`rcon.rs`), so far only for the Infobus messages (`TODO(rcon)` for the others), and
 the trace harness has `rcon` steps (see `crates/trace/src/scenario.rs`).
 
+The lobby games as in Java (`game/games`, `messages/incoming/games.rs`): the BattleBall and
+SnowStorm lobbies (`LOUNGEINFO` and everyone's points and rank on `G_STAT`, `GETINSTANCELIST`,
+`INITIATECREATEGAME` and `GAMEPARAMETERVALUES` with their checks, joining and switching teams,
+observing and spectating, kicking, leaving, the ticket price, `REQUEST_GAME_LOBBY`, and the
+lobbies' visitors in the navigator counting the started games), and BattleBall itself: `STARTGAME`
+(the tickets, `GAMELOCATION`), the arena as a room of its own (`ROOM_DIRECTORY` -1 at the spawn,
+`FULLGAMESTATUS` on `G_HMAP`, nothing on `G_STAT`, its game task instead of the room's), the
+500 ms `GAMESTATUS` with the moves (`GAMEEVENT`), the tiles' colouring, sealing and filling and the
+points, the power ups (random in Java, so unit tests only), `GAMEEND` and the scores, the history
+(`games_played_history`, listed and observed in the lobby), the players' points, xp, wins and
+`ACH_GamePlayed`, the monthly xp reset, `GAMERESTART` (restarting, or back to the lobby when the
+countdown ends) and players leaving mid-game. SnowStorm stops at its lobby: the arena engine
+plugs in at the `GameKind` seam documented in `game/games/mod.rs` (`TODO(snowstorm)`). The game
+scenarios shorten the games with a staff bot's `:setconfig`, and every step during a game takes
+one of the arena's 500 ms ticks (see the comments in `scenarios/battleball-game.toml`).
+
 Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
 walkspace, talking now and then, and handing out drinks when a user nearby asks for one
 (`game/bot.rs`, `game/room/bots.rs`). Bots are room entities with a detached session and
@@ -271,6 +287,11 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `wobble-squabble` | Rooftop Rumble's Wobble Squabble: onto the bridge through the join tile (walking, and in teleport mode), the queue tiles, `PT_PREPARE`/`PT_START`, `PTM` moves and `PT_STATUS` (walking, the bridge's ends, hits, rebalancing, `WALK` ignored), the fall (`PT_WIN`, `PT_END`, tickets, into the water) |
 | `wobble-squabble-queue` | a player waiting on a queue tile moves on when the game ends and starts the next one against the winner; leaving mid-game: the game goes on, and the one who left still pays a ticket |
 | `wobble-squabble-tickets` | the join tile does nothing while a game is on; buying tickets (`BTCKS`) on it afterwards takes the buyer onto the bridge and into the next game |
+| `battleball-lobby` | the BattleBall lobby: `LOUNGEINFO`/`GAMEPLAYERINFO`, the instance list, creating a game (bad map, bad parameter), observing, joining and switching teams (bad team, full team), `STARTGAME` refused, kicking, spectating then joining, leaving, the creator leaving a waiting game, the ticket checks (`:setconfig`), `REQUEST_GAME_LOBBY` |
+| `snowstorm-lobby` | the SnowStorm lobby up to the arena: its parameters, a bad map, too many teams, a one-team game (and its `STARTGAME` alert), the game length in the lists, joining, leaving, `STARTFAILED`, a missing parameter |
+| `battleball-game` | a BattleBall game end to end on Barebones Classic: `STARTGAME`, the arena, `FULLGAMESTATUS`, `GAMESTATUS` every 500 ms, the lobby's visitors in the navigator, moves colouring tiles, chat and typing in the arena, `GAMEEND`, the observer's finished game, the history and the points |
+| `battleball-restart` | a BattleBall game on Sky Peak with a spectator (`YOUARESPECTATOR`), unscored (the same-IP check), `GAMERESTART` by both (`GAMERESET`, the second game) and then by one only (both back to the lobby) |
+| `battleball-leave` | leaving a BattleBall game that is on: a player disconnecting, the last one going back to the lobby (the game is gone, also for the observer) |
 | `rooftop-camera` | Rooftop Rumble's camera (`rooftop_rumble_trigger`): the first shot 3 s after the first `G_STAT`, the mode for a second user, following the other user when its user leaves |
 | `space-cafe` | the Space Cafe's lights (`space_cafe_trigger`): six random `SHOWPROGRAM`s 4.5 s after the first `G_STAT` |
 | `infobus-door` | the Infobus's door in the park: `BUS_DOOR`, `TRYBUS` and the door tile while closed, opening and closing it over RCON, walking into the bus and back out with `CHANGEWORLD` |

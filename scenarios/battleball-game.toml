@@ -1,0 +1,248 @@
+name = "battleball-game"
+description = "A BattleBall game end to end on Barebones Classic (map 5, no power ups): STARTGAME (GAMELOCATION, the tickets, GAMEINSTANCE to an observer), entering the arena (ROOM_DIRECTORY -1 at the spawn, HEIGHTMAP and FULLGAMESTATUS, nothing on G_STAT), GAMESTATUS every 500 ms, no moves before GAMESTART, the lobby's visitors in the navigator, moves colouring tiles (GAMEEVENT 2), chat and typing in the arena, a power up nobody holds, GAMEEND with the scores, the finished game for the observer, history and statistics saved, back to the lobby (GAMEDELETED), the finished game in INSTANCELIST and OBSERVEINSTANCE, and the points in GAMEPLAYERINFO"
+
+# The lobby is room 66. s (tracestaff) shortens the game with :setconfig (4 s to prepare, 6 s to
+# play) and turns off the same-IP check (all bots connect from 127.0.0.1), so the game is scored.
+# The arena's task sends GAMESTATUS every 500 ms from the first player's entry, so after STARTGAME
+# every step takes exactly one of those ticks (a step ends 300 ms after the last message, and the
+# next request arrives 200 ms before the next tick). STARTGAME's step waits 450 ms so that the
+# game's 1 s timers (GAMESTART, GAMEEND) fall about 50 ms after a tick: GAMESTART comes with tick 7,
+# GAMEEND with tick 17. a (team 0, red) starts at 22,14 and b (team 1, blue) at 0,14. G_STAT is
+# only sent at the end, when the lobby's NPC no longer matters.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.preparing.game.seconds 4"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.game.lifetime.seconds 6"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig games.same.ip.check.enabled false"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 5, "numTeams", false, 2, "allowedPowerups", true, "", "name", true, "Short game"]
+
+[[steps]]
+bot = "b"
+send = "INITIATEJOINGAME"
+args = [1, 1]
+
+[[steps]]
+bot = "s"
+send = "OBSERVEINSTANCE"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "STARTGAME"
+settle_ms = 450
+note = "GAMELOCATION and TICKET_BALANCE (2 tickets) to both players, the started game to the observer"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "a into the arena at its spawn, instance id = its object id; the arena's first tick"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+note = "HEIGHTMAP and FULLGAMESTATUS; tick 1"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "Tick 2"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+note = "Tick 3"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+note = "Nothing for a player in the game; tick 4"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [2, 19, 14]
+note = "No walking before GAMESTART; tick 5"
+
+[[steps]]
+bot = "s"
+send = "NAVIGATE"
+args = [false, 13]
+note = "The lobby counts the started game's players and capacity; tick 6"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 7, then GAMESTART"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [2, 19, 14]
+note = "a walks three tiles west; tick 8"
+
+[[steps]]
+bot = "b"
+send = "GAMEEVENT"
+args = [2, 2, 14]
+note = "b walks two tiles east; tick 9"
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["go go"]
+note = "Chat in the arena; tick 10"
+
+[[steps]]
+bot = "b"
+send = "USER_START_TYPING"
+note = "Ignored for a player in the game; tick 11"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [2, 22, 14]
+note = "a walks back over its own tiles; tick 12"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [4, 5]
+note = "a holds no power up: nothing; tick 13"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 14"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 15"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 16"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 17, then GAMEEND; the observer gets the finished game"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "No more ticks after the end"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+note = "a back to the lobby: GAMEDELETED to a, LOGOUT and the ended game to b"
+
+[[steps]]
+bot = "a"
+send = 159
+note = "The finished game"
+
+[[steps]]
+bot = "s"
+send = "OBSERVEINSTANCE"
+args = [1]
+note = "The finished game's teams and scores"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+note = "The last player leaves: the game is gone"
+
+[[steps]]
+bot = "b"
+send = 159
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 600
+note = "GAMEPLAYERINFO with the points"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "s"
+disconnect = true

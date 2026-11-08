@@ -1,0 +1,2220 @@
+{
+  "format": 1,
+  "scenario": "battleball-lobby",
+  "description": "The BattleBall lobby (bb_lobby_1): LOUNGEINFO and GAMEPLAYERINFO on G_STAT, GETINSTANCELIST, INITIATECREATEGAME (GAMEPARAMETERS), GAMEPARAMETERVALUES (a bad map, a bad parameter, a game made), OBSERVEINSTANCE, INITIATEJOINGAME (bad team, joining, switching teams, a full team), STARTGAME (not the creator, one team only), KICKPLAYER, WATCHGAME and joining from there, LEAVEGAME, a second game, the creator leaving a waiting game (deleted for everyone), the ticket checks, UNOBSERVEINSTANCE and REQUEST_GAME_LOBBY",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b",
+    "c",
+    "s"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "967983397359434247126556\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#72F8F27218FC4860AE694B3DCD999F90\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "098002649493900083088612\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#A49A3F5061B940C6ACA8D19D1E4F9EB0\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "532190731036781990149122\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-4",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#1554976F6E4E4E6DAAD4DC32D7F0FC9B\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_priority_access\u0002fuse_use_special_room_layouts\u0002fuse_use_club_outfits\u0002fuse_use_club_outfits_default\u0002fuse_use_club_badge\u0002fuse_use_club_dance\u0002fuse_habbo_chooser\u0002fuse_furni_chooser\u0002fuse_extended_buddylist\u0002fuse_room_queue_club\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "bb_lobby_1\u0002RP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "bb_lobby_1\u0002RP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 159,
+      "name": "GETINSTANCELIST/GETSELECTEDBADGES",
+      "body": "",
+      "note": "GETINSTANCELIST (and GETSELECTEDBADGES, which has no body): no games",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "HHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 162,
+      "name": "INITIATECREATEGAME",
+      "body": "",
+      "note": "GAMEPARAMETERS",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 235,
+              "name": "GAMEPARAMETERS",
+              "body": "PAfieldType\u0002HJIIIIQAnumTeams\u0002HJJIJIPAallowedPowerups\u0002IJ1,2,3,4,5,6,7,8\u0002Hname\u0002IJ\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeHQB@HnumTeamsHJ@OallowedPowerupsI@O1,2,3,4,5,6,7,8@DnameI@GBad map",
+      "note": "Map 9 does not exist: no game, the room still gets INSTANCELIST",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "HHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "HHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeI@A1@HnumTeamsHJ@OallowedPowerupsI@O1,2,3,4,5,6,7,8@DnameI@HText map",
+      "note": "fieldType as text: ClassCastException, nothing at all",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeHI@HnumTeamsHJ@OallowedPowerupsI@O1,2,3,4,5,6,7,8@DnameI@KTrace match",
+      "note": "Game 1: GAMEINSTANCE to a (the question mark power added), INSTANCELIST to the room",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IITrace match\u0002Itracebot1\u0002IHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IITrace match\u0002Itracebot1\u0002IHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 160,
+      "name": "OBSERVEINSTANCE",
+      "body": "I",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 160,
+      "name": "OBSERVEINSTANCE",
+      "body": "QS",
+      "note": "No such game, nor a finished one: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "II",
+      "note": "b joins team 1 (and stops being an observer)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "bb_lobby_1\u0002RP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 160,
+      "name": "OBSERVEINSTANCE",
+      "body": "I",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "IQA",
+      "note": "No team 5: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "IH",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Jtracebot4\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Jtracebot4\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Jtracebot4\u0002IItracebot2\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "IH",
+      "note": "b switches to team 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJKHtracebot1\u0002Jtracebot4\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJKHtracebot1\u0002Jtracebot4\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJKHtracebot1\u0002Jtracebot4\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 170,
+      "name": "STARTGAME",
+      "body": "",
+      "note": "Not the creator: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 170,
+      "name": "STARTGAME",
+      "body": "",
+      "note": "Only one team has players: STARTFAILED",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 242,
+              "name": "STARTFAILED",
+              "body": "PB",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 168,
+      "name": "KICKPLAYER",
+      "body": "J",
+      "note": "c (instance 2) is kicked: GAMEDELETED and CREATEFAILED 6 to c",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 236,
+              "name": "CREATEFAILED",
+              "body": "RA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 169,
+      "name": "WATCHGAME",
+      "body": "I",
+      "note": "c spectates the waiting game",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IIJJHtracebot1\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IIJJHtracebot1\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IIJJHtracebot1\u0002Itracebot2\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "II",
+      "note": "From spectator to team 1: the spectator leaves first (GAMEDELETED)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJJHtracebot1\u0002Itracebot2\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 167,
+      "name": "LEAVEGAME",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002IJtracebot4\u00021,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 159,
+      "name": "GETINSTANCELIST/GETSELECTEDBADGES",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IITrace match\u0002Itracebot1\u0002IHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeHQA@HnumTeamsHPA@OallowedPowerupsI@@@DnameI@JFour teams",
+      "note": "Game 2: four teams on map 5, no power ups",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "JITrace match\u0002Itracebot1\u0002IJFour teams\u0002Jtracebot2\u0002QAHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAIItracebot2\u0002HHH\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "JITrace match\u0002Itracebot1\u0002IJFour teams\u0002Jtracebot2\u0002QAHH",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "JITrace match\u0002Itracebot1\u0002IJFour teams\u0002Jtracebot2\u0002QAHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "JH",
+      "note": "c leaves game 1 for game 2, team 0",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HITrace match\u0002Itracebot1\u0002IHJIHtracebot1\u0002H1,2,3,4,5,6,7,8,9\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHH\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHH\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "JH",
+      "note": "Two per team with four teams: TEAMS_FULL",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 239,
+              "name": "JOINFAILED",
+              "body": "Hjoin\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "JK",
+      "note": "a, the creator of the waiting game 1, leaves it: game 1 is deleted",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "I",
+              "check": "exact"
+            },
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHIHtracebot1\u0002\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHIHtracebot1\u0002\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHIHtracebot1\u0002\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 159,
+      "name": "GETINSTANCELIST/GETSELECTEDBADGES",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 232,
+              "name": "INSTANCELIST",
+              "body": "IJFour teams\u0002Jtracebot2\u0002QAHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 161,
+      "name": "UNOBSERVEINSTANCE",
+      "body": "",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "s",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "161787723593913801261824\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-21",
+      "settle_ms": 1500,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#16C7E59A06A94DCE8292DB75A1241D6B\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_mute\u0002fuse_kick\u0002fuse_receive_calls_for_help\u0002fuse_remove_photos\u0002fuse_remove_stickies\u0002fuse_mod\u0002fuse_moderator_access\u0002fuse_chat_log\u0002fuse_room_alert\u0002fuse_room_kick\u0002fuse_ignore_room_owner\u0002fuse_enter_full_rooms\u0002fuse_enter_locked_rooms\u0002fuse_see_all_roomowners\u0002fuse_search_users\u0002fuse_ban\u0002fuse_see_chat_log_link\u0002fuse_cancel_roomevent\u0002fuse_administrator_access\u0002fuse_any_room_controller\u0002fuse_pick_up_any_furni\u0002fuse_see_flat_ids\u0002fuse_credits\u0002fuse_debug_window\u0002fuse_housekeeping_alert\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IRP",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "bb_lobby_1\u0002RP",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKRCSD0.0\u0002HH/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@f:setconfig battleball.ticket.charge 20",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"battleball.ticket.charge\" value has been updated from \"2\" to \"20\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 162,
+      "name": "INITIATECREATEGAME",
+      "body": "",
+      "note": "10 tickets, 20 needed: CREATEFAILED 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 236,
+              "name": "CREATEFAILED",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 163,
+      "name": "GAMEPARAMETERVALUES",
+      "body": "PA@IfieldTypeHJ@HnumTeamsHJ@OallowedPowerupsI@A1@DnameI@JNo tickets",
+      "note": "a leaves game 2 first, then has too few tickets: no game, no INSTANCELIST",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHH\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAJItracebot2\u0002Jtracebot4\u0002HHH\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 165,
+      "name": "INITIATEJOINGAME",
+      "body": "JI",
+      "note": "JOINFAILED 2",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 239,
+              "name": "JOINFAILED",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@e:setconfig battleball.ticket.charge 2",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"battleball.ticket.charge\" value has been updated from \"20\" to \"2\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 168,
+      "name": "KICKPLAYER",
+      "body": "J",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 233,
+              "name": "GAMEINSTANCE",
+              "body": "HJFour teams\u0002Jtracebot2\u0002QAHPAIItracebot2\u0002HHH\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "J",
+              "check": "exact"
+            },
+            {
+              "header": 236,
+              "name": "CREATEFAILED",
+              "body": "RA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 167,
+      "name": "LEAVEGAME",
+      "body": "",
+      "note": "The creator leaves game 2: deleted",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 237,
+              "name": "GAMEDELETED",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 250,
+      "name": "REQUEST_GAME_LOBBY",
+      "body": "",
+      "note": "A random lobby the first time",
+      "settle_ms": 300,
+      "header_only": [
+        286
+      ],
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 286,
+              "name": "ROOMFORWARD",
+              "body": "I[JD",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 250,
+      "name": "REQUEST_GAME_LOBBY",
+      "body": "",
+      "note": "Then the other one",
+      "settle_ms": 300,
+      "header_only": [
+        286
+      ],
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 286,
+              "name": "ROOMFORWARD",
+              "body": "IZJD",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "note": "LOUNGEINFO, GAMEPLAYERINFO of everyone in the lobby, then of a to the room (the lobby's NPC, Xenia, joins now)",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 231,
+              "name": "LOUNGEINFO",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "PAH0\u0002Beginner\u0002I0\u0002Beginner\u0002J0\u0002Beginner\u0002K0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IH0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "QAItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002PAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002QEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002KRCSD0.0\u0002HIM\u0002MMM\u0002HXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "QAHRCSD0.0\u0002HH/\u0002IRCSD0.0\u0002HH/\u0002JRCSD0.0\u0002HH/\u0002KRCSD0.0\u0002HH/\u0002PAIPB1.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IH0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IH0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IH0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "II0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 231,
+              "name": "LOUNGEINFO",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "PAH0\u0002Beginner\u0002I0\u0002Beginner\u0002J0\u0002Beginner\u0002K0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "II0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "QAItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002PAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002QEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002KRCSD0.0\u0002HIM\u0002MMM\u0002HXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "QAHRCSD0.0\u0002HH/\u0002IRCSD0.0\u0002HH/\u0002JRCSD0.0\u0002HH/\u0002KRCSD0.0\u0002HH/\u0002PAIPB1.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "II0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "II0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IJ0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IPAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IJ0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IPAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 231,
+              "name": "LOUNGEINFO",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "PAH0\u0002Beginner\u0002I0\u0002Beginner\u0002J0\u0002Beginner\u0002K0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IJ0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "QAItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HRCSD0.0\u0002HIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IRCSD0.0\u0002HIF\u0002MMM\u0002PAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002QEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002KRCSD0.0\u0002HIM\u0002MMM\u0002HXenia\u0002The belle of the Battle Ball \u0002sd=001&sh=002/54,178,190&lg=200/230,49,57&ch=506/230,49,57,141&lh=001/168,123,67&rh=001/168,123,67&hd=001/168,123,67&ey=001&fc=001/168,123,67&hr=506/194,26,134,190&hrb=506/2,3,4&rs=002/230,49,57&ls=002/230,49,57&bd=001/168,123,67\u0002PAIPB1.0\u0002JK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "QAHRCSD0.0\u0002HH/\u0002IRCSD0.0\u0002HH/\u0002JRCSD0.0\u0002HH/\u0002KRCSD0.0\u0002HH/\u0002PAIPB1.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 250,
+              "name": "GAMEPLAYERINFO",
+              "body": "IJ0\u0002Beginner\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IPAtracebot4\u0002trace bot four \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JRCSD0.0\u0002HIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "2\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

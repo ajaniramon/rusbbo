@@ -1,0 +1,263 @@
+name = "battleball-restart"
+description = "BattleBall on Sky Peak (map 1, no power ups): a spectator (WATCHGAME during the game, GAMELOCATION, YOUARESPECTATOR and GAMESTART on G_STAT, the game's messages), a game the same-IP check leaves unscored, GAMERESTART by both players (PLAYERREJOINED, GAMERESET, FULLGAMESTATUS, a new game id, the spectator sent to the lobby), the second game, then GAMERESTART by one player only: when the countdown ends both go back to the lobby (ROOMFORWARD) and the game is gone"
+
+# The lobby is room 66. s (tracestaff) shortens the game with :setconfig: 2 s to prepare, 4 s to
+# play, 4 s to restart. The same-IP check stays on (every bot connects from 127.0.0.1), so no
+# game is scored or stored. As in battleball-game, every step during a game takes one of the
+# arena's 500 ms ticks, and STARTGAME's step waits 450 ms so that the game's 1 s timers fall about
+# 50 ms after a tick: GAMESTART with tick 3, GAMEEND with tick 9. Between the games there are no
+# ticks, so the step after GAMEEND waits 200 ms to put b's GAMERESTART 45 ms after tick 10 (the
+# restarted countdown starts 1 s later): GAMESTART with tick 16, GAMEEND with tick 22. a (team 0)
+# starts at 0,13, b (team 1) at 27,9; c (tracebot4) watches.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-4"
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.preparing.game.seconds 2"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.game.lifetime.seconds 4"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.restart.game.seconds 4"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+disconnect = true
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "c"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "c"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 1, "numTeams", false, 2, "allowedPowerups", true, "", "name", true, "Again"]
+
+[[steps]]
+bot = "b"
+send = "INITIATEJOINGAME"
+args = [1, 1]
+
+[[steps]]
+bot = "a"
+send = "STARTGAME"
+settle_ms = 450
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "Tick 0"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+note = "Tick 1"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "Tick 2"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+note = "Tick 3, then GAMESTART"
+
+[[steps]]
+bot = "c"
+send = "WATCHGAME"
+args = [1]
+note = "c spectates the started game: GAMELOCATION; tick 4"
+
+[[steps]]
+bot = "c"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "c in the arena (instance -1, at 0,0); tick 5"
+
+[[steps]]
+bot = "c"
+send = "G_STAT"
+note = "YOUARESPECTATOR and the game's seconds left; tick 6"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [2, 3, 13]
+note = "Tick 7"
+
+[[steps]]
+bot = "b"
+send = "GAMEEVENT"
+args = [2, 25, 9]
+note = "Tick 8"
+
+[[steps]]
+bot = "c"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 9, then GAMEEND (not scored: the same IP)"
+
+[[steps]]
+bot = "a"
+send = "GAMERESTART"
+settle_ms = 200
+note = "PLAYERREJOINED (a)"
+
+[[steps]]
+bot = "b"
+send = "GAMERESTART"
+note = "PLAYERREJOINED (b): everyone clicked; GAMERESET and FULLGAMESTATUS of game 3, c to the lobby"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+note = "Tick 11"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 12"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 13"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 14"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 15"
+
+[[steps]]
+bot = "b"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 16, then GAMESTART"
+
+[[steps]]
+bot = "b"
+send = "GAMEEVENT"
+args = [2, 26, 9]
+note = "Tick 17"
+
+[[steps]]
+bot = "a"
+send = "GAMEEVENT"
+args = [2, 1, 13]
+note = "Tick 18"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 19"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 20"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 21"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "Tick 22, then GAMEEND"
+
+[[steps]]
+bot = "a"
+send = "GAMERESTART"
+settle_ms = 3500
+note = "Only a clicks: when the countdown ends, both go back to the lobby"
+
+[[steps]]
+bot = "c"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+note = "ROOMFORWARD only told c where to go"
+
+[[steps]]
+bot = "c"
+send = 159
+note = "Nothing scored, nothing listed"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "c"
+disconnect = true

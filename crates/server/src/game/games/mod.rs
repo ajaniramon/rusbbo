@@ -34,27 +34,34 @@
 //! # The seam: what a game type provides
 //!
 //! The game-type specific parts (Java's abstract `Game` with `BattleBallGame` and
-//! `SnowStormGame`) are the variants of [`GameKind`] and every `match` on it, all in `game.rs`
-//! (`impl Game`, section "Game type seam") and `lobby.rs` (creating a game). A game type provides:
+//! `SnowStormGame`) are the variants of [`GameKind`] and every `match` on it. Grep
+//! `TODO(snowstorm)` for the arms SnowStorm still lacks. A game type provides:
 //!
-//! - its state ([`GameKind`] variant) and how a game of it is made from the lobby's parameters
-//!   (`lobby::create_game`, Java's `createGame` of the lobby trigger) and the extra fields it adds
-//!   to `GAMEINSTANCE`/`INSTANCELIST` (`length_choice`, `game_length`, `power_ups`);
-//! - `has_enough_players` and `can_timer_continue` (Java's abstract methods);
-//! - `arena_model` (the heightmap of the arena for a map), `build_map` and `assign_spawn_points`
-//!   (Java's `initialise`, `buildMap`, `assignSpawnPoints`);
-//! - the hooks `game_prepare`, `game_prepare_tick`, `game_started`, `game_tick`, `game_ended`,
-//!   `on_start` and `remove_player_object`;
-//! - the arena's task (`arena_tick`, Java's `BattleBallTask` every 500 ms, `SnowStormGameTask`
-//!   every 300 ms: [`GameType::arena_task_period`]), `full_game_status` (`FULLGAMESTATUS`,
-//!   asked for with `G_HMAP` and `REQUESTFULLGAMESTATUS`), `game_reset` (`GAMERESET`), the
-//!   `GAMEEVENT` handler (`game_event`), and the `G_HMAP` heightmap and items of its arena;
-//! - `history_extra_data` (`games_played_history.extra_data`) and its scores (`score_of`,
-//!   `calculate_team_points`) for `GAMEEND` and the history.
+//! - its state: a [`GameKind`] variant (BattleBall keeps its tiles, power ups, objects and event
+//!   queues there; per-player state is either on [`GamePlayer`](player::GamePlayer), as Java
+//!   keeps BattleBall's `playerState`, or in the variant keyed by the game player's serial), and
+//!   how a game of it is made from the lobby's parameters (`lobby::create_game`, Java's
+//!   `createGame` of the lobby trigger);
+//! - in `game.rs`, `impl Game` after "The game type seam": `has_enough_players` and
+//!   `can_timer_continue` (Java's abstract methods), `arena_setup` (Java's `initialise`: the
+//!   arena's model, the room's name and the game's length; `None` refuses to start),
+//!   `build_map`, `assign_spawn_points_hook`, the hooks `on_start`, `game_prepare_hook`,
+//!   `game_prepare_tick_hook`, `game_started_hook`, `game_tick_hook` and `remove_player_object`,
+//!   the extra fields of `GAMEINSTANCE`/`INSTANCELIST` (`length_choice`, `game_length`,
+//!   `power_ups`), `history_extra_data` (`games_played_history.extra_data`), the scores
+//!   (`calculate_team_points`, `calculate_player_score`, for `GAMEEND` and the history),
+//!   `full_game_status` (`FULLGAMESTATUS`) and `game_reset` (`GAMERESET`);
+//! - the arena's task: [`Games::arena_tick`] (in `battleball/mod.rs`; Java's `BattleBallTask`
+//!   every 500 ms, `SnowStormGameTask` every 300 ms: [`GameType::arena_task_period`]);
+//! - the messages: `GAMEEVENT` (`messages/incoming/games.rs`, `game_event`: BattleBall's moves and
+//!   power ups, SnowStorm's `SnowStormMessageHandler`), `REQUESTFULLGAMESTATUS`, and `G_HMAP`'s
+//!   heightmap and items of the arena (`messages/incoming/rooms.rs`).
 //!
-//! BattleBall is in [`battleball`]. SnowStorm stops at the lobby here: its arms of the seam are
-//! `TODO(snowstorm)` (its engine lives in `game/games/snowstorm/`, to be wired in), so a SnowStorm
-//! game can be made, listed, joined and left, but `STARTGAME` does not start it yet.
+//! Everything else (teams, observers, spectators, the timers, the start, end and restart,
+//! leaving, the tickets, the history, the statistics) is shared and needs nothing from the
+//! game type. BattleBall is in [`battleball`]. SnowStorm stops at the lobby here (its engine lives
+//! in `game/games/snowstorm/`, to be wired in): a SnowStorm game can be made, listed, joined and
+//! left, but `STARTGAME` does not start it yet.
 
 pub mod battleball;
 pub mod game;

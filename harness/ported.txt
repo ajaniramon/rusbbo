@@ -1,5 +1,9 @@
 # Traces the Rust server must pass (CI checks these against Rust; every trace is checked against
 # the Java oracle). Add a trace here in the same change that makes it pass.
+battleball-game
+battleball-leave
+battleball-lobby
+battleball-restart
 call-for-help
 catalogue
 catalogue-effects
@@ -51,6 +55,7 @@ public-room
 rooftop-camera
 room-bots
 room-two-bots
+snowstorm-lobby
 social-actions
 social-dance-carry
 space-cafe
