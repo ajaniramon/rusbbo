@@ -378,7 +378,8 @@ record!(
     /// `rooms_ads` (Java: `AdManager`, `AdvertisementsDao`).
     RoomAd, "rooms_ads" {
         is_loading_ad: bool,
-        room_id: u32,
+        /// -1 for the loading ads.
+        room_id: i32,
         url: Option<String>,
         image: String,
         enabled: bool,

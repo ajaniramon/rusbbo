@@ -8,6 +8,7 @@ mod club;
 mod groups;
 mod habblets;
 mod habblets2;
+mod hk_content;
 mod hk_core;
 mod hk_tools;
 mod hk_users;
@@ -385,6 +386,20 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HousekeepingToolsController::audit" => hk_tools::audit(conn)?,
         "HousekeepingToolsController::roomView" => hk_tools::room_view(conn)?,
         "HousekeepingToolsController::roomAction" => hk_tools::room_action(conn)?,
+        "HousekeepingNewsController::articles" => hk_content::articles(conn)?,
+        "HousekeepingNewsController::create" => hk_content::create(conn)?,
+        "HousekeepingNewsController::delete" => hk_content::delete(conn)?,
+        "HousekeepingNewsController::edit" => hk_content::edit(conn)?,
+        "HousekeepingNewsController::preview_news_article" => {
+            hk_content::preview_news_article(conn)?
+        }
+        "HousekeepingAdsController::roomads" => hk_content::room_ads(conn)?,
+        "HousekeepingAdsController::delete" => hk_content::delete_ad(conn)?,
+        "HousekeepingAdsController::create" => hk_content::create_ad(conn)?,
+        "HousekeepingRoomBadgesController::badges" => hk_content::room_badges(conn)?,
+        "HousekeepingRoomBadgesController::delete" => hk_content::delete_room_badge(conn)?,
+        "HousekeepingRoomBadgesController::create" => hk_content::create_room_badge(conn)?,
+        "HousekeepingCatalogueFrontpageController::edit" => hk_content::catalogue_frontpage(conn)?,
         _ => return Ok(false),
     }
     Ok(true)

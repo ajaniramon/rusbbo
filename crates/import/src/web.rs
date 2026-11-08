@@ -521,7 +521,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         w.put_record(&RoomAd {
             id: u(&r, "id")?,
             is_loading_ad: b(&r, "is_loading_ad")?,
-            room_id: u(&r, "room_id")?,
+            room_id: i(&r, "room_id")?,
             url: col::<Option<String>>(&r, "url")?,
             image: s(&r, "image")?,
             enabled: b(&r, "enabled")?,
@@ -545,6 +545,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
     for table in [
         "users",
         "site_articles",
+        "rooms_ads",
         "article_categories",
         "cms_alerts",
         "cms_minimail",
