@@ -2,6 +2,7 @@
 //! another server (the Rust rewrite) against those recordings.
 
 mod check;
+mod load;
 mod runner;
 mod scenario;
 #[cfg(test)]
@@ -66,6 +67,36 @@ enum Cmd {
     },
     /// Print a trace in readable form.
     Show { trace: PathBuf },
+    /// Load test: bots log in, enter public rooms, walk and chat; prints latency percentiles.
+    Load {
+        #[arg(long, default_value = "127.0.0.1:12321")]
+        target: String,
+        /// Number of bots.
+        #[arg(long)]
+        bots: usize,
+        /// Bot `i` logs in with ticket `<prefix><first + i>`.
+        #[arg(long, default_value = "bench-sso-")]
+        ticket_prefix: String,
+        #[arg(long, default_value_t = 1001)]
+        first: usize,
+        /// Public room ids to fill, `per_room` bots each, in order.
+        #[arg(long, value_delimiter = ',', required = true)]
+        rooms: Vec<i32>,
+        #[arg(long, default_value_t = 25)]
+        per_room: usize,
+        /// Seconds over which the bots connect.
+        #[arg(long, default_value_t = 30)]
+        ramp: u64,
+        /// Measured seconds once every bot is in.
+        #[arg(long, default_value_t = 60)]
+        duration: u64,
+        /// Mean milliseconds between one bot's actions (walk or chat).
+        #[arg(long, default_value_t = 4000)]
+        interval: u64,
+        /// Also write the report as JSON here.
+        #[arg(long)]
+        json: Option<PathBuf>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -115,6 +146,37 @@ fn run(cli: Cli) -> Result<bool> {
         Cmd::Show { trace } => {
             show(&load_trace(&trace)?);
             Ok(true)
+        }
+        Cmd::Load {
+            target,
+            bots,
+            ticket_prefix,
+            first,
+            rooms,
+            per_room,
+            ramp,
+            duration,
+            interval,
+            json,
+        } => {
+            let report = load::run(load::LoadOptions {
+                target,
+                tickets: (first..first + bots)
+                    .map(|i| format!("{ticket_prefix}{i}"))
+                    .collect(),
+                rooms,
+                per_room,
+                ramp: std::time::Duration::from_secs(ramp),
+                duration: std::time::Duration::from_secs(duration),
+                interval: std::time::Duration::from_millis(interval),
+            })?;
+            let text = serde_json::to_string_pretty(&report)?;
+            println!("{text}");
+            if let Some(path) = json {
+                std::fs::write(&path, text)
+                    .with_context(|| format!("writing {}", path.display()))?;
+            }
+            Ok(report.failed_logins == 0 && report.failed_entries == 0)
         }
     }
 }

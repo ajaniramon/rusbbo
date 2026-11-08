@@ -21,6 +21,7 @@ this directory answers that question automatically.
 | `traces/` | Recorded answers of the Java server (JSON). This is the conformance corpus |
 | `oracle/` | Runs the Java server + MariaDB as the reference (`oracle.sh`) |
 | `harness/target-rs.sh` | Runs the Rust server from the same data as the oracle, for `havana-trace check` |
+| `harness/bench.sh` | Load test of both servers on the same data (`havana-trace load`): start time, memory, CPU, latency |
 | `tools/gen_*.py` | Regenerate `ids.rs` (message ids) and `settings_defaults.rs` from the Java sources |
 
 ## Rust server
@@ -202,6 +203,15 @@ Prints `scenario: N/M steps ok` per trace and every difference; exits 1 if anyth
 it against the Java server itself must always pass (that is how the corpus is validated).
 
 `havana-trace show traces/login.json` prints a trace readably.
+
+### Load test
+
+`harness/bench.sh [java|rust|both]` runs each server on a copy of the golden snapshot with 500
+extra users, times its start, samples its memory and CPU every second, and runs
+`havana-trace load` at 100, 300 and 500 bots: they log in, enter ordinary public rooms (25 each),
+then walk and chat every ~4 s. It reports login, room entry and chat round-trip percentiles, lost
+replies and dropped connections, in `harness/run/bench/`. Build with `cargo build --release`
+first; the knobs are environment variables listed at the top of the script.
 
 ### Writing scenarios
 
