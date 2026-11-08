@@ -1,0 +1,182 @@
+name = "flat-pet-gift"
+description = "A pet bought as a gift: its name, race and colour travel in the present unchecked; opening it creates the nest with its pet (checked then), so a bad pet only uses the present up"
+
+# Catalogue item 27 is pets2 (a crocodile's nest, PET_NEST, 20 credits). tracebot1 (a) gives one
+# to tracebot2 (b) and one with an invalid colour to itself (a gift to oneself is not limited to
+# one a minute). The presents are items 1 (b's) and 2 (a's). Java wraps them in a random
+# present_gen sprite, so the hands and PLACE_FLOORITEM that show them are header-only. Opening
+# b's present buys the nest anew (item 3, virtual id 3) and creates pet 1 for b; a's present
+# buys nothing and is gone. The pet acts on its own and its natures are random, so the statuses
+# after it comes in and PETSTAT are checked by header only. On its first tick the pet says a line
+# one time in 25 (as in `flat-pets`), which then shows up as an unexpected CHAT_MESSAGE: re-run
+# before concluding.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 27, "Gnasher\n2\n96E75A", true, "tracebot2", "A pet"]
+header_only = ["INVENTORY"]
+note = "Charged at once; b's hand gets the present"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 27, "Gnasher\n2\nZZZZZZ", true, "tracebot1", ""]
+header_only = ["INVENTORY"]
+note = "Not a hex colour, yet the present is bought: nothing checks the pet until it is opened"
+
+[[steps]]
+bot = "b"
+send = "CREATEFLAT"
+args = ["Pet Gift Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["1 6 6 0"]
+header_only = ["PLACE_FLOORITEM"]
+
+[[steps]]
+bot = "b"
+send = "PRESENTOPEN"
+args = [1]
+note = "DELIVER_PRESENT with the nest; the present leaves the floor; the nest is in the hand"
+
+[[steps]]
+bot = "b"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "b"
+send = "PLACESTUFF"
+args = ["3 6 5 0"]
+header_only = ["USER_STATUSES"]
+note = "The nest at (6,5): Gnasher comes in on it"
+
+[[steps]]
+bot = "b"
+send = "GETPETSTAT"
+args = [1, "Gnasher"]
+header_only = ["PETSTAT", "USER_STATUSES"]
+
+[[steps]]
+bot = "b"
+send = "QUIT"
+header_only = ["USER_STATUSES"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Bad Pet Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1001, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1001]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["2 6 6 0"]
+header_only = ["PLACE_FLOORITEM"]
+
+[[steps]]
+bot = "a"
+send = "PRESENTOPEN"
+args = [2]
+note = "The crocodile is checked now: nothing delivered, the present is gone"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+note = "Empty hand"
+
+[[steps]]
+bot = "a"
+send = "GET_CREDITS"
+note = "Both gifts were paid for"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600

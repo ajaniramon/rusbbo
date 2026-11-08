@@ -35,3 +35,4 @@ user-club
 user-club-member
 user-ignore
 user-settings
+flat-pet-gift

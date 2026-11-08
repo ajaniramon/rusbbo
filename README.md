@@ -60,7 +60,12 @@ walkspace, talking now and then, and handing out drinks when a user nearby asks 
 Pets (`items_pets`) as in Java: bought with their nest (name, race, colour), in the room while
 the nest is placed, acting on their own every 10-25 s (walking, sitting, lying down, now and then
 a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
-(`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`).
+(`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`). A pet can be
+a gift: it travels in the present and is created when the present is opened.
+
+Purchases, gifts, club subscriptions, finished trades and opened presents are each one redb
+transaction (Java commits step by step), with their `users_transactions` audit rows; memory
+changes only after the commit (`docs/DESIGN.md`, `crates/server/src/txn_tests.rs`).
 
 Server housekeeping as in Java: idle connections get `PING` after 60 s and are logged out 60 s
 later without a `PONG`; startup resets SSO tickets, `players.online`, room visitor counts, trade
@@ -168,6 +173,7 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |
 | `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
 | `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
+| `flat-pet-gift` | a pet nest bought as a gift (unchecked), opened into the nest with its pet, and a gift with a bad pet that opens into nothing |
 
 ## Known gaps
 
