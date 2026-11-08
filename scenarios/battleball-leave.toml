@@ -1,0 +1,140 @@
+name = "battleball-leave"
+description = "Leaving a BattleBall game that is on: an observer in the lobby (the started game, its changes), a player who disconnects mid-game (LOGOUT, the game goes on without them), the last player walking back to the lobby (GAMEDELETED to them and to the observer: the game is gone), the instance list afterwards"
+
+# The lobby is room 66. s (tracestaff) shortens the game with :setconfig (2 s to prepare, 6 s to
+# play) and observes it from the lobby. As in battleball-game, every step during the game takes
+# one of the arena's 500 ms ticks, and STARTGAME's step waits 450 ms: GAMESTART comes with
+# tick 3.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.preparing.game.seconds 2"]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig battleball.game.lifetime.seconds 6"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 5, "numTeams", false, 2, "allowedPowerups", true, "", "name", true, "Short lived"]
+
+[[steps]]
+bot = "b"
+send = "INITIATEJOINGAME"
+args = [1, 1]
+
+[[steps]]
+bot = "s"
+send = "OBSERVEINSTANCE"
+args = [1]
+
+[[steps]]
+bot = "a"
+send = "STARTGAME"
+settle_ms = 450
+note = "The observer gets the started game"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "Tick 0"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+note = "Tick 1"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, -1]
+note = "Tick 2"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+note = "Tick 3, then GAMESTART"
+
+[[steps]]
+bot = "b"
+send = "GAMEEVENT"
+args = [2, 2, 14]
+note = "Tick 4"
+
+[[steps]]
+bot = "b"
+disconnect = true
+note = "b leaves mid-game: LOGOUT and the game without b, to a and the observer"
+
+[[steps]]
+bot = "a"
+send = "UNOBSERVEINSTANCE"
+note = "The game goes on"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 66]
+settle_ms = 600
+note = "a leaves too: the game is gone (GAMEDELETED to a and to the observer)"
+
+[[steps]]
+bot = "s"
+send = 159
+note = "No games"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "s"
+disconnect = true

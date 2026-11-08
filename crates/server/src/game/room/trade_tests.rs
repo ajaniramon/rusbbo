@@ -61,6 +61,7 @@ fn room() -> Room {
         space_cafe: None,
         queue_after_loop: Vec::new(),
         deleted: false,
+        arena: None,
     }
 }
 

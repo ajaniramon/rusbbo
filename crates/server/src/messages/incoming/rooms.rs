@@ -27,7 +27,16 @@ pub fn room_directory(
 ) -> Result<(), Malformed> {
     reader.int().ok_or(Malformed)?;
     let room_id = reader.int().ok_or(Malformed)?;
-    // TODO(games): room id -1 while entering a game arena.
+    // Java: room -1 is the arena of the game the player is on the way to (at their spawn).
+    if room_id == -1 {
+        if let Some(entry) = world.games.arena_entry(session.id) {
+            if let Some((arena, spawn)) = entry {
+                world.register_arena(&arena);
+                room::enter_room(world, session, arena, Some(spawn), true);
+            }
+            return Ok(());
+        }
+    }
     let Some(room) = u32::try_from(room_id)
         .ok()
         .and_then(|id| world.room_by_id(id))
@@ -43,6 +52,12 @@ pub fn room_directory(
             r.data.visitors_max,
         )
     };
+    // Java: getVisitorsNow/Max count a lobby's started games.
+    let (game_now, game_max) = {
+        let data = room.lock().data.clone();
+        crate::game::navigator::game_visitors(world, &data)
+    };
+    let (visitors_now, visitors_max) = (visitors_now + game_now, visitors_max + game_max);
     let Some(category) = u32::try_from(category)
         .ok()
         .and_then(|c| world.room_categories.get(&c))
@@ -274,7 +289,6 @@ pub fn g_items(
     Ok(())
 }
 
-/// Java: `G_HMAP`. TODO(games): SnowStorm maps and the game status. TODO(flash): FLOOR_MAP.
 /// Java: `GET_FLOORMAP`: the real client asks for it while loading a room (the trace bots do not)
 /// and waits for the answer: `FLOOR_MAP`, the walking heights of a private room, and an empty
 /// `USER_OBJECTS`.
@@ -295,6 +309,8 @@ pub fn get_floormap(
     Ok(())
 }
 
+/// Java: `G_HMAP`: the heightmap, and in a game's arena the game's full status. TODO(snowstorm):
+/// a SnowStorm arena sends its map's heightmap and items. TODO(flash): FLOOR_MAP.
 pub fn g_hmap(
     world: &World,
     session: &Arc<Session>,
@@ -305,6 +321,9 @@ pub fn g_hmap(
     };
     let msg = out::heightmap(&room.lock().model.heightmap);
     session.send(msg);
+    if let Some(status) = world.games.full_game_status_for(world, session) {
+        session.send(status);
+    }
     Ok(())
 }
 
@@ -356,10 +375,22 @@ pub fn g_stat(
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    // TODO(games): spectators and game players.
     let Some(room) = current_room(world, session) else {
         return Ok(());
     };
+    // Java: a spectator is told so (and the game's time if it is on); a player in a game gets
+    // nothing more.
+    match world.games.player_flags(session.id) {
+        Some((true, _, _)) => {
+            session.send(crate::messages::outgoing::games::you_are_spectator());
+            if let Some(seconds) = world.games.started_seconds_left(session.id) {
+                session.send(crate::messages::outgoing::games::game_start(seconds));
+            }
+            return Ok(());
+        }
+        Some((_, true, _)) => return Ok(()),
+        _ => {}
+    }
     // Java: InfobusParkTrigger sends what the bus queued for the player after the door's state.
     let is_park = room.lock().model.trigger == "infobus_park";
     let queued = if is_park {

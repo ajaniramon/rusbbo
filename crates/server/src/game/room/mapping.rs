@@ -72,6 +72,8 @@ pub struct RoomMapping {
     /// `park_a` only: whether the Infobus's door is open (Java: `InfobusManager.isDoorOpen`).
     /// While it is closed nobody may walk onto the door tile.
     pub bus_door: Option<Arc<AtomicBool>>,
+    /// A game's arena (Java: `room.isGameArena()`), which has no door-front rule.
+    pub is_game_arena: bool,
     /// Indexed `x * size_y + y`; empty until the first [`RoomMapping::regenerate`].
     tiles: Vec<RoomTile>,
 }
@@ -84,6 +86,7 @@ impl RoomMapping {
             is_public,
             walkway_destinations: Vec::new(),
             bus_door: None,
+            is_game_arena: false,
             tiles: Vec::new(),
         }
     }
@@ -361,7 +364,10 @@ impl RoomMapping {
                 return;
             }
         }
-        // TODO(games): game arenas skip the door-front rule.
+        if self.is_game_arena {
+            self.tiles[t].entities.push(instance_id);
+            return;
+        }
         let front = door.square_in_front();
         if here == front || here == front.square_left() || here == front.square_right() {
             self.tiles[t].non_blocking.push(instance_id);

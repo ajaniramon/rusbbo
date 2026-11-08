@@ -182,7 +182,7 @@ pub fn follow_cry_for_help(
     let Some(call) = world.cfh.get_call(id) else {
         return Ok(());
     };
-    crate::game::moderation::forward(session, &call.room);
+    crate::game::moderation::forward(world, session, &call.room);
     world.cfh.delete_call(world, id);
     Ok(())
 }

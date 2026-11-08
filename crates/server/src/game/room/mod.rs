@@ -159,6 +159,15 @@ pub struct Room {
     /// answers `GETFLATINFO` and `TRYFLAT` until then, as in Java, but nobody may enter it again
     /// (Java lets them, and whatever they place in it is lost with the room).
     pub deleted: bool,
+    /// Set for a game's arena (Java: `isGameArena`, see `game::games`).
+    pub arena: Option<Arena>,
+}
+
+/// What an arena room knows of its game (Java: `RoomData.game`, `getGameLobby`).
+pub struct Arena {
+    /// The game's uid (`game::games::Game::uid`).
+    pub game_uid: u64,
+    pub game_type: crate::game::games::GameType,
 }
 
 impl Room {
@@ -217,8 +226,79 @@ impl Room {
                 space_cafe: None,
                 queue_after_loop: Vec::new(),
                 deleted: false,
+                arena: None,
             }),
         }))
+    }
+
+    /// Java: the `new Room()` of `Game.initialise`: a game's arena, with no row, items or
+    /// visitors of its own, under an arena key of the world (not the room registry).
+    pub fn new_arena(
+        world: &World,
+        model: Arc<RoomModel>,
+        name: &str,
+        game_uid: u64,
+        game_type: crate::game::games::GameType,
+    ) -> RoomRef {
+        let key = world.new_arena_key();
+        // Java: RoomData.fill(0, name, ""): no owner (a public room), no landscape (written
+        // as "null").
+        let data = havana_storage::Room {
+            id: key,
+            name: name.to_string(),
+            model: model.id.clone(),
+            landscape: "null".into(),
+            ..Default::default()
+        };
+        let mut mapping = RoomMapping::new(model.clone(), true);
+        mapping.is_game_arena = true;
+        mapping.regenerate(&[]);
+        Arc::new_cyclic(|weak| RoomHandle {
+            id: key,
+            model_name: model.name.clone(),
+            room: Mutex::new(Room {
+                data,
+                model,
+                mapping,
+                rights: Vec::new(),
+                votes: Vec::new(),
+                first_tick: None,
+                entities: Vec::new(),
+                active: false,
+                counter: 0,
+                task: None,
+                roller_task: None,
+                rainbow_task: None,
+                dispose_generation: 0,
+                bots_active: false,
+                is_room_muted: false,
+                last_bot_speech: None,
+                self_ref: weak.clone(),
+                deferred: Vec::new(),
+                world: world.arc().as_ref().map(Arc::downgrade).unwrap_or_default(),
+                idol: Default::default(),
+                gamehall: Default::default(),
+                camera: None,
+                wobble: None,
+                space_cafe: None,
+                queue_after_loop: Vec::new(),
+                deleted: false,
+                arena: Some(Arena {
+                    game_uid,
+                    game_type,
+                }),
+            }),
+        })
+    }
+
+    /// Java: `isGameArena`.
+    pub fn is_game_arena(&self) -> bool {
+        self.arena.is_some()
+    }
+
+    /// The room id the client is told (an arena's is 0, Java's `new Room()`).
+    pub fn wire_id(&self) -> u32 {
+        if self.is_game_arena() { 0 } else { self.id() }
     }
 
     pub fn id(&self) -> u32 {
@@ -314,6 +394,10 @@ impl Room {
     }
 
     fn save_visitors(&self, world: &World) {
+        if self.is_game_arena() {
+            // Java's RoomDao.saveVisitors(0, ...) changes no row.
+            return;
+        }
         let visitors = self.players();
         if let Err(e) = world
             .store
@@ -345,7 +429,14 @@ impl Room {
                 settings.int("sleep.timer.seconds"),
             );
         }
-        // TODO(games): game players enter at their spawn with their object id as instance id.
+        // Java: a game player on the way to the arena gets their object id as instance id and
+        // may not walk until the game begins.
+        let entering = world.games.entering_object_id(session.id);
+        if let Some(object_id) = entering {
+            entity.instance_id = object_id;
+            entity.walking_allowed = false;
+        }
+        session.set_room_presence(Some((self.id(), entity.instance_id)));
         self.entities.push(entity);
         self.data.visitors_now = self.players();
 
@@ -356,6 +447,9 @@ impl Room {
             if self.entities[idx].details.name == "Abigail.Ryan" {
                 self.use_effect(idx, crate::game::effects::GHOST_EFFECT);
             }
+        }
+        if entering.is_some() {
+            world.games.entered_game(session.id);
         }
         // TODO(messenger): sendStatusUpdate so friends see the room.
         self.save_visitors(world);
@@ -375,7 +469,14 @@ impl Room {
         if self.active {
             return;
         }
-        // TODO(games): game arenas and custom rooms keep their items.
+        if self.is_game_arena() {
+            // Java: an arena keeps its (no) items and runs its game's task instead of the room's
+            // (started once, `RoomTaskManager.loadGameTasks`). TODO(custom-rooms): custom rooms
+            // keep their items too.
+            self.regenerate_map();
+            self.start_arena_task(world);
+            return;
+        }
         self.mapping.items.clear();
         self.rights.clear();
         self.votes.clear();
@@ -452,6 +553,26 @@ impl Room {
         }
     }
 
+    /// Java: `RoomTaskManager.loadGameTasks`: the game type's task, unless it runs already.
+    fn start_arena_task(&mut self, world: &World) {
+        if self.task.is_some() {
+            return;
+        }
+        let Some(arena) = &self.arena else {
+            return;
+        };
+        let period = arena.game_type.arena_task_period();
+        let (Some(world), Ok(rt)) = (world.arc(), tokio::runtime::Handle::try_current()) else {
+            return;
+        };
+        let handle = rt.spawn(tasks::run_arena(
+            Arc::downgrade(&world),
+            self.self_ref.clone(),
+            period,
+        ));
+        self.task = Some(handle.abort_handle());
+    }
+
     fn stop_tasks(&mut self) {
         if let Some(task) = self.task.take() {
             task.abort();
@@ -469,9 +590,15 @@ impl Room {
     pub fn try_room_entry(&mut self, world: &World, session_id: u64) -> bool {
         let was_active = self.active;
         self.active = true;
-        // The model trigger's onRoomEntry. TODO(games): the game lobbies.
+        // The model trigger's onRoomEntry.
         if let Some(idx) = self.entity_index(session_id) {
             match self.model.trigger.as_str() {
+                "battleball_lobby_trigger" => {
+                    self.game_lobby_entry(world, crate::game::games::GameType::BattleBall, idx);
+                }
+                "snowstorm_lobby_trigger" => {
+                    self.game_lobby_entry(world, crate::game::games::GameType::SnowStorm, idx);
+                }
                 "habbo_lido_trigger" | "diving_deck_trigger" | "rooftop_rumble_trigger" => {
                     self.pool_room_entry(world, idx);
                 }
@@ -513,9 +640,12 @@ impl Room {
             );
         }
         if e.is_player() {
-            // Only the cameras' triggers do something (Lido B, Rooftop Rumble); the flat, Habbo
-            // Lido, Infobus and Space Cafe ones do nothing. TODO(games): the game lobbies'.
+            // Only the cameras' triggers (Lido B, Rooftop Rumble) and the game lobbies' do
+            // something; the flat, Habbo Lido, Infobus and Space Cafe ones do nothing.
             self.pool_room_leave(e.session.id);
+            if crate::game::games::GameType::of_lobby_trigger(&self.model.trigger).is_some() {
+                self.game_lobby_leave(world, e.session.id);
+            }
         }
         self.mapping.remove_entity(e.position, e.instance_id);
         if let Some(next) = e.next_position {
@@ -542,12 +672,20 @@ impl Room {
         e.instance_id = -1;
         e.is_typing = false;
         e.needs_update = true;
+        e.session.set_room_presence(None);
 
         if hotel_view {
             e.session.send(out_user::hotel_view());
         }
         // Java ends a game of Wobble Squabble here, but never does (see `wobble_squabble`).
-        // TODO(games): game leave. TODO(messenger): status update.
+        // Java: a player who leaves a room while in a game (not on the way to its arena) leaves
+        // the game. TODO(messenger): status update.
+        if e.is_player() {
+            let session_id = e.session.id;
+            world.games.run(world, Some(self), |games, op| {
+                games.left_room(session_id, op)
+            });
+        }
         self.save_visitors(world);
         Some(e)
     }
@@ -598,7 +736,11 @@ impl Room {
             r.wobble = None;
             r.space_cafe = None;
             r.queue_after_loop.clear();
-            world.unregister_room(&room);
+            if r.is_game_arena() {
+                world.unregister_arena(&room);
+            } else {
+                world.unregister_room(&room);
+            }
         });
     }
 
@@ -722,6 +864,36 @@ impl Room {
             }
             _ => false,
         }
+    }
+
+    /// Java: `RoomEntity.stopWalking`, for callers outside the room's tick (the games).
+    pub(crate) fn stop_walking_entity(&mut self, world: &World, idx: usize) {
+        let _ = self.stop_walking(world, idx);
+    }
+
+    /// Java: `restartGame`'s `setInstanceId(objectId)` and `setPosition(spawn)` for a player in
+    /// this arena, after `assignSpawnPoints`' `setWalking(false)` and `setNextPosition(null)`
+    /// (the path stays, unused until the next walk).
+    pub(crate) fn set_game_position(&mut self, session_id: u64, object_id: i32, spawn: Position) {
+        let Some(idx) = self.entity_index(session_id) else {
+            return;
+        };
+        let (old_id, old_position, next) = {
+            let e = &self.entities[idx];
+            (e.instance_id, e.position, e.next_position)
+        };
+        self.mapping.remove_entity(old_position, old_id);
+        if let Some(next) = next {
+            self.mapping.remove_entity(next, old_id);
+        }
+        let key = self.data.id;
+        let e = &mut self.entities[idx];
+        e.is_walking = false;
+        e.next_position = None;
+        e.instance_id = object_id;
+        e.position = spawn;
+        e.session.set_room_presence(Some((key, object_id)));
+        self.mapping.add_entity(spawn, object_id);
     }
 
     /// Java: `RoomEntity.stopWalking`. Returns the entity if it left the room.
@@ -972,8 +1144,11 @@ impl Room {
         let e = &mut self.entities[idx];
         e.chat_spam_count += 1;
         if e.chat_spam_ticks == -1 {
-            // TODO(games): twice as long in SnowStorm.
             e.chat_spam_ticks = 8;
+            // Java: game ticks go twice as fast in SnowStorm.
+            if e.is_player() && world.games.in_snowstorm_game(e.session.id) {
+                e.chat_spam_ticks = 16;
+            }
         }
         if e.chat_spam_count >= 6 {
             e.mute_time = now() + 30;
@@ -1486,7 +1661,7 @@ fn enter_room_with(
             );
         }
         if send_entry {
-            session.send(out_rooms::room_ready(r.id(), &r.model.name));
+            session.send(out_rooms::room_ready(r.wire_id(), &r.model.name));
             session.send(out_rooms::flat_property("landscape", &r.data.landscape));
             if r.data.wallpaper > 0 {
                 session.send(out_rooms::flat_property(
@@ -1560,6 +1735,7 @@ impl Room {
             space_cafe: None,
             queue_after_loop: Vec::new(),
             deleted: false,
+            arena: None,
         };
         room.regenerate_map();
         room

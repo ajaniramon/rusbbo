@@ -3,6 +3,7 @@
 //! Only the tables the Rust server uses so far are imported; each newly ported table adds a
 //! function here. See `docs/DESIGN.md`.
 
+mod games;
 mod infobus;
 mod sound;
 mod user;
@@ -69,6 +70,8 @@ fn main() -> Result<()> {
     let moderation = import_moderation(&mut conn, &store)?;
     let infobus_rows = infobus::import_infobus(&mut conn, &store)?;
     eprintln!("[import] {infobus_rows} infobus poll/answer rows");
+    let game_rows = games::import_games(&mut conn, &store)?;
+    eprintln!("[import] {game_rows} game map/spawn/rank/history rows");
     eprintln!(
         "[import] {}: {users} users, {settings} settings, {rooms} rooms, {models} room models, \
          {categories} room categories, {public_items} public items, {walkways} walkways, \

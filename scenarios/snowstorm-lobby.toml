@@ -1,0 +1,142 @@
+name = "snowstorm-lobby"
+description = "The SnowStorm lobby (snowwar_lobby_1) up to the arena: GETINSTANCELIST, INITIATECREATEGAME (SnowStorm's GAMEPARAMETERS), GAMEPARAMETERVALUES (a bad map, too many teams, a one-team game, a missing gameLengthChoice), the game length in GAMEINSTANCE and INSTANCELIST, STARTGAME (alone in a one-team game: an ALERT; one team only: STARTFAILED), OBSERVEINSTANCE, INITIATEJOINGAME, LEAVEGAME, the creator leaving a waiting game, and LOUNGEINFO/GAMEPLAYERINFO on G_STAT"
+
+# The SnowStorm lobby is room 67 (snowwar_lobby_1). As in the BattleBall lobby, G_STAT (which
+# brings in the lobby's NPC) only comes at the end. No game is started: the SnowStorm arena is
+# not part of this scenario.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 67]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = 159
+note = "GETINSTANCELIST: no games"
+
+[[steps]]
+bot = "a"
+send = "INITIATECREATEGAME"
+note = "SnowStorm's parameters: fieldType 1-7, numTeams, gameLengthChoice 1-3, name"
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 8, "numTeams", false, 2, "gameLengthChoice", false, 1, "name", true, "Bad map"]
+note = "Map 8 does not exist: no game, INSTANCELIST to the room"
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 2, "numTeams", false, 5, "gameLengthChoice", false, 1, "name", true, "Five teams"]
+note = "Five teams: no game, INSTANCELIST"
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 3, "numTeams", false, 1, "gameLengthChoice", false, 2, "name", true, "Snow one"]
+note = "Game 1: one team on map 3, 3 minutes"
+
+[[steps]]
+bot = "a"
+send = "STARTGAME"
+note = "Alone in a one-team game: ALERT"
+
+[[steps]]
+bot = "b"
+send = "OBSERVEINSTANCE"
+args = [1]
+
+[[steps]]
+bot = "b"
+send = "INITIATEJOINGAME"
+args = [1, 0]
+
+[[steps]]
+bot = "b"
+send = "LEAVEGAME"
+
+[[steps]]
+bot = "b"
+send = "GAMEPARAMETERVALUES"
+args = [4, "fieldType", false, 7, "numTeams", false, 4, "gameLengthChoice", false, 3, "name", true, "Snow four"]
+note = "Game 2: four teams on map 7, 5 minutes"
+
+[[steps]]
+bot = "a"
+send = "INITIATEJOINGAME"
+args = [2, 3]
+note = "a, creator of the waiting game 1, leaves it (deleted) and joins game 2's team 3"
+
+[[steps]]
+bot = "a"
+send = "INITIATEJOINGAME"
+args = [2, 0]
+note = "a switches to b's team"
+
+[[steps]]
+bot = "b"
+send = "STARTGAME"
+note = "One team with players: STARTFAILED"
+
+[[steps]]
+bot = "a"
+send = 159
+
+[[steps]]
+bot = "a"
+send = "GAMEPARAMETERVALUES"
+args = [3, "fieldType", false, 4, "numTeams", false, 2, "name", true, "No length"]
+note = "a leaves game 2, then no gameLengthChoice: a NullPointerException, nothing else"
+
+[[steps]]
+bot = "a"
+send = 159
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 600
+note = "LOUNGEINFO and GAMEPLAYERINFO (SnowStorm points and rank)"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "LEAVEGAME"
+note = "The creator leaves game 2: deleted"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true

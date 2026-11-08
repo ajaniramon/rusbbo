@@ -22,6 +22,10 @@ use crate::session::Session;
 use crate::settings::Settings;
 use crate::settings_defaults::{DEFAULTS, Value};
 
+/// The first key of the games' arenas, which are rooms with no row (see `game::games`); room ids
+/// stay below it.
+pub const ARENA_KEY_BASE: u32 = 2_000_000_000;
+
 pub struct World {
     pub store: Store,
     pub settings: RwLock<Settings>,
@@ -49,6 +53,11 @@ pub struct World {
     pub cfh: crate::game::moderation::cfh::CallForHelpManager,
     /// Java: `InfobusManager`.
     pub infobus: crate::game::infobus::InfobusManager,
+    /// Java: `GameManager` (BattleBall, SnowStorm).
+    pub games: crate::game::games::GameManager,
+    /// The games' arenas (Java keeps them out of `RoomManager`), by their keys.
+    arenas: Mutex<HashMap<u32, RoomRef>>,
+    next_arena_key: std::sync::atomic::AtomicU32,
     /// Set once the world is in its `Arc`, so room tasks can hold on to it.
     self_ref: OnceLock<Weak<World>>,
 }
@@ -72,6 +81,7 @@ impl World {
         let catalogue = CatalogueManager::load(&store, &items)?;
         let achievements = AchievementManager::new(store.achievements()?);
         let effect_durations = store.effect_durations()?;
+        let games = crate::game::games::GameManager::new(&store);
         Ok(Self {
             store,
             settings: RwLock::new(settings),
@@ -87,6 +97,9 @@ impl World {
             wordfilter,
             cfh: Default::default(),
             infobus: Default::default(),
+            games,
+            arenas: Mutex::new(HashMap::new()),
+            next_arena_key: std::sync::atomic::AtomicU32::new(ARENA_KEY_BASE),
             self_ref: OnceLock::new(),
         })
     }
@@ -103,9 +116,40 @@ impl World {
         self.self_ref.get().and_then(Weak::upgrade)
     }
 
-    /// A loaded room (Java: `RoomManager.getRoomById` when the room is in the map).
+    /// A loaded room (Java: `RoomManager.getRoomById` when the room is in the map), or a game's
+    /// arena by its key.
     pub fn loaded_room(&self, id: u32) -> Option<RoomRef> {
+        if id >= ARENA_KEY_BASE {
+            return self.arenas.lock().get(&id).cloned();
+        }
         self.rooms.lock().get(&id).cloned()
+    }
+
+    /// A key for a new arena (see [`ARENA_KEY_BASE`]).
+    pub fn new_arena_key(&self) -> u32 {
+        self.next_arena_key
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Makes an arena reachable by its key while players are in it.
+    pub fn register_arena(&self, room: &RoomRef) {
+        self.arenas
+            .lock()
+            .entry(room.id)
+            .or_insert_with(|| room.clone());
+    }
+
+    /// Forgets an arena nobody is in (its game may still hold it, and register it again).
+    pub fn unregister_arena(&self, room: &RoomRef) {
+        let mut arenas = self.arenas.lock();
+        if arenas.get(&room.id).is_some_and(|r| Arc::ptr_eq(r, room)) {
+            arenas.remove(&room.id);
+        }
+    }
+
+    /// Every arena players can be in, so callers can lock them one at a time.
+    pub fn arenas(&self) -> Vec<RoomRef> {
+        self.arenas.lock().values().cloned().collect()
     }
 
     /// Every loaded room, so callers can lock them one at a time.
@@ -147,12 +191,12 @@ impl World {
     /// Visitors now and maximum of a room, read from the loaded room or from storage (Java:
     /// `getRoomById(id).getData()`). Locks that room; hold no other room's lock.
     pub fn room_visitors(&self, id: u32) -> Option<(i32, i32)> {
-        if let Some(room) = self.loaded_room(id) {
-            let r = room.lock();
-            return Some((r.data.visitors_now, r.data.visitors_max));
-        }
-        let data = self.store.room(id).ok().flatten()?;
-        Some((data.visitors_now, data.visitors_max))
+        let data = match self.loaded_room(id) {
+            Some(room) => room.lock().data.clone(),
+            None => self.store.room(id).ok().flatten()?,
+        };
+        let (now, max) = crate::game::navigator::game_visitors(self, &data);
+        Some((data.visitors_now + now, data.visitors_max + max))
     }
 
     /// Java: `RoomManager.getChildRooms`: public rooms connected to `room_id` by walkways.

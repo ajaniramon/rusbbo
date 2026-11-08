@@ -6,9 +6,8 @@
 //! room's live data. Each loaded room is locked on its own and only long enough to copy its row,
 //! and never while the registry lock is held (see `World::room_visitors`).
 //!
-//! TODO(games): `RoomData.getVisitorsNow/Max` add the players and capacity of started BattleBall
-//! and Snowstorm games to their lobby rooms; the games are not ported, so lobbies show their own
-//! visitors only.
+//! `RoomData.getVisitorsNow/Max` add the players and capacity of started BattleBall and SnowStorm
+//! games to their lobby rooms ([`game_visitors`]).
 //! TODO(votes): `ratingSantiyCheck` recounts the votes of rooms nobody is in; `rooms_votes` is not
 //! ported, so stored ratings are shown as they are.
 
@@ -169,7 +168,22 @@ pub fn replace_query_rooms(world: &World, rows: Vec<Room>) -> Vec<Room> {
             Some(room) => room.lock().data.clone(),
             None => row,
         })
+        .map(|mut data| {
+            let (now, max) = game_visitors(world, &data);
+            data.visitors_now += now;
+            data.visitors_max += max;
+            data
+        })
         .collect()
+}
+
+/// Java: what `RoomData.getVisitorsNow/getVisitorsMax` add for a game lobby: the players of its
+/// started games (see `GameManager::lobby_visitors`). Takes the games' lock: hold no room lock.
+pub fn game_visitors(world: &World, data: &Room) -> (i32, i32) {
+    match world.room_models.get(&data.model) {
+        Some(model) => world.games.lobby_visitors(&model.trigger),
+        None => (0, 0),
+    }
 }
 
 /// `replaceQueryRooms` plus everything a composer reads from the rooms: owner names (the
