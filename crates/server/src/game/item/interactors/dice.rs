@@ -103,12 +103,13 @@ impl Room {
         });
     }
 
-    /// Java: `G_STAT`'s loop over the room's items for a user who just came in: a spinning wheel
-    /// sends its state again (it would not spin otherwise) and a rolling dice its animation.
+    /// Java: `G_STAT`'s loop over the room's items for a user who just came in: a pool item's
+    /// program (`SHOWPROGRAM`), a spinning wheel's state again (it would not spin otherwise) and
+    /// a rolling dice's animation.
     pub fn busy_item_updates(&self) -> Vec<havana_protocol::Message> {
         let mut messages = Vec::new();
-        for item in &self.mapping.items {
-            // TODO(pool): SHOWPROGRAM for items with a program value comes first in Java.
+        for (idx, item) in self.mapping.items.iter().enumerate() {
+            messages.extend(self.program_of(idx));
             if item.has(Behaviour::Invisible) || !item.requires_update {
                 continue;
             }

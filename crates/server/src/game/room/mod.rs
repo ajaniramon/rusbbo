@@ -19,6 +19,9 @@ pub mod items;
 pub mod mapping;
 pub mod model;
 mod pets;
+pub mod pool;
+#[cfg(test)]
+mod pool_tests;
 pub mod sound;
 pub mod tasks;
 pub mod trade;
@@ -140,6 +143,10 @@ pub struct Room {
     pub(crate) world: Weak<World>,
     /// Java: `RoomIdolManager`.
     pub idol: crate::game::item::interactors::idol::IdolState,
+    /// Java: the `DivingCamera` task of Lido B (`DivingDeckTrigger`), from its first `G_STAT`.
+    camera: Option<pool::DivingCamera>,
+    /// Java: `EntityTask.queueAfterLoop`: sent to the room after the next entity tick's statuses.
+    queue_after_loop: Vec<Message>,
     /// Set by `DELETEFLAT`: the row is gone and the room only waits to be unloaded. It still
     /// answers `GETFLATINFO` and `TRYFLAT` until then, as in Java, but nobody may enter it again
     /// (Java lets them, and whatever they place in it is lost with the room).
@@ -193,6 +200,8 @@ impl Room {
                 deferred: Vec::new(),
                 world: world.arc().as_ref().map(Arc::downgrade).unwrap_or_default(),
                 idol: Default::default(),
+                camera: None,
+                queue_after_loop: Vec::new(),
                 deleted: false,
             }),
         }))
@@ -313,6 +322,8 @@ impl Room {
         self.counter += 1;
         let mut entity = RoomEntity::new(session.clone(), details, instance_id);
         entity.position = destination.unwrap_or_else(|| self.model.door_location());
+        // Java keeps the effect on the player's `RoomEntity` from room to room.
+        entity.effect_id = session.effect_id();
         {
             let settings = world.settings.read();
             entity.reset_timers(
@@ -325,7 +336,13 @@ impl Room {
         self.data.visitors_now = self.players();
 
         self.try_initialise(world);
-        // TODO(effects): Abigail.Ryan's ghost effect. The teleporter arrival is in `enter_room`.
+        // Java: `tryInitialiseRoom` gives Abigail.Ryan the ghost effect. The teleporter arrival
+        // is in `enter_room`.
+        if let Some(idx) = self.entity_index(session.id) {
+            if self.entities[idx].details.name == "Abigail.Ryan" {
+                self.use_effect(idx, crate::game::effects::GHOST_EFFECT);
+            }
+        }
         // TODO(messenger): sendStatusUpdate so friends see the room.
         self.save_visitors(world);
     }
@@ -352,7 +369,8 @@ impl Room {
             match world.store.public_items(&self.model.id) {
                 Ok(rows) => {
                     let definition = |sprite: &str| world.items.definition_by_sprite(sprite);
-                    self.mapping.items = items::public_items(&self.model.id, &rows, &definition)
+                    self.mapping.items = items::public_items(&self.model.id, &rows, &definition);
+                    self.show_initial_programs();
                 }
                 Err(e) => error!(room = self.id(), "loading public items: {e}"),
             }
@@ -432,11 +450,21 @@ impl Room {
         }
     }
 
-    /// Java: `RoomEntityManager.tryRoomEntry` (`G_STAT`). Returns whether it was the first entry.
-    pub fn try_room_entry(&mut self, world: &World) -> bool {
+    /// Java: `RoomEntityManager.tryRoomEntry` (`G_STAT`) for the player of `session_id`.
+    /// Returns whether it was the first entry.
+    pub fn try_room_entry(&mut self, world: &World, session_id: u64) -> bool {
         let was_active = self.active;
         self.active = true;
-        // TODO(triggers): the other model triggers' onRoomEntry.
+        // The model trigger's onRoomEntry. TODO(triggers): the Infobus and Space Cafe triggers;
+        // TODO(games): the game lobbies and Rooftop Rumble.
+        if let Some(idx) = self.entity_index(session_id) {
+            if matches!(
+                self.model.trigger.as_str(),
+                "habbo_lido_trigger" | "diving_deck_trigger"
+            ) {
+                self.pool_room_entry(world, idx);
+            }
+        }
         if !was_active {
             if self.model.trigger == "flat_trigger" {
                 self.load_pets(world);
@@ -456,10 +484,22 @@ impl Room {
     ) -> Option<RoomEntity> {
         let idx = self.entity_index(session_id)?;
         let mut e = self.entities.remove(idx);
-        // Java: the current item's onEntityLeave trigger. TODO(triggers): onRoomLeave.
-        if let Some(interaction) = self.mapping.highest_item(e.position).map(|i| i.interaction) {
+        // Java: the current item's onEntityLeave trigger, then the model's onRoomLeave.
+        let current = self.mapping.tile(e.position).and_then(|t| t.highest_item);
+        if let Some(item) = current {
             let session = e.session.clone();
-            self.on_entity_leave(interaction, &session, e.is_player());
+            let interaction = self.mapping.items[item].interaction;
+            self.on_entity_leave(
+                interaction,
+                Some(item),
+                &session,
+                e.is_player(),
+                e.is_walking,
+            );
+        }
+        if e.is_player() {
+            // TODO(triggers): the other models' onRoomLeave.
+            self.pool_room_leave(e.session.id);
         }
         self.mapping.remove_entity(e.position, e.instance_id);
         if let Some(next) = e.next_position {
@@ -537,6 +577,8 @@ impl Room {
             r.entities.clear();
             r.bots_active = false;
             r.last_bot_speech = None;
+            r.camera = None;
+            r.queue_after_loop.clear();
             world.unregister_room(&room);
         });
     }
@@ -579,10 +621,15 @@ impl Room {
         }
         if let Some(next) = self.entities[idx].next_position {
             let e = &mut self.entities[idx];
+            let old = e.position;
             e.position.x = next.x;
             e.position.y = next.y;
             self.update_new_height(idx);
-            self.on_entity_step(idx);
+            let instance_id = self.entities[idx].instance_id;
+            self.on_entity_step(idx, old);
+            if self.entity_by_instance(instance_id) != Some(idx) {
+                return false;
+            }
         }
         if self.mapping.tile(Position::new(x, y)).is_none() {
             return false;
@@ -684,6 +731,8 @@ impl Room {
         if !being_kicked {
             if let Some(w) = world.walkway_at(self, position) {
                 // Java enters the target room right here; it runs once the room lock is released.
+                // The user is no longer in this room when the tick sends its statuses.
+                self.entities[idx].leaving_by_walkway = true;
                 self.deferred.push(Deferred::Walkway {
                     session,
                     target_room_id: w.target_room_id,
@@ -749,9 +798,11 @@ impl Room {
                 e.statuses.remove(StatusType::Lay);
             }
             if item.is_none() {
-                if let Some((_, interaction)) = e.last_item_interaction.take() {
-                    let (session, is_player) = (e.session.clone(), e.is_player());
-                    self.on_entity_leave(interaction, &session, is_player);
+                if let Some((virtual_id, interaction)) = e.last_item_interaction.take() {
+                    let (session, is_player, walking) =
+                        (e.session.clone(), e.is_player(), e.is_walking);
+                    let last = self.mapping.item_index(virtual_id);
+                    self.on_entity_leave(interaction, last, &session, is_player, walking);
                 }
             }
         }
@@ -765,7 +816,8 @@ impl Room {
                 _ => {}
             }
             self.pet_stopped_on(world, idx, i);
-            // TODO(pool, games): the pool and game triggers' onEntityStop.
+            self.pool_stop(world, idx, i);
+            // TODO(games): the Wobble Squabble and game triggers' onEntityStop.
             let item = &self.mapping.items[i];
             self.entities[idx].last_item_interaction = Some((item.virtual_id, item.interaction));
         }
@@ -796,12 +848,12 @@ impl Room {
         if is_rolling && e.look_timer > -1 {
             e.position.head_rotation = head_rotation;
         }
-        // TODO(effects): re-send the effect.
+        self.queue_effect(idx);
     }
 
     /// Java: `RoomEntity.dance`.
     pub fn dance(&mut self, idx: usize, dance_id: i32) {
-        let pool = self.model.name.starts_with("pool_") || self.model.name == "md_a";
+        let pool = pool::is_pool_model(&self.model.name);
         let e = &mut self.entities[idx];
         e.dance_id = dance_id;
         let msg = out_user::user_dance(e.instance_id, dance_id);
@@ -835,13 +887,18 @@ impl Room {
 
     /// Java: `RoomTimerManager.resetRoomTimer`.
     pub fn reset_room_timer(&mut self, world: &World, idx: usize) {
-        let (afk, sleep) = {
-            let settings = world.settings.read();
-            (
-                settings.int("afk.timer.seconds"),
-                settings.int("sleep.timer.seconds"),
-            )
+        let afk = world.settings.read().int("afk.timer.seconds");
+        self.reset_room_timer_to(Some(world), idx, afk);
+    }
+
+    /// Java: `RoomTimerManager.resetRoomTimer(afkTimer)`: `afk` seconds until the user is sent
+    /// out for idling. Without `world`, the one the room was loaded in.
+    pub(crate) fn reset_room_timer_to(&mut self, world: Option<&World>, idx: usize, afk: i64) {
+        let loaded = if world.is_none() { self.world() } else { None };
+        let Some(world) = world.or(loaded.as_deref()) else {
+            return;
         };
+        let sleep = world.settings.read().int("sleep.timer.seconds");
         self.entities[idx].reset_timers(afk, sleep);
         if self.entities[idx].is_sleeping {
             self.sleep(idx, false);
@@ -1125,10 +1182,28 @@ impl Room {
     /// jumps to `position` (with its height and rotation), the room sees `USER_OBJECTS` and
     /// `USER_STATUSES`, then the item there is worked out again with its own status update.
     pub fn warp(&mut self, idx: usize, position: Position) {
+        self.warp_to(idx, position, true, true);
+        // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
+        // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
+        // what the oracle sends.
+        self.entities[idx].needs_update = true;
+    }
+
+    /// Java: `RoomEntity.warp(position, instantUpdate, sendUserObject)`: the user jumps to
+    /// `position`; with `instant_update` the room sees the user's status (and, with
+    /// `send_user_object`, `USER_OBJECTS` first) and the item there is worked out again.
+    pub(crate) fn warp_to(
+        &mut self,
+        idx: usize,
+        position: Position,
+        instant_update: bool,
+        send_user_object: bool,
+    ) {
         let (old, instance_id, next) = {
             let e = &self.entities[idx];
             (e.position, e.instance_id, e.next_position)
         };
+        let had_tile = self.mapping.tile(old).is_some();
         self.mapping.remove_entity(old, instance_id);
         if let Some(next) = next {
             self.mapping.remove_entity(next, instance_id);
@@ -1136,16 +1211,40 @@ impl Room {
         self.entities[idx].position = position;
         self.update_new_height(idx);
         self.mapping.add_entity(position, instance_id);
+        if !instant_update {
+            return;
+        }
         let model = self.model.name.clone();
-        self.send(out_user::user_objects([&self.entities[idx]], &model));
+        if send_user_object {
+            self.send(out_user::user_objects([&self.entities[idx]], &model));
+        }
         self.send(out_user::user_statuses([&self.entities[idx]], &model));
-        if self.mapping.tile(old).is_some() {
+        if had_tile {
             self.invoke_item(None, idx, true, Some(old));
         }
-        // traces/flat-teleport.json: after a warp the next room tick sends the user's status once
-        // more. The Java code path that sets `needsUpdate` here was not found; this reproduces
-        // what the oracle sends.
-        self.entities[idx].needs_update = true;
+    }
+
+    /// Java: `RoomEntity.useEffect`: a carried drink goes, then the room sees the effect.
+    pub fn use_effect(&mut self, idx: usize, effect_id: i32) {
+        if self.is_carrying(idx) {
+            self.stop_carrying(idx);
+        }
+        let e = &mut self.entities[idx];
+        e.effect_id = effect_id;
+        e.session.set_effect_id(effect_id);
+        let msg = crate::messages::outgoing::effects::user_avatar_effect(e.instance_id, effect_id);
+        self.send(msg);
+    }
+
+    /// Java: `entityTask.getQueueAfterLoop().add(USER_AVATAR_EFFECT)` after sitting or lying
+    /// down: the effect is shown again once the next tick's statuses are out.
+    pub(crate) fn queue_effect(&mut self, idx: usize) {
+        let e = &self.entities[idx];
+        if e.is_using_effect() {
+            let msg =
+                crate::messages::outgoing::effects::user_avatar_effect(e.instance_id, e.effect_id);
+            self.queue_after_loop.push(msg);
+        }
     }
 
     /// Java's `getRoomUser().getCurrentItem()`.
@@ -1232,7 +1331,7 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                     .loaded_room(target_room_id)
                     .or_else(|| Room::load(world, target_room_id));
                 if let Some(target) = target {
-                    enter_room(world, &session, target, destination, true);
+                    enter_room_with(world, &session, target, destination, true, true);
                 }
             }
             Deferred::TradeClosed { sides } => trade::run_closed(world, sides),
@@ -1275,6 +1374,21 @@ pub fn enter_room(
     room: RoomRef,
     destination: Option<Position>,
     send_entry: bool,
+) {
+    enter_room_with(world, session, room, destination, send_entry, false);
+}
+
+/// [`enter_room`]; `from_room_task` for an entry that Java runs on the old room's task thread
+/// (a walkway): the new room's first statuses then go out before the entry messages
+/// (`traces/pool-ladders.json`), as both are written from threads other than the connection's
+/// event loop and the room task wins.
+fn enter_room_with(
+    world: &World,
+    session: &Arc<Session>,
+    room: RoomRef,
+    destination: Option<Position>,
+    send_entry: bool,
+    from_room_task: bool,
 ) {
     let room = world.register_room(room);
     // A deleted room waiting to be unloaded is as good as gone (Java's `room == null`).
@@ -1324,6 +1438,11 @@ pub fn enter_room(
             return;
         }
         r.add_entity(world, session, details, destination);
+        if from_room_task {
+            if let Some(msg) = r.first_tick.take() {
+                r.send(msg);
+            }
+        }
         if let Some((teleporter_id, _)) = teleporter {
             crate::game::item::interactors::teleport::arrive(
                 world,
@@ -1401,6 +1520,8 @@ impl Room {
             deferred: Vec::new(),
             world: Weak::new(),
             idol: Default::default(),
+            camera: None,
+            queue_after_loop: Vec::new(),
             deleted: false,
         };
         room.regenerate_map();

@@ -425,9 +425,11 @@ pub fn remove_item(
     }
     // Java: the current item's onEntityLeave trigger, for the remover.
     if let Some(e) = r.entity_index(session.id) {
-        if let Some(interaction) = r.current_item(e).map(|i| i.interaction) {
-            let is_player = r.entities[e].is_player();
-            r.on_entity_leave(interaction, session, is_player);
+        let position = r.entities[e].position;
+        if let Some(item) = r.mapping.tile(position).and_then(|t| t.highest_item) {
+            let interaction = r.mapping.items[item].interaction;
+            let (is_player, walking) = (r.entities[e].is_player(), r.entities[e].is_walking);
+            r.on_entity_leave(interaction, Some(item), session, is_player, walking);
         }
     }
     let removed = r.remove_flat_item(world, idx);

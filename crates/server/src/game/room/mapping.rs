@@ -135,10 +135,13 @@ impl RoomMapping {
                 continue;
             }
             for p in self.items[i].affected_tiles() {
-                if let Some(t) = self.index(p.x, p.y) {
-                    self.add_item(t, i);
+                let Some(t) = self.index(p.x, p.y) else {
+                    continue;
+                };
+                self.add_item(t, i);
+                if self.items[i].has(Behaviour::PublicSpaceObject) {
+                    self.setup_redirections(i);
                 }
-                // TODO(pool): PoolHandler.setupRedirections for PUBLIC_SPACE_OBJECT items.
             }
         }
         for (id, position) in entities {
@@ -146,6 +149,26 @@ impl RoomMapping {
         }
         // Java's refreshRoomItems (the room's sound machine, moodlight and idol scoreboard) is
         // looked up when needed instead (`Room::has_too_many`, `interactors::idol`).
+    }
+
+    /// Java: `PoolHandler.setupRedirections`: a changing booth also owns the tile it is entered
+    /// from, for standing in it and for the curtain.
+    fn setup_redirections(&mut self, item: usize) {
+        if self.items[item].sprite != "poolBooth" {
+            return;
+        }
+        let p = self.items[item].position;
+        let entrance = match (p.x, p.y) {
+            (17, 11) => (18, 11),
+            (17, 9) => (18, 9),
+            (8, 1) => (8, 0),
+            (9, 1) => (9, 0),
+            _ => return,
+        };
+        // Java: `getTile(x, y).setHighestItem(item)`, the tile's height unchanged.
+        if let Some(t) = self.index(entrance.0, entrance.1) {
+            self.tiles[t].highest_item = Some(item);
+        }
     }
 
     /// Java: `RoomTile.addItem`.

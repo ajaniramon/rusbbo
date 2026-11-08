@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use havana_storage::{Store, User, Writer};
 use tracing::error;
 
@@ -214,16 +214,12 @@ impl CatalogueManager {
 
     /// What this port cannot sell yet. The caller refuses the purchase before charging anything.
     ///
-    /// TODO(effects): `purchaseEffect` (users_effects, `AVATAR_EFFECT_ADDED`).
     /// TODO(trophies): `PRIZE_TROPHY` extra data (TrophyExtraData JSON, player lookup).
     pub fn unsupported(item: &CatalogueItem) -> Option<&'static str> {
         for package in item.packages() {
             let Some(def) = &package.definition else {
                 continue;
             };
-            if def.has_behaviour(ItemBehaviour::Effect) {
-                return Some("effects");
-            }
             if def.has_behaviour(ItemBehaviour::PrizeTrophy) {
                 return Some("trophies");
             }
@@ -376,6 +372,15 @@ fn purchase_one(
     now: i64,
     bought: &mut Purchase,
 ) -> anyhow::Result<()> {
+    // Java: `purchaseEffect`: an effect is not an item either, the special sprite id is the
+    // effect (`Integer.parseInt`, which throws on anything else and ends the purchase).
+    if def.has_behaviour(ItemBehaviour::Effect) {
+        let effect_id: i32 = special_sprite_id
+            .parse()
+            .with_context(|| format!("effect id {special_sprite_id:?}"))?;
+        return crate::game::effects::purchase_in(w, owner.id, effect_id);
+    }
+
     // Film is not an item: the player just gets film.
     if def.sprite() == "film" {
         bought

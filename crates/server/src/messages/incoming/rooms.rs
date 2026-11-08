@@ -12,6 +12,7 @@ use crate::game::room::items::{Behaviour, is_numeric};
 use crate::game::room::{self, current_room};
 use crate::messages::Malformed;
 use crate::messages::outgoing::alerts;
+use crate::messages::outgoing::effects as out_effects;
 use crate::messages::outgoing::inventory as out_inventory;
 use crate::messages::outgoing::rooms::{self as out, ConnectError};
 use crate::messages::outgoing::rooms_user as out_user;
@@ -360,16 +361,24 @@ pub fn g_stat(
         return Ok(());
     };
     let mut r = room.lock();
-    r.try_room_entry(world);
+    r.try_room_entry(world, session.id);
     let model = r.model.name.clone();
     session.send(out_user::user_objects(&r.entities, &model));
-    if let Some(idx) = r.entity_index(session.id) {
+    let own = r.entity_index(session.id);
+    if let Some(idx) = own {
         let msg = out_user::user_objects([&r.entities[idx]], &model);
         r.send_except(msg, session.id);
     }
     session.send(out_user::user_statuses(&r.entities, &model));
-    // TODO(effects): USER_AVATAR_EFFECT for the user and the others. TODO(groups): memberships.
+    if let Some(idx) = own.filter(|&i| r.entities[i].is_using_effect()) {
+        let e = &r.entities[idx];
+        r.send(out_effects::user_avatar_effect(e.instance_id, e.effect_id));
+    }
+    // TODO(groups): memberships.
     for e in &r.entities {
+        if e.is_using_effect() {
+            session.send(out_effects::user_avatar_effect(e.instance_id, e.effect_id));
+        }
         if e.is_dancing() {
             session.send(out_user::user_dance(e.instance_id, e.dance_id));
         }
@@ -377,7 +386,7 @@ pub fn g_stat(
             session.send(out_user::user_sleep(e.instance_id, true));
         }
     }
-    // A spinning wheel or a rolling dice. TODO(pool): SHOWPROGRAM for items with a program value.
+    // The pool items' programs, a spinning wheel or a rolling dice.
     for msg in r.busy_item_updates() {
         session.send(msg);
     }

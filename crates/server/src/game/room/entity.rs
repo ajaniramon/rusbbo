@@ -303,6 +303,12 @@ pub struct RoomEntity {
     pub is_teleporting: bool,
     /// Java: `RoomEntity.hasItemDebug` (`:itemdebug`), same TODO as `is_teleporting`.
     pub has_item_debug: bool,
+    /// Java: `RoomPlayer.isDiving`: on Lido B's lift, until the splash.
+    pub is_diving: bool,
+    /// Java: `RoomPlayer.lidoVote`: the points this user gives the next dive (`SIGN` 0-7).
+    pub lido_vote: i32,
+    /// Stopped on a walkway: moves to the other room once the room's lock is released.
+    pub leaving_by_walkway: bool,
 }
 
 impl EntityDetails {
@@ -350,6 +356,9 @@ impl RoomEntity {
             walk_history: Vec::new(),
             is_teleporting: false,
             has_item_debug: false,
+            is_diving: false,
+            lido_vote: 0,
+            leaving_by_walkway: false,
         }
     }
 

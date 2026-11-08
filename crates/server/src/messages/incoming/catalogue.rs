@@ -181,11 +181,11 @@ pub fn grpc(
         return Ok(());
     };
 
-    // Nothing was given: no charge (film is not an item but is still a sale).
+    // Nothing was given: no charge (film and effects are not items but are still sales).
     let is_film = item
         .definition
         .as_ref()
-        .is_some_and(|d| d.sprite() == "film");
+        .is_some_and(|d| d.sprite() == "film" || d.has_behaviour(ItemBehaviour::Effect));
     // One transaction: the items, their pets and links, the charge and the transaction row
     // (Java commits each separately, so a failure midway gave items away or lost credits).
     let t = now();

@@ -438,7 +438,7 @@ fn step_light_and_multi_height() {
         flat_item(2, multi, (8, 8, 0)),
     ]);
     let (e, _rx) = join(&mut r, 1, Position::new(6, 6));
-    r.on_entity_step(e);
+    r.on_entity_step(e, Position::new(5, 6));
     assert_eq!(r.mapping.items[0].custom_data, "1");
 
     let (m, _rx) = join(&mut r, 2, Position::new(8, 8));

@@ -67,12 +67,16 @@ impl Room {
                 next_walk: 0,
                 next_speech: 0,
             }));
-            // TODO(effects): Java gives a bot named Abigail.Ryan the ghost effect (13).
             if self.players() > 0 {
                 self.send(out_user::user_objects([&entity], &self.model.name));
             }
+            let ghost = entity.details.name == "Abigail.Ryan";
             self.entities.push(entity);
             self.data.visitors_now = self.players();
+            if ghost {
+                let idx = self.entities.len() - 1;
+                self.use_effect(idx, crate::game::effects::GHOST_EFFECT);
+            }
             added = true;
         }
         if added {

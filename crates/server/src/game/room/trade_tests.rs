@@ -55,6 +55,8 @@ fn room() -> Room {
         deferred: Vec::new(),
         world: std::sync::Weak::new(),
         idol: Default::default(),
+        camera: None,
+        queue_after_loop: Vec::new(),
         deleted: false,
     }
 }

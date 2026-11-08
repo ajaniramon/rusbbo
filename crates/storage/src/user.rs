@@ -263,6 +263,23 @@ impl Store {
 }
 
 impl Writer {
+    /// [`Store::effects`] inside this transaction.
+    pub fn effects(&mut self, user_id: u32) -> Result<Vec<Effect>> {
+        let table = self.tx.open_table(EFFECTS)?;
+        let effects: Option<Vec<Effect>> =
+            table.get(user_id)?.map(|v| decode(v.value())).transpose()?;
+        Ok(effects.unwrap_or_default())
+    }
+
+    /// [`Store::put_effects`] inside this transaction.
+    pub fn put_effects(&mut self, user_id: u32, effects: &[Effect]) -> Result<()> {
+        let bytes = encode(&effects.to_vec())?;
+        self.tx
+            .open_table(EFFECTS)?
+            .insert(user_id, bytes.as_slice())?;
+        Ok(())
+    }
+
     /// [`Store::update_statistic`] inside this transaction.
     pub fn update_statistic(&mut self, user_id: u32, column: &str, value: i64) -> Result<()> {
         let mut table = self.tx.open_table(STATISTICS)?;

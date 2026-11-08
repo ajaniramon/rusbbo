@@ -244,7 +244,7 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     session.send(outgoing::handshake::login());
     session.send(outgoing::user::avatar_effects(
         &p.effects,
-        |id| world.effect_durations.get(&id).copied().unwrap_or(0),
+        |id| crate::game::effects::duration(world, id),
         now(),
     ));
 

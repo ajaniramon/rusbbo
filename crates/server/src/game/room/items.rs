@@ -42,12 +42,12 @@ pub struct Item {
     pub behaviours: Vec<Behaviour>,
     pub interaction: Interaction,
     pub position: Position,
-    #[allow(dead_code)] // TODO(pool): SHOWPROGRAM in G_STAT and the pool triggers.
+    /// Java: `currentProgram`, the client-side program of a pool item (`curtains1`, `Splash0`).
     pub current_program: String,
     pub current_program_value: String,
-    #[allow(dead_code)] // TODO(pool): diving deck and lido triggers.
+    /// A pool ladder's other end (Java: `teleportTo`).
     pub teleport_to: Option<Position>,
-    #[allow(dead_code)] // TODO(pool): diving deck and lido triggers.
+    /// Where a pool ladder walks the user on to (Java: `swimTo`).
     pub swim_to: Option<Position>,
     /// `None` for public room furniture.
     pub flat: Option<FlatItem>,
@@ -264,10 +264,11 @@ pub fn is_numeric(value: &str) -> bool {
     !value.is_empty() && value.bytes().all(|c| c.is_ascii_digit())
 }
 
-/// Parses `x,y,z,rotation` (Java: `teleport_to` / `swim_to` handling in `PublicItemParser`).
+/// Parses `x y z rotation` (Java: `PublicItemData.getTeleportTo` / `getSwimTo` split on spaces,
+/// then `PublicItemParser`).
 fn parse_target(value: Option<&str>) -> Option<Position> {
     let parts: Vec<i32> = value?
-        .split(',')
+        .split(' ')
         .map(|p| p.trim().parse().ok())
         .collect::<Option<_>>()?;
     let [x, y, z, rotation] = parts[..] else {
