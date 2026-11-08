@@ -115,10 +115,16 @@ lobbies' visitors in the navigator counting the started games), and BattleBall i
 points, the power ups (random in Java, so unit tests only), `GAMEEND` and the scores, the history
 (`games_played_history`, listed and observed in the lobby), the players' points, xp, wins and
 `ACH_GamePlayed`, the monthly xp reset, `GAMERESTART` (restarting, or back to the lobby when the
-countdown ends) and players leaving mid-game. SnowStorm stops at its lobby: the arena engine
-plugs in at the `GameKind` seam documented in `game/games/mod.rs` (`TODO(snowstorm)`). The game
-scenarios shorten the games with a staff bot's `:setconfig`, and every step during a game takes
-one of the arena's 500 ms ticks (see the comments in `scenarios/battleball-game.toml`).
+countdown ends) and players leaving mid-game. SnowStorm (`game/games/snowstorm`, its engine behind
+the same `GameKind` seam): the arenas from `tools/snowstorm_maps` (compiled in too), the random
+spawns, the map's `HEIGHTMAP`, `FULLGAMESTATUS` and `OBJECTS_WORLD` on `G_HMAP`,
+`REQUESTFULLGAMESTATUS`, the 300 ms `SNOWSTORM_GAMESTATUS` turns, walking, the four throws (long,
+short, quick following its target, and Java's instant trajectory 3), hits, stuns and invincibility,
+making snowballs, the snowball machines, the scores, `GAMERESET` and leaving; its unit tests check
+bytes recorded from the oracle. The game scenarios shorten the games with a staff bot's
+`:setconfig`, and every step during a game takes one of the arena's ticks (500 ms in BattleBall,
+300 ms in SnowStorm; see the comments in `scenarios/battleball-game.toml` and
+`scenarios/snowstorm-game.toml`).
 
 Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
 walkspace, talking now and then, and handing out drinks when a user nearby asks for one
@@ -302,6 +308,8 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `battleball-game` | a BattleBall game end to end on Barebones Classic: `STARTGAME`, the arena, `FULLGAMESTATUS`, `GAMESTATUS` every 500 ms, the lobby's visitors in the navigator, moves colouring tiles, chat and typing in the arena, `GAMEEND`, the observer's finished game, the history and the points |
 | `battleball-restart` | a BattleBall game on Sky Peak with a spectator (`YOUARESPECTATOR`), unscored (the same-IP check), `GAMERESTART` by both (`GAMERESET`, the second game) and then by one only (both back to the lobby) |
 | `battleball-leave` | leaving a BattleBall game that is on: a player disconnecting, the last one going back to the lobby (the game is gone, also for the observer) |
+| `snowstorm-game` | a SnowStorm game end to end on arena 4: `STARTGAME`, the arena (`HEIGHTMAP`, `FULLGAMESTATUS`, `OBJECTS_WORLD`), `SNOWSTORM_GAMESTATUS` every 300 ms, nothing before `GAMESTART`, walking (random spawns: header only), long, quick and short throws and their hits, making a snowball, `REQUESTFULLGAMESTATUS`, instant hits that stun, no throwing while stunned, `GAMEEND` with the scores, the finished game, the points and xp |
+| `snowstorm-leave` | a one-team SnowStorm game on arena 7: a player leaving mid-game (their avatar gone, the game goes on for the other), `GAMEEND` with the leaver at 0, the last player leaving |
 | `rooftop-camera` | Rooftop Rumble's camera (`rooftop_rumble_trigger`): the first shot 3 s after the first `G_STAT`, the mode for a second user, following the other user when its user leaves |
 | `space-cafe` | the Space Cafe's lights (`space_cafe_trigger`): six random `SHOWPROGRAM`s 4.5 s after the first `G_STAT` |
 | `infobus-door` | the Infobus's door in the park: `BUS_DOOR`, `TRYBUS` and the door tile while closed, opening and closing it over RCON, walking into the bus and back out with `CHANGEWORLD` |

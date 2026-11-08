@@ -1619,6 +1619,9 @@ fn enter_room_with(
             trade_enabled: user.trade_enabled,
             trade_ban_expiration: user.trade_ban_expiration,
             wordfilter_enabled: user.wordfilter_enabled,
+            xp_month: p
+                .statistics
+                .int_value(crate::game::statistics::stat::XP_EARNED_MONTH),
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;

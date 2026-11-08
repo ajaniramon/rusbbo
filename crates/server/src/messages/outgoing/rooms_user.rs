@@ -33,8 +33,12 @@ pub fn user_objects<'a>(
         }
         body = body
             .text(&e.details.sex.to_uppercase())
-            // TODO(statistics): XP_EARNED_MONTH; -1 when it is 0.
-            .int(-1)
+            // Java: XP_EARNED_MONTH, -1 when it is 0.
+            .int(if e.details.xp_month == 0 {
+                -1
+            } else {
+                e.details.xp_month
+            })
             // TODO(groups): favourite group id and member rank.
             .int(-1)
             .int(-1);

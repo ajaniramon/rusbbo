@@ -49,7 +49,8 @@ pub struct GamePlayer {
     /// Java: `harlequinPlayer` (BattleBall's harlequin power up): the serial of the player this
     /// one colours for.
     pub harlequin: Option<u64>,
-    /// Java: `assignedSpawn` (SnowStorm's spawns). TODO(snowstorm): set by its spawns.
+    /// Java: `assignedSpawn` (SnowStorm's spawns; the engine keeps the one its spawn search
+    /// reads, this one is only set).
     #[allow(dead_code)]
     pub assigned_spawn: bool,
     pub score: i32,

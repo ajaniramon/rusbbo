@@ -676,6 +676,9 @@ pub fn reload(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
             name = Some(component_name);
         }
     }
+    if c == "gamemaps" {
+        crate::game::games::snowstorm::maps::reload();
+    }
     if c == "settings" || c == "config" {
         world.reload_settings();
         name = Some("Game settings");
