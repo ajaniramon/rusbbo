@@ -56,7 +56,323 @@ record!(
     }
 );
 
-record_tables!(Tag);
+record!(
+    /// `site_articles`, with its `site_articles_categories` (Java: `NewsDao`).
+    Article, "site_articles" {
+        title: String,
+        author_id: u32,
+        author_override: String,
+        short_story: String,
+        full_story: String,
+        topstory: String,
+        topstory_override: String,
+        article_image: String,
+        is_published: bool,
+        is_future_published: bool,
+        views: i32,
+        created_at: i64,
+        /// Category ids, in `GROUP_CONCAT` order.
+        categories: Vec<u32>,
+    }
+);
+
+record!(
+    /// `article_categories`.
+    ArticleCategory, "article_categories" {
+        label: String,
+        category_index: String,
+    }
+);
+
+record!(
+    /// `cms_alerts` (Java: `AlertsDao`): the notices on `/me`.
+    Alert, "cms_alerts" {
+        user_id: u32,
+        /// `HC_EXPIRED`, `PRESENT`, `TUTOR_SCORE` or `CREDIT_DONATION`.
+        alert_type: String,
+        message: String,
+        is_disabled: bool,
+        created_at: i64,
+    }
+);
+
+record!(
+    /// `cms_minimail` (Java: `MinimailDao`).
+    Minimail, "cms_minimail" {
+        target_id: u32,
+        sender_id: u32,
+        to_id: u32,
+        is_read: bool,
+        subject: String,
+        message: String,
+        date_sent: i64,
+        conversation_id: u32,
+        is_trash: bool,
+        is_deleted: bool,
+    }
+);
+
+record!(
+    /// `cms_recommended` (Java: `RecommendedDao`): staff picks and recommended groups and rooms.
+    Recommended, "cms_recommended" {
+        recommended_id: u32,
+        /// `GROUP` or `ROOM`.
+        kind: String,
+        is_staff_pick: bool,
+    }
+);
+
+record!(
+    /// `groups_details` (Java: `GroupDao`).
+    Group, "groups_details" {
+        name: String,
+        description: String,
+        owner_id: u32,
+        room_id: u32,
+        badge: String,
+        recommended: i32,
+        background: String,
+        views: i32,
+        topics: i32,
+        group_type: i32,
+        forum_type: i32,
+        forum_permission: i32,
+        alias: Option<String>,
+        created_at: i64,
+    }
+);
+
+record!(
+    /// `groups_memberships` (Java: `GroupMemberDao`); ids are synthetic.
+    GroupMember, "groups_memberships" {
+        user_id: u32,
+        group_id: u32,
+        /// `member_rank`: 1 member, 2 administrator, 3 owner.
+        member_rank: i32,
+        is_pending: bool,
+        created_at: i64,
+    }
+);
+
+record!(
+    /// `groups_edit_sessions`; ids are synthetic.
+    GroupEditSession, "groups_edit_sessions" {
+        user_id: u32,
+        group_id: u32,
+        expire: i64,
+    }
+);
+
+record!(
+    /// `cms_forum_threads` (Java: `GroupDiscussionDao`).
+    ForumThread, "cms_forum_threads" {
+        topic_title: String,
+        poster_id: u32,
+        is_open: bool,
+        is_stickied: bool,
+        views: i32,
+        group_id: u32,
+        created_at: i64,
+        modified_at: i64,
+    }
+);
+
+record!(
+    /// `cms_forum_replies` (Java: `ReplyDao`).
+    ForumReply, "cms_forum_replies" {
+        thread_id: u32,
+        message: String,
+        poster_id: u32,
+        is_edited: bool,
+        is_deleted: bool,
+        created_at: i64,
+        modified_at: i64,
+    }
+);
+
+record!(
+    /// `cms_forums_read_replies`; ids are synthetic.
+    ForumRead, "cms_forums_read_replies" {
+        user_id: u32,
+        reply_id: u32,
+    }
+);
+
+record!(
+    /// `cms_guestbook_entries` (Java: `GuestbookDao`).
+    GuestbookEntry, "cms_guestbook_entries" {
+        user_id: u32,
+        home_id: u32,
+        group_id: u32,
+        message: String,
+        created_at: i64,
+    }
+);
+
+record!(
+    /// `cms_stickers` (Java: `WidgetDao`): stickers, notes, widgets and backgrounds owned or
+    /// placed on a home or a group page.
+    Sticker, "cms_stickers" {
+        user_id: u32,
+        x: String,
+        y: String,
+        z: String,
+        sticker_id: u32,
+        skin_id: i32,
+        group_id: i32,
+        text: String,
+        is_placed: bool,
+        extra_data: String,
+    }
+);
+
+record!(
+    /// `cms_stickers_catalogue` (Java: `StoreDao`).
+    StickerProduct, "cms_stickers_catalogue" {
+        name: String,
+        description: String,
+        /// `type`.
+        kind: String,
+        data: String,
+        price: i32,
+        amount: i32,
+        category_id: u32,
+        min_rank: i32,
+        widget_type: i32,
+    }
+);
+
+record!(
+    /// `cms_stickers_categories`.
+    StickerCategory, "cms_stickers_categories" {
+        name: String,
+        min_rank: i32,
+        category_type: i32,
+    }
+);
+
+record!(
+    /// `homes_details`, keyed by the user id.
+    Home, "homes_details" {
+        background: String,
+    }
+);
+
+record!(
+    /// `homes_edit_sessions`, keyed by the user id.
+    HomeEditSession, "homes_edit_sessions" {
+        expire: i64,
+    }
+);
+
+record!(
+    /// `homes_ratings`; ids are synthetic.
+    HomeRating, "homes_ratings" {
+        user_id: u32,
+        home_id: u32,
+        rating: i32,
+    }
+);
+
+record!(
+    /// `users_wardrobes`; ids are synthetic.
+    Wardrobe, "users_wardrobes" {
+        user_id: u32,
+        slot_id: i32,
+        sex: String,
+        figure: String,
+    }
+);
+
+record!(
+    /// `vouchers` with its `vouchers_items`; ids are synthetic.
+    Voucher, "vouchers" {
+        code: String,
+        credits: i32,
+        expiry_date: Option<i64>,
+        is_single_use: bool,
+        allow_new_users: bool,
+        /// `vouchers_items.catalogue_sale_code`.
+        items: Vec<String>,
+    }
+);
+
+record!(
+    /// `vouchers_history`; ids are synthetic.
+    VoucherUse, "vouchers_history" {
+        code: String,
+        user_id: u32,
+        used_at: i64,
+        credits_redeemed: Option<i32>,
+        items_redeemed: Option<String>,
+    }
+);
+
+record!(
+    /// `users_referred`; ids are synthetic.
+    Referral, "users_referred" {
+        user_id: u32,
+        referred_id: u32,
+    }
+);
+
+record!(
+    /// `users_club_gifts`; ids are synthetic.
+    ClubGift, "users_club_gifts" {
+        user_id: u32,
+        sprite: String,
+        date_received: i64,
+    }
+);
+
+record!(
+    /// `room_visits`; ids are synthetic.
+    RoomVisit, "room_visits" {
+        room_id: u32,
+        user_id: u32,
+        visited_at: i64,
+    }
+);
+
+record!(
+    /// `catalogue_collectables`, keyed by `store_page`.
+    Collectable, "catalogue_collectables" {
+        admin_page: i32,
+        expiry: i64,
+        lifetime: i64,
+        current_position: i32,
+        class_names: String,
+    }
+);
+
+record_tables!(
+    Tag,
+    Article,
+    ArticleCategory,
+    Alert,
+    Minimail,
+    Recommended,
+    Group,
+    GroupMember,
+    GroupEditSession,
+    ForumThread,
+    ForumReply,
+    ForumRead,
+    GuestbookEntry,
+    Sticker,
+    StickerProduct,
+    StickerCategory,
+    Home,
+    HomeEditSession,
+    HomeRating,
+    Wardrobe,
+    Voucher,
+    VoucherUse,
+    Referral,
+    ClubGift,
+    RoomVisit,
+    Collectable,
+);
 
 impl Store {
     pub fn record<R: Record>(&self, id: u32) -> Result<Option<R>> {

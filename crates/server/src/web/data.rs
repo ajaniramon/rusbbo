@@ -181,3 +181,180 @@ pub fn set_statistic(world: &World, user_id: u32, column: &str, value: i64) {
 pub fn select_room(_world: &World, _user_id: u32, _room_type: i32) -> bool {
     false
 }
+
+/// Java: `GroupMemberDao.countMembers`.
+pub fn count_members(world: &World, group_id: u32, pending: bool) -> i64 {
+    world
+        .store
+        .records_where::<rusbbo_storage::GroupMember>(|m| {
+            m.group_id == group_id && m.is_pending == pending
+        })
+        .map(|v| v.len() as i64)
+        .unwrap_or(0)
+}
+
+/// Java: `GroupMemberDao.getMember` (the row, pending or not).
+pub fn membership(
+    world: &World,
+    group_id: u32,
+    user_id: i64,
+) -> Option<rusbbo_storage::GroupMember> {
+    if user_id < 0 {
+        return None;
+    }
+    world
+        .store
+        .records_where::<rusbbo_storage::GroupMember>(|m| {
+            m.group_id == group_id && m.user_id as i64 == user_id
+        })
+        .ok()?
+        .pop()
+}
+
+/// Java: `Group.getMember`: the owner (rank 3), or a member who is not pending.
+pub fn group_member(
+    world: &World,
+    group_id: u32,
+    owner_id: u32,
+    user_id: i64,
+) -> Option<rusbbo_storage::GroupMember> {
+    if owner_id as i64 == user_id {
+        return Some(rusbbo_storage::GroupMember {
+            user_id: owner_id,
+            group_id,
+            member_rank: 3,
+            ..Default::default()
+        });
+    }
+    membership(world, group_id, user_id).filter(|m| !m.is_pending)
+}
+
+pub fn is_member(world: &World, group_id: u32, owner_id: u32, user_id: i64) -> bool {
+    owner_id as i64 == user_id
+        || membership(world, group_id, user_id).is_some_and(|m| !m.is_pending)
+}
+
+pub fn is_pending_member(world: &World, group_id: u32, owner_id: u32, user_id: i64) -> bool {
+    owner_id as i64 != user_id && membership(world, group_id, user_id).is_some_and(|m| m.is_pending)
+}
+
+/// Java: `GroupDao.getJoinedGroups`: owned and joined groups, most members first.
+pub fn joined_groups(world: &World, user_id: u32) -> Vec<rusbbo_storage::Group> {
+    let groups = world
+        .store
+        .records::<rusbbo_storage::Group>()
+        .unwrap_or_default();
+    let memberships = world
+        .store
+        .records_where::<rusbbo_storage::GroupMember>(|m| m.user_id == user_id && !m.is_pending)
+        .unwrap_or_default();
+    let mut out: Vec<rusbbo_storage::Group> = groups
+        .iter()
+        .filter(|g| g.owner_id == user_id)
+        .cloned()
+        .collect();
+    for m in memberships {
+        if let Some(g) = groups.iter().find(|g| g.id == m.group_id)
+            && !out.iter().any(|o| o.id == g.id)
+        {
+            out.push(g.clone());
+        }
+    }
+    // Stable sort, like the Java stream's sorted().
+    out.sort_by_key(|g| std::cmp::Reverse(count_members(world, g.id, false)));
+    out
+}
+
+/// Java: `RecommendedDao.getRecommendedGroups(staffPick)`.
+pub fn recommended_groups(world: &World, staff_pick: bool) -> Vec<rusbbo_storage::Group> {
+    let picks = world
+        .store
+        .records_where::<rusbbo_storage::Recommended>(|r| {
+            r.kind == "GROUP" && r.is_staff_pick == staff_pick
+        })
+        .unwrap_or_default();
+    world
+        .store
+        .records_where::<rusbbo_storage::Group>(|g| picks.iter().any(|p| p.recommended_id == g.id))
+        .unwrap_or_default()
+}
+
+/// Java: `RecommendedDao.getRecommendedRooms(staffPick)`.
+pub fn recommended_rooms(world: &World, staff_pick: bool) -> Vec<rusbbo_storage::Room> {
+    let picks = world
+        .store
+        .records_where::<rusbbo_storage::Recommended>(|r| {
+            r.kind == "ROOM" && r.is_staff_pick == staff_pick
+        })
+        .unwrap_or_default();
+    let mut ids: Vec<u32> = picks.iter().map(|p| p.recommended_id).collect();
+    ids.sort_unstable();
+    ids.dedup();
+    ids.into_iter()
+        .filter_map(|id| world.store.room(id).ok().flatten())
+        .collect()
+}
+
+/// Java: `NewsDao.getTop(ALL, limit, includeUnpublished, [], 0)`: newest first.
+pub fn top_news(
+    world: &World,
+    limit: usize,
+    include_unpublished: bool,
+) -> Vec<rusbbo_storage::Article> {
+    let mut v = world
+        .store
+        .records_where::<rusbbo_storage::Article>(|a| include_unpublished || a.is_published)
+        .unwrap_or_default();
+    v.sort_by_key(|a| std::cmp::Reverse(a.created_at));
+    v.truncate(limit);
+    v
+}
+
+/// Java: `AlertsDao.getAlerts`: newest first.
+pub fn alerts(world: &World, user_id: u32) -> Vec<rusbbo_storage::Alert> {
+    let mut v = world
+        .store
+        .records_where::<rusbbo_storage::Alert>(|a| a.user_id == user_id)
+        .unwrap_or_default();
+    v.sort_by(|a, b| b.created_at.cmp(&a.created_at).then(b.id.cmp(&a.id)));
+    v
+}
+
+/// Java: `AlertsDao.createAlert`.
+pub fn create_alert(world: &World, user_id: u32, alert_type: &str, message: &str) {
+    let mut a = rusbbo_storage::Alert {
+        user_id,
+        alert_type: alert_type.into(),
+        message: message.into(),
+        created_at: super::beans::now(),
+        ..Default::default()
+    };
+    if let Err(e) = world.store.insert_record(&mut a) {
+        tracing::error!("web: alert: {e}");
+    }
+}
+
+/// Java: `AlertsDao.deleteAlerts`.
+pub fn delete_alerts(world: &World, user_id: u32, alert_type: &str) {
+    for a in world
+        .store
+        .records_where::<rusbbo_storage::Alert>(|a| {
+            a.user_id == user_id && a.alert_type == alert_type
+        })
+        .unwrap_or_default()
+    {
+        let _ = world.store.delete_record::<rusbbo_storage::Alert>(a.id);
+    }
+}
+
+/// Java: `AlertsDao.getOnlineFriends`: friends whose `users.is_online` is set.
+pub fn online_friends(world: &World, user_id: u32) -> Vec<(rusbbo_storage::User, i32)> {
+    world
+        .store
+        .messenger_friends(user_id)
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|(id, cat)| world.store.user(id).ok().flatten().map(|u| (u, cat)))
+        .filter(|(u, _)| u.is_online)
+        .collect()
+}

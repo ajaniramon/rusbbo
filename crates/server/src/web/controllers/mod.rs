@@ -4,6 +4,8 @@
 mod account;
 mod api;
 mod client;
+mod me;
+mod minimail;
 mod site;
 
 use super::routes_table::HOUSEKEEPING_PATH;
@@ -142,7 +144,7 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HomepageController::maintenance" => site::maintenance(conn)?,
         "AccountController::submit" => account::submit(conn)?,
         "AccountController::securityCheck" => account::security_check(conn)?,
-        "AccountController::me" => account::me(conn)?,
+        "AccountController::me" => me::me(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

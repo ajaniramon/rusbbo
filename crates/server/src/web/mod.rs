@@ -14,10 +14,14 @@ mod beans;
 mod controllers;
 pub mod data;
 pub mod http;
+mod jdate;
 mod mime;
+mod model;
 mod router;
 mod routes_table;
 mod server;
+mod tag_questions;
+mod text;
 mod tpl;
 
 use std::path::PathBuf;

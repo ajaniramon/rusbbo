@@ -128,13 +128,3 @@ pub fn login_popup(conn: &mut Conn) -> WebResult {
     conn.session().delete("alertMessage");
     Ok(())
 }
-
-/// `/me`. TODO(web): the rest of the page (phase 1).
-pub fn me(conn: &mut Conn) -> WebResult {
-    xss_clear(conn);
-    if !conn.is_authenticated() {
-        conn.redirect("/");
-        return Ok(());
-    }
-    Err(crate::web::WebError("/me is not ported yet".into()))
-}
