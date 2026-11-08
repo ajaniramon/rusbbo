@@ -17,6 +17,9 @@
 //! bot = "a"
 //! send = "ROOM_DIRECTORY"    # Java class name or numeric id
 //! args = [true, 1, 0]        # ints/bools -> VL64, strings -> client strings, {raw = ".."} -> bytes
+//!                            # `$gameid` anywhere in a body is replaced, when sent, by the game
+//!                            # id of the last OPENGAMEBOARD the bot received (game-hall tables
+//!                            # give each game a random id that the client repeats in `IIM`)
 //! wait_for = ["ROOM_READY"]  # optional: server messages that must arrive before settling
 //! settle_ms = 400            # optional: quiet time that ends the step
 //! header_only = ["INVENTORY"] # optional: server messages of this step whose body is random in

@@ -95,6 +95,35 @@ struct Bot {
     /// Sending half of the current connection's cipher; filled in by the reader thread when
     /// `SECRET_KEY` arrives.
     sealer: Arc<Mutex<Option<Sealer>>>,
+    /// The game id of the last `OPENGAMEBOARD` this bot received (random in Java), which
+    /// [`GAME_ID_VAR`] in a sent body stands for.
+    game_id: Option<Vec<u8>>,
+}
+
+/// Server message `OPENGAMEBOARD`: `<game id>\t<game type>\t`.
+const OPENGAMEBOARD: u16 = 145;
+
+/// Placeholder in a sent body for the bot's current game id (see [`Bot::game_id`]): the
+/// game-hall tables give every game a random id, and the client repeats it in each `IIM`.
+pub const GAME_ID_VAR: &[u8] = b"$gameid";
+
+/// `body` with every [`GAME_ID_VAR`] replaced by `game_id` (left as it is without one).
+fn substitute_game_id(body: &[u8], game_id: Option<&[u8]>) -> Vec<u8> {
+    let Some(id) = game_id else {
+        return body.to_vec();
+    };
+    let mut out = Vec::with_capacity(body.len());
+    let mut i = 0;
+    while i < body.len() {
+        if body[i..].starts_with(GAME_ID_VAR) {
+            out.extend_from_slice(id);
+            i += GAME_ID_VAR.len();
+        } else {
+            out.push(body[i]);
+            i += 1;
+        }
+    }
+    out
 }
 
 pub struct Runner {
@@ -116,6 +145,7 @@ impl Runner {
                     stream: None,
                     encrypted,
                     sealer: Arc::new(Mutex::new(None)),
+                    game_id: None,
                 })
                 .collect(),
             tx,
@@ -142,7 +172,8 @@ impl Runner {
             Action::Send { header, body } => {
                 let bot = &mut self.bots[step.bot];
                 let stream = bot.stream.as_mut().context("bot is not connected")?;
-                let frame = encode_client(&Message::new(*header, body.clone()));
+                let body = substitute_game_id(body, bot.game_id.as_deref());
+                let frame = encode_client(&Message::new(*header, body));
                 let frame = match bot.sealer.lock().unwrap().as_mut() {
                     Some(sealer) => {
                         let mut rng = rand::rng();
@@ -170,6 +201,7 @@ impl Runner {
         let encrypted = self.bots[bot].encrypted;
         let sealer_slot = Arc::new(Mutex::new(None));
         self.bots[bot].sealer = sealer_slot.clone();
+        self.bots[bot].game_id = None;
         thread::spawn(move || {
             let mut decoder = Decoder::default();
             // The client end of the handshake: token from CRYPTO_PARAMETERS, then the shared key
@@ -243,6 +275,10 @@ impl Runner {
                     if bot == step.bot {
                         pending.retain(|h| *h != msg.header);
                     }
+                    if msg.header == OPENGAMEBOARD {
+                        let id = msg.body.split(|&b| b == b'\t').next().unwrap_or_default();
+                        self.bots[bot].game_id = Some(id.to_vec());
+                    }
                     out.bots[bot].messages.push(msg);
                     last = Instant::now();
                 }
@@ -267,5 +303,19 @@ impl Drop for Runner {
                 let _ = s.shutdown(Shutdown::Both);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::substitute_game_id;
+
+    #[test]
+    fn game_id_placeholder_is_replaced() {
+        assert_eq!(
+            substitute_game_id(b"$gameid SETSECTOR X 1 $gameid", Some(b"Ab12cd")),
+            b"Ab12cd SETSECTOR X 1 Ab12cd"
+        );
+        assert_eq!(substitute_game_id(b"$gameid OPEN", None), b"$gameid OPEN");
     }
 }
