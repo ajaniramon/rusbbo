@@ -332,6 +332,86 @@ impl Writer {
         Ok(next)
     }
 
+    /// Java: `MessengerDao.addCategory` (the website's friend management). Returns the new id.
+    pub fn messenger_add_category(&mut self, user_id: u32, name: &str) -> Result<u32> {
+        let id = self.next_seq("categories")?;
+        self.put_category(&MessengerCategory {
+            id,
+            user_id,
+            name: name.to_string(),
+        })?;
+        Ok(id)
+    }
+
+    /// Java: `MessengerDao.updateCategory`: renames the user's category.
+    pub fn messenger_rename_category(&mut self, id: u32, user_id: u32, name: &str) -> Result<()> {
+        let raw = self
+            .tx
+            .open_table(CATEGORIES)?
+            .get(id)?
+            .map(|v| v.value().to_vec());
+        if let Some(raw) = raw {
+            let mut c: MessengerCategory = decode(&raw)?;
+            if c.user_id == user_id {
+                c.name = name.to_string();
+                self.put_category(&c)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Java: `MessengerDao.deleteCategory`.
+    pub fn messenger_delete_category(&mut self, id: u32, user_id: u32) -> Result<()> {
+        let owned = self
+            .tx
+            .open_table(CATEGORIES)?
+            .get(id)?
+            .map(|v| decode::<MessengerCategory>(v.value()))
+            .transpose()?
+            .is_some_and(|c| c.user_id == user_id);
+        if owned {
+            self.tx.open_table(CATEGORIES)?.remove(id)?;
+            self.tx
+                .open_table(CATEGORIES_BY_USER)?
+                .remove((user_id, id))?;
+        }
+        Ok(())
+    }
+
+    /// Java: `MessengerDao.updateFriendCategory`: only an existing friendship row changes.
+    pub fn messenger_set_friend_category(
+        &mut self,
+        owner_id: u32,
+        friend_id: u32,
+        category_id: i32,
+    ) -> Result<()> {
+        let mut friends = self.tx.open_table(FRIENDS)?;
+        if friends.get((owner_id, friend_id))?.is_some() {
+            friends.insert((owner_id, friend_id), category_id)?;
+        }
+        Ok(())
+    }
+
+    /// Java: `MessengerDao.resetFriendCategories`: the owner's friends in `category_id` go back to 0.
+    pub fn messenger_reset_friend_categories(
+        &mut self,
+        owner_id: u32,
+        category_id: i32,
+    ) -> Result<()> {
+        let mut friends = self.tx.open_table(FRIENDS)?;
+        let mut changed = Vec::new();
+        for entry in friends.range((owner_id, 0)..=(owner_id, u32::MAX))? {
+            let (k, v) = entry?;
+            if v.value() == category_id {
+                changed.push(k.value());
+            }
+        }
+        for k in changed {
+            friends.insert(k, 0)?;
+        }
+        Ok(())
+    }
+
     /// Marks a message read, only if it belongs to `receiver` when one is given.
     fn mark_message_read(&mut self, id: u32, receiver: Option<u32>) -> Result<()> {
         let raw = self

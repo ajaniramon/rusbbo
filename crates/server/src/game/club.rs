@@ -99,13 +99,18 @@ fn send_hc_days(p: &Player, session: &Session) {
 /// new expiry, the charge and the transaction row are one transaction (Java commits each on its
 /// own); the details change only once it is committed.
 pub fn subscribe_club(world: &World, p: &mut Player, choice: i32) -> bool {
+    match p.details.as_mut() {
+        Some(details) => subscribe_club_user(world, details, choice),
+        None => false,
+    }
+}
+
+/// [`subscribe_club`] for a user's details, online or not (the website's club habblet).
+pub fn subscribe_club_user(world: &World, details: &mut User, choice: i32) -> bool {
     let (credits, days) = choice_data(choice);
     if days <= 0 {
         return false;
     }
-    let Some(details) = p.details.as_mut() else {
-        return false;
-    };
     if details.credits < credits {
         return false;
     }
@@ -158,7 +163,7 @@ pub fn subscribe_club(world: &World, p: &mut Player, choice: i32) -> bool {
 }
 
 /// Java: `getChoiceData`: `(credits, days)`, or `(-1, -1)` for an unknown choice.
-fn choice_data(choice: i32) -> (i32, i32) {
+pub fn choice_data(choice: i32) -> (i32, i32) {
     match choice {
         1 => (25, 31),
         2 => (60, 93),

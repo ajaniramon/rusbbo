@@ -143,7 +143,10 @@ pub fn messenger_user(u: &User, category_id: i32) -> Value {
         .with("online", u.is_online)
         .with(
             "formattedLastOnline",
-            jdate::format(last_online, "dd-MM-yyyy HH:mm:ss"),
+            jdate::format(last_online, "dd/MM/yyyy hh:mm a")
+                .replace("am", "AM")
+                .replace("pm", "PM")
+                .replace('.', ""),
         )
         .with_fn("getFormatLastOnline", move |args| {
             let f = args.first().map(Value::render).unwrap_or_default();

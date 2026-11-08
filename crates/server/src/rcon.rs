@@ -30,6 +30,21 @@ pub struct RconMessage {
     pub values: HashMap<String, String>,
 }
 
+/// The website's `RconUtil.sendCommand(header, values)`, handled in this process: the website
+/// runs inside the game server, so its RCON messages need no socket.
+pub fn send(world: &World, header: &str, values: &[(&str, String)]) {
+    handle(
+        world,
+        &RconMessage {
+            header: header.to_string(),
+            values: values
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect(),
+        },
+    );
+}
+
 pub async fn serve(world: Arc<World>, addr: SocketAddr) -> Result<()> {
     let listener = TcpListener::bind(addr).await?;
     info!("RCON on {addr}");

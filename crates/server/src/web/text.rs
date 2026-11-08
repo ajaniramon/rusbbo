@@ -203,6 +203,24 @@ pub fn bbcode_normalise(message: &str) -> String {
         .replace('\n', "[br]")
 }
 
+/// Java: `StringUtil.filterInput(input, filterNewline)`. TODO(settings): the Unicode
+/// normalisation of `normalise.input.strings` (off in Aeyra).
+pub fn filter_input(input: &str, filter_newline: bool) -> String {
+    let mut s: String = input
+        .chars()
+        .map(|c| match c {
+            '\u{1}' | '\u{2}' | '\t' | '\n' | '\u{c}' => ' ',
+            '\r' if filter_newline => ' ',
+            c => c,
+        })
+        .collect();
+    let odd = ['\u{2202}', '\u{222b}', '\u{e5}', '\u{e6}'];
+    if odd.iter().all(|c| s.contains(*c)) {
+        s = s.replace(odd, "");
+    }
+    s
+}
+
 /// Java: `HousekeepingUtil.formatNewsStory`.
 pub fn format_news_story(world: &World, story: &str) -> String {
     bbcode(world, &html_escape(&bbcode_normalise(story)), true)

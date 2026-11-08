@@ -535,3 +535,25 @@ pub fn random_habbos(world: &World, count: usize) -> Vec<rusbbo_storage::User> {
     users.truncate(count);
     users
 }
+
+/// Java: `AchievementTraderPass.isActivated(activation_code)`: always true with SMTP off (a code
+/// only exists once a mail was sent). TODO(email): the activation codes.
+pub fn is_activated(world: &World) -> bool {
+    let _ = cfg_bool(world, "email.smtp.enable");
+    true
+}
+
+/// Java: `EmailDao.hasUserTradePass`: the first other account with this e-mail (by id) is
+/// activated and trading.
+pub fn has_trade_pass(world: &World, user_id: u32, email: &str) -> bool {
+    let mut users = world.store.users().unwrap_or_default();
+    users.sort_by_key(|u| u.id);
+    users
+        .iter()
+        .find(|u| {
+            u.email == email
+                && u.id != user_id
+                && world.store.statistics(u.id).ok().flatten().is_some()
+        })
+        .is_some_and(|u| is_activated(world) && u.trade_enabled)
+}

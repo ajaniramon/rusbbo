@@ -4,10 +4,12 @@
 mod account;
 mod api;
 mod client;
+mod club;
 mod habblets;
 mod me;
 mod minimail;
 mod pages;
+mod profile;
 mod recovery;
 mod register;
 mod site;
@@ -174,6 +176,35 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "GamesController::personalhighscores" => pages::personal_highscores(conn)?,
         "FaqController::faq" => pages::faq(conn)?,
         "SiteController::pixels" => pages::pixels(conn)?,
+        "ProfileController::profile" => profile::profile(conn)?,
+        "ProfileController::passwordupdate" => profile::password_update(conn)?,
+        "ProfileController::emailupdate" => profile::email_update(conn)?,
+        "ProfileController::characterupdate" => profile::character_update(conn)?,
+        "ProfileController::action" => profile::action(conn)?,
+        "ProfileController::profileupdate" => profile::profile_update(conn)?,
+        "ProfileController::securitysettingupdate" => profile::security_update(conn)?,
+        "ProfileController::wardrobeStore" => profile::wardrobe_store(conn)?,
+        "ProfileController::verify" => profile::verify(conn)?,
+        "ProfileController::send_email" => profile::send_email(conn)?,
+        "ProfileController::club" => club::profile_club(conn)?,
+        "FriendManagementController::editCategory" => profile::edit_category(conn)?,
+        "FriendManagementController::createcategory" => profile::create_category(conn)?,
+        "FriendManagementController::deletecategory" => profile::delete_category(conn)?,
+        "FriendManagementController::viewCategory" => profile::view_category(conn)?,
+        "FriendManagementController::updateCategoryOptions" => {
+            profile::update_category_options(conn)?
+        }
+        "FriendManagementController::movefriends" => profile::move_friends(conn)?,
+        "FriendManagementController::deletefriends" => profile::delete_friends(conn)?,
+        "ClubController::club" => club::club(conn)?,
+        "ClubController::clubTryout" => club::club_tryout(conn)?,
+        "ClubController::habboClubGift" => club::club_gift(conn)?,
+        "HabboClubHabblet::confirm" => club::confirm(conn)?,
+        "HabboClubHabblet::subscribe" => club::subscribe(conn)?,
+        "HabboClubHabblet::enddate" => club::end_date(conn)?,
+        "HabboClubHabblet::reminderRemove" => club::reminder_remove(conn)?,
+        "CreditsController::credits" => club::credits(conn)?,
+        "CreditsController::transactions" => club::history(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

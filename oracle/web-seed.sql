@@ -38,6 +38,10 @@ INSERT INTO cms_alerts (user_id, alert_type, message, created_at) VALUES
   (25, 'CREDIT_DONATION', 'You got credits.', CURDATE() + INTERVAL 3 HOUR);
 
 INSERT INTO messenger_friends (from_id, to_id) VALUES (25, 1), (1, 25), (25, 2), (2, 25);
+-- Friend lists are ordered by last_online, and MariaDB orders ties in no fixed way.
+UPDATE users SET last_online = '2026-02-01 10:00:00' WHERE id = 1;
+UPDATE users SET last_online = '2026-01-15 10:00:00' WHERE id = 2;
+UPDATE users SET last_online = '2026-01-10 10:00:00' WHERE id = 3;
 INSERT INTO messenger_requests (from_id, to_id) VALUES (3, 25);
 
 INSERT INTO groups_details (id, name, description, owner_id, room_id, badge, alias, created_at) VALUES
