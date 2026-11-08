@@ -367,7 +367,7 @@ args = [":dc tracestaff"]
 bot = "m"
 send = "CHAT"
 args = [":givecredits tracebot1 5"]
-settle_ms = 8000
+settle_ms = 9500
 note = "Above a moderator's rank: plain chat, heard (and looked at) by the others"
 
 # --- Disconnect and bans ---

@@ -43,7 +43,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "362127998956441090012275\u0002I",
+              "body": "230957553947994565678505\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#B0F4EA9FEF094C08A3A844D576CF9221\u0002",
+              "body": "#0ED334F9F33C44E399DB5C7D3618642E\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -202,7 +202,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHe303\u0002broom_bench1\u0002PAHPAPAHa420\u0002broom_bench2\u0002QAHPAPAHe205\u0002broom_bench3\u0002RAHPAPAHe231\u0002broom_bench1\u0002SAHPAPAHf187\u0002broom_bench2\u0002PBHPAPAHo597\u0002broom_bench2\u0002QBHPAPAHi470\u0002broom_bench3\u0002RBHPAPAHv87\u0002broom_bench1\u0002SBHPAPAHh627\u0002broom_bench2\u0002PCHPAPAHg780\u0002broom_bench2\u0002QCHPAPAHo666\u0002broom_bench2\u0002RCHPAPAHm493\u0002broom_bench3\u0002SCHPAPAHw79\u0002broom_bench1\u0002PDHPAPAHv425\u0002broom_bench2\u0002QDHPAPAHw64\u0002broom_bench2\u0002RDHPAPAHy449\u0002broom_bench3\u0002SDHPAPAHr917\u0002broom_bench1\u0002PEHPAPAHp9\u0002broom_bench2\u0002QEHPAPAHn360\u0002broom_bench3\u0002REHPAPAHg122\u0002broom_seatb1\u0002SAKJPAHd647\u0002broom_seatb2\u0002PBKJPAHb232\u0002broom_seatb3\u0002QBKJPAHo251\u0002broom_seatb4\u0002RBKJPAHf278\u0002broom_seat1\u0002PDKJPAHi983\u0002broom_seat2\u0002QDKJPAHl943\u0002broom_seat3\u0002RDKJPAHd284\u0002broom_seat4\u0002SDKJPAHd190\u0002broom_seatb1\u0002SARAHPAHn161\u0002broom_seatb2\u0002PBRAHPAHc236\u0002broom_seatb3\u0002QBRAHPAHq915\u0002broom_seatb4\u0002RBRAHPAHe794\u0002broom_seat1\u0002PDRAHPAHc190\u0002broom_seat2\u0002QDRAHPAHn240\u0002broom_seat3\u0002RDRAHPAHb639\u0002broom_seat4\u0002SDRAHPAHf233\u0002broom_chair\u0002SDRBHPAHy113\u0002broom_chair\u0002PERBHPAHm132\u0002broom_chair\u0002QERBHPAHj765\u0002broom_table1\u0002SDSBHHHw763\u0002broom_table2\u0002PESBHHHc625\u0002broom_table3\u0002QESBHHHt45\u0002broom_chair\u0002SDPCHHHv439\u0002broom_chair\u0002PEPCHHHw293\u0002broom_chair\u0002QEPCHHHc157\u0002broom_chair\u0002SDSCHPAHs471\u0002broom_chair\u0002PESCHPAHl932\u0002broom_chair\u0002QESCHPAHe262\u0002broom_table1\u0002SDPDHHHw507\u0002broom_table2\u0002PEPDHHHo935\u0002broom_table3\u0002QEPDHHHq297\u0002broom_chair\u0002SDQDHHHv968\u0002broom_chair\u0002PEQDHHHh348\u0002broom_chair\u0002QEQDHHHh339\u0002broom_stool\u0002QBPEIJHw944\u0002broom_stool\u0002QBQEIJHh133\u0002broom_stool\u0002QBREIJHg922\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -305,7 +305,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "811971147038868287413260\u0002I",
+              "body": "828456040846646204139553\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -337,7 +337,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#955AA48B987D4CAB90535CEE45BF72C5\u0002",
+              "body": "#00777A047A784483BAA243AB1E18BF5B\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -476,7 +476,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHe303\u0002broom_bench1\u0002PAHPAPAHa420\u0002broom_bench2\u0002QAHPAPAHe205\u0002broom_bench3\u0002RAHPAPAHe231\u0002broom_bench1\u0002SAHPAPAHf187\u0002broom_bench2\u0002PBHPAPAHo597\u0002broom_bench2\u0002QBHPAPAHi470\u0002broom_bench3\u0002RBHPAPAHv87\u0002broom_bench1\u0002SBHPAPAHh627\u0002broom_bench2\u0002PCHPAPAHg780\u0002broom_bench2\u0002QCHPAPAHo666\u0002broom_bench2\u0002RCHPAPAHm493\u0002broom_bench3\u0002SCHPAPAHw79\u0002broom_bench1\u0002PDHPAPAHv425\u0002broom_bench2\u0002QDHPAPAHw64\u0002broom_bench2\u0002RDHPAPAHy449\u0002broom_bench3\u0002SDHPAPAHr917\u0002broom_bench1\u0002PEHPAPAHp9\u0002broom_bench2\u0002QEHPAPAHn360\u0002broom_bench3\u0002REHPAPAHg122\u0002broom_seatb1\u0002SAKJPAHd647\u0002broom_seatb2\u0002PBKJPAHb232\u0002broom_seatb3\u0002QBKJPAHo251\u0002broom_seatb4\u0002RBKJPAHf278\u0002broom_seat1\u0002PDKJPAHi983\u0002broom_seat2\u0002QDKJPAHl943\u0002broom_seat3\u0002RDKJPAHd284\u0002broom_seat4\u0002SDKJPAHd190\u0002broom_seatb1\u0002SARAHPAHn161\u0002broom_seatb2\u0002PBRAHPAHc236\u0002broom_seatb3\u0002QBRAHPAHq915\u0002broom_seatb4\u0002RBRAHPAHe794\u0002broom_seat1\u0002PDRAHPAHc190\u0002broom_seat2\u0002QDRAHPAHn240\u0002broom_seat3\u0002RDRAHPAHb639\u0002broom_seat4\u0002SDRAHPAHf233\u0002broom_chair\u0002SDRBHPAHy113\u0002broom_chair\u0002PERBHPAHm132\u0002broom_chair\u0002QERBHPAHj765\u0002broom_table1\u0002SDSBHHHw763\u0002broom_table2\u0002PESBHHHc625\u0002broom_table3\u0002QESBHHHt45\u0002broom_chair\u0002SDPCHHHv439\u0002broom_chair\u0002PEPCHHHw293\u0002broom_chair\u0002QEPCHHHc157\u0002broom_chair\u0002SDSCHPAHs471\u0002broom_chair\u0002PESCHPAHl932\u0002broom_chair\u0002QESCHPAHe262\u0002broom_table1\u0002SDPDHHHw507\u0002broom_table2\u0002PEPDHHHo935\u0002broom_table3\u0002QEPDHHHq297\u0002broom_chair\u0002SDQDHHHv968\u0002broom_chair\u0002PEQDHHHh348\u0002broom_chair\u0002QEQDHHHh339\u0002broom_stool\u0002QBPEIJHw944\u0002broom_stool\u0002QBQEIJHh133\u0002broom_stool\u0002QBREIJHg922\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -649,7 +649,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "876360274249764291670342\u0002I",
+              "body": "122127792926638767144241\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -681,7 +681,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#75499509A79F42EC9092FB7C76E6D0E0\u0002",
+              "body": "#7946640E27604A2B80706A797357A934\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -832,7 +832,7 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHe303\u0002broom_bench1\u0002PAHPAPAHa420\u0002broom_bench2\u0002QAHPAPAHe205\u0002broom_bench3\u0002RAHPAPAHe231\u0002broom_bench1\u0002SAHPAPAHf187\u0002broom_bench2\u0002PBHPAPAHo597\u0002broom_bench2\u0002QBHPAPAHi470\u0002broom_bench3\u0002RBHPAPAHv87\u0002broom_bench1\u0002SBHPAPAHh627\u0002broom_bench2\u0002PCHPAPAHg780\u0002broom_bench2\u0002QCHPAPAHo666\u0002broom_bench2\u0002RCHPAPAHm493\u0002broom_bench3\u0002SCHPAPAHw79\u0002broom_bench1\u0002PDHPAPAHv425\u0002broom_bench2\u0002QDHPAPAHw64\u0002broom_bench2\u0002RDHPAPAHy449\u0002broom_bench3\u0002SDHPAPAHr917\u0002broom_bench1\u0002PEHPAPAHp9\u0002broom_bench2\u0002QEHPAPAHn360\u0002broom_bench3\u0002REHPAPAHg122\u0002broom_seatb1\u0002SAKJPAHd647\u0002broom_seatb2\u0002PBKJPAHb232\u0002broom_seatb3\u0002QBKJPAHo251\u0002broom_seatb4\u0002RBKJPAHf278\u0002broom_seat1\u0002PDKJPAHi983\u0002broom_seat2\u0002QDKJPAHl943\u0002broom_seat3\u0002RDKJPAHd284\u0002broom_seat4\u0002SDKJPAHd190\u0002broom_seatb1\u0002SARAHPAHn161\u0002broom_seatb2\u0002PBRAHPAHc236\u0002broom_seatb3\u0002QBRAHPAHq915\u0002broom_seatb4\u0002RBRAHPAHe794\u0002broom_seat1\u0002PDRAHPAHc190\u0002broom_seat2\u0002QDRAHPAHn240\u0002broom_seat3\u0002RDRAHPAHb639\u0002broom_seat4\u0002SDRAHPAHf233\u0002broom_chair\u0002SDRBHPAHy113\u0002broom_chair\u0002PERBHPAHm132\u0002broom_chair\u0002QERBHPAHj765\u0002broom_table1\u0002SDSBHHHw763\u0002broom_table2\u0002PESBHHHc625\u0002broom_table3\u0002QESBHHHt45\u0002broom_chair\u0002SDPCHHHv439\u0002broom_chair\u0002PEPCHHHw293\u0002broom_chair\u0002QEPCHHHc157\u0002broom_chair\u0002SDSCHPAHs471\u0002broom_chair\u0002PESCHPAHl932\u0002broom_chair\u0002QESCHPAHe262\u0002broom_table1\u0002SDPDHHHw507\u0002broom_table2\u0002PEPDHHHo935\u0002broom_table3\u0002QEPDHHHq297\u0002broom_chair\u0002SDQDHHHv968\u0002broom_chair\u0002PEQDHHHh348\u0002broom_chair\u0002QEQDHHHh339\u0002broom_stool\u0002QBPEIJHw944\u0002broom_stool\u0002QBQEIJHh133\u0002broom_stool\u0002QBREIJHg922\u0002broom_stool\u0002QBSEIJ",
+              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
               "check": "header"
             },
             {
@@ -1344,7 +1344,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot1) mute expiration date set to: 07-11-2026 22:51:08\u0002",
+              "body": "Player (tracebot1) mute expiration date set to: 08-11-2026 04:03:57\u0002",
               "check": "mask",
               "mask": "................................................??????????.????????."
             }
@@ -1784,7 +1784,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot2) trade ban time set to: 07-11-2026 23:41:14\u0002",
+              "body": "Player (tracebot2) trade ban time set to: 08-11-2026 04:54:03\u0002",
               "check": "mask",
               "mask": "..........................................??????????.????????."
             }
@@ -2212,7 +2212,7 @@
       "name": "CHAT",
       "body": "@X:givecredits tracebot1 5",
       "note": "Above a moderator's rank: plain chat, heard (and looked at) by the others",
-      "settle_ms": 8000,
+      "settle_ms": 9500,
       "received": {
         "a": {
           "ordered": true,
@@ -2527,7 +2527,7 @@
           "messages": []
         },
         "s": {
-          "ordered": true,
+          "ordered": false,
           "closed": false,
           "messages": [
             {
@@ -2535,6 +2535,13 @@
               "name": "LOGOUT",
               "body": "2\u0002",
               "check": "exact"
+            },
+            {
+              "header": 50,
+              "name": "PING",
+              "body": "",
+              "check": "exact",
+              "optional": true
             }
           ]
         }
