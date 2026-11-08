@@ -413,6 +413,36 @@ impl Writer {
         Ok(())
     }
 
+    /// Removes a row of `rooms_models` by id.
+    pub fn delete_room_model(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(ROOM_MODELS)?.remove(id)?;
+        Ok(())
+    }
+
+    /// The id the next `INSERT INTO rooms_models` gets (`AUTO_INCREMENT`).
+    pub fn next_room_model_id(&mut self) -> Result<u32> {
+        let last = {
+            let t = self.tx.open_table(ROOM_MODELS)?;
+            t.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        self.take_next_id("rooms_models", last)
+    }
+
+    /// Removes a row of `rooms_categories` by id.
+    pub fn delete_room_category(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(ROOM_CATEGORIES)?.remove(id)?;
+        Ok(())
+    }
+
+    /// The id the next `INSERT INTO rooms_categories` gets (`AUTO_INCREMENT`).
+    pub fn next_room_category_id(&mut self) -> Result<u32> {
+        let last = {
+            let t = self.tx.open_table(ROOM_CATEGORIES)?;
+            t.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        self.take_next_id("rooms_categories", last)
+    }
+
     pub fn put_room_model(&mut self, model: &RoomModel) -> Result<()> {
         let bytes = encode(model)?;
         self.tx

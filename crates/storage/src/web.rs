@@ -333,6 +333,15 @@ record!(
 );
 
 record!(
+    /// `recycler_rewards` (Java: `EcotronManager`); ids are synthetic, the sprite is the key.
+    RecyclerReward, "recycler_rewards" {
+        sprite: String,
+        order_id: i32,
+        chance: i32,
+    }
+);
+
+record!(
     /// `rooms_entry_badges`: badges a room gives on entry (Java: `BadgeDao`); ids are synthetic.
     RoomEntryBadge, "rooms_entry_badges" {
         room_id: u32,
@@ -424,6 +433,7 @@ record_tables!(
     Collectable,
     HkAudit,
     RoomEntryBadge,
+    RecyclerReward,
 );
 
 impl Store {

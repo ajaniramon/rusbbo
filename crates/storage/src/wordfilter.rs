@@ -37,6 +37,21 @@ impl Store {
 }
 
 impl Writer {
+    /// Removes a row of `wordfilter` by id.
+    pub fn delete_wordfilter_word(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(WORDFILTER)?.remove(id)?;
+        Ok(())
+    }
+
+    /// The id the next `INSERT INTO wordfilter` gets (`AUTO_INCREMENT`).
+    pub fn next_wordfilter_word_id(&mut self) -> Result<u32> {
+        let last = {
+            let t = self.tx.open_table(WORDFILTER)?;
+            t.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        self.take_next_id("wordfilter", last)
+    }
+
     pub fn put_wordfilter_word(&mut self, word: &WordfilterWord) -> Result<()> {
         let bytes = encode(word)?;
         self.tx

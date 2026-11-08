@@ -277,6 +277,21 @@ impl Writer {
         Ok(changed.len())
     }
 
+    /// Removes a row of `items_definitions` by id.
+    pub fn delete_item_definition(&mut self, id: u32) -> Result<()> {
+        self.tx.open_table(ITEMS_DEFINITIONS)?.remove(id)?;
+        Ok(())
+    }
+
+    /// The id the next `INSERT INTO items_definitions` gets (`AUTO_INCREMENT`).
+    pub fn next_item_definition_id(&mut self) -> Result<u32> {
+        let last = {
+            let t = self.tx.open_table(ITEMS_DEFINITIONS)?;
+            t.last()?.map(|(k, _)| k.value()).unwrap_or(0)
+        };
+        self.take_next_id("items_definitions", last)
+    }
+
     pub fn put_item_definition(&mut self, definition: &ItemDefinition) -> Result<()> {
         let bytes = encode(definition)?;
         self.tx

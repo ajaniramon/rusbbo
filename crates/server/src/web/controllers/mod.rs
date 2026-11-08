@@ -11,6 +11,7 @@ mod habblets2;
 mod hk_catalogue;
 mod hk_content;
 mod hk_core;
+mod hk_gamedata;
 mod hk_tools;
 mod hk_users;
 mod homes;
@@ -428,6 +429,58 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HousekeepingInfobusController::send_poll" => hk_catalogue::send_poll(conn)?,
         "HousekeepingInfobusController::close_event" => hk_catalogue::close_event(conn)?,
         "HousekeepingInfobusController::door_status" => hk_catalogue::door_status(conn)?,
+        "HousekeepingGameDataController::rooms" => hk_gamedata::rooms(conn)?,
+        "HousekeepingGameDataController::editRoom" => hk_gamedata::edit_room(conn)?,
+        "HousekeepingGameDataController::hideRoom" => hk_gamedata::hide_room(conn)?,
+        "HousekeepingGameDataController::setRoomStaffPick" => hk_gamedata::room_staff_pick(conn)?,
+        "HousekeepingGameDataController::deleteRoom" => hk_gamedata::delete_room(conn)?,
+        "HousekeepingGameDataController::groups" => hk_gamedata::groups(conn)?,
+        "HousekeepingGameDataController::editGroup" => hk_gamedata::edit_group(conn)?,
+        "HousekeepingGameDataController::updateGroupMember" => {
+            hk_gamedata::update_group_member(conn)?
+        }
+        "HousekeepingGameDataController::updateGroupThread" => {
+            hk_gamedata::update_group_thread(conn)?
+        }
+        "HousekeepingGameDataController::updateGroupReply" => {
+            hk_gamedata::update_group_reply(conn)?
+        }
+        "HousekeepingGameDataController::setGroupStaffPick" => hk_gamedata::group_staff_pick(conn)?,
+        "HousekeepingGameDataController::deleteGroup" => hk_gamedata::delete_group(conn)?,
+        "HousekeepingGameDataController::badges" => hk_gamedata::badges(conn)?,
+        "HousekeepingGameDataController::grantBadge" => hk_gamedata::grant_badge(conn)?,
+        "HousekeepingGameDataController::updateBadge" => hk_gamedata::update_badge(conn)?,
+        "HousekeepingGameDataController::removeBadge" => hk_gamedata::remove_badge(conn)?,
+        "HousekeepingGameDataController::roomCategories" => hk_gamedata::room_categories(conn)?,
+        "HousekeepingGameDataController::editRoomCategory" => {
+            hk_gamedata::edit_room_category(conn)?
+        }
+        "HousekeepingGameDataController::deleteRoomCategory" => {
+            hk_gamedata::delete_room_category(conn)?
+        }
+        "HousekeepingGameDataController::roomModels" => hk_gamedata::room_models(conn)?,
+        "HousekeepingGameDataController::editRoomModel" => hk_gamedata::edit_room_model(conn)?,
+        "HousekeepingGameDataController::deleteRoomModel" => hk_gamedata::delete_room_model(conn)?,
+        "HousekeepingGameDataController::itemDefinitions" => hk_gamedata::item_definitions(conn)?,
+        "HousekeepingGameDataController::editItemDefinition" => {
+            hk_gamedata::edit_item_definition(conn)?
+        }
+        "HousekeepingGameDataController::deleteItemDefinition" => {
+            hk_gamedata::delete_item_definition(conn)?
+        }
+        "HousekeepingGameDataController::vouchers" => hk_gamedata::vouchers(conn)?,
+        "HousekeepingGameDataController::editVoucher" => hk_gamedata::edit_voucher(conn)?,
+        "HousekeepingGameDataController::deleteVoucher" => hk_gamedata::delete_voucher(conn)?,
+        "HousekeepingGameDataController::wordfilter" => hk_gamedata::wordfilter(conn)?,
+        "HousekeepingGameDataController::editWordfilter" => hk_gamedata::edit_wordfilter(conn)?,
+        "HousekeepingGameDataController::deleteWordfilter" => hk_gamedata::delete_wordfilter(conn)?,
+        "HousekeepingGameDataController::recyclerRewards" => hk_gamedata::recycler_rewards(conn)?,
+        "HousekeepingGameDataController::editRecyclerReward" => {
+            hk_gamedata::edit_recycler_reward(conn)?
+        }
+        "HousekeepingGameDataController::deleteRecyclerReward" => {
+            hk_gamedata::delete_recycler_reward(conn)?
+        }
         _ => return Ok(false),
     }
     Ok(true)

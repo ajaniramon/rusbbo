@@ -468,6 +468,18 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    for r in rows(
+        conn,
+        "SELECT sprite, order_id, chance FROM recycler_rewards",
+    )? {
+        w.put_record(&RecyclerReward {
+            id: synthetic(),
+            sprite: s(&r, "sprite")?,
+            order_id: i(&r, "order_id")?,
+            chance: i(&r, "chance")?,
+        })?;
+        n += 1;
+    }
     for r in rows(conn, "SELECT room_id, badge FROM rooms_entry_badges")? {
         w.put_record(&RoomEntryBadge {
             id: synthetic(),
@@ -546,6 +558,10 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         "users",
         "site_articles",
         "rooms_ads",
+        "rooms_models",
+        "rooms_categories",
+        "items_definitions",
+        "wordfilter",
         "article_categories",
         "cms_alerts",
         "cms_minimail",
