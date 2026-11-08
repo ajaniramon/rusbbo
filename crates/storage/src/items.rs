@@ -139,6 +139,28 @@ impl Store {
         Ok(out)
     }
 
+    /// Java: `ItemDao.getUserItemsByDefinition`: every item `user_id` owns of a definition, in
+    /// the hand or in a room, in id order.
+    pub fn user_items_by_definition(&self, user_id: u32, definition_id: u32) -> Result<Vec<Item>> {
+        let tx = self.db.begin_read()?;
+        let items = tx.open_table(ITEMS)?;
+        let mut out: Vec<Item> = Vec::new();
+        for entry in tx
+            .open_table(ITEMS_BY_USER)?
+            .range((user_id, 0)..=(user_id, u64::MAX))?
+        {
+            let id = entry?.0.value().1;
+            if let Some(bytes) = items.get(id)? {
+                let item: Item = decode(bytes.value())?;
+                if item.definition_id == definition_id {
+                    out.push(item);
+                }
+            }
+        }
+        out.sort_by_key(|i| i.id);
+        Ok(out)
+    }
+
     /// Java: `ItemDao.getItem`.
     pub fn item(&self, id: u64) -> Result<Option<Item>> {
         let tx = self.db.begin_read()?;

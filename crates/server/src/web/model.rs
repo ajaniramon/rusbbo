@@ -206,7 +206,7 @@ pub fn group(world: &Arc<World>, g: &rusbbo_storage::Group) -> Value {
         })
         .with_fn("getMember", move |args| {
             Ok(data::group_member(&w2, id, owner, arg_id(args))
-                .map(group_member)
+                .map(|m| group_member_bean(&w2, m))
                 .into())
         })
         .with_fn("isMember", move |args| {
@@ -283,6 +283,29 @@ pub fn group_member(m: rusbbo_storage::GroupMember) -> Value {
                 .with_fn("toString", move |_| Ok(Value::str(rank))),
         )
         .into()
+}
+
+/// Java: `GroupMember` with its `getUser()` and `isFavourite`.
+pub fn group_member_bean(world: &Arc<World>, m: rusbbo_storage::GroupMember) -> Value {
+    let user = world.store.user(m.user_id).ok().flatten();
+    let favourite = user.as_ref().map(|u| u.favourite_group).unwrap_or(0);
+    let mut map = match group_member(m) {
+        Value::Map(map) => (*map).clone(),
+        _ => Map::new(),
+    };
+    map.insert(
+        "user",
+        user.map(|u| super::beans::player_details(world, &u)),
+    );
+    map.insert(
+        "isFavourite",
+        Value::func(move |a| {
+            Ok(Value::Bool(
+                a.first().and_then(Value::as_i64) == Some(favourite as i64),
+            ))
+        }),
+    );
+    map.into()
 }
 
 /// Java: `Event` (with the room it is held in).
@@ -399,6 +422,7 @@ pub fn room(world: &Arc<World>, r: &rusbbo_storage::Room) -> Value {
         .with("superUsers", r.superusers)
         .with("accessType", r.accesstype)
         .with("accesstype", r.accesstype)
+        .with("accessTypeId", r.accesstype)
         .with("accessTypeName", access)
         .with("password", r.password.clone().unwrap_or_default())
         .with("visitorsNow", r.visitors_now)

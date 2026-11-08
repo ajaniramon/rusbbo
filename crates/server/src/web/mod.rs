@@ -16,6 +16,8 @@ mod captcha;
 mod controllers;
 pub mod data;
 pub mod figure;
+mod forum;
+mod homes;
 pub mod http;
 mod jdate;
 mod mime;

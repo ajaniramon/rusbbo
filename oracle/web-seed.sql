@@ -73,3 +73,13 @@ INSERT INTO vouchers (voucher_code, credits, expiry_date, is_single_use, allow_n
   ('TRACE-EXPIRED', 5, '2020-01-01 00:00:00', 1, 1);
 INSERT INTO vouchers_items (voucher_code, catalogue_sale_code) VALUES
   ('TRACE-FURNI', 'CF_20_moneybag'), ('TRACE-FURNI', 'floor'), ('TRACE-FURNI', 'nosuchcode');
+
+-- Homes: tracepass has 18 badges (two pages of the badges widget; two worn, slot 2 first in
+-- the list) and a song for the trax player.
+INSERT INTO users_badges (user_id, badge, equipped, slot_id) VALUES
+  (25, 'ADM', 0, 0), (25, 'HC1', 1, 2), (25, 'GLD', 1, 1), (25, 'B01', 0, 0), (25, 'B02', 0, 0),
+  (25, 'B03', 0, 0), (25, 'B04', 0, 0), (25, 'B05', 0, 0), (25, 'B06', 0, 0), (25, 'B07', 0, 0),
+  (25, 'B08', 0, 0), (25, 'B09', 0, 0), (25, 'B10', 0, 0), (25, 'B11', 0, 0), (25, 'B12', 0, 0),
+  (25, 'B13', 0, 0), (25, 'B14', 0, 0), (25, 'B15', 0, 0);
+INSERT INTO soundmachine_songs (id, user_id, title, item_id, length, data, burnt) VALUES
+  (1, 25, 'Trace Song', 0, 16, '1:1,4;2,4:2:0,8:3:0,8:4:0,8:', 0);

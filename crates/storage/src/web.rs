@@ -243,6 +243,9 @@ record!(
         category_id: u32,
         min_rank: i32,
         widget_type: i32,
+        /// The row's place in `SELECT * FROM cms_stickers_catalogue` (a MyISAM table read in
+        /// storage order, which is not id order): the order Java lists products in.
+        position: u32,
     }
 );
 

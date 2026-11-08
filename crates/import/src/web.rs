@@ -312,10 +312,13 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
-    for r in rows(
+    for (position, r) in rows(
         conn,
         "SELECT id, name, description, type, data, price, amount, category_id, min_rank, widget_type FROM cms_stickers_catalogue",
-    )? {
+    )?
+    .into_iter()
+    .enumerate()
+    {
         w.put_record(&StickerProduct {
             id: u(&r, "id")?,
             name: s(&r, "name")?,
@@ -327,6 +330,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
             category_id: u(&r, "category_id")?,
             min_rank: i(&r, "min_rank")?,
             widget_type: i(&r, "widget_type")?,
+            position: position as u32,
         })?;
         n += 1;
     }

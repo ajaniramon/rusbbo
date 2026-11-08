@@ -386,6 +386,36 @@ pub fn is_pending_member(world: &World, group_id: u32, owner_id: u32, user_id: i
     owner_id as i64 != user_id && membership(world, group_id, user_id).is_some_and(|m| m.is_pending)
 }
 
+/// Java: `GroupDao.querySearch`: with words of three or more letters, the groups whose name has
+/// a word starting with each of them (`MATCH ... AGAINST ('+word*' IN BOOLEAN MODE)`); else the
+/// names starting with the query. At most 30, in id order.
+pub fn query_search_groups(world: &World, query: &str) -> Vec<rusbbo_storage::Group> {
+    let is_word = |c: char| c.is_alphanumeric();
+    let words: Vec<String> = query
+        .trim()
+        .split(|c: char| !is_word(c))
+        .filter(|w| w.chars().count() >= 3)
+        .map(str::to_lowercase)
+        .collect();
+    let prefix = query.trim().to_lowercase();
+    let mut groups = world
+        .store
+        .records_where::<rusbbo_storage::Group>(|g| {
+            let name = g.name.to_lowercase();
+            if words.is_empty() {
+                name.starts_with(&prefix)
+            } else {
+                let name_words: Vec<&str> = name.split(|c: char| !is_word(c)).collect();
+                words
+                    .iter()
+                    .all(|w| name_words.iter().any(|n| n.starts_with(w.as_str())))
+            }
+        })
+        .unwrap_or_default();
+    groups.truncate(30);
+    groups
+}
+
 /// Java: `GroupDao.getJoinedGroups`: owned and joined groups, most members first.
 pub fn joined_groups(world: &World, user_id: u32) -> Vec<rusbbo_storage::Group> {
     let groups = world

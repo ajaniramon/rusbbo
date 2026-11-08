@@ -32,18 +32,55 @@ TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.
   `tools/gen_web_routes.py`), `tpl.rs` (templates and their binders), `beans.rs` (what Java
   objects look like to templates), `data.rs` (the DAOs), `controllers/` (one module per Java
   controller group).
+- `homes.rs` (`Widget`, the sticker catalogue, guestbooks, ratings, edit sessions) and
+  `forum.rs` (`GroupDiscussionDao`, topics and replies).
 - `crates/storage/src/web.rs`: the website's tables, as generic `Record` tables.
 
 ## Phases
 
 | Phase | Java | Status |
 |---|---|---|
-| 1. Core | `HomepageController`, `AccountController`, `ClientController`, `TicketController`, `RegisterController`, `RecoveryController`, the `/me` page and what it shows (news, alerts, tags, minimail, friends, events, room selection, beginner gifts) | in progress |
-| 2. Site | `ProfileController`, `CreditsController`, `ClubController`, `CollectablesController`, `CommunityController`, `NewsController`, `GamesController`, `TagController`, `FaqController`, `SiteController`, the habblets (`habblet/*`), `FriendManagementController`, `MinimailController`, `QuickmenuController` | |
-| 3. Homes | `HomesController`, `StoreController`, `NoteEditorController`, `WidgetController`, `GuestbookController`, `RateController`, `BadgesController`, `TraxController`, the friends/members widgets | |
-| 4. Groups | `GroupController`, `GroupHabbletController`, `GroupMemberController`, `GroupFavouriteController`, `GroupTagController`, `GroupDiscussionsController`, `DiscussionController`, `DiscussionActionsController`, `DiscussionPreviewController` | |
+| 1. Core | `HomepageController`, `AccountController`, `ClientController`, `TicketController`, `RegisterController`, `RecoveryController`, the `/me` page and what it shows (news, alerts, tags, minimail, friends, events, room selection, beginner gifts) | done (TODO(email): the SMTP mails) |
+| 2. Site | `ProfileController`, `CreditsController`, `ClubController`, `CollectablesController`, `CommunityController`, `NewsController`, `GamesController`, `TagController`, `FaqController`, `SiteController`, the habblets (`habblet/*`), `FriendManagementController`, `MinimailController`, `QuickmenuController`, `TagController`, `VoucherController`, `CollectablesController` | done |
+| 3. Homes | `HomesController`, `StoreController`, `NoteEditorController`, `WidgetController`, `GuestbookController`, `RateController`, `BadgesController`, `TraxController`, the friends/members widgets | done |
+| 4. Groups | `GroupController`, `GroupHabbletController`, `GroupMemberController`, `GroupFavouriteController`, `GroupTagController`, `GroupDiscussionsController`, `DiscussionController`, `DiscussionActionsController`, `DiscussionPreviewController` | done (creating topics and replies needs the captcha, so the traces only cover its errors) |
 | 5. Housekeeping | `controllers/housekeeping/*` | |
 | 6. Imager | `ImagerController` (`/habbo-imaging/*`: avatars and badges, Avatara4j) | |
+
+## Data the traces need
+
+`oracle/web-seed.sql` holds the web traces' own data (news, tags, scores, friends, groups,
+minimail, forums, vouchers), loaded on top of `golden.sql` by `oracle/web.sh reset`; the Rust
+fixture for web checks is built from both (`harness/target-rs.sh` with `TARGET_WEB_PORT`). Dates
+are fixed times of the current day, so a recording and a check on the same day agree. Wherever
+MariaDB or Java orders ties in no fixed way (GROUP BY, ORDER BY with LIMIT, identity-hash maps),
+the seed avoids ties.
+
+## Caching
+
+Havana-Web shows several lists from memory: the `Watchdog`'s (refreshed every 30 seconds:
+events, recommended and staff-pick groups and rooms, popular rooms, recent discussions, the tag
+clouds, the news, the users online and the visits) and the `WebCache` regions under them (tag
+cloud 5 minutes, news 2 minutes, recommendations, popular rooms, high scores, active habbos and
+visits 60 seconds). `web/cache.rs` keeps the same lists with the same lifetimes, so a page is as
+stale as Java's.
+
+## Java's quirks kept
+
+Pages show what Java shows, so these Havana-Web bugs are reproduced on purpose:
+
+- `GuestbookDao.create` reads the new entry's key as `"id"`: the entry the page gets back has id
+  -1 and creation time -1.
+- `GroupDiscussionDao.getFirstReply`, `countReplies` and `countDiscussions` call
+  `executeUpdate()` on a `SELECT`; they always return 0 (every post is shown as a reply, every
+  list has one page).
+- `RoomDao.saveGroupId` and `GroupDiscussionDao.deleteDiscussion` have their parameters
+  swapped.
+- `updatepost` refuses a *matching* captcha.
+- `cms_stickers_catalogue` is a MyISAM table read without `ORDER BY`: products keep the
+  table's storage order (`StickerProduct.position`, set by the importer), not their ids.
+- Forum "has read" flags: Java's subquery counts every read row for replies older than seven
+  days.
 
 ## Differences from Java
 

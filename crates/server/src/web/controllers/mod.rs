@@ -5,8 +5,10 @@ mod account;
 mod api;
 mod client;
 mod club;
+mod groups;
 mod habblets;
 mod habblets2;
+mod homes;
 mod me;
 mod minimail;
 mod pages;
@@ -261,6 +263,102 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "AccountController::logout" => account::logout(conn)?,
         "AccountController::login_popup" => account::login_popup(conn)?,
         "ClientController::client" => client::client(conn)?,
+        "HomesController::home" => homes::home(conn)?,
+        "HomesController::inventory" => homes::inventory(conn)?,
+        "HomesController::inventoryItems" => homes::inventory_items(conn)?,
+        "HomesController::inventoryPreview" => homes::inventory_preview(conn)?,
+        "HomesController::startEditingSession" => homes::start_editing_session(conn)?,
+        "HomesController::cancelEditingSession" => homes::cancel_editing_session(conn)?,
+        "HomesController::save" => homes::save(conn)?,
+        "HomesController::tagList" => homes::tag_list(conn)?,
+        "StoreController::main" => homes::store_main(conn)?,
+        "StoreController::items" => homes::store_items(conn)?,
+        "StoreController::preview" => homes::store_preview(conn)?,
+        "StoreController::purchaseConfirm" => homes::purchase_confirm(conn)?,
+        "StoreController::backgroundWarning" => homes::background_warning(conn)?,
+        "StoreController::purchaseStickers" => homes::purchase(conn, crate::web::homes::STICKER)?,
+        "StoreController::purchaseBackgrounds" => {
+            homes::purchase(conn, crate::web::homes::BACKGROUND)?
+        }
+        "StoreController::purchaseStickieNotes" => homes::purchase(conn, crate::web::homes::NOTE)?,
+        "NoteEditorController::noteEditor" => homes::note_editor(conn)?,
+        "NoteEditorController::notePreview" => homes::note_preview(conn)?,
+        "NoteEditorController::search" => homes::link_search(conn)?,
+        "NoteEditorController::place" => homes::note_place(conn)?,
+        "NoteEditorController::stickieEdit" => homes::stickie_edit(conn)?,
+        "NoteEditorController::stickieDelete" => homes::stickie_delete(conn)?,
+        "WidgetController::editWidget" => homes::widget_edit(conn)?,
+        "WidgetController::placeSticker" => homes::place_sticker(conn)?,
+        "WidgetController::placeWidget" => homes::place_widget(conn)?,
+        "WidgetController::removeSticker" => homes::remove_sticker(conn)?,
+        "WidgetController::removeWidget" => homes::remove_widget(conn)?,
+        "GuestbookController::preview" => homes::guestbook_preview(conn)?,
+        "GuestbookController::add" => homes::guestbook_add(conn)?,
+        "GuestbookController::remove" => homes::guestbook_remove(conn)?,
+        "GuestbookController::configure" => homes::guestbook_configure(conn)?,
+        "RateController::rate" => homes::rate(conn)?,
+        "RateController::resetRating" => homes::reset_rating(conn)?,
+        "BadgesController::badgepaging" => homes::badge_paging(conn)?,
+        "TraxController::selectSong" => homes::select_song(conn)?,
+        "TraxController::getSong" => homes::get_song(conn)?,
+        "FriendsWidgetController::friendsearchpaging" => homes::friend_search_paging(conn)?,
+        "FriendsWidgetController::avatarinfo" => homes::avatar_info(conn)?,
+        "MemberWidgetController::membersearchpaging" => homes::member_search_paging(conn)?,
+        "GroupController::viewGroup" => groups::view_group(conn)?,
+        "GroupController::startEditingSession" => groups::start_editing_session(conn)?,
+        "GroupController::cancelEditingSession" => groups::cancel_editing_session(conn)?,
+        "GroupController::saveEditingSession" => groups::save_editing_session(conn)?,
+        "GroupController::groupinfo" => groups::group_info(conn)?,
+        "GroupHabbletController::groupCreateForm" => groups::group_create_form(conn)?,
+        "GroupHabbletController::purchaseConfirmation" => groups::purchase_confirmation(conn)?,
+        "GroupHabbletController::purchaseAjax" => groups::purchase_ajax(conn)?,
+        "GroupHabbletController::groupSettings" => groups::group_settings(conn)?,
+        "GroupHabbletController::checkGroupUrl" => groups::check_group_url(conn)?,
+        "GroupHabbletController::updateGroupSettings" => groups::update_group_settings(conn)?,
+        "GroupHabbletController::showBadgeEditor" => groups::show_badge_editor(conn)?,
+        "GroupHabbletController::updateGroupBadge" => groups::update_group_badge(conn)?,
+        "GroupHabbletController::confirmDeleteGroup" => groups::confirm_delete_group(conn)?,
+        "GroupHabbletController::deleteGroup" => groups::delete_group(conn)?,
+        "GroupMemberController::join" => groups::join(conn)?,
+        "GroupMemberController::confirmLeave" => groups::confirm_leave(conn)?,
+        "GroupMemberController::leave" => groups::leave(conn)?,
+        "GroupMemberController::memberlist" => groups::member_list(conn)?,
+        "GroupMemberController::confirmRevokeRights" => groups::confirm_revoke_rights(conn)?,
+        "GroupMemberController::revokeRights" => groups::revoke_rights(conn)?,
+        "GroupMemberController::confirmGiveRights" => groups::confirm_give_rights(conn)?,
+        "GroupMemberController::giveRights" => groups::give_rights(conn)?,
+        "GroupMemberController::confirmRemove" => groups::confirm_remove(conn)?,
+        "GroupMemberController::remove" => groups::remove(conn)?,
+        "GroupMemberController::confirmAccept" => groups::confirm_accept(conn)?,
+        "GroupMemberController::accept" => groups::accept(conn)?,
+        "GroupMemberController::confirmDecline" => groups::confirm_decline(conn)?,
+        "GroupMemberController::decline" => groups::decline(conn)?,
+        "GroupFavouriteController::confirmselectfavourite" => {
+            groups::confirm_select_favourite(conn)?
+        }
+        "GroupFavouriteController::selectfavourite" => groups::select_favourite(conn)?,
+        "GroupFavouriteController::confirmdeselectfavourite" => {
+            groups::confirm_deselect_favourite(conn)?
+        }
+        "GroupFavouriteController::deselectfavourite" => groups::deselect_favourite(conn)?,
+        "GroupTagController::addGroupTag" => groups::add_group_tag(conn)?,
+        "GroupTagController::listGroupTag" => groups::list_group_tag(conn)?,
+        "GroupTagController::removeGroupTag" => groups::remove_group_tag(conn)?,
+        "GroupDiscussionsController::viewDiscussions" => groups::view_discussions(conn)?,
+        "GroupDiscussionsController::viewDiscussionsPage" => groups::view_discussions_page(conn)?,
+        "DiscussionController::viewDiscussion" => groups::view_discussion(conn)?,
+        "DiscussionActionsController::newtopic" => groups::new_topic(conn)?,
+        "DiscussionActionsController::savetopic" => groups::save_topic(conn)?,
+        "DiscussionActionsController::pingsession" => groups::ping_session(conn)?,
+        "DiscussionActionsController::opentopicsettings" => groups::open_topic_settings(conn)?,
+        "DiscussionActionsController::confirm_delete_topic" => groups::confirm_delete_topic(conn)?,
+        "DiscussionActionsController::deletetopic" => groups::delete_topic(conn)?,
+        "DiscussionActionsController::savetopicsettings" => groups::save_topic_settings(conn)?,
+        "DiscussionActionsController::updatepost" => groups::update_post(conn)?,
+        "DiscussionActionsController::deletepost" => groups::delete_post(conn)?,
+        "DiscussionActionsController::savepost" => groups::save_post(conn)?,
+        "DiscussionPreviewController::previewtopic" => groups::preview_topic(conn)?,
+        "DiscussionPreviewController::previewpost" => groups::preview_post(conn)?,
         _ => return Ok(false),
     }
     Ok(true)

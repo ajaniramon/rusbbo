@@ -99,6 +99,20 @@ pub struct SongDisk {
 
 impl Store {
     /// Java: `SongMachineDao.getSong`.
+    /// Java: `SongMachineDao.getSongUserList`: the songs a user made.
+    pub fn songs_by_user(&self, user_id: u32) -> Result<Vec<Song>> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(SONGS)?;
+        let mut out = Vec::new();
+        for entry in table.iter()? {
+            let song: Song = decode(entry?.1.value())?;
+            if song.user_id == user_id as i32 {
+                out.push(song);
+            }
+        }
+        Ok(out)
+    }
+
     pub fn song(&self, id: u32) -> Result<Option<Song>> {
         let tx = self.db.begin_read()?;
         let table = tx.open_table(SONGS)?;

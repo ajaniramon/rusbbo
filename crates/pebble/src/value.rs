@@ -111,6 +111,11 @@ impl Value {
         Value::Str(Arc::from(s.as_ref()))
     }
 
+    /// A method or lazy property (see [`Map::with_fn`]).
+    pub fn func(f: impl Fn(&[Value]) -> Result<Value, String> + Send + Sync + 'static) -> Value {
+        Value::Func(Arc::new(f))
+    }
+
     pub fn list<T: Into<Value>>(items: impl IntoIterator<Item = T>) -> Value {
         Value::List(Arc::new(items.into_iter().map(Into::into).collect()))
     }
