@@ -1,0 +1,425 @@
+name = "staff-commands"
+description = "The staff chat commands: :help for an administrator, alerts (:ha, :ra), :roommute, :mute/:unmute, credits, badges, :tradeban, :teleport, :coords, :itemdebug, :talk, :packet, :setconfig, :reload, :resetpw, :dc, :ban/:unban, and what a moderator may not do"
+
+# Room 7 (ballroom, no NPCs). s = tracestaff (ADMINISTRATOR, instance 0), a = tracebot1
+# (instance 1), m = tracemod (MODERATOR, instance 2). tracebot2 stays offline (offline targets).
+# Commands are never chat: nobody looks, so no look timer. The only plain chat that is heard is
+# m's, near the end, which waits 8 s for the look timer.
+# Left out: :uptime/:usersonline (timing), :giftroom (random gift wrapping), :headrotate (a
+# 200 ms timer), :shutdown, :copyroom, :bot (not ported, see TODO(commands)).
+# Each bot's part stays well under Java's 60 s PING.
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "m"
+ticket = "trace-sso-22"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [12, 8]
+settle_ms = 2500
+
+[[steps]]
+bot = "m"
+macro = "login"
+
+[[steps]]
+bot = "m"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "m"
+send = "G_HMAP"
+
+[[steps]]
+bot = "m"
+send = "G_USRS"
+
+[[steps]]
+bot = "m"
+send = "G_OBJS"
+
+[[steps]]
+bot = "m"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "m"
+send = "WALK"
+args = [16, 8]
+settle_ms = 2500
+
+# --- Help and alerts ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":help"]
+note = "Page 1 of every command, sorted by first alias"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":help 3"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":help 5"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":coords"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ha Hello hotel"]
+note = "ALERT to everyone online, signed"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ra Room notice"]
+note = "MODERATOR_ALERT to everyone in the room"
+
+# --- Room mute ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":roommute"]
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["hello"]
+note = "Shh! whispered to a only; nobody hears it"
+
+[[steps]]
+bot = "a"
+send = "WHISPER"
+args = ["tracestaff psst"]
+note = "Whispers too"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":eventmute"]
+note = "Alias: unmuted again"
+
+# --- Mutes ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":mute tracebot1 10"]
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["hello"]
+note = "Muted: ALERT with the time left"
+
+[[steps]]
+bot = "a"
+send = "SHOUT"
+args = ["hello"]
+
+[[steps]]
+bot = "a"
+send = "WHISPER"
+args = ["tracestaff psst"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":mute tracemod 10"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":mute nobody 10"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":mute tracebot1"]
+note = "Missing argument"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":unmute tracebot1"]
+
+# --- Credits and badges ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":checkbalance tracebot1"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givecredits tracebot1 50"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":removecredits tracebot2 20"]
+note = "Offline user"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givecredits tracebot1 lots"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givebadge tracebot1 MOD1"]
+note = "FIGURE_CHANGE to the room"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givebadge tracebot1 MOD1"]
+note = "Already owned"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givebadge tracebot2 OFF1"]
+note = "Offline user"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":givebadge tracebot1 ACH_Test1"]
+note = "Achievement badges are refused silently"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":removebadge tracebot2 OFF1"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":removebadge tracebot2 OFF1"]
+note = "Not owned any more"
+
+# --- Trade ban ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":tradeban tracebot2 60"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":tradeban tracemod 60"]
+
+# --- Room tools ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":itemdebug"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":talk hello there"]
+note = "A voiceSpeak spotlight item"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":packet BKfrom a packet{2}"]
+note = "Raw packet: an ALERT"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "s"
+send = "WALK"
+args = [14, 10]
+settle_ms = 800
+note = "Teleport mode: a warp, no walk"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":tp"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":coords"]
+
+# --- Settings ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig no.such.setting 1"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig shutdown.minutes 5"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":reload wordfilter"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":reload everything"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":resetpw tracebot2"]
+
+# --- What a moderator may not do ---
+
+[[steps]]
+bot = "m"
+send = "CHAT"
+args = [":dc tracestaff"]
+
+[[steps]]
+bot = "m"
+send = "CHAT"
+args = [":givecredits tracebot1 5"]
+settle_ms = 8000
+note = "Above a moderator's rank: plain chat, heard (and looked at) by the others"
+
+# --- Disconnect and bans ---
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracemod 10 rude"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracestaff 10 rude"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":dc tracebot1"]
+note = "a: HOTEL_LOGOUT and closed"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracebot1 10 Being rude"]
+note = "Offline user"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracebot1 10 again"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":unban tracebot1"]
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracebot1 10"]
+note = "Missing reason argument"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":ban tracebot2 10 Bye"]
+note = "Banned again after the unban"
+
+[[steps]]
+bot = "m"
+disconnect = true
+
+[[steps]]
+bot = "s"
+disconnect = true

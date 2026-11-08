@@ -30,6 +30,16 @@ cargo run -p havana-import -- --mysql mysql://user:pass@host:3306/havana --out h
 cargo run -p havana-server -- --db havana.redb --bind 127.0.0.1:12321
 ```
 
+Real users log in through the ticket API, as with Havana-Web: start the server with
+`--http 127.0.0.1:8095` and the launcher's `GET /api/ticket?username=..&password=..` returns the
+same JSON as Havana-Web's `TicketController` (host, ports and client URLs from the `loader.*` and
+`site.path` settings, and an SSO ticket); `/api/login` returns the bare ticket. Passwords are the
+Argon2 hashes the Java web wrote (`users.password`). Each client IP may make
+`--http-rate-limit` requests per minute (default 10; more get `429`), and password checks run one
+at a time (each needs 64 MiB). Behind a reverse proxy every request has the proxy's IP, so the
+limit is shared. A bad login is a `404` with an empty body (Java sends its 404 page).
+`--dev-ticket` stays for the trace harness.
+
 To check it against the corpus (needs the oracle's MariaDB container for the fixture):
 
 ```sh
@@ -47,8 +57,9 @@ moving, rotating and picking up floor and wall items, the default on/off interac
 solid furni in the pathfinder, wallpaper and floor), and the interactors for teleporters
 (within a flat and between flats), rollers, post-its, gates and one-way doors, and presents
 (gift purchases and opening). Social actions (whispers, `LOOKTO`, dancing, carrying drinks,
-`GOAWAY`), the word filter, the ignore list in chat, the rank-1 chat commands (`game/commands`;
-staff commands are `TODO(commands)`) and trading are ported too. Other interactors (dice,
+`GOAWAY`), the word filter, the ignore list in chat, the chat commands (`game/commands`; staff
+ones in `staff.rs`, `:copyroom`/`:bot`/`:shutdown` are `TODO(commands)`) and trading are ported
+too. Other interactors (dice,
 vending machines, games...) are `TODO(...)` markers. Every trace in `harness/ported.txt` passes
 against the Rust server.
 
@@ -61,6 +72,14 @@ Pets (`items_pets`) as in Java: bought with their nest (name, race, colour), in 
 the nest is placed, acting on their own every 10-25 s (walking, sitting, lying down, now and then
 a line), eating, drinking and playing at food, water bowls and toys, and obeying their owner
 (`Lacoste sit`, `come`, `jump`, `play dead`...) (`game/pet.rs`, `game/room/pets.rs`).
+
+Moderation as in Java (`game/moderation`): hotel bans (`users_bans`: a user id or machine id
+ban kicks the user at login; IP bans are stored but, as in Java, not enforced), the word filter's
+automatic 20-year ban for a bannable sentence (chat, shout, whisper, console), mutes
+(`MUTE_EXPIRES_AT`) and room mutes, the word filter on console messages and room names and
+descriptions, `TRY_LOGIN` with a password, room bans (`BANUSER`), the moderation tool
+(`MODERATORACTION`: alert, kick, ban, room alert, room kick, written to `housekeeping_audit_log`)
+and calls for help (`SUBMIT_CFH`, `PICK_CALLFORHELP`, `MESSAGETOCALLER`...).
 
 Server housekeeping as in Java: idle connections get `PING` after 60 s and are logged out 60 s
 later without a `PONG`; startup resets SSO tickets, `players.online`, room visitor counts, trade
@@ -84,7 +103,9 @@ oracle/oracle.sh start
 bots' SSO tickets (Havana clears all tickets on startup and on each login). It takes ~2-3 s and runs
 before every recording, so every scenario starts from the same state.
 
-The bots are the users in `oracle/seed.sql` (`tracebot1`-`tracebot6`, tickets `trace-sso-1`-`trace-sso-6`).
+The bots are the users in `oracle/seed.sql` (`tracebot1`-`tracebot6`, tickets `trace-sso-1`-`trace-sso-6`;
+the moderation users `tracestaff`, `tracemod`, `tracebanned`, `tracemachine` with tickets
+`trace-sso-21`-`trace-sso-24`, and `tracepass`, who logs in with a password).
 
 ### 2. Record
 
@@ -167,6 +188,12 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `text-latin1` | non-ASCII text (ñ, accents, ¡¿) in a room name, a post-it, chat and a console message, as ISO-8859-1 |
 | `messenger-search` | `FINDUSER` with SQL wildcards, including a pattern with 40 `%` |
 | `client-flow` | what the real Shockwave client sends and the `login` macro does not: `VERSIONCHECK`, `GET_SESSION_PARAMETERS` before `SSO`, `RECOMMENDED_ROOMS`, `GETINTEREST` before entering, `GET_FLOORMAP` in a private and a public room |
+| `moderation-login` | a user id ban and a machine id ban at login (kicked), expired and lifted bans that do not count, `TRY_LOGIN` with a wrong and a right password |
+| `moderation-autoban` | the word filter's automatic ban (chat, shout, console), the word filter on console messages, a muted console sender, the stored ban seen by `:ban` |
+| `staff-commands` | the staff chat commands: `:help` for an administrator, `:ha`, `:ra`, `:roommute`, `:mute`/`:unmute`, credits, badges, `:tradeban`, `:teleport`, `:coords`, `:itemdebug`, `:talk`, `:packet`, `:setconfig`, `:reload`, `:resetpw`, `:dc`, `:ban`/`:unban`, and what a moderator may not do |
+| `moderation-tool` | `MODERATORACTION`: alert, kick, room alert, room kick and ban, what they refuse, and a normal user who sends it |
+| `call-for-help` | calls for help: submit (once), `REQUEST_CFH`, category, pick up, answer, withdraw, follow to the room |
+| `flat-moderation` | the word filter on room names and descriptions, `BANUSER` and what it refuses, `:unacceptable` |
 | `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
 
 ## Known gaps
@@ -177,8 +204,8 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   the server does not answer yet: moodlight presets (`MSG_ROOMDIMMER_GET_PRESETS`) and the jukebox
   (`GET_PLAY_LIST`, `GET_JUKEBOX_DISCS`); ids 288, 301, 302, 315 and 321 have no handler in Java
   either.
-- There is no website login yet: tickets come from `--dev-ticket` (or are written to the database
-  before the server opens it), so a real deployment still needs a ticket API.
+- The website itself is not ported; real users get their tickets from the ticket API
+  (`--http`, see above).
 
 - Only `login-encrypted` uses the RC4 layer (`encrypt = true` on a bot); every other scenario runs
   unencrypted. The Flash port (12323) is not covered.
