@@ -3,6 +3,7 @@
 pub mod badges;
 pub mod catalogue;
 pub mod club;
+pub mod effects;
 pub mod handshake;
 pub mod inventory;
 pub mod jukebox;
@@ -15,6 +16,7 @@ pub mod rooms_dimmer;
 pub mod rooms_idol;
 pub mod rooms_items;
 pub mod rooms_moderation;
+pub mod rooms_pool;
 pub mod rooms_settings;
 pub mod rooms_user;
 pub mod songs;
@@ -174,6 +176,16 @@ pub fn handler(header: u16) -> Option<Handler> {
         323 => moderation::follow_cry_for_help,
         320 => rooms_moderation::ban_user,
         4 | 756 => handshake::try_login,
+        // registerRoomPoolPackets
+        116 => rooms_pool::swimsuit,
+        108 => rooms_pool::close_uimakoppi,
+        104 => rooms_pool::sign,
+        105 => rooms_pool::btcks,
+        106 => rooms_pool::dive,
+        107 => rooms_pool::splash_position,
+        // registerEffects
+        372 => effects::use_avatar_effect,
+        373 => effects::activate_avatar_effect,
         _ => return None,
     })
 }

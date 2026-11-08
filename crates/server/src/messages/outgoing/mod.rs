@@ -3,6 +3,7 @@
 pub mod alerts;
 pub mod catalogue;
 pub mod club;
+pub mod effects;
 pub mod handshake;
 pub mod inventory;
 pub mod jukebox;
@@ -13,6 +14,7 @@ pub mod rooms;
 pub mod rooms_dimmer;
 pub mod rooms_items;
 pub mod rooms_moderation;
+pub mod rooms_pool;
 pub mod rooms_settings;
 pub mod rooms_user;
 pub mod songs;

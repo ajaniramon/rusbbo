@@ -1,0 +1,104 @@
+name = "pool-booth"
+description = "Habbo Lido (pool_a) changing booths: SWIMSUIT outside a pool room, walking into a booth (OPEN_UIMAKOPPI, the curtain closes), no walking out of it, the pool figure (USER_OBJECTS), CLOSE_UIMAKOPPI (the curtain opens, out to 19,11), the other booth, a visitor's G_STAT with a curtain closed (SHOWPROGRAM), and leaving the room from inside a booth"
+
+# Habbo Lido is room 36 (model pool_a, door 2,25). Its booths are at 17,11 (curtains1) and 17,9
+# (curtains2), entered from 18,11 and 18,9 (PoolHandler.setupRedirections). The room has an NPC
+# (Chloe) who joins with the first G_STAT and wanders from 3 s later, so a (tracebot1) never sends
+# G_STAT, and b (tracebot2) only does in the last seconds of the scenario.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/238,238,238" }]
+note = "Not in a room: ignored"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 36]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [12, 19]
+settle_ms = 1000
+note = "Half way (a step ends after 10 s at most)"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [17, 11]
+settle_ms = 1500
+note = "Into the booth through 18,11: OPEN_UIMAKOPPI and SHOWPROGRAM curtains1 close"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [19, 11]
+settle_ms = 1000
+note = "Walking is not allowed in the booth"
+
+[[steps]]
+bot = "a"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/238,238,238" }]
+note = "The pool figure: USER_OBJECTS to the room"
+
+[[steps]]
+bot = "a"
+send = "CLOSE_UIMAKOPPI"
+settle_ms = 1500
+note = "curtains1 open, then out to 19,11"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [17, 9]
+settle_ms = 1500
+note = "Into the other booth: curtains2 close"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 36]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 800
+note = "SHOWPROGRAM for both booths (curtains1 open, curtains2 close); Chloe joins"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+note = "Leaving from inside the booth opens its curtain"
+
+[[steps]]
+bot = "b"
+send = "QUIT"

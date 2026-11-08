@@ -62,7 +62,7 @@ impl Room {
             e.statuses.set(StatusType::Lay, format_decimal(top_height));
         }
         self.entities[idx].needs_update = true;
-        // TODO(effects): a user with an effect gets it re-sent after the next entity tick.
+        self.queue_effect(idx);
     }
 
     /// Java: `RoomEntity.warp(position, false, false)`: moves the entity on the map without

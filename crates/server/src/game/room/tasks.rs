@@ -69,6 +69,10 @@ impl Room {
         if let Some(msg) = self.entity_pass(world) {
             self.send(msg);
         }
+        // Java: handleMessageQueue, the messages queued for after the loop.
+        for msg in std::mem::take(&mut self.queue_after_loop) {
+            self.send(msg);
+        }
     }
 
     /// The entity pass of [`Room::entity_tick`]: moves everyone a step and returns the
@@ -102,7 +106,6 @@ impl Room {
                 }
             }
         }
-        // TODO(effects): EntityTask.queueAfterLoop (avatar effects re-sent after sitting).
         if updated.is_empty() {
             return None;
         }
@@ -121,12 +124,23 @@ impl Room {
         if !self.entities[idx].is_walking {
             return None;
         }
+        // Java's local `position` is the entity's position object, moved onto the next tile
+        // here. A trigger that warps the entity (a pool ladder) replaces that object, and the
+        // rest of the step still reads the old one: it gives the rotation and the old height.
+        let mut stepped = self.entities[idx].position;
         if let Some(next) = self.entities[idx].next_position {
             let e = &mut self.entities[idx];
+            let old = e.position;
             e.position.x = next.x;
             e.position.y = next.y;
             self.update_new_height(idx);
-            self.on_entity_step(idx);
+            stepped = self.entities[idx].position;
+            let instance_id = self.entities[idx].instance_id;
+            self.on_entity_step(idx, old);
+            // A trigger that stops the walk could, in principle, have taken the entity out.
+            if self.entity_by_instance(instance_id) != Some(idx) {
+                return None;
+            }
         }
 
         let Some(next) = self.entities[idx].path.pop_front() else {
@@ -136,7 +150,11 @@ impl Room {
                 left.needs_update = true;
                 return Some(left);
             }
-            self.entities[idx].needs_update = true;
+            // Java: an entity that took a walkway is already in the other room, so this room's
+            // statuses do not reach it. TODO(walkways): Java sends the others here its status as
+            // it is in the new room.
+            let e = &mut self.entities[idx];
+            e.needs_update = !e.leaving_by_walkway;
             return None;
         };
 
@@ -161,10 +179,11 @@ impl Room {
         self.mapping.add_entity(next, instance_id);
         let next_tile = self.mapping.tile(next).expect("checked above");
         let new_height = self.mapping.walking_height(next_tile);
+        let position = stepped;
         let old_height = position.z;
 
         let model = self.model.name.as_str();
-        if model.starts_with("pool_") || model == "md_a" {
+        if super::pool::is_pool_model(model) {
             let min_difference = if model == "md_a" { 2.0 } else { 3.0 };
             let e = &mut self.entities[idx];
             if new_height > old_height && (new_height - old_height).abs() >= min_difference {
@@ -187,8 +206,13 @@ impl Room {
 
         let e = &mut self.entities[idx];
         if let Some((_, interaction)) = e.last_item_interaction.take() {
+            // Java passes the item the entity stands on, while walking.
             let (session, is_player) = (e.session.clone(), e.is_player());
-            self.on_entity_leave(interaction, &session, is_player);
+            let current = self
+                .mapping
+                .tile(self.entities[idx].position)
+                .and_then(|t| t.highest_item);
+            self.on_entity_leave(interaction, current, &session, is_player, true);
         }
         let e = &mut self.entities[idx];
         e.statuses.remove(StatusType::Lay);
@@ -216,6 +240,7 @@ impl Room {
     /// Java: `StatusTask.run`.
     pub fn status_tick(&mut self) {
         let t = now();
+        let world = self.world();
         for idx in 0..self.entities.len() {
             // Java: processHeadRotation.
             let e = &mut self.entities[idx];
@@ -224,7 +249,7 @@ impl Room {
                 e.position.head_rotation = e.position.body_rotation;
                 e.needs_update = true;
             }
-            self.process_pool_queue(idx);
+            self.process_pool_queue(world.as_deref(), idx);
             // Java: processChatBubble.
             let e = &mut self.entities[idx];
             if e.chat_bubble_timer != -1 && t > e.chat_bubble_timer {
@@ -241,24 +266,6 @@ impl Room {
             if refresh_user {
                 self.refresh_user(idx);
             }
-        }
-    }
-
-    /// Java: `StatusTask.processPoolQueue`: the Lido diving queue walks people forward.
-    fn process_pool_queue(&mut self, idx: usize) {
-        let e = &self.entities[idx];
-        if e.details.tickets == 0 || e.details.pool_figure.is_empty() {
-            return;
-        }
-        if self.model.name != "pool_b" || e.is_walking {
-            return;
-        }
-        let Some(item) = self.current_item(idx) else {
-            return;
-        };
-        if item.sprite.contains("queue_tile2") {
-            let front: Position = item.position.square_in_front();
-            self.walk_to(idx, front.x, front.y);
         }
     }
 

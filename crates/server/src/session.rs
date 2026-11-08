@@ -1,7 +1,7 @@
 //! One client connection: its outgoing queue and its player state.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
 use havana_protocol::Message;
 use havana_protocol::crypto::{Crypto, Opener, Sealer};
@@ -37,6 +37,9 @@ pub struct Session {
     encrypted: AtomicBool,
     /// Java: `Player.pingOK`: true until a `PING` goes unanswered (see `net::IDLE_TIMEOUT`).
     ping_ok: AtomicBool,
+    /// Java: `RoomEntity.effectId` of the player's room user, which Java keeps from room to
+    /// room (its `reset` leaves it). A leaf value, so a room can change it under its own lock.
+    effect_id: AtomicI32,
 }
 
 impl Session {
@@ -50,7 +53,17 @@ impl Session {
             opener: Mutex::new(None),
             encrypted: AtomicBool::new(false),
             ping_ok: AtomicBool::new(true),
+            effect_id: AtomicI32::new(0),
         }
+    }
+
+    /// The avatar effect the player wears (0 for none), see the field.
+    pub fn effect_id(&self) -> i32 {
+        self.effect_id.load(Ordering::Relaxed)
+    }
+
+    pub fn set_effect_id(&self, effect_id: i32) {
+        self.effect_id.store(effect_id, Ordering::Relaxed);
     }
 
     /// A session with no connection behind it, for room entities that are not players (bots,

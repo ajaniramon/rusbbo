@@ -35,13 +35,26 @@ fn tick(world: &World) {
     let daily_credits = world.settings.read().int("daily.credits.amount") as i32;
     // TODO(afk, pixels, catalogue index refresh, ...): the other per-tick jobs in GameScheduler.
     for session in world.players() {
+        daily_handout(world, &session, daily_credits);
+        crate::game::effects::expire(world, &session);
+    }
+
+    // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
+    if tick_rate % 60 == 0 {
+        world.cfh.purge_expired(world);
+    }
+}
+
+/// Java: `GameScheduler`'s daily credits for one player.
+fn daily_handout(world: &World, session: &crate::session::Session, daily_credits: i32) {
+    {
         let mut p = session.player.lock();
         if !p.logged_in || !p.credits_eligible || now() <= p.next_handout || daily_credits <= 0 {
-            continue;
+            return;
         }
         p.credits_eligible = false;
         let Some(user) = p.details.as_mut() else {
-            continue;
+            return;
         };
         // Java queues the handout and drains the queue later in the same tick: one write per user.
         match world.store.update_user(user.id, |u| {
@@ -56,11 +69,6 @@ fn tick(world: &World) {
             Ok(None) => {}
             Err(e) => error!(user = user.id, "daily credits: {e}"),
         }
-    }
-
-    // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
-    if tick_rate % 60 == 0 {
-        world.cfh.purge_expired(world);
     }
 }
 

@@ -55,8 +55,8 @@ pub fn film(film: i32) -> Message {
     Message::new(4, ServerBody::new().int(film).build())
 }
 
-/// Java: `AVATAR_EFFECTS` for a Shockwave client. `duration` is the effect's length from
-/// `settings_effects` (0 when missing); the third number is how many effects share the id.
+/// Java: `AVATAR_EFFECTS` for a Shockwave client. `duration` is the effect's length
+/// (`game::effects::duration`); the third number is how many effects share the id.
 pub fn avatar_effects(effects: &[Effect], duration: impl Fn(i32) -> i32, now: i64) -> Message {
     let mut body = ServerBody::new().int(effects.len() as i32);
     for effect in effects {

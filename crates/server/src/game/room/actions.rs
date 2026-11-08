@@ -71,7 +71,9 @@ impl Room {
         if self.entities[idx].statuses.contains(StatusType::CarryItem) {
             return;
         }
-        // TODO(effects): a user with an effect stops it first (useEffect(0)).
+        if self.entities[idx].is_using_effect() {
+            self.use_effect(idx, 0);
+        }
         let value = match name {
             Some(name) if !name.is_empty() => name.to_string(),
             _ => carry_id.to_string(),
@@ -154,6 +156,6 @@ impl Room {
         e.statuses.set(StatusType::Sit, format_decimal(height));
         self.dance(idx, 0);
         self.entities[idx].needs_update = true;
-        // TODO(effects): a user with an effect gets it re-sent after the next entity tick.
+        self.queue_effect(idx);
     }
 }

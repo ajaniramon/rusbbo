@@ -13,8 +13,7 @@
 //!
 //! Not ported: `TeleportRoomHireInteractor` (`ROOM_HIRE`), which builds a temporary room that is
 //! not in the database (TODO(room-hire); no definition in the golden snapshot uses it), the pool
-//! interactors (TODO(pool): the lido booths, ladders, lift and queue belong with the pool
-//! handler, `SWIMSUIT`, `DIVE` and the model triggers) and the game ones (TODO(games)).
+//! interactors live with the pool handler (`game::room::pool`), and the game ones are TODO(games).
 
 pub mod bed;
 pub mod dice;
@@ -57,8 +56,9 @@ impl Room {
         }
     }
 
-    /// Java: the current item's `onEntityStep` once the entity at `idx` stepped onto a tile.
-    pub fn on_entity_step(&mut self, idx: usize) {
+    /// Java: the current item's `onEntityStep` once the entity at `idx` stepped onto a tile
+    /// from `old` (Java's `oldPosition`).
+    pub fn on_entity_step(&mut self, idx: usize, old: Position) {
         let Some(item) = self
             .mapping
             .tile(self.entities[idx].position)
@@ -66,24 +66,34 @@ impl Room {
         else {
             return;
         };
-        if self.mapping.items[item].interaction == Interaction::StepLight {
-            self.step_light_step(item);
+        match self.mapping.items[item].interaction {
+            Interaction::StepLight => self.step_light_step(item),
+            Interaction::PoolLadder => self.pool_ladder_step(idx, item),
+            Interaction::PoolQueue => self.pool_queue_step(idx, old),
+            // TODO(games): Wobble Squabble and the game triggers.
+            _ => {}
         }
-        // TODO(pool, games): the pool ladder, exit and queue, Wobble Squabble and game triggers.
     }
 
     /// Java: `onEntityLeave(entity, roomEntity, item)` of the `interaction` an entity left
-    /// (walking off it, or leaving the room or the tile otherwise). `session` is the entity's.
+    /// (walking off it, or leaving the room or the tile otherwise). `item` is the item Java
+    /// passes (which depends on the caller), `session` the entity's, and `walking` Java's
+    /// `roomEntity.isWalking()`.
     pub fn on_entity_leave(
         &mut self,
         interaction: Interaction,
+        item: Option<usize>,
         session: &Arc<Session>,
         is_player: bool,
+        walking: bool,
     ) {
         match interaction {
             Interaction::IdolVoteChair => self.idol_chair_leave(session, is_player),
             Interaction::IdolScoreboard => self.idol_scoreboard_leave(session, is_player),
-            // TODO(pool, games): the pool booth, lift, exit and queue and the game triggers.
+            Interaction::PoolBooth | Interaction::PoolLift => {
+                self.pool_open_on_leave(item, walking)
+            }
+            // TODO(games): the game triggers.
             _ => {}
         }
     }

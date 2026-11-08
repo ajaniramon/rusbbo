@@ -62,9 +62,21 @@ ones in `staff.rs`, `:bot`/`:shutdown` are `TODO(commands)`) and trading are por
 interactors (`game/item/interactors`): beds (lying on the pillow), dice, the wheel of fortune, vending
 machines, the hockey light and scoreboard, the fortune teller, the love randomizer, totems, step
 lights, multi-height furniture and the American Idol hotspot and vote chairs, with the per-room
-furniture limits and credit furni exchange; the pool, game and room-hire interactors, the totem's
-avatar effect and the idol's songs are `TODO(...)` markers. Every trace in `harness/ported.txt`
-passes against the Rust server.
+furniture limits and credit furni exchange; the game and room-hire interactors and the idol's songs
+are `TODO(...)` markers. Every trace in `harness/ported.txt` passes against the Rust server.
+
+The Habbo Lido as in Java (`game/room/pool.rs`, `messages/incoming/rooms_pool.rs`): the changing
+booths (curtains, `OPEN_UIMAKOPPI`, `SWIMSUIT`, `CLOSE_UIMAKOPPI`), the ladders in and out of the
+water (swimming, `SHOWPROGRAM` splashes), Lido B's diving queue, lift and dive (`DIVE`,
+`SPLASH_POSITION`, the votes of `SIGN` and the score), Lido tickets (`BTCKS`), the
+`habbo_lido_trigger` and `diving_deck_trigger` (swimming in from the other pool, the diving
+camera), and the items' programs on room entry. Avatar effects as in Java (`game/effects.rs`):
+`ACTIVATE_AVATAR_EFFECT`, `USE_AVATAR_EFFECT` (`USER_AVATAR_EFFECT` to the room, kept from room to
+room, shown on `G_STAT`), expiry on the game tick, drinks and effects stopping each other, the
+effect shown again after sitting or lying down, Abigail.Ryan's ghost, and effects bought from the
+catalogue or given by a totem. Java's `EffectDao.newEffect` stores those last two but fails to read
+the new row's id with the MariaDB driver, so the player only gets them at the next login; the port
+does the same (`traces/catalogue-effects.json`).
 
 Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
 walkspace, talking now and then, and handing out drinks when a user nearby asks for one
@@ -220,6 +232,13 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flat-moderation` | the word filter on room names and descriptions, `BANUSER` and what it refuses, `:unacceptable` |
 | `idle-timeout` | `PING` after 60 s idle, `HOTEL_LOGOUT` and a closed connection 60 s later without `PONG`; a `PONG` keeps the connection (takes ~2 minutes) |
 | `flat-pet-gift` | a pet nest bought as a gift (unchecked), opened into the nest with its pet, and a gift with a bad pet that opens into nothing |
+| `pool-booth` | the Habbo Lido's changing booths: walking in (`OPEN_UIMAKOPPI`, the curtain closes), `SWIMSUIT`, `CLOSE_UIMAKOPPI`, a visitor's `G_STAT` with the curtains' programs, leaving from inside a booth; the room's re-initialisation without `G_STAT` showing the programs again |
+| `pool-ladders` | Lido B's ladders down into the water and up again (swimming, splashes), and swimming through the walkway into the Habbo Lido (arriving at z 1 swims) |
+| `pool-tickets` | `BTCKS`: tickets as a gift to an online user, to an unknown user, for oneself; without a pool figure the ladder is out of reach and the diving queue sends you back |
+| `pool-diving` | the diving queue to the lift (a ticket taken, `JUMPINGPLACE_OK`), signs and votes (`SIGN`), `DIVE`, `SPLASH_POSITION` (the splash, the lift opening, the score a second later) and out of the water |
+| `pool-camera` | Lido B's diving camera: the lift's program on `G_STAT`, the first shot 3 s after the first `G_STAT`, the camera mode for a second user, the camera following the other user when its user leaves |
+| `user-effects` | avatar effects: activating (copies, not owned), wearing in and out of a room, waving refused, a visitor's `G_STAT`, drinks and effects stopping each other, `:sit` re-sending it, switching it off, the effect kept into the next room |
+| `catalogue-effects` | buying an effect: as a gift (refused), for pixels (stored, nothing sent: Java's `newEffect` bug), too expensive |
 
 ## Known gaps
 

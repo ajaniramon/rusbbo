@@ -1,0 +1,68 @@
+name = "pool-tickets"
+description = "Lido tickets (BTCKS): 2 tickets for 1 credit as a gift to an online user (ALERT and TICKET_BALANCE for them), to an unknown user (NO_USER_FOUND), 20 for 6 credits for oneself; in Lido B without a pool figure: SWIMSUIT ignored there, the ladder out of reach, and the diving queue sending you back with an ALERT"
+
+# a (tracebot1) buys; b (tracebot2) gets tickets, then goes to Lido B (37, pool_b, door 9,21),
+# where the diving queue starts at 21,9. Nobody sends G_STAT (it starts the random diving camera).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "BTCKS"
+args = [1, "tracebot2"]
+note = "1 credit, 2 tickets for b"
+
+[[steps]]
+bot = "a"
+send = "BTCKS"
+args = [1, "nobody_has_this_name"]
+
+[[steps]]
+bot = "a"
+send = "BTCKS"
+args = [2, "tracebot1"]
+note = "6 credits, 20 tickets for a"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 37]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/238,238,238" }]
+note = "Only in the Habbo Lido (and Rooftop Rumble): ignored"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [17, 21]
+settle_ms = 1000
+note = "No pool figure: the ladder is out of reach"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [21, 9]
+settle_ms = 1500
+note = "No pool figure: the queue sends b back, facing 2, with an ALERT"
+
+[[steps]]
+bot = "b"
+send = "QUIT"

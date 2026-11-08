@@ -169,11 +169,11 @@ impl Room {
         let Some(effect) = self.totem_effect(idx) else {
             return;
         };
-        // TODO(effects): give the player `effect.effect_id()` unless they have it or their
-        // `totem_effect_expiry` is still running (EffectDao.newEffect, AVATAR_EFFECT_ADDED,
-        // AVATAR_EFFECTS, ACTIVATE/USE_AVATAR_EFFECT, then a day until the next one). Avatar
-        // effects are not ported yet.
-        let _ = effect.effect_id();
+        // The rest of `checkEffect` needs the player, locked once the room is released (nothing
+        // else is sent after it in the same `USEFURNITURE`).
+        let session = self.entities[entity].session.clone();
+        let effect_id = effect.effect_id();
+        self.defer(move |world| crate::game::effects::totem_effect(world, &session, effect_id));
     }
 
     /// Java: `TotemPlanetTrigger.getTotemEffect`: the planet on a head on legs.
