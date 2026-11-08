@@ -2,7 +2,7 @@
   "format": 1,
   "scenario": "wobble-squabble-queue",
   "description": "Wobble Squabble's queue: q waits on a queue tile behind the player on the start tile; when the game ends the queue moves on and q's step onto the free start tile starts the next game against the winner; q then leaves mid-game (QUIT): the game goes on, and when p falls q, the winner, still loses a ticket (TICKET_BALANCE in the hotel view)",
-  "runs": 3,
+  "runs": 8,
   "bots": [
     "b",
     "q",
@@ -43,7 +43,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "907869127080842981770819\u0002I",
+              "body": "276958575610559227160709\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#3FDD498D5AED4D9084F1BC2ABF755C85\u0002",
+              "body": "#5C6CD3BAA0DF4F49A6FA30BECEEB48BA\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -459,7 +459,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "253944671047064985406571\u0002I",
+              "body": "458378825663649102144261\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -491,7 +491,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#C260664FED804E38ADA0E3778DDBD821\u0002",
+              "body": "#7D76F33FA7E34D0788CA147741E48C1D\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -816,7 +816,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "152384678803089216757709\u0002I",
+              "body": "975393705616262543511427\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -848,7 +848,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#84518C334E19401BADCC3D7F5526A98A\u0002",
+              "body": "#75687D56F796485BB83F4CB7CFDFDD0B\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -889,7 +889,7 @@
       "settle_ms": 600,
       "received": {
         "b": {
-          "ordered": true,
+          "ordered": false,
           "closed": false,
           "messages": [
             {
@@ -973,7 +973,7 @@
           ]
         },
         "q": {
-          "ordered": true,
+          "ordered": false,
           "closed": false,
           "messages": [
             {
@@ -1351,7 +1351,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUJIH",
+              "body": "OHHHPAVIIH",
               "check": "header"
             }
           ]
@@ -1363,7 +1363,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUJIH",
+              "body": "OHHHPAVIIH",
               "check": "header"
             }
           ]
@@ -1375,7 +1375,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUJIH",
+              "body": "OHHHPAVIIH",
               "check": "header"
             }
           ]
@@ -1400,7 +1400,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUSIH",
+              "body": "OHHHPAWSIH",
               "check": "header"
             }
           ]
@@ -1412,7 +1412,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUSIH",
+              "body": "OHHHPAWSIH",
               "check": "header"
             }
           ]
@@ -1424,7 +1424,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAUSIH",
+              "body": "OHHHPAWSIH",
               "check": "header"
             }
           ]
@@ -1450,7 +1450,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAW]IH",
+              "body": "OHHHPAW^IH",
               "check": "header"
             },
             {
@@ -1510,7 +1510,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAW]IH",
+              "body": "OHHHPAW^IH",
               "check": "header"
             },
             {
@@ -1570,7 +1570,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "OHHHPAW]IH",
+              "body": "OHHHPAW^IH",
               "check": "header"
             },
             {
@@ -1853,7 +1853,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "NUJIHPAHHH",
+              "body": "NWHIHPAHHH",
               "check": "header"
             }
           ]
@@ -1878,7 +1878,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "NWTIHPAHHH",
+              "body": "NUSIHPAHHH",
               "check": "header"
             }
           ]
@@ -1905,7 +1905,7 @@
             {
               "header": 118,
               "name": "PT_STATUS",
-              "body": "NV^IHPAHHH",
+              "body": "NU]IHPAHHH",
               "check": "header"
             },
             {
@@ -1959,15 +1959,23 @@
             {
               "header": 34,
               "name": "USER_STATUSES",
-              "body": "JJPESC4.0\u0002HH/swim/\u0002KHQB7.0\u0002HH/mv 0,8,7.0/\u0002",
-              "check": "exact",
+              "body": "IKIRB7.0\u0002RARA/mv 0,10,7.0/\u0002",
+              "check": "header",
               "optional": true
             },
             {
               "header": 34,
               "name": "USER_STATUSES",
-              "body": "IKHPB7.0\u0002HH/\u0002",
-              "check": "exact",
+              "body": "IKHRB7.0\u0002RARA/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKHRB7.0\u0002JJ/\u0002",
+              "check": "mask",
+              "mask": "??????...??..",
               "optional": true
             },
             {
@@ -1998,6 +2006,20 @@
       "action": "disconnect",
       "settle_ms": 300,
       "received": {
+        "p": {
+          "ordered": false,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IKIRB7.0\u0002PAPA/mv 1,11,7.0/\u0002",
+              "check": "mask",
+              "mask": ".........????....?.........",
+              "optional": true
+            }
+          ]
+        },
         "q": {
           "ordered": true,
           "closed": true,
