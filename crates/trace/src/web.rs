@@ -35,6 +35,8 @@ use serde::{Deserialize, Serialize};
 const DEFAULT_MASKS: &[&str] = &[
     r"HTTPSESSID=[0-9a-f]{64}",
     r"Expires=[A-Za-z]{3}, \d\d [A-Za-z]{3} \d{4} \d\d:\d\d:\d\d GMT",
+    // TagDao.getPopularTags shuffles the tag cloud: each tag is masked (their number still counts).
+    r#"<li><a href="[^"]*/tag/[^"]*" class="tag"[^>]*>[^<]*</a>"#,
 ];
 
 /// Response headers that are not compared.

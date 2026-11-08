@@ -28,12 +28,6 @@ pub fn article(world: &Arc<World>, a: &rusbbo_storage::Article) -> Value {
         .filter_map(|id| all.iter().find(|c| c.id == *id))
         .map(news_category)
         .collect();
-    let category_lower = a
-        .categories
-        .first()
-        .and_then(|id| all.iter().find(|c| c.id == *id))
-        .map(|c| c.label.to_lowercase())
-        .unwrap_or_default();
     let author = if !a.author_override.is_empty() {
         a.author_override.clone()
     } else {
@@ -70,7 +64,6 @@ pub fn article(world: &Arc<World>, a: &rusbbo_storage::Article) -> Value {
         .with("views", a.views)
         .with("url", article_url(a.id, &a.title))
         .with("categories", Value::list(categories))
-        .with("categoryLower", category_lower)
         .with_fn("hasCategory", move |args| {
             let id = args.first().and_then(Value::as_i64).unwrap_or(-1);
             Ok(Value::Bool(ids.iter().any(|c| *c as i64 == id)))
@@ -408,4 +401,70 @@ pub fn room(world: &Arc<World>, r: &rusbbo_storage::Room) -> Value {
         .with("publicRoom", r.owner_id == 0);
     let data = m.clone();
     m.with("data", data).into()
+}
+
+/// Java: `DiscussionTopic`.
+#[allow(clippy::too_many_arguments)]
+pub fn discussion_topic(
+    world: &Arc<World>,
+    t: &rusbbo_storage::ForumThread,
+    reply_count: i64,
+    last_message_at: i64,
+    creator_id: u32,
+    creator_name: &str,
+    last_reply_name: &str,
+    has_read: bool,
+) -> Value {
+    let per_page = data::cfg_int(world, "discussions.replies.per.page").max(1);
+    let pages = if reply_count > 0 {
+        (reply_count + per_page - 1) / per_page
+    } else {
+        1
+    };
+    let mut recent = Vec::new();
+    if reply_count > per_page {
+        for i in 0..3 {
+            let n = pages - i;
+            if n > 1 {
+                recent.push(n);
+            }
+        }
+    }
+    recent.sort_unstable();
+    let (created, last) = (t.created_at, last_message_at);
+    let date = |ts: i64, f: &str| {
+        jdate::format(ts, f)
+            .replace("am", "AM")
+            .replace("pm", "PM")
+            .replace('.', "")
+    };
+    Map::new()
+        .with("id", t.id)
+        .with("groupId", t.group_id)
+        .with("creatorId", creator_id)
+        .with("creatorName", creator_name)
+        .with("lastReplyName", last_reply_name)
+        .with("topicTitle", text::filter_sentence(world, &t.topic_title))
+        .with("replyCount", reply_count)
+        .with("replyPages", pages)
+        .with("recentPages", Value::list(recent))
+        .with("open", t.is_open)
+        .with("stickied", t.is_stickied)
+        .with("views", t.views)
+        .with("createdAt", created)
+        .with("lastMessageAt", last)
+        .with("new", !has_read)
+        .with_fn("getCreatedDate", move |args| {
+            Ok(Value::from(date(
+                created,
+                &args.first().map(Value::render).unwrap_or_default(),
+            )))
+        })
+        .with_fn("getLastMessage", move |args| {
+            Ok(Value::from(date(
+                last,
+                &args.first().map(Value::render).unwrap_or_default(),
+            )))
+        })
+        .into()
 }

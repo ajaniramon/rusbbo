@@ -7,6 +7,7 @@ mod client;
 mod habblets;
 mod me;
 mod minimail;
+mod pages;
 mod recovery;
 mod register;
 mod site;
@@ -164,6 +165,15 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "FeedController::nextgift" => habblets::next_gift(conn)?,
         "FeedController::giftqueueHide" => habblets::gift_queue_hide(conn)?,
         "NameCheckController::namecheck" => habblets::name_check(conn)?,
+        "CommunityController::community" => pages::community(conn)?,
+        "NewsController::articles" => pages::articles(conn)?,
+        "NewsController::fansites" => pages::fansites(conn)?,
+        "NewsController::events" => pages::events(conn)?,
+        "GamesController::games" => pages::games(conn)?,
+        "GamesController::games_all_time" => pages::games_all_time(conn)?,
+        "GamesController::personalhighscores" => pages::personal_highscores(conn)?,
+        "FaqController::faq" => pages::faq(conn)?,
+        "SiteController::pixels" => pages::pixels(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

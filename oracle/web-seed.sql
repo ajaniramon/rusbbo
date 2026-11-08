@@ -1,0 +1,62 @@
+-- Data for the web traces only, loaded on top of golden.sql (oracle/web.sh reset; the Rust
+-- fixture for web checks is built from golden.sql + this file). Dates are fixed times of the
+-- current day, so the Java recording and a Rust check on the same day see the same values.
+
+-- tracebot1, tracebot2, tracestaff and tracemod get tracepass's password ("tracepass123").
+UPDATE users u JOIN (SELECT password FROM users WHERE id = 25) p SET u.password = p.password
+WHERE u.id IN (1, 2, 21, 22);
+
+INSERT INTO site_articles (id, title, author_id, author_override, short_story, full_story, topstory,
+                           topstory_override, article_image, is_published, is_future_published, views,
+                           created_at)
+VALUES
+  (1, 'Welcome to the hotel!', 21, '', 'A short story.', 'The [b]full[/b] story.\nSecond line', 'ts1.png', '', '', 1, 0, 3, CURDATE() + INTERVAL 1 HOUR),
+  (2, 'Last week''s news', 21, 'Hotel Staff', 'Short two', 'Story two', 'ts2.png', '', '', 1, 0, 0, CURDATE() - INTERVAL 5 DAY + INTERVAL 10 HOUR),
+  (3, 'An old story: part 3', 22, '', 'Short three', 'Story three', 'ts3.png', 'http://x/override.png', '', 1, 0, 0, CURDATE() - INTERVAL 200 DAY + INTERVAL 9 HOUR),
+  (4, 'Unpublished draft', 21, '', 'draft', 'draft', 'ts4.png', '', '', 0, 0, 0, CURDATE() - INTERVAL 2 DAY + INTERVAL 8 HOUR),
+  (5, 'Event night', 21, '', 'An event', 'Event story', 'ts5.png', '', '', 1, 0, 0, CURDATE() - INTERVAL 20 DAY + INTERVAL 7 HOUR),
+  (6, 'Yesterday''s news', 22, '', 'Short six', 'Story six', 'ts6.png', '', '', 1, 0, 0, CURDATE() - INTERVAL 1 DAY + INTERVAL 12 HOUR);
+INSERT INTO site_articles_categories (article_id, category_id) VALUES (1, 11), (2, 7), (3, 1), (5, 2), (5, 11), (6, 2);
+
+-- Every tag has its own count: MariaDB's GROUP BY returns ties in no fixed order.
+INSERT INTO users_tags (user_id, tag, room_id, group_id) VALUES
+  (25, 'music', 0, 0), (1, 'music', 0, 0), (2, 'music', 0, 0), (3, 'music', 0, 0),
+  (1, 'games', 0, 0), (2, 'games', 0, 0), (3, 'games', 0, 0),
+  (25, 'pixels', 0, 0), (2, 'pixels', 0, 0),
+  (0, 'traceclub', 0, 1);
+
+-- This month's scores survive the game server's monthly reset (checkXpExpiry), which runs before
+-- this seed in Java and after it in Rust.
+INSERT INTO settings (setting, value) VALUES ('xp.monthly.expiry', DATE_FORMAT(NOW(), '%Y-%m'))
+  ON DUPLICATE KEY UPDATE value = DATE_FORMAT(NOW(), '%Y-%m');
+UPDATE users_statistics SET battleball_score_month = 150, battleball_score_all_time = 900,
+  snowstorm_score_month = 40, snowstorm_score_all_time = 70 WHERE user_id = 1;
+UPDATE users_statistics SET battleball_score_month = 320, battleball_score_all_time = 320 WHERE user_id = 2;
+
+INSERT INTO cms_alerts (user_id, alert_type, message, created_at) VALUES
+  (25, 'PRESENT', 'A gift for you.', CURDATE() + INTERVAL 2 HOUR),
+  (25, 'CREDIT_DONATION', 'You got credits.', CURDATE() + INTERVAL 3 HOUR);
+
+INSERT INTO messenger_friends (from_id, to_id) VALUES (25, 1), (1, 25), (25, 2), (2, 25);
+INSERT INTO messenger_requests (from_id, to_id) VALUES (3, 25);
+
+INSERT INTO groups_details (id, name, description, owner_id, room_id, badge, alias, created_at) VALUES
+  (1, 'Trace Club', 'A [b]group[/b] for traces', 1, 0, 'b0503Xs09114s05013s05015', 'traceclub', CURDATE() - INTERVAL 10 DAY),
+  (2, 'Second Group', 'Another group', 25, 0, 'b0503Xs09114s05013s05015', NULL, CURDATE() - INTERVAL 3 DAY);
+INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending) VALUES
+  (25, 1, '1', 0), (2, 1, '2', 0), (3, 2, '1', 1);
+INSERT INTO cms_recommended (recommended_id, type, is_staff_pick) VALUES (1, 'GROUP', 0), (1, 'GROUP', 1), (2, 'GROUP', 0);
+
+INSERT INTO cms_minimail (target_id, sender_id, to_id, is_read, subject, message, date_sent, conversation_id) VALUES
+  (25, 1, 25, 0, 'Hello', 'Hi [b]there[/b]', CURDATE() + INTERVAL 4 HOUR, 0),
+  (1, 1, 25, 0, 'Hello', 'Hi [b]there[/b]', CURDATE() + INTERVAL 4 HOUR, 0),
+  (25, 25, 1, 1, 'Re: Hello', 'Thanks', CURDATE() + INTERVAL 5 HOUR, 1);
+
+INSERT INTO cms_forum_threads (id, topic_title, poster_id, group_id, created_at, modified_at) VALUES
+  (1, 'First topic', 1, 1, CURDATE() - INTERVAL 3 DAY, CURDATE() - INTERVAL 3 DAY);
+INSERT INTO cms_forum_replies (thread_id, message, poster_id, created_at, modified_at) VALUES
+  (1, 'First post', 1, CURDATE() - INTERVAL 3 DAY, CURDATE() - INTERVAL 3 DAY),
+  (1, 'A reply', 25, CURDATE() - INTERVAL 1 DAY, CURDATE() - INTERVAL 1 DAY);
+
+INSERT INTO cms_guestbook_entries (user_id, home_id, group_id, message, created_at) VALUES
+  (1, 25, 0, 'Nice home!', CURDATE() + INTERVAL 6 HOUR);

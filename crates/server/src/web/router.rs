@@ -38,6 +38,11 @@ fn compiled() -> &'static Compiled {
                 let full = Regex::new(&format!("^{body}$")).unwrap();
                 // WebUtilities.getWildcardEntries: a trailing wildcard gets a "/" after it, and
                 // the input one too, then every match of the (unanchored) pattern is collected.
+                // The duckHTTPD jar Havana ships captures greedily ("12-a-b-c" on "*-*" is
+                // ["12-a-b", "c"]), whatever the number of wildcards.
+                let greedy: Vec<String> = p.split('*').map(regex::escape).collect();
+                let body = greedy.join("(.*)");
+                let group = "(.*)";
                 let capture_src = if body.ends_with(group) {
                     format!("{body}/")
                 } else {
@@ -85,6 +90,72 @@ pub fn route(path: &str) -> Option<(&'static str, Vec<String>)> {
 mod tests {
     use super::*;
 
+    /// What duckHTTPD (the jar in Havana-Web) resolves for these paths: (path, pattern, matches).
+    #[test]
+    fn matches_java_route_table() {
+        let cases: &[(&str, &str, &[&str])] = &[
+            (
+                "/articles/5-some-title",
+                "NewsController::articles",
+                &["5-some", "title"],
+            ),
+            ("/articles/5-x", "NewsController::articles", &["5", "x"]),
+            (
+                "/articles/category/events",
+                "NewsController::articles",
+                &["events"],
+            ),
+            (
+                "/community/events/12-a-b-c",
+                "NewsController::events",
+                &["12-a-b", "c"],
+            ),
+            (
+                "/groups/traceclub",
+                "GroupController::viewGroup",
+                &["traceclub"],
+            ),
+            ("/groups/5/id", "GroupController::viewGroup", &["5"]),
+            (
+                "/groups/5/id/discussions/page/2",
+                "GroupDiscussionsController::viewDiscussionsPage",
+                &["5", "2"],
+            ),
+            (
+                "/groups/5/id/discussions/7/id",
+                "DiscussionController::viewDiscussion",
+                &["5", "7"],
+            ),
+            (
+                "/groups/5/id/discussions/7/id/page/3",
+                "DiscussionController::viewDiscussion",
+                &["5", "7", "3"],
+            ),
+            (
+                "/groups/traceclub/discussions/7/id",
+                "DiscussionController::viewDiscussion",
+                &["traceclub", "7"],
+            ),
+            ("/home/trace-pass", "HomesController::home", &["trace-pass"]),
+            ("/home/25/id", "HomesController::home", &["25"]),
+            (
+                "/habbo-imaging/badge/b05.gif",
+                "ImagerController::badge",
+                &["b05.gif"],
+            ),
+            ("/groups/a-b/id", "GroupController::viewGroup", &["a-b"]),
+        ];
+        for (path, handler, matches) in cases {
+            let (h, m) = route(path).unwrap_or_else(|| panic!("{path}: no route"));
+            assert_eq!(
+                (h, m.iter().map(String::as_str).collect::<Vec<_>>()),
+                (*handler, matches.to_vec()),
+                "{path}"
+            );
+        }
+        assert!(route("/habbo-imaging/foo").is_none());
+    }
+
     #[test]
     fn matches_like_route_manager() {
         assert_eq!(route("/me").unwrap().0, "AccountController::me");
@@ -101,6 +172,6 @@ mod tests {
         assert!(route("/no/such/page").is_none());
         let (h, m) = route("/articles/12-some-title").unwrap();
         assert_eq!(h, "NewsController::articles");
-        assert_eq!(m, ["12", "some-title"]);
+        assert_eq!(m, ["12-some", "title"]);
     }
 }

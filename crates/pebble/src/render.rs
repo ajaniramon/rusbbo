@@ -393,6 +393,8 @@ fn binary(op: BinOp, a: &Value, b: &Value) -> R<Value> {
     Ok(match op {
         Eq => Value::Bool(equals(a, b)),
         Ne => Value::Bool(!equals(a, b)),
+        // Comparing with null is false in Pebble.
+        Lt | Gt | Le | Ge if a.is_null() || b.is_null() => Value::Bool(false),
         Lt | Gt | Le | Ge => {
             let (Some(x), Some(y)) = (a.as_f64(), b.as_f64()) else {
                 return Err("Could not perform comparison".into());
@@ -471,19 +473,38 @@ fn property_of(method: &str) -> Option<String> {
     None
 }
 
+/// A bean member the way Pebble finds one (`MemberCacheUtils`, method names compared ignoring
+/// case): the key itself, then `get`/`is`/`has` + name, ignoring case.
+fn member<'m>(m: &'m Map, name: &str) -> Option<&'m Value> {
+    if let Some(v) = m.get(name) {
+        return Some(v);
+    }
+    if let Some(v) = property_of(name).and_then(|p| m.get(&p)) {
+        return Some(v);
+    }
+    let lower = name.to_ascii_lowercase();
+    let stripped = ["get", "is", "has"]
+        .iter()
+        .find_map(|p| lower.strip_prefix(p).filter(|r| !r.is_empty()));
+    m.iter()
+        .find(|(k, _)| {
+            let k = k.to_ascii_lowercase();
+            k == lower || stripped.is_some_and(|s| k == s)
+        })
+        .map(|(_, v)| v)
+}
+
 /// `target.name`: a map key, else Pebble's bean getters on our maps.
 fn attr(target: &Value, name: &str) -> R<Value> {
     match target {
-        Value::Map(m) => match m.get(name) {
+        // `bean.isOnline` finds `isOnline()`, `bean.shortstory` finds `getShortStory()`.
+        Value::Map(m) => match member(m, name) {
             Some(v) => force(v.clone()),
-            // `bean.isOnline`: Pebble also tries a method of that name (`isOnline()`).
-            None => match property_of(name).and_then(|p| m.get(&p)) {
-                Some(v) => force(v.clone()),
-                None => Ok(Value::Null),
-            },
+            None => Ok(Value::Null),
         },
         Value::List(l) => match name {
-            "size" | "length" => Ok(Value::from(l.len())),
+            // A Java List has size() and isEmpty(), no length.
+            "size" => Ok(Value::from(l.len())),
             "empty" => Ok(Value::Bool(l.is_empty())),
             _ => Ok(name
                 .parse::<usize>()
@@ -493,7 +514,7 @@ fn attr(target: &Value, name: &str) -> R<Value> {
         },
         Value::Str(s) | Value::Safe(s) => match name {
             "empty" => Ok(Value::Bool(s.is_empty())),
-            "bytes" | "length" => Ok(Value::Null),
+            "length" => Ok(Value::from(s.encode_utf16().count())),
             _ => Ok(Value::Null),
         },
         _ => Ok(Value::Null),
@@ -505,16 +526,10 @@ fn call(target: &Value, name: &str, args: &[Value]) -> R<Value> {
     let arg_str = |i: usize| args.get(i).map(Value::render).unwrap_or_default();
     match target {
         Value::Map(m) => {
-            match m.get(name) {
+            match member(m, name) {
                 Some(Value::Func(f)) => return f(args),
                 Some(v) if args.is_empty() => return Ok(v.clone()),
                 _ => {}
-            }
-            if args.is_empty()
-                && let Some(prop) = property_of(name)
-                && let Some(v) = m.get(&prop)
-            {
-                return force(v.clone());
             }
             match name {
                 "size" => Ok(Value::from(m.len())),

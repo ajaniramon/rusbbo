@@ -4,7 +4,8 @@
 #   web.sh build   build Havana-Web.jar into oracle/run
 #   web.sh start   start the web server (if not running) on 127.0.0.1:12380
 #   web.sh stop    stop it
-#   web.sh reset   oracle.sh reset (database snapshot + game server), then restart the web server
+#   web.sh reset   oracle.sh reset (database snapshot + game server), oracle/web-seed.sql, then
+#                  restart the web server
 #
 # It uses the oracle's database (havana) and the game oracle's RCON port (12309), and serves the
 # templates and static files of the Java checkout ($HAVANA_DIR/tools/www-tpl, tools/www). Like the
@@ -109,6 +110,8 @@ case "${1:-}" in
   reset)
     stop
     "$ORACLE_DIR/oracle.sh" reset
+    # The web traces' own data (oracle/web-seed.sql), on top of the golden snapshot.
+    docker exec -i "${ORACLE_DB_CONTAINER:-havana-oracle-db}" mariadb -uroot -proot havana < "$ORACLE_DIR/web-seed.sql"
     start
     ;;
   *) sed -n '2,12p' "$0"; exit 1 ;;

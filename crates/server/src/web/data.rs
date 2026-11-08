@@ -1,7 +1,5 @@
 //! Shared data helpers for the controllers (the Java DAOs the website uses).
 
-use std::collections::HashMap;
-
 use rusbbo_pebble::{Map, Value};
 use rusbbo_storage::Tag;
 
@@ -40,23 +38,75 @@ pub fn pair(left: impl Into<Value>, right: impl Into<Value>) -> Value {
         .into()
 }
 
-/// Java: `TagDao.getPopularTags(n)`: `SELECT tag, COUNT(*) ... GROUP BY tag ORDER BY quantity DESC
-/// LIMIT n`. Ties keep MariaDB's group order (the tag's collation order).
-pub fn popular_tags(world: &World, n: usize) -> Vec<(String, i64)> {
-    let tags = world.store.records::<Tag>().unwrap_or_default();
-    let mut counts: HashMap<String, (String, i64)> = HashMap::new();
-    for t in tags {
-        let e = counts
-            .entry(t.tag.to_lowercase())
-            .or_insert_with(|| (t.tag.clone(), 0));
-        e.1 += 1;
+/// Java's `String.hashCode`.
+pub fn java_string_hash(s: &str) -> i32 {
+    s.encode_utf16()
+        .fold(0i32, |h, c| h.wrapping_mul(31).wrapping_add(c as i32))
+}
+
+/// The order a Java `HashMap<String, _>` iterates its keys, given insertion order (default
+/// capacity 16, load factor 0.75, resized by doubling; ties within a bucket keep insertion order).
+pub fn java_hashmap_order<T>(items: Vec<(String, T)>) -> Vec<(String, T)> {
+    let mut capacity = 16usize;
+    while items.len() as f64 > capacity as f64 * 0.75 {
+        capacity *= 2;
     }
-    let mut v: Vec<(String, (String, i64))> = counts.into_iter().collect();
-    v.sort_by(|a, b| b.1.1.cmp(&a.1.1).then_with(|| a.0.cmp(&b.0)));
-    v.into_iter()
-        .take(n)
-        .map(|(_, (tag, c))| (tag, c))
-        .collect()
+    let bucket = |k: &str| {
+        let h = java_string_hash(k) as u32;
+        ((h ^ (h >> 16)) as usize) & (capacity - 1)
+    };
+    let mut indexed: Vec<(usize, usize, (String, T))> = items
+        .into_iter()
+        .enumerate()
+        .map(|(i, kv)| (bucket(&kv.0), i, kv))
+        .collect();
+    indexed.sort_by_key(|(b, i, _)| (*b, *i));
+    indexed.into_iter().map(|(_, _, kv)| kv).collect()
+}
+
+/// Java: `TagDao.getPopularTags(n)`: the `n` most used tags with their font size (10, 12, 14 or
+/// 20 px), shuffled.
+pub fn popular_tags(world: &World, n: usize) -> Vec<(String, i64)> {
+    use rand::seq::SliceRandom;
+    let tags = world.store.records::<Tag>().unwrap_or_default();
+    // SELECT tag, COUNT(*) GROUP BY tag ORDER BY quantity DESC LIMIT n (collation: case-insensitive).
+    let mut groups: Vec<(String, i64)> = Vec::new();
+    for t in tags {
+        match groups
+            .iter_mut()
+            .find(|(k, _)| k.to_lowercase() == t.tag.to_lowercase())
+        {
+            Some(g) => g.1 += 1,
+            None => groups.push((t.tag.clone(), 1)),
+        }
+    }
+    groups.sort_by_key(|g| std::cmp::Reverse(g.1));
+    groups.truncate(n);
+    let total: i64 = groups.iter().map(|g| g.1).sum();
+    let mut list = java_hashmap_order(groups);
+    list.sort_by_key(|g| g.1);
+    let fonts = [10, 12, 14, 20];
+    let mut out = Vec::new();
+    if !list.is_empty() && total > 0 {
+        let mut counter = list.len();
+        let bits = list.len() / 4;
+        for (tag, _) in list {
+            let mut weight = 0;
+            if counter == bits {
+                weight = 3;
+            }
+            if counter == bits * 3 {
+                weight = 2;
+            }
+            if counter == bits * 2 {
+                weight = 1;
+            }
+            out.push((tag, fonts[weight]));
+            counter -= 1;
+        }
+    }
+    out.shuffle(&mut rand::rng());
+    out
 }
 
 /// Java: `TagDao.getUserTags`.
@@ -455,4 +505,33 @@ pub fn online_friends(world: &World, user_id: u32) -> Vec<(rusbbo_storage::User,
         .filter_map(|(id, cat)| world.store.user(id).ok().flatten().map(|u| (u, cat)))
         .filter(|(u, _)| u.is_online)
         .collect()
+}
+
+/// Java: `RoomDao.getRecommendedRooms(limit, offset)` (`WebCache.popularRooms`): open user rooms,
+/// busiest then best rated.
+pub fn popular_rooms(world: &World, limit: usize, offset: usize) -> Vec<rusbbo_storage::Room> {
+    world
+        .store
+        .recommended_rooms(limit, offset)
+        .unwrap_or_default()
+}
+
+/// Java: `PlayerDao.getRecentlyActiveHabbos(30 days, 500)` shuffled, `count` of them
+/// (`WebCache.randomHabbos`).
+pub fn random_habbos(world: &World, count: usize) -> Vec<rusbbo_storage::User> {
+    use rand::seq::SliceRandom;
+    const BLACKLIST: &str = "hd-180-1.hr-100-61.ch-210-66.lg-270-82.sh-290-80";
+    let since = super::beans::now() - 30 * 86_400;
+    let mut users: Vec<rusbbo_storage::User> = world
+        .store
+        .users()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|u| u.figure != BLACKLIST && u.last_online > since)
+        .collect();
+    users.sort_by_key(|u| std::cmp::Reverse(u.last_online));
+    users.truncate(500);
+    users.shuffle(&mut rand::rng());
+    users.truncate(count);
+    users
 }
