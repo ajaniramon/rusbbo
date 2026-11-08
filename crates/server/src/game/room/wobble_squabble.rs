@@ -840,6 +840,31 @@ mod tests {
     }
 
     #[test]
+    fn a_game_times_out_as_a_tie() {
+        let (_dir, world) = world();
+        let mut r = rooftop(&world);
+        let (first, mut rx) = player(&mut r, (21, 15), 1, 3);
+        let (second, _rx2) = player(&mut r, (21, 11), 2, 3);
+        r.invoke_item_for_test(second);
+        r.wobble_tick(&world);
+        frames(&mut rx);
+        r.wobble.as_mut().unwrap().started_at = crate::game::now() - TIMEOUT_SECS - 1;
+        r.wobble_tick(&world);
+        assert_eq!(
+            frames(&mut rx),
+            [
+                encode_server(&out::pt_timeout()),
+                encode_server(&out::pt_win(-1))
+            ]
+        );
+        r.finish_wobble_game(&world, -1);
+        // Both thrown, each to the side of their balance (0: the right).
+        assert_eq!(r.entities[first].position, Position::new(22, 15));
+        assert_eq!(r.entities[second].position, Position::new(22, 11));
+        assert!(r.entities[second].statuses.contains(StatusType::Swim));
+    }
+
+    #[test]
     fn a_player_without_tickets_is_thrown_off() {
         let (_dir, world) = world();
         let mut r = rooftop(&world);
