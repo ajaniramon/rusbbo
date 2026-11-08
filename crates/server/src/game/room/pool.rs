@@ -4,10 +4,11 @@
 //!
 //! The pool rooms are public rooms with the models `pool_a` (Habbo Lido: changing booths,
 //! ladders), `pool_b` (Lido B: ladders, the diving queue, lift and camera) and `md_a` (Rooftop
-//! Rumble, whose booths work like the Lido's; its Wobble Squabble is in `wobble_squabble`). Their special
-//! tiles are public items: `poolBooth`, `poolLift`, `poolEnter`/`poolExit` (the ladders, with
-//! `teleport_to` and `swim_to`) and `queue_tile2`. Java's `PoolExitInteractor` is not used by
-//! any item (`poolExit` gets the ladder interactor too), so it is not ported.
+//! Rumble, whose booths work like the Lido's and whose camera is Lido B's; its Wobble Squabble is
+//! in `wobble_squabble`). Their special tiles are public items: `poolBooth`, `poolLift`,
+//! `poolEnter`/`poolExit` (the ladders, with `teleport_to` and `swim_to`) and `queue_tile2`.
+//! Java's `PoolExitInteractor` is not used by any item (`poolExit` gets the ladder interactor
+//! too), so it is not ported.
 
 use std::time::Duration;
 

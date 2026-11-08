@@ -2,7 +2,7 @@
   "format": 1,
   "scenario": "space-cafe",
   "description": "The Space Cafe's lights (space_cafe_trigger, SpaceCafeTask): the first G_STAT starts the task, and 4.5 s later the three lamps and their lights take random colours (SHOWPROGRAM lmpa/liga, lmpb/ligb, lmpc/ligc), all six at first because they start at no colour",
-  "runs": 3,
+  "runs": 8,
   "bots": [
     "a"
   ],
@@ -41,7 +41,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "425839409545165193430754\u0002I",
+              "body": "762848417776875206343282\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -73,7 +73,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#F8DA17F59AEA4AF8B098C03D43DE7ECE\u0002",
+              "body": "#B8B8C1F061AB4B4E8E8167AACDB429FE\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -233,7 +233,7 @@
       "settle_ms": 800,
       "received": {
         "a": {
-          "ordered": true,
+          "ordered": false,
           "closed": false,
           "messages": [
             {
@@ -283,6 +283,20 @@
               "body": "ligc litecol 2",
               "check": "mask",
               "mask": ".............?"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIJH3.0\u0002RARA/mv 1,0,3.0/\u0002",
+              "check": "header",
+              "optional": true
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIIH3.0\u0002RARA/\u0002",
+              "check": "header",
+              "optional": true
             }
           ]
         }

@@ -30,7 +30,9 @@
 //! [[steps]]
 //! bot = "a"                  # whose `wait_for` the step waits for; every bot's messages count
 //! rcon = "infobusdoorstatus" # instead of `send`: an RCON message to the server's RCON port
-//! rcon_values = { doorStatus = "1" } # (Java: `RconMessage`, what the website's housekeeping sends)
+//! rcon_values = { doorStatus = "1" } # (Java's `RconMessage`, what the website's housekeeping
+//!                            # sends); `havana-trace --rcon` says where, by default the
+//!                            # target's port minus 12
 //! ```
 
 use std::collections::BTreeMap;

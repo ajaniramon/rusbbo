@@ -46,6 +46,9 @@ To check it against the corpus (needs the oracle's MariaDB container for the fix
 cargo run -p havana-trace -- check traces/*.json --target 127.0.0.1:12331 --reset "harness/target-rs.sh reset"
 ```
 
+Traces with `rcon` steps (the Infobus) send them to the target's port minus 12 (Java's 12321 and
+12309; `target-rs.sh` starts the Rust server with `--rcon` there), or to `--rcon <addr>`.
+
 Ported so far: the Shockwave handshake including the encrypted transport (`GENERATEKEY`), SSO
 login, `GET_INFO`, `GET_CREDITS`, the daily credits handout from the game tick, public rooms
 (entering, heightmap, furniture, users, walking with the Java pathfinder and the 500 ms room tick,
@@ -77,6 +80,19 @@ effect shown again after sitting or lying down, Abigail.Ryan's ghost, and effect
 catalogue or given by a totem. Java's `EffectDao.newEffect` stores those last two but fails to read
 the new row's id with the MariaDB driver, so the player only gets them at the next login; the port
 does the same (`traces/catalogue-effects.json`).
+
+The other public room model triggers as in Java: Rooftop Rumble's Wobble Squabble
+(`game/room/wobble_squabble.rs`: the join tiles that take a player with a ticket onto the bridge,
+also right after buying tickets there, the queue, the game started by the second player on a start
+tile, `PTM` moves and `PT_STATUS` every 200 ms, the fall, the timeout, the tickets and statistics
+at the end, and a player who leaves mid-game, whom Java never takes out of the game) and its
+camera (`rooftop_rumble_trigger`, Lido B's); the Space Cafe's lights and flipboard
+(`game/room/space_cafe.rs`); and the Infobus (`game/infobus.rs`): the park's bus door
+(`BUS_DOOR`, the door tile closed, `TRYBUS`, `CHANGEWORLD`), the polls (`infobus_polls`:
+`POLL_QUESTION`, `VOTE`, `VOTE_RESULTS` 30 s later and on every new vote) and the end of the
+event. The website's housekeeping drives the Infobus over RCON; `--rcon <addr>` serves Java's
+RCON port (`rcon.rs`), so far only for the Infobus messages (`TODO(rcon)` for the others), and
+the trace harness has `rcon` steps (see `crates/trace/src/scenario.rs`).
 
 Public room NPCs (`rooms_bots`) as in Java: added on a room's first entry, wandering over their
 walkspace, talking now and then, and handing out drinks when a user nearby asks for one
@@ -239,6 +255,13 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `pool-camera` | Lido B's diving camera: the lift's program on `G_STAT`, the first shot 3 s after the first `G_STAT`, the camera mode for a second user, the camera following the other user when its user leaves |
 | `user-effects` | avatar effects: activating (copies, not owned), wearing in and out of a room, waving refused, a visitor's `G_STAT`, drinks and effects stopping each other, `:sit` re-sending it, switching it off, the effect kept into the next room |
 | `catalogue-effects` | buying an effect: as a gift (refused), for pixels (stored, nothing sent: Java's `newEffect` bug), too expensive |
+| `wobble-squabble` | Rooftop Rumble's Wobble Squabble: onto the bridge through the join tile (walking, and in teleport mode), the queue tiles, `PT_PREPARE`/`PT_START`, `PTM` moves and `PT_STATUS` (walking, the bridge's ends, hits, rebalancing, `WALK` ignored), the fall (`PT_WIN`, `PT_END`, tickets, into the water) |
+| `wobble-squabble-queue` | a player waiting on a queue tile moves on when the game ends and starts the next one against the winner; leaving mid-game: the game goes on, and the one who left still pays a ticket |
+| `wobble-squabble-tickets` | the join tile does nothing while a game is on; buying tickets (`BTCKS`) on it afterwards takes the buyer onto the bridge and into the next game |
+| `rooftop-camera` | Rooftop Rumble's camera (`rooftop_rumble_trigger`): the first shot 3 s after the first `G_STAT`, the mode for a second user, following the other user when its user leaves |
+| `space-cafe` | the Space Cafe's lights (`space_cafe_trigger`): six random `SHOWPROGRAM`s 4.5 s after the first `G_STAT` |
+| `infobus-door` | the Infobus's door in the park: `BUS_DOOR`, `TRYBUS` and the door tile while closed, opening and closing it over RCON, walking into the bus and back out with `CHANGEWORLD` |
+| `infobus-poll` | an Infobus poll over RCON: `POLL_QUESTION`, `VOTE` (out of range, twice), `VOTE_RESULTS` 30 s later and on a new vote, a poll that does not exist, the end of the event (everyone walks out into the park and hears it again there) |
 
 ## Known gaps
 

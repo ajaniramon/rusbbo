@@ -28,6 +28,8 @@ flat-trax
 flat-vending
 flat-visit
 idle-timeout
+infobus-door
+infobus-poll
 login
 login-encrypted
 messenger
@@ -42,10 +44,12 @@ pool-diving
 pool-ladders
 pool-tickets
 public-room
+rooftop-camera
 room-bots
 room-two-bots
 social-actions
 social-dance-carry
+space-cafe
 staff-commands
 text-latin1
 trade
@@ -57,3 +61,6 @@ user-club-member
 user-effects
 user-ignore
 user-settings
+wobble-squabble
+wobble-squabble-queue
+wobble-squabble-tickets
