@@ -474,6 +474,24 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    // MariaDB's AUTO_INCREMENT counters, so new rows get the ids Java's INSERTs would.
+    for table in [
+        "users",
+        "site_articles",
+        "article_categories",
+        "cms_alerts",
+        "cms_minimail",
+        "groups_details",
+        "cms_forum_threads",
+        "cms_forum_replies",
+        "cms_guestbook_entries",
+        "cms_stickers",
+        "cms_stickers_catalogue",
+    ] {
+        if let Some(next) = crate::auto_increment(conn, table)? {
+            w.set_auto_increment(table, next as u32)?;
+        }
+    }
     w.commit()?;
     Ok(n)
 }

@@ -235,7 +235,7 @@ fn import_rooms(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
 }
 
 /// The table's `AUTO_INCREMENT` counter, if it has one.
-fn auto_increment(conn: &mut mysql::PooledConn, table: &str) -> Result<Option<u64>> {
+pub(crate) fn auto_increment(conn: &mut mysql::PooledConn, table: &str) -> Result<Option<u64>> {
     let next: Option<Option<u64>> = conn.exec_first(
         "SELECT AUTO_INCREMENT FROM information_schema.TABLES \
          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",

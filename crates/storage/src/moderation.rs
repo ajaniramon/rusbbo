@@ -184,6 +184,20 @@ impl Store {
             .map(|l| l.ip_address.clone()))
     }
 
+    /// Java: `PlayerDao.countIpAddress`: how many users logged in from `ip`.
+    pub fn users_with_ip(&self, ip: &str) -> Result<usize> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(IP_LOGS)?;
+        let mut n = 0;
+        for entry in table.iter()? {
+            let logs: Vec<IpLog> = decode(entry?.1.value())?;
+            if logs.iter().any(|l| l.ip_address == ip) {
+                n += 1;
+            }
+        }
+        Ok(n)
+    }
+
     /// Java: `PlayerDao.getIpAddresses(userId, maxRows)` (`SELECT DISTINCT(ip_address) ... ORDER
     /// BY created_at DESC LIMIT maxRows`): the user's addresses, latest first, each once.
     pub fn ip_addresses(&self, user_id: u32, max_rows: usize) -> Result<Vec<String>> {

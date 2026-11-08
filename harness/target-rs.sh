@@ -31,7 +31,7 @@ PID_FILE="$RUN_DIR/server.pid"
 WEB_ARGS=()
 if [[ -n "${TARGET_WEB_PORT:-}" ]]; then
   HAVANA="${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}"
-  WEB_ARGS=(--web "127.0.0.1:$TARGET_WEB_PORT" --web-templates "$HAVANA/tools/www-tpl" --web-site "$HAVANA/tools/www")
+  WEB_ARGS=(--web "127.0.0.1:$TARGET_WEB_PORT" --web-templates "$HAVANA/tools/www-tpl" --web-site "$HAVANA/tools/www" --web-figuredata "$HAVANA/tools/figuredata.xml")
 fi
 
 log() { echo "[target-rs] $*" >&2; }

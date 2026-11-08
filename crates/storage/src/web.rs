@@ -4,11 +4,14 @@
 //! shape: a [`Record`] type keyed by a `u32` id, stored with postcard. Queries filter a scan of
 //! the table, which is what the Java DAOs' `SELECT ... WHERE` amounts to at these sizes.
 
-use redb::{ReadableTable, ReadableTableMetadata, TableDefinition, WriteTransaction};
+use redb::{ReadableTable, ReadableTableMetadata, TableDefinition, TableHandle, WriteTransaction};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::{Result, Store, USERS, User, Writer, decode, encode};
+
+/// `AUTO_INCREMENT` counters by table name (the next id MariaDB would hand out).
+const WEB_META: TableDefinition<&str, u32> = TableDefinition::new("web_meta");
 
 /// A row of one of the website's tables.
 pub trait Record: Serialize + DeserializeOwned + Clone {
@@ -21,6 +24,7 @@ pub trait Record: Serialize + DeserializeOwned + Clone {
 macro_rules! record_tables {
     ($($t:ty),* $(,)?) => {
         pub(crate) fn create_tables(tx: &WriteTransaction) -> Result<()> {
+            tx.open_table(WEB_META)?;
             $( tx.open_table(<$t as Record>::TABLE)?; )*
             Ok(())
         }
@@ -466,10 +470,11 @@ impl Writer {
     }
 
     pub fn insert_record<R: Record>(&mut self, r: &mut R) -> Result<u32> {
-        let id = {
+        let last = {
             let table = self.tx.open_table(R::TABLE)?;
-            table.last()?.map(|(k, _)| k.value()).unwrap_or(0) + 1
+            table.last()?.map(|(k, _)| k.value()).unwrap_or(0)
         };
+        let id = self.take_next_id(R::TABLE.name(), last)?;
         r.set_id(id);
         self.put_record(r)?;
         Ok(id)
@@ -477,5 +482,31 @@ impl Writer {
 
     pub fn delete_record<R: Record>(&mut self, id: u32) -> Result<bool> {
         Ok(self.tx.open_table(R::TABLE)?.remove(id)?.is_some())
+    }
+
+    /// The next `AUTO_INCREMENT` id of `table`, whose highest id now is `last`.
+    fn take_next_id(&mut self, table: &str, last: u32) -> Result<u32> {
+        let mut meta = self.tx.open_table(WEB_META)?;
+        let counter = meta.get(table)?.map(|v| v.value()).unwrap_or(0);
+        let id = counter.max(last + 1);
+        meta.insert(table, id + 1)?;
+        Ok(id)
+    }
+
+    /// Sets a table's `AUTO_INCREMENT` counter (the importer copies MariaDB's).
+    pub fn set_auto_increment(&mut self, table: &str, next: u32) -> Result<()> {
+        self.tx.open_table(WEB_META)?.insert(table, next)?;
+        Ok(())
+    }
+
+    /// The id the next `INSERT INTO users` gets (Java: `RegisterDao.newUser`).
+    pub fn next_user_id(&mut self) -> Result<u32> {
+        let last = self
+            .tx
+            .open_table(USERS)?
+            .last()?
+            .map(|(k, _)| k.value())
+            .unwrap_or(0);
+        self.take_next_id("users", last)
     }
 }

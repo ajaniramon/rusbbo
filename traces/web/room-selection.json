@@ -1,0 +1,425 @@
+{
+  "scenario": "room-selection",
+  "description": "Picking the pre-decorated room from /me (the room, its furni and the beginner gift timer), the gift habblets, the name check and the e-mail pages with SMTP off",
+  "mask": [
+    "<em class=\"tag-question\">[^<]*</em>",
+    "sso\\.ticket=[^\"&;]*",
+    "\"sso.ticket\", \"[^\"]*\"",
+    "ssoTicket[^\\n]*",
+    "newbieGiftSeconds = \\d+",
+    "giftSeconds[^\\n]*",
+    "id=\"gift-countdown\"[^\\n]*",
+    "secondsLeft[^\\n]*",
+    "GiftQueueHabblet\\.init\\(\\d+\\)"
+  ],
+  "steps": [
+    {
+      "request": {
+        "post": "/habblet/ajax/namecheck",
+        "form": {
+          "name": "tracepass"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "x-json",
+            "{\"registration_name\":\"A user with this name already exists.\"}"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/namecheck",
+        "form": {
+          "name": "admin"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "x-json",
+            "{\"registration_name\":\"This name is not allowed.\"}"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/namecheck",
+        "form": {
+          "name": "new_name"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "x-json",
+            "{\"registration_name\":\"Your username is invalid or contains invalid characters.\"}"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/namecheck",
+        "form": {
+          "name": "brandnew"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "x-json",
+            "{\"registration_name\":\"\"}"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "get": "/account/password/forgot"
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "location",
+            "/"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "get": "/account/activate?id=1&code=x"
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "location",
+            "/"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/account/submit",
+        "form": {
+          "password": "tracepass123",
+          "username": "tracepass"
+        }
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "location",
+            "/security_check"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "set-cookie",
+            "remember_token=; Max-Age=0; <masked>; Path=/; HTTPOnly"
+          ],
+          [
+            "set-cookie",
+            "vote_stamp=; Max-Age=0; <masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/roomselectionConfirm"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": "<p>Are you sure you want to close the room selector? If you close it, you won't get your free gifts!</p>\n<p>\n  <a href=\"#\" class=\"new-button\" id=\"roomselection-cancel\"><b>Cancel</b><i></i></a>\n  <a href=\"#\" class=\"new-button\" id=\"roomselection-hide\"><b>Yes, hide it!</b><i></i></a>\n</p>\n<div class=\"clear\"></div>"
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/roomselectionCreate",
+        "form": {
+          "roomType": "2"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "get": "/client?createRoom=2"
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "location",
+            "/shockwave_client?createRoom=2"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "get": "/shockwave_client?createRoom=2"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n        \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html\" />\n\t<title>Habbo:  </title>\n\n<script type=\"text/javascript\">\nvar andSoItBegins = (new Date()).getTime();\n</script>\n    <link rel=\"shortcut icon\" href=\"http://localhost/web-gallery/v2/favicon.ico\" type=\"image/vnd.microsoft.icon\" />\n    <link rel=\"alternate\" type=\"application/rss+xml\" title=\"Habbo: RSS\" href=\"http://localhost/articles/rss.xml\" />\n<script src=\"http://localhost/web-gallery/static/js/libs2.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/visual.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/libs.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/common.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/fullcontent.js\" type=\"text/javascript\"></script>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/style.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/buttons.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/boxes.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/tooltips.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/habboclient.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/habboclient.js\" type=\"text/javascript\"></script>\n\n<script type=\"text/javascript\">\ndocument.habboLoggedIn = true;\nvar habboName = \"tracepass\";\nvar ad_keywords = \"\";\nvar habboReqPath = \"http://localhost\";\nvar habboStaticFilePath = \"http://localhost/web-gallery\";\nvar habboImagerUrl = \"http://localhost/habbo-imaging/\";\nvar habboPartner = \"\";\nwindow.name = \"client\";\nif (typeof HabboClient != \"undefined\") { HabboClient.windowName = \"client\"; }\n\n</script>\n\n<script type=\"text/javascript\">\nvar habboClient = true;\nHabboClientUtils.init({remoteCallsEnabled : true, taggingGameEnabled : false});\nffec.c(\"chrome://havvocmini/content/HavvocIcon.PNG\");\nlog(4);\n</script>\n\n<meta name=\"description\" content=\"Join the world's largest virtual hangout where you can meet and make friends. Design your own rooms, collect cool furniture, throw parties and so much more! Create your FREE Habbo today!\" />\n<meta name=\"keywords\" content=\"Habbo, virtual, world, join, groups, forums, play, games, online, friends, teens, collecting, social network, create, collect, connect, furniture, virtual, goods, sharing, badges, social, networking, hangout, safe, music, celebrity, celebrity visits, cele\" />\n\n<!--[if IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie8.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 7]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie6.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/pngfix.js\" type=\"text/javascript\"></script>\n<script type=\"text/javascript\">\ntry { document.execCommand('BackgroundImageCache', false, true); } catch(e) {}\n</script>\n\n<style type=\"text/css\">\nbody { behavior: url(http://localhost/web-gallery/js/csshover.htc); }\n</style>\n<![endif]-->\n<meta name=\"build\" content=\"HavanaWeb\" />\n</head>\n<body id=\"client\" class=\"wide\">\n\n<div id=\"client-topbar\" style=\"display:none\">\n\n  <div class=\"logo\"><img src=\"http://localhost/web-gallery/images/popup/popup_topbar_habbologo.gif\" alt=\"\" align=\"middle\"/></div>\n  <div class=\"habbocount\"><div id=\"habboCountUpdateTarget\">\n0 members online</div>\n\t<script language=\"JavaScript\" type=\"text/javascript\">\n\t\tsetTimeout(function() {\n\t\t\tHabboCounter.init(600);\n\t\t}, 20000);\n\t</script>\n</div>\n  <div class=\"logout\"><a href=\"http://localhost/account/logout?origin=popup\" onclick=\"self.close(); return false;\">Close Hotel</a></div>\n</div>\n<noscript>\n  <img src=\"http://localhost/clientlog/nojs\" border=\"0\" width=\"1\" height=\"1\" alt=\"\" style=\"position: absolute; top:0; left: 0\"/>\n</noscript>\n\n<div id=\"clientembed-container\">\n<div id=\"clientembed-loader\" class=\"loader-image\" style=\"display:none\">\n    <div class=\"loader-image-inner\">\n        <b class=\"loading-text\">Loading Habbo...</b>\n    </div>\n</div>\n<div id=\"clientembed\">\n<script type=\"text/javascript\" language=\"javascript\">\n\tHabboClientUtils.extWrite(\"<object classid=\\\\\\\"clsid:166B1BCA-3F9C-11CF-8075-444553540000\\\\\\\" id=\\\\\\\"Theme\\\\\\\" width=\\\\\\\"960\\\\\\\" height=\\\\\\\"540\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"src\\\\\\\" value=\\\\\\\"http://localhost/dcr/v31/habbo.dcr?\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swRemote\\\\\\\" value=\\\\\\\"swSaveEnabled=\\\\\\'true\\\\\\' swVolume=\\\\\\'true\\\\\\' swRestart=\\\\\\'false\\\\\\' swPausePlay=\\\\\\'false\\\\\\' swFastForward=\\\\\\'false\\\\\\' swTitle=\\\\\\'Themehotel\\\\\\' swContextMenu=\\\\\\'true\\\\\\' \\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swStretchStyle\\\\\\\" value=\\\\\\\"stage\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swText\\\\\\\" value=\\\\\\\"\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"bgColor\\\\\\\" value=\\\\\\\"#000000\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw6\\\\\\\" value=\\\\\\\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\\\"\\>\\n  <param name=\\\"sw9\\\" value=\\\"forward.type=2;forward.id=1000;processlog.url=\\\">\\\\n <param name=\\\\\\\"sw8\\\\\\\" value=\\\\\\\"use.<masked>;<masked>\"\\\\>\\\\n   <param name=\\\\\\\"sw2\\\\\\\" value=\\\\\\\"connection.info.host=127.0.0.1;connection.info.port=12321\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw9\\\\\\\" value=\\\\\\\"account_id=25\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw4\\\\\\\" value=\\\\\\\"site.url=http://localhost;url.prefix=http://localhost\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw3\\\\\\\" value=\\\\\\\"connection.mus.host=127.0.0.1;connection.mus.port=12322\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw1\\\\\\\" value=\\\\\\\"client.allow.cross.domain=1;client.notify.cross.domain=0\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw7\\\\\\\" value=\\\\\\\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\\\\\\\"\\\\>\\\\n       <param name=\\\\\\\"sw5\\\\\\\" value=\\\\\\\"client.reload.url=http://localhostclient.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\\\\\\\"\\\\>\\\\n<embed src=\\\\\\\"http://localhost/dcr/v31/habbo.dcr?\\\\\\\" bgColor=\\\\\\\"#000000\\\\\\\" width=\\\\\\\"960\\\\\\\" height=\\\\\\\"540\\\\\\\" swRemote=\\\\\\\"swSaveEnabled=\\\\\\'true\\\\\\' swVolume=\\\\\\'true\\\\\\' swRestart=\\\\\\'false\\\\\\' swPausePlay=\\\\\\'false\\\\\\' swFastForward=\\\\\\'false\\\\\\' swTitle=\\\\\\'Habbo Hotel\\\\\\' swContextMenu=\\\\\\'true\\\\\\'\\\\\\\" swStretchStyle=\\\\\\\"stage\\\\\\\" swText=\\\\\\\"\\\\\\\" type=\\\\\\\"application/x-director\\\\\\\" \\\\n    sw6=\\\\\\\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\\\"\\n  sw9=\\\"forward.type=2;forward.id=1000;processlog.url=\\\" \\\\n    sw8=\\\\\\\"use.<masked>;<masked>\"  \\\\n    sw2=\\\\\\\"connection.info.host=127.0.0.1;connection.info.port=12321\\\\\\\"  \\\\n   sw9=\\\\\\\"account_id=25\\\\\\\"  \\\\n    sw4=\\\\\\\"site.url=http://localhost\\;url.prefix=http://localhost\\\\\\\"  \\\\n    sw3=\\\\\\\"connection.mus.host=127.0.0.1;connection.mus.port=12322\\\\\\\"  \\\\n    sw1=\\\\\\\"client.allow.cross.domain=1;client.notify.cross.domain=0\\\\\\\"  \\\\n    sw7=\\\\\\\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\\\\\\\"  \\\\n    \\\\n    sw5=\\\\\\\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\\\\\\\" \\\\><\\/embed\\\\>\\\\n<noembed\\\\>client.pluginerror.message<\\/noembed\\\\>\\\\n<\\/object\\\\>\");\n</script>\n<noscript>\n<object classid=\"clsid:166B1BCA-3F9C-11CF-8075-444553540000\" id=\"Theme\" width=\"960\" height=\"540\">\n<param name=\"src\" value=\"http://localhost/dcr/v31/habbo.dcr?\">\n<param name=\"swRemote\" value=\"swSaveEnabled='true' swVolume='true' swRestart='false' swPausePlay='false' swFastForward='false' swTitle='Themehotel' swContextMenu='true' \">\n<param name=\"swStretchStyle\" value=\"stage\">\n<param name=\"swText\" value=\"\">\n<param name=\"bgColor\" value=\"#000000\">\n   <param name=\"sw6\" value=\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\">\n   <param name=\"sw9\" value=\"forward.type=2;forward.id=1000;processlog.url=\">   <param name=\"sw9\" value=\"account_id=25\">\n   <param name=\"sw8\" value=\"use.<masked>;<masked>\">\n   <param name=\"sw2\" value=\"connection.info.host=127.0.0.1;connection.info.port=12321\">\n   <param name=\"sw4\" value=\"site.url=http://localhost;url.prefix=http://localhost\">\n   <param name=\"sw3\" value=\"connection.mus.host=127.0.0.1;connection.mus.port=12322\">\n   <param name=\"sw1\" value=\"client.allow.cross.domain=1;client.notify.cross.domain=0\">\n   <param name=\"sw7\" value=\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\">\n   <param name=\"sw5\" value=\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\">\n<!--[if IE]>client.pluginerror.message<![endif]-->\n<embed src=\"http://localhost/dcr/v31/habbo.dcr?\" bgColor=\"#000000\" width=\"960\" height=\"540\" swRemote=\"swSaveEnabled='true' swVolume='true' swRestart='false' swPausePlay='false' swFastForward='false' swTitle='Themehotel' swContextMenu='true'\" swStretchStyle=\"stage\" swText=\"\" type=\"application/x-director\"\n    sw9=\"forward.type=2;forward.id=1000;processlog.url=\"    sw6=\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\"\n\tsw9=\"account_id=25\"\n    sw8=\"use.<masked>;<masked>\"\n    sw2=\"connection.info.host=127.0.0.1;connection.info.port=12321\"\n    sw4=\"site.url=http://localhost;url.prefix=http://localhost\"\n    sw3=\"connection.mus.host=127.0.0.1;connection.mus.port=12322\"\n    sw1=\"client.allow.cross.domain=1;client.notify.cross.domain=0\"\n    sw7=\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\"\n\t    sw5=\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\" ></embed>\n<noembed>client.pluginerror.message</noembed>\n</object>\n</noscript>\n\n</div>\n<script type=\"text/javascript\">\nHabboClientUtils.loaderTimeout = 10 * 1000;\nHabboClientUtils.showLoader([\"Loading Habbo\", \"Loading Habbo.\", \"Loading Habbo..\", \"Loading Habbo...\"]);\n</script>\n\n<script type=\"text/javascript\" language=\"javascript\">\ntry {\nvar _shockwaveDetectionSuccessful = true;\n_shockwaveDetectionSuccessful = ShockwaveInstallation.swDetectionCheck();\nif (!_shockwaveDetectionSuccessful) {\n    log(50);\n}\nif (_shockwaveDetectionSuccessful) {\n  HabboClientUtils.cacheCheck();\n}\n} catch(e) {\n    try {\n\t\tHabboClientUtils.logClientJavascriptError(e);\n\t} catch(e2) {}\n}\n</script>\n\n</body>\n</html>"
+      }
+    },
+    {
+      "request": {
+        "get": "/shockwave_client?createRoom=3"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n        \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html\" />\n\t<title>Habbo:  </title>\n\n<script type=\"text/javascript\">\nvar andSoItBegins = (new Date()).getTime();\n</script>\n    <link rel=\"shortcut icon\" href=\"http://localhost/web-gallery/v2/favicon.ico\" type=\"image/vnd.microsoft.icon\" />\n    <link rel=\"alternate\" type=\"application/rss+xml\" title=\"Habbo: RSS\" href=\"http://localhost/articles/rss.xml\" />\n<script src=\"http://localhost/web-gallery/static/js/libs2.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/visual.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/libs.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/common.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/fullcontent.js\" type=\"text/javascript\"></script>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/style.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/buttons.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/boxes.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/tooltips.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/habboclient.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/habboclient.js\" type=\"text/javascript\"></script>\n\n<script type=\"text/javascript\">\ndocument.habboLoggedIn = true;\nvar habboName = \"tracepass\";\nvar ad_keywords = \"\";\nvar habboReqPath = \"http://localhost\";\nvar habboStaticFilePath = \"http://localhost/web-gallery\";\nvar habboImagerUrl = \"http://localhost/habbo-imaging/\";\nvar habboPartner = \"\";\nwindow.name = \"client\";\nif (typeof HabboClient != \"undefined\") { HabboClient.windowName = \"client\"; }\n\n</script>\n\n<script type=\"text/javascript\">\nvar habboClient = true;\nHabboClientUtils.init({remoteCallsEnabled : true, taggingGameEnabled : false});\nffec.c(\"chrome://havvocmini/content/HavvocIcon.PNG\");\nlog(4);\n</script>\n\n<meta name=\"description\" content=\"Join the world's largest virtual hangout where you can meet and make friends. Design your own rooms, collect cool furniture, throw parties and so much more! Create your FREE Habbo today!\" />\n<meta name=\"keywords\" content=\"Habbo, virtual, world, join, groups, forums, play, games, online, friends, teens, collecting, social network, create, collect, connect, furniture, virtual, goods, sharing, badges, social, networking, hangout, safe, music, celebrity, celebrity visits, cele\" />\n\n<!--[if IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie8.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 7]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie6.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/pngfix.js\" type=\"text/javascript\"></script>\n<script type=\"text/javascript\">\ntry { document.execCommand('BackgroundImageCache', false, true); } catch(e) {}\n</script>\n\n<style type=\"text/css\">\nbody { behavior: url(http://localhost/web-gallery/js/csshover.htc); }\n</style>\n<![endif]-->\n<meta name=\"build\" content=\"HavanaWeb\" />\n</head>\n<body id=\"client\" class=\"wide\">\n\n<div id=\"client-topbar\" style=\"display:none\">\n\n  <div class=\"logo\"><img src=\"http://localhost/web-gallery/images/popup/popup_topbar_habbologo.gif\" alt=\"\" align=\"middle\"/></div>\n  <div class=\"habbocount\"><div id=\"habboCountUpdateTarget\">\n0 members online</div>\n\t<script language=\"JavaScript\" type=\"text/javascript\">\n\t\tsetTimeout(function() {\n\t\t\tHabboCounter.init(600);\n\t\t}, 20000);\n\t</script>\n</div>\n  <div class=\"logout\"><a href=\"http://localhost/account/logout?origin=popup\" onclick=\"self.close(); return false;\">Close Hotel</a></div>\n</div>\n<noscript>\n  <img src=\"http://localhost/clientlog/nojs\" border=\"0\" width=\"1\" height=\"1\" alt=\"\" style=\"position: absolute; top:0; left: 0\"/>\n</noscript>\n\n<div id=\"clientembed-container\">\n<div id=\"clientembed-loader\" class=\"loader-image\" style=\"display:none\">\n    <div class=\"loader-image-inner\">\n        <b class=\"loading-text\">Loading Habbo...</b>\n    </div>\n</div>\n<div id=\"clientembed\">\n<script type=\"text/javascript\" language=\"javascript\">\n\tHabboClientUtils.extWrite(\"<object classid=\\\\\\\"clsid:166B1BCA-3F9C-11CF-8075-444553540000\\\\\\\" id=\\\\\\\"Theme\\\\\\\" width=\\\\\\\"960\\\\\\\" height=\\\\\\\"540\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"src\\\\\\\" value=\\\\\\\"http://localhost/dcr/v31/habbo.dcr?\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swRemote\\\\\\\" value=\\\\\\\"swSaveEnabled=\\\\\\'true\\\\\\' swVolume=\\\\\\'true\\\\\\' swRestart=\\\\\\'false\\\\\\' swPausePlay=\\\\\\'false\\\\\\' swFastForward=\\\\\\'false\\\\\\' swTitle=\\\\\\'Themehotel\\\\\\' swContextMenu=\\\\\\'true\\\\\\' \\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swStretchStyle\\\\\\\" value=\\\\\\\"stage\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"swText\\\\\\\" value=\\\\\\\"\\\\\\\"\\\\>\\\\n<param name=\\\\\\\"bgColor\\\\\\\" value=\\\\\\\"#000000\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw6\\\\\\\" value=\\\\\\\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\\\"\\>\\n  <param name=\\\"sw9\\\" value=\\\"forward.type=2;forward.id=1000;processlog.url=\\\">\\\\n <param name=\\\\\\\"sw8\\\\\\\" value=\\\\\\\"use.<masked>;<masked>\"\\\\>\\\\n   <param name=\\\\\\\"sw2\\\\\\\" value=\\\\\\\"connection.info.host=127.0.0.1;connection.info.port=12321\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw9\\\\\\\" value=\\\\\\\"account_id=25\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw4\\\\\\\" value=\\\\\\\"site.url=http://localhost;url.prefix=http://localhost\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw3\\\\\\\" value=\\\\\\\"connection.mus.host=127.0.0.1;connection.mus.port=12322\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw1\\\\\\\" value=\\\\\\\"client.allow.cross.domain=1;client.notify.cross.domain=0\\\\\\\"\\\\>\\\\n   <param name=\\\\\\\"sw7\\\\\\\" value=\\\\\\\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\\\\\\\"\\\\>\\\\n       <param name=\\\\\\\"sw5\\\\\\\" value=\\\\\\\"client.reload.url=http://localhostclient.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\\\\\\\"\\\\>\\\\n<embed src=\\\\\\\"http://localhost/dcr/v31/habbo.dcr?\\\\\\\" bgColor=\\\\\\\"#000000\\\\\\\" width=\\\\\\\"960\\\\\\\" height=\\\\\\\"540\\\\\\\" swRemote=\\\\\\\"swSaveEnabled=\\\\\\'true\\\\\\' swVolume=\\\\\\'true\\\\\\' swRestart=\\\\\\'false\\\\\\' swPausePlay=\\\\\\'false\\\\\\' swFastForward=\\\\\\'false\\\\\\' swTitle=\\\\\\'Habbo Hotel\\\\\\' swContextMenu=\\\\\\'true\\\\\\'\\\\\\\" swStretchStyle=\\\\\\\"stage\\\\\\\" swText=\\\\\\\"\\\\\\\" type=\\\\\\\"application/x-director\\\\\\\" \\\\n    sw6=\\\\\\\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\\\"\\n  sw9=\\\"forward.type=2;forward.id=1000;processlog.url=\\\" \\\\n    sw8=\\\\\\\"use.<masked>;<masked>\"  \\\\n    sw2=\\\\\\\"connection.info.host=127.0.0.1;connection.info.port=12321\\\\\\\"  \\\\n   sw9=\\\\\\\"account_id=25\\\\\\\"  \\\\n    sw4=\\\\\\\"site.url=http://localhost\\;url.prefix=http://localhost\\\\\\\"  \\\\n    sw3=\\\\\\\"connection.mus.host=127.0.0.1;connection.mus.port=12322\\\\\\\"  \\\\n    sw1=\\\\\\\"client.allow.cross.domain=1;client.notify.cross.domain=0\\\\\\\"  \\\\n    sw7=\\\\\\\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\\\\\\\"  \\\\n    \\\\n    sw5=\\\\\\\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\\\\\\\" \\\\><\\/embed\\\\>\\\\n<noembed\\\\>client.pluginerror.message<\\/noembed\\\\>\\\\n<\\/object\\\\>\");\n</script>\n<noscript>\n<object classid=\"clsid:166B1BCA-3F9C-11CF-8075-444553540000\" id=\"Theme\" width=\"960\" height=\"540\">\n<param name=\"src\" value=\"http://localhost/dcr/v31/habbo.dcr?\">\n<param name=\"swRemote\" value=\"swSaveEnabled='true' swVolume='true' swRestart='false' swPausePlay='false' swFastForward='false' swTitle='Themehotel' swContextMenu='true' \">\n<param name=\"swStretchStyle\" value=\"stage\">\n<param name=\"swText\" value=\"\">\n<param name=\"bgColor\" value=\"#000000\">\n   <param name=\"sw6\" value=\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\">\n   <param name=\"sw9\" value=\"forward.type=2;forward.id=1000;processlog.url=\">   <param name=\"sw9\" value=\"account_id=25\">\n   <param name=\"sw8\" value=\"use.<masked>;<masked>\">\n   <param name=\"sw2\" value=\"connection.info.host=127.0.0.1;connection.info.port=12321\">\n   <param name=\"sw4\" value=\"site.url=http://localhost;url.prefix=http://localhost\">\n   <param name=\"sw3\" value=\"connection.mus.host=127.0.0.1;connection.mus.port=12322\">\n   <param name=\"sw1\" value=\"client.allow.cross.domain=1;client.notify.cross.domain=0\">\n   <param name=\"sw7\" value=\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\">\n   <param name=\"sw5\" value=\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\">\n<!--[if IE]>client.pluginerror.message<![endif]-->\n<embed src=\"http://localhost/dcr/v31/habbo.dcr?\" bgColor=\"#000000\" width=\"960\" height=\"540\" swRemote=\"swSaveEnabled='true' swVolume='true' swRestart='false' swPausePlay='false' swFastForward='false' swTitle='Themehotel' swContextMenu='true'\" swStretchStyle=\"stage\" swText=\"\" type=\"application/x-director\"\n    sw9=\"forward.type=2;forward.id=1000;processlog.url=\"    sw6=\"client.connection.failed.url=http://localhost/clientutils.php?key=connection_failed;external.variables.txt=http://localhost/dcr/v31/gamedata/external_variables.txt?country=\"\n\tsw9=\"account_id=25\"\n    sw8=\"use.<masked>;<masked>\"\n    sw2=\"connection.info.host=127.0.0.1;connection.info.port=12321\"\n    sw4=\"site.url=http://localhost;url.prefix=http://localhost\"\n    sw3=\"connection.mus.host=127.0.0.1;connection.mus.port=12322\"\n    sw1=\"client.allow.cross.domain=1;client.notify.cross.domain=0\"\n    sw7=\"external.texts.txt=http://localhost/dcr/v31/gamedata/external_texts.txt?\"\n\t    sw5=\"client.reload.url=http://localhost/client.php?x=reauthenticate;client.fatal.error.url=http://localhost/clientutils.php?key=error\" ></embed>\n<noembed>client.pluginerror.message</noembed>\n</object>\n</noscript>\n\n</div>\n<script type=\"text/javascript\">\nHabboClientUtils.loaderTimeout = 10 * 1000;\nHabboClientUtils.showLoader([\"Loading Habbo\", \"Loading Habbo.\", \"Loading Habbo..\", \"Loading Habbo...\"]);\n</script>\n\n<script type=\"text/javascript\" language=\"javascript\">\ntry {\nvar _shockwaveDetectionSuccessful = true;\n_shockwaveDetectionSuccessful = ShockwaveInstallation.swDetectionCheck();\nif (!_shockwaveDetectionSuccessful) {\n    log(50);\n}\nif (_shockwaveDetectionSuccessful) {\n  HabboClientUtils.cacheCheck();\n}\n} catch(e) {\n    try {\n\t\tHabboClientUtils.logClientJavascriptError(e);\n\t} catch(e2) {}\n}\n</script>\n\n</body>\n</html>"
+      }
+    },
+    {
+      "request": {
+        "get": "/me"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n        \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html\" />\n\t<title>Habbo: Home </title>\n\n<script type=\"text/javascript\">\nvar andSoItBegins = (new Date()).getTime();\n</script>\n    <link rel=\"shortcut icon\" href=\"http://localhost/web-gallery/v2/favicon.ico\" type=\"image/vnd.microsoft.icon\" />\n    <link rel=\"alternate\" type=\"application/rss+xml\" title=\"Habbo: RSS\" href=\"http://localhost/articles/rss.xml\" />\n<script src=\"http://localhost/web-gallery/static/js/libs2.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/visual.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/libs.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/common.js\" type=\"text/javascript\"></script>\n<script src=\"http://localhost/web-gallery/static/js/fullcontent.js\" type=\"text/javascript\"></script>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/style.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/buttons.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/boxes.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/tooltips.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/styles/local/com.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/welcome.css\" type=\"text/css\" />\n\n<script src=\"http://localhost/web-gallery/js/local/com.js\" type=\"text/javascript\"></script>\n\n<script type=\"text/javascript\">\ndocument.habboLoggedIn = true;\nvar habboName = \"tracepass\";\nvar ad_keywords = \"\";\nvar habboReqPath = \"http://localhost\";\nvar habboStaticFilePath = \"http://localhost/web-gallery\";\nvar habboImagerUrl = \"http://localhost/habbo-imaging/\";\nvar habboPartner = \"\";\nwindow.name = \"habboMain\";\nif (typeof HabboClient != \"undefined\") { HabboClient.windowName = \"client\"; }\n\n</script>\n\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/personal.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/habboclub.js\" type=\"text/javascript\"></script>\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/minimail.css\" type=\"text/css\" />\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/styles/myhabbo/control.textarea.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/minimail.js\" type=\"text/javascript\"></script>\n\n\n<meta name=\"description\" content=\"Join the world's largest virtual hangout where you can meet and make friends. Design your own rooms, collect cool furniture, throw parties and so much more! Create your FREE Habbo today!\" />\n<meta name=\"keywords\" content=\"Habbo, virtual, world, join, groups, forums, play, games, online, friends, teens, collecting, social network, create, collect, connect, furniture, virtual, goods, sharing, badges, social, networking, hangout, safe, music, celebrity, celebrity visits, cele\" />\n\n<!--[if IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie8.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 8]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie.css\" type=\"text/css\" />\n<![endif]-->\n<!--[if lt IE 7]>\n<link rel=\"stylesheet\" href=\"http://localhost/web-gallery/v2/styles/ie6.css\" type=\"text/css\" />\n<script src=\"http://localhost/web-gallery/static/js/pngfix.js\" type=\"text/javascript\"></script>\n<script type=\"text/javascript\">\ntry { document.execCommand('BackgroundImageCache', false, true); } catch(e) {}\n</script>\n\n<style type=\"text/css\">\nbody { behavior: url(http://localhost/web-gallery/js/csshover.htc); }\n</style>\n<![endif]-->\n<meta name=\"build\" content=\"HavanaWeb\" />\n</head>\n\n<body id=\"home\" class=\" \">\n\n\n<div id=\"overlay\"></div>\n<div id=\"header-container\">\n\t<div id=\"header\" class=\"clearfix\">\n\t\t<h1><a href=\"http://localhost/\"></a></h1>\n       <div id=\"subnavi\">\n\t\t\t<div id=\"subnavi-user\">\n\t\t\t\t<ul>\n\t\t\t\t\t<li id=\"myfriends\"><a href=\"#\"><span>My Friends</span></a><span class=\"r\"></span></li>\n\t\t\t\t\t<li id=\"mygroups\"><a href=\"#\"><span>My Groups</span></a><span class=\"r\"></span></li>\n\t\t\t\t\t<li id=\"myrooms\"><a href=\"#\"><span>My Rooms</span></a><span class=\"r\"></span></li>\n\t\t\t\t</ul>\n\t\t\t</div>\n            <div id=\"subnavi-search\">\n                <div id=\"subnavi-search-upper\">\n\n                <ul id=\"subnavi-search-links\">\n                    <li><a href=\"http://localhost/help\" target=\"habbohelp\" onclick=\"openOrFocusHelp(this); return false\">Help</a></li>\n\t\t\t\t\t<li><a href=\"http://localhost/account/logout\" class=\"userlink\" id=\"signout\">Sign Out</a></li>\n\t\t\t\t</ul>\n                </div>\n            </div>\n            <div id=\"to-hotel\">\n                        \t\t\t\t\t\t<a href=\"http://localhost/client\" class=\"new-button green-button\" target=\"client\" onclick=\"HabboClient.openOrFocus(this); return false;\"><b>Enter Habbo \n                        Hotel</b><i></i></a>\n                        \t\t\t</div>\n        </div>\n\t\t<script type=\"text/javascript\">\n\t\tL10N.put(\"purchase.group.title\", \"Create a Group\");\n\t\tdocument.observe(\"dom:loaded\", function() {\n            $(\"signout\").observe(\"click\", function() {\n                HabboClient.close();\n            });\n        });\n        </script>\n\t\t<ul id=\"navi\">\n\t\t\t\t\t\t<li class=\"selected\">\n\t\t\t\t<strong>tracepass </strong>\t\t\t<span></span>\n\t\t\t</li>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<li>\n\t\t\t\t<a href=\"http://localhost/community\">Community</a>\t\t\t<span></span>\n\t\t\t</li>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<li>\n\t\t\t\t<a href=\"http://localhost/credits\">Coins</a>\t\t\t<span></span>\n\t\t\t</li>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<li>\n\t\t\t\t<a href=\"http://localhost/games\">Games</a>\t\t\t<span></span>\n\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\n\t\t</ul>\n\n        <div id=\"habbos-online\"><div class=\"rounded\"><span>0 Habbos online</span></div></div>\n\t</div>\n</div>\n\n\n<div id=\"content-container\">\n\t<div id=\"navi2-container\" class=\"pngbg\">\n\t\t<div id=\"navi2\" class=\"pngbg clearfix\">\n\t\t\t<ul>\n\t\t\t\t<li class=\"selected\">\n\t\t\t\t\tHome\t\t\t</li>\n\t\t\t\t<li class=\"\">\n\t\t\t\t\t<a href=\"http://localhost/home/tracepass\">My Page</a>    \t\t</li>\n\t\t\t\t<li class=\"\">\n\t\t\t\t\t<a href=\"http://localhost/profile\">Account Settings</a>    \t\t</li>\n\t\t\t\t<li class=\"\">\n\t\t\t\t\t<a href=\"http://localhost/club\">Habbo Club</a>\n\t\t\t\t</li>\n\t\t\t\t<!-- \n\t\t\t\t<li class=\"\">\n\t\t\t\t\t<a href=\"http://localhost/beta_client\" target=\"beta_client\" onclick=\"openOrFocusHabbo(this); return false;\" style=\"color: red\">Try Beta Habbo!</a>\n\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li class=\" last\">\n\t\t\t\t\t<a href=\"http://localhost/groups/officialhabboguides\">Habbo Guides</a>\n\t\t\t\t</li>\n\t\t\t\t\t\t\t\t-->\n\t\t\t\t<li class=\" last\">\n\t\t\t\t\t<a href=\"http://localhost/groups/officialhabboguides\">Habbo Guides</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t</div>\n\t</div>\n\t\n<div id=\"container\">\n\t<div id=\"content\">\n\t\t<div id=\"column1\" class=\"column\">\n\t\t<!-- <div class=\"rounded\" style=\"background-color: red; color: white\">\n\t\t\t<strong>Attention!</strong><br />\n\t\t\tThis server is currently in beta. That means there may be some incomplete features, bugs and other forms of exploitation.<br />\n\t\t</div>\n\t\t<br /> -->\n\t\t\t\t<div class=\"habblet-container \">\n\t\t\t\t\t\t<div id=\"new-personal-info\" style=\"background-image:url(http://localhost/web-gallery/v2/images/personal_info/hotel_views/htlview_au.png)\" />\n\n\t    <div class=\"enter-hotel-btn\">\n        <div class=\"open enter-btn\">\n            <a href=\"http://localhost/shockwave_client\" target=\"shockwave_client\" onclick=\"openOrFocusHabbo(this); return false;\">Enter<i></i></a>\n            <b></b>\n        </div>\n    </div>\n\n    <div class=\"enter-beta-btn\">\n        <div class=\"open enter-btn\">\n            <a href=\"http://localhost/flash_client\" target=\"flash_client\" onclick=\"openOrFocusHabbo(this); return false;\">Enter Flash Habbo<i></i></a>\n            <b></b>\n        </div>\n    </div>\n\t\t\n\t<div id=\"habbo-plate\">\n\t\t<a href=\"http://localhost/profile\">\n\t\t\t\t\t\t<img alt=\"tracepass\" src=\"http://localhost/habbo-imaging/avatarimage?figure=hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61&size=b&direction=3&head_direction=3&crr=0&gesture=sml&frame=1\" width=\"64\" height=\"110\" />\n\t\t\t\t\t</a>\n\t</div>\n\n\t<div id=\"habbo-info\">\n\t\t<div id=\"motto-container\" class=\"clearfix\">\n\t\t\t<strong>tracepass:</strong>\n\t\t\t<div>\n\t\t\t\t\t\t\t\t\t\t\t\t<span title=\"Click to enter your motto/ status\">trace pass</span>\n\t\t\t\t\t\t\t\t\t\t\t\t<p style=\"display: none\"><input type=\"text\" length=\"30\" name=\"motto\" value=\"\"/></p>\n\t\t\t</div>\n\t\t</div>\n\t\t<div id=\"motto-links\" style=\"display: none\"><a href=\"#\" id=\"motto-cancel\">Cancel</a></div>\n\t</div>\n\n\t<ul id=\"link-bar\" class=\"clearfix\">\n        <li class=\"change-looks\"><a href=\"http://localhost/profile\">Change looks &raquo;</a></li>\n        <li class=\"credits\">\n            <a href=\"http://localhost/credits\">1000</a> Credits\t\t</li>\n        <li class=\"club\">\n                        <a href=\"http://localhost/club\">Join Habbo club &raquo;</a>\t\t</li>\n                    <li class=\"activitypoints\">\n            <a href=\"http://localhost/credits/pixels\">0</a> Pixels\t\t    </li>\n    </ul>\n\n    <div id=\"habbo-feed\">\n        <ul id=\"feed-items\">\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<li class=\"small\" id=\"feed-trading-disabled\">Trading is off. <a href=\"http://localhost/profile?tab=6\" title=\"\">Click here to turn it on</a></li>\n\t\t\t\t\t\t<!-- <li class=\"small\" id=\"feed-flashbeta-invites\">This server is currently in beta, some features may not be operating correctly. You may also expect spontaneous maintenance periods.</li> -->\n            <li class=\"small\" id=\"feed-lastlogin\">\n                Last signed in:                Jan 01, 2026 12:00:00 AM            </li>\n        </ul>\n    </div>\n\n    <p class=\"last\"></p>\n</div>\n\n<script type=\"text/javascript\">\n    HabboView.add(function() {\n        L10N.put(\"personal_info.motto_editor.spamming\", \"Don\\\\\\'t spam me, bro!\");\n        PersonalInfo.init(\"\");\n    });\n</script>\n\n\n                </div>\n                <script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\t\t\t\t\t\t\t\n\t\t\t\t              <div class=\"habblet-container \" id=\"giftqueue\">\n                <div class=\"cbb clearfix rooms\">\n                  <h2 class=\"title\">\n                    Your next gift!\t\t\t\t\t                  </h2>\n\t\t\t\t  <div class=\"box-content\" id=\"gift-container\">\n\t\t\t\t  \t\t\t\t\t\t\t\t\t\t<div class=\"gift-img\">\n\t\t\t\t\t                            <img src=\"http://localhost/web-gallery/v2/images/welcome/newbie_furni/noob_stool_3.png\" alt=\"My first starter stool\">\n\t\t\t\t\t                      </div>\n                    <div class=\"gift-content-container\">\n                      <p class=\"gift-content\">\n\t\t\t\t\t                          Your next piece of free furniture will be <strong>STARTER STOOL</strong>\n\t\t\t\t\t  \t\t\t\t\t  </p>\n                      <p>\n                        <b>Time left:</b>\n                        <span <masked>\n                      </p>\n                      <p class=\"last\">\n                        <a class=\"new-button green-button\" href=\"http://localhost/client?forwardId=2&roomId=1000\" target=\"client\" onclick=\"HabboClient.roomForward(this, '1000', 'private'); return false;\"><b>Go to your room &gt;&gt;</b><i></i></a>\n                      </p>\n                      <br style=\"clear: both\" />\n                    </div>\n                    <script type=\"text/javascript\">\n                      L10N.put('time.hours', '{0}h');\n                      L10N.put('time.minutes', '{0}min');\n                      L10N.put('time.seconds', '{0}s');\n                      <masked>;\n                    </script>\n\t\t\t\t\t\t\t\t\t  </div>\n                </div>\n              </div>\n\t\t\t\t\t\t\t\t<div class=\"habblet-container \">\t\t\n\t\t\t\t\t\t<div class=\"cbb clearfix orange \">\n\n\t\n\t\t\t\t\t\t\t<h2 class=\"title\">Hot Campaigns\t\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<div id=\"hotcampaigns-habblet-list-container\">\n    <ul id=\"hotcampaigns-habblet-list\">\n\n        <li class=\"even\">\n            <div class=\"hotcampaign-container\">\n                <a href=\"http://localhost/articles\"><img src=\"http://localhost/c_images/hot_campaign_images_gb/beta.gif\" align=\"left\" alt=\"\" /></a>\n                <h3>Under Construction</h3>\n                <p>Put interesting text in here, because this text is just useless sitting here otherwise!</p>\n                <p class=\"link\"><a href=\"http://localhost\">Go there &raquo;</a></p>\n            </div>\n        </li>\n        \n        <li class=\"odd\">\n            <div class=\"hotcampaign-container\">\n                <a href=\"http://localhost/articles\"><img src=\"http://localhost/c_images/hot_campaign_images_gb/habbobetahot.gif\" align=\"left\" alt=\"\" /></a>\n                <h3>Under Construction</h3>\n                <p>Put interesting text in here, because this text is just useless sitting here otherwise!</p>\n                <p class=\"link\"><a href=\"http://localhost\">Go there &raquo;</a></p>\n            </div>\n        </li>\n        \n        <!-- \n        <li class=\"odd\">\n            <div class=\"hotcampaign-container\">\n                <a href=\"http://localhost/articles\"><img src=\"http://localhost/c_images/hot_campaign_images_gb/hc.gif\" align=\"left\" alt=\"\" /></a>\n                <h3>Exclusive Furniture!</h3>\n                <p>Join Habbo Club today and get access to exclusive furniture!</p>\n\n                <p class=\"link\"><a href=\"http://localhost/credits/club\">Go there &raquo;</a></p>\n            </div>\n        </li>\n        -->\n    </ul>\n</div>\n\t\n\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\n\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\t\t\t\t\n<div class=\"habblet-container minimail\" id=\"mail\">\n                        <div class=\"cbb clearfix blue \">\n\n                            <h2 class=\"title\">My Messages                            </h2>\n                        <div id=\"minimail\">\n\t\t<div class=\"minimail-contents\">\n\t    \t\t<a href=\"#\" class=\"new-button compose\"><b>Compose</b><i></i></a>\t<div class=\"clearfix labels nostandard\">\n\t\t<ul class=\"box-tabs\">\n\t\t\t<li class=\"selected\"><a href=\"#\" label=\"inbox\">Inbox</a><span class=\"tab-spacer\"></span></li>\n\t\t\t<li><a href=\"#\" label=\"sent\">Sent</a><span class=\"tab-spacer\"></span></li>\n\t\t\t<li><a href=\"#\" label=\"trash\">Trash</a><span class=\"tab-spacer\"></span></li>\n\t\t</ul>\n\n\t</div>\n\t<div id=\"message-list\" class=\"label-sent\">\n\t<div class=\"new-buttons clearfix\">\n\t\t<div class=\"labels inbox-refresh\"><a href=\"#\" class=\"new-button green-button\" label=\"inbox\" style=\"float: left; margin: 0\"><b>Refresh</b><i></i></a></div>\n\t</div>\n\n\t<div style=\"clear: both; height: 1px\"></div>\n\t\t\t\t\t\t<div class=\"navigation\">\n\t\t\t\t\t\t<div class=\"unread-selector\"><input type=\"checkbox\" class=\"unread-only\"/> only unread</div>\n\t\t\t\t\t\t<!-- <div class=\"progress\"></div> -->\n\t\t\t\t\t\t\t\t\t\t\t<p class=\"no-messages\">No messages</p>\n\t\t\t\t\t\t\t</div>\n\t\t\n\t<div class=\"navigation\">\n\t\t\t<div class=\"progress\"></div>\n\t\t\t\t\t\t</div>\n\t\t</div>\n\t\t</div>\n\t\t<div id=\"message-compose-wait\"></div>\n\t    <form style=\"display: none\" id=\"message-compose\">\n\t        <div>To</div>\n\t        <div id=\"message-recipients-container\" class=\"input-text\" style=\"width: 426px; margin-bottom: 1em\">\n\t        \t<input type=\"text\" value=\"\" id=\"message-recipients\" />\n\t        \t<div class=\"autocomplete\" id=\"message-recipients-auto\">\n\t        \t\t<div class=\"default\" style=\"display: none;\">Type the name of your friend</div>\n\t        \t\t<ul class=\"feed\" style=\"display: none;\"></ul>\n\n\t        \t</div>\n\t        </div>\n\t        <div>Subject<br/>\n\t        <input type=\"text\" style=\"margin: 5px 0\" id=\"message-subject\" class=\"message-text\" maxlength=\"100\" tabindex=\"2\" />\n\t        </div>\n\t        <div>Message<br/>\n\t        <textarea style=\"margin: 5px 0\" rows=\"5\" cols=\"10\" id=\"message-body\" class=\"message-text\" tabindex=\"3\"></textarea>\n\n\t        </div>\n\t        <div class=\"new-buttons clearfix\">\n\t            <a href=\"#\" class=\"new-button preview\"><b>Preview</b><i></i></a>\n\t            <a href=\"#\" class=\"new-button send\"><b>Send</b><i></i></a>\n\t        </div>\n\t    </form>\n\t</div>\n\t\t\t\t<script type=\"text/javascript\">\n\t\tL10N.put(\"minimail.compose\", \"Compose\").put(\"minimail.cancel\", \"Cancel\")\n\t\t\t.put(\"bbcode.colors.red\", \"Red\").put(\"bbcode.colors.orange\", \"Orange\")\n\t    \t.put(\"bbcode.colors.yellow\", \"Yellow\").put(\"bbcode.colors.green\", \"Green\")\n\t    \t.put(\"bbcode.colors.cyan\", \"Cyan\").put(\"bbcode.colors.blue\", \"Blue\")\n\t    \t.put(\"bbcode.colors.gray\", \"Gray\").put(\"bbcode.colors.black\", \"Black\")\n\t    \t.put(\"minimail.empty_body.confirm\", \"Are you sure you want to send the message with an empty body?\")\n\t    \t.put(\"bbcode.colors.label\", \"Color\").put(\"linktool.find.label\", \" \")\n\t    \t.put(\"linktool.scope.habbos\", \"Habbos\").put(\"linktool.scope.rooms\", \"Rooms\")\n\t    \t.put(\"linktool.scope.groups\", \"Groups\").put(\"minimail.report.title\", \"Report message to moderators\");\n\n\t    L10N.put(\"date.pretty.just_now\", \"just now\");\n\t    L10N.put(\"date.pretty.one_minute_ago\", \"1 minute ago\");\n\t    L10N.put(\"date.pretty.minutes_ago\", \"{0} minutes ago\");\n\t    L10N.put(\"date.pretty.one_hour_ago\", \"1 hour ago\");\n\t    L10N.put(\"date.pretty.hours_ago\", \"{0} hours ago\");\n\t    L10N.put(\"date.pretty.yesterday\", \"yesterday\");\n\t    L10N.put(\"date.pretty.days_ago\", \"{0} days ago\");\n\t    L10N.put(\"date.pretty.one_week_ago\", \"1 week ago\");\n\t    L10N.put(\"date.pretty.weeks_ago\", \"{0} weeks ago\");\n\t\tnew MiniMail({ pageSize: 10,\n\t\t   total: 0,\n\t\t   friendCount: 1,\n\t\t   maxRecipients: 50,\n\t\t   messageMaxLength: 20,\n\t\t   bodyMaxLength: 4096,\n\t\t   secondLevel: false});\n\t</script>\n\t</div></div>\n\n    <script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\n\t\t\t\t<div class=\"habblet-container \">\t\t\n\t\t\t\t\t\t<div class=\"cbb clearfix default \">\n<div class=\"box-tabs-container clearfix\">\n    <h2>Habbos</h2>\n    <ul class=\"box-tabs\">\n        <li id=\"tab-0-4-1\"><a href=\"#\">Search Habbos</a><span class=\"tab-spacer\"></span></li>\n\n        <li id=\"tab-0-4-2\" class=\"selected\"><a href=\"#\">Invite Friend(s)</a><span class=\"tab-spacer\"></span></li>\n    </ul>\n</div>\n    <div id=\"tab-0-4-1-content\"  style=\"display: none\">\n<div class=\"habblet-content-info\">\n    <a name=\"habbo-search\">Type in the first characters of the name to search for other Habbos.</a>\n</div>\n<div id=\"habbo-search-error-container\" style=\"display: none;\"><div id=\"habbo-search-error\" class=\"rounded rounded-red\"></div></div>\n<br clear=\"all\"/>\n<div id=\"avatar-habblet-list-search\">\n    <input type=\"text\" id=\"avatar-habblet-search-string\"/>\n\n    <a href=\"#\" id=\"avatar-habblet-search-button\" class=\"new-button\"><b>Search</b><i></i></a>\n</div>\n\n<br clear=\"all\"/>\n\n<div id=\"avatar-habblet-content\">\n<div id=\"avatar-habblet-list-container\" class=\"habblet-list-container\">\n        <ul class=\"habblet-list\">\n        </ul>\n\n</div>\n<script type=\"text/javascript\">\n    L10N.put(\"habblet.search.error.search_string_too_long\", \"The search keyword was too long. Maximum length is 30 characters.\");\n    L10N.put(\"habblet.search.error.search_string_too_short\", \"The search keyword was too short. 2 characters required.\");\n    L10N.put(\"habblet.search.add_friend.title\", \"Add to friend list\");\n\tnew HabboSearchHabblet(2, 30);\n\n</script>\n\n</div>\n\n<script type=\"text/javascript\">\n    Rounder.addCorners($(\"habbo-search-error\"), 8, 8);\n</script>    </div>\n    <div id=\"tab-0-4-2-content\" >\n<div id=\"friend-invitation-habblet-container\" class=\"box-content\">\n    <div style=\"display: none\"> \n    <div id=\"invitation-form\" class=\"clearfix\">\n        <textarea name=\"invitation_message\" id=\"invitation_message\" class=\"invitation-message\">Come and hangout with me in Habbo.- tracepass</textarea>\n        <div id=\"invitation-email\">\n            <div class=\"invitation-input\">1.<input  onkeypress=\"$('invitation_recipient2').enable()\" type=\"text\" name=\"invitation_recipients\" id=\"invitation_recipient1\" value=\"Friend's email address:\" class=\"invitation-input\" />\n\n            </div>\n            <div class=\"invitation-input\">2.<input disabled onkeypress=\"$('invitation_recipient3').enable()\" type=\"text\" name=\"invitation_recipients\" id=\"invitation_recipient2\" value=\"Friend's email address:\" class=\"invitation-input\" />\n            </div>\n            <div class=\"invitation-input\">3.<input disabled  type=\"text\" name=\"invitation_recipients\" id=\"invitation_recipient3\" value=\"Friend's email address:\" class=\"invitation-input\" />\n            </div>\n        </div>\n        <div class=\"clear\"></div>\n        <div class=\"fielderror\" id=\"invitation_message_error\" style=\"display: none;\"><div class=\"rounded\"></div></div>\n\n    </div>\n\n    <div class=\"invitation-buttons clearfix\" id=\"invitation_buttons\">\n\t\t<a  class=\"new-button\" id=\"send-friend-invite-button\" href=\"#\"><b>Invite Friend(s)</b><i></i></a>\n    </div>\n    \n    <hr/>\n    </div>\n    <div id=\"invitation-link-container\">\n        <h3>Enjoy Habbo more with real life friends!</h3>\n\n        <div class=\"copytext\">\n            <p>Invite your friends to Habbo and earn cool badges! Send a link to your friend and ask them to register and activate their email. If they are using Habbo in active way you get rewarded with a badge.</p>\n        </div>\n        <div class=\"invitation-buttons clearfix\"> \n            <a  class=\"new-button\" id=\"getlink-friend-invite-button\" href=\"#\"><b>Click for the invitation link!</b><i></i></a>\n        </div>\n    </div>\n</div>\n<script type=\"text/javascript\">\n    L10N.put(\"invitation.button.invite\", \"Invite Friend(s)\");\n    L10N.put(\"invitation.form.recipient\", \"Friend\\'s email address:\");\n    L10N.put(\"invitation.error.message_too_long\", \"invitation.error.message_limit\");\n    inviteFriendHabblet = new InviteFriendHabblet(500);   \n    $(\"friend-invitation-habblet-container\").select(\".fielderror .rounded\").each(function(el) {\n        Rounder.addCorners(el, 8, 8);\n    });\n\n</script>    </div>\n\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\n\n<div class=\"habblet-container \">\t\t\n\t\t\t\t\t\t<div class=\"cbb clearfix darkred \">\n\t\n\t\t\t\t\t\t\t<h2 class=\"title\">Events\t\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<div id=\"current-events\">\n\t<div class=\"category-selector\">\n\t<p>Browse latest events by their category</p>\n\t<select id=\"event-category\">\n\t\t<option value=\"1\">Parties &amp; Music</option>\n\t\t<option value=\"2\">Trading</option>\n\t\t<option value=\"3\">Games</option>\n\t\t<option value=\"4\">Retro Guides</option>\n\t\t<option value=\"5\">Debates &amp; Discussion</option>\n\t\t<option value=\"6\">Grand Openings</option>\n\t\t<option value=\"7\">Dating</option>\n\t\t<option value=\"8\">Jobs</option>\n\t\t<option value=\"9\">Group Events</option>\n\t\t<option value=\"10\">Performance</option>\n\t\t<option value=\"11\">Help Desk</option>\n\t</select>\n\t</div>\n\t<div id=\"event-list\">\n\t\t\t\t<ul class=\"habblet-list\">\n\n</ul>\t</div>\n</div>\n<script type=\"text/javascript\">\n\tdocument.observe('dom:loaded', function() {\n\t\tCurrentRoomEvents.init();\n\t});\n</script>\n\t\n\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n</div>\n\t\t\t\t<script type='text/javascript'>if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n<div id=\"column2\" class=\"column\">\n\t\t\t\t<div class=\"habblet-container news-promo\">\n\t\t\t\t\t\t<div class=\"cbb clearfix notitle \">\n\n\t\t\t\t\t\t<div id=\"newspromo\">\n        <div id=\"topstories\">\n\t        <div class=\"topstory\" style=\"background-image: url(http://localhost/c_images/Top_Story_Images/attention_topstory.png)\">\n\t            <h4>Latest news </a></h4>\n\t            <h3><a href=\"http://localhost/articles/0-no-news\">No news</a></h3>\n\t            <p class=\"summary\">\n\t            \t            </p>\n\t            <p>\n\t                <a href=\"http://localhost/articles/0-no-news\">Read more &raquo;</a>\n\t            </p>\n\t        </div>\n\t        <div class=\"topstory\" style=\"background-image: url(http://localhost/c_images/Top_Story_Images/attention_topstory.png); display: none\">\n\t            <h4>Latest news</a></h4>\n\t            <h3><a href=\"http://localhost/articles/0-no-news\">No news</a></h3>\n\t            <p class=\"summary\">\n\t            \t            </p>\n\t            <p>\n\t                <a href=\"http://localhost/articles/0-no-news\">Read more &raquo;</a>\n\t            </p>\n\t        </div>\n\t        <div class=\"topstory\" style=\"background-image: url(http://localhost/c_images/Top_Story_Images/attention_topstory.png); display: none\">\n\t            <h4>Latest news</a></h4>\n\t            <h3><a href=\"http://localhost/articles/0-no-news\">No news</a></h3>\n\t            <p class=\"summary\">\n\t            \t            </p>\n\t            <p>\n\t                <a href=\"http://localhost/articles/0-no-news\">Read more &raquo;</a>\n\t            </p>\n\t        </div>\n            <div id=\"topstories-nav\" style=\"display: none\"><a href=\"#\" class=\"prev\">&laquo; Previous</a><span>1</span> / 3<a href=\"#\" class=\"next\">Next &raquo</a></div>\n        </div>\n        <ul class=\"widelist\">\n            <li class=\"even\">\n                <a href=\"http://localhost/articles/0-no-news\">No news</a><div class=\"newsitem-date\">Sun 08 Nov, 2026</div>\n            </li>\n            <li class=\"odd\">\n                <a href=\"http://localhost/articles/0-no-news\">No news</a><div class=\"newsitem-date\">Sun 08 Nov, 2026</div>\n            </li>\n            <li class=\"last\"><a href=\"http://localhost/articles\">More news &raquo;</a></li>\n        </ul>\n</div>\n<script type=\"text/javascript\">\n\tdocument.observe(\"dom:loaded\", function() { NewsPromo.init(); });\n</script>\n\t\t\t\t\t</div>\n\n\t\t\t\t</div>\n\t\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\t\t\t\t<div class=\"habblet-container \">\t\t\n\t\t\t\t\t\t<div class=\"cbb clearfix red \">\n<div class=\"box-tabs-container clearfix\">\n    <h2>Staff Picks</h2>\n    <ul class=\"box-tabs\">\n        <li id=\"tab-1-3-1\"><a href=\"#\">Rooms</a><span class=\"tab-spacer\"></span></li>\n        <li id=\"tab-1-3-2\" class=\"selected\"><a href=\"#\">Groups</a><span class=\"tab-spacer\"></span></li>\n    </ul>\n\n</div>\n    <div id=\"tab-1-3-1-content\"  style=\"display: none\">\n    \t\t<div class=\"progressbar\"><img src=\"http://localhost/web-gallery/images/progress_bubbles.gif\" alt=\"\" width=\"29\" height=\"6\" /></div>\n    \t\t<a href=\"http://localhost/habblet/proxy?hid=h21\" class=\"tab-ajax\"></a>\n    </div>\n    <div id=\"tab-1-3-2-content\" >\n<div id=\"staffpicks-groups-habblet-list-container\" class=\"habblet-list-container groups-list\">\n    <ul class=\"habblet-list two-cols clearfix\">\n        \n                                    </ul>\n</div>\n    </div>\n\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\n<div class=\"habblet-container \">        \n                        <div class=\"cbb clearfix blue \">\n\t\t\t\t\t\t<h2 class=\"title\">Recommended                            </h2>\n\t\t\t\t\t\t<div id=\"promogroups-habblet-list-container\" class=\"habblet-list-container groups-list\">\n\t\t\t\t\t\t\t<ul class=\"habblet-list two-cols clearfix\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t</div>\n                    </div>\n                </div>\n                <script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\n\t\t\t\t<div class=\"habblet-container \">\t\t\n\t\t\t\t\t\t<div class=\"cbb clearfix green \">\n<div class=\"box-tabs-container clearfix\">\n    <h2>Tags</h2>\n\n\t\t\t\t\t\t\t<ul class=\"box-tabs\">\n\t\t\t\t\t\t\t\t<li id=\"tab-1-5-1\"><a href=\"#\">Habbos Like...</a><span class=\"tab-spacer\"></span></li>\n\t\t\t\t\t\t\t\t<li id=\"tab-1-5-2\" class=\"selected\"><a href=\"#\">My Tags</a><span class=\"tab-spacer\"></span></li>\n\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div id=\"tab-1-5-1-content\"  style=\"display: none\">\n\t\t\t\t\t\t\t<div class=\"progressbar\">\n\t\t\t\t\t\t\t\t<img src=\"http://localhost/web-gallery/images/progress_bubbles.gif\" alt=\"\" width=\"29\" height=\"6\" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<a href=\"http://localhost/habblet/proxy?hid=h24\" class=\"tab-ajax\"></a>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div id=\"tab-1-5-2-content\" >\n\t\t\t\t\t\t\t<div id=\"my-tag-info\" class=\"habblet-content-info\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou have no tags.\t\t\t\t\t\t\t Answer the question below or just add a tag of your choice.\t\t    </div>\n\t\t\t\t\t\t\t<div class=\"box-content\">\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"habblet\" id=\"my-tags-list\">\n<ul class=\"tag-list make-clickable\">\n\n\t\t\t\t\t\t\t\n</ul>\n\n     <form method=\"post\" action=\"http://localhost/myhabbo/tag/add\" onsubmit=\"TagHelper.addFormTagToMe();return false;\" >\n    <div class=\"add-tag-form clearfix\">\n\t\t<a class=\"new-button\" href=\"#\" id=\"add-tag-button\" onclick=\"TagHelper.addFormTagToMe();return false;\"><b>Add tag</b><i></i></a>\n        <input type=\"text\" id=\"add-tag-input\" maxlength=\"20\" style=\"float: right\"/>\n        <masked>\n    </div>\n    <div style=\"clear: both\"></div> \n    </form>\n\n</div>\n\n<script type=\"text/javascript\">\n    TagHelper.setTexts({\n        tagLimitText: \"You\\'ve reached the tag limit - delete one of your tags if you want to add a new one.\",\n        invalidTagText: \"Invalid tag, the tag must be less than 20 characters and composed only of alphanumeric characters.\",\n        buttonText: \"OK\"\n    });\n    TagHelper.bindEventsToTagLists();\n</script>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\n\n<script type=\"text/javascript\">\ndocument.observe(\"dom:loaded\", function() {\n    TagHelper.setTexts({\n        tagLimitText: \"You\\\\\\'ve reached the tag limit - delete one of your tags if you want to add a new one.\",\n        invalidTagText: \"Invalid tag, the tag must be less than 20 characters and composed only of alphanumeric characters.\",\n        buttonText: \"OK\"\n    });\n        TagHelper.init('1');\n});\n</script>\n    </div>\n\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\t\t\t\t\n<div class=\"habblet-container \">\n                        <div class=\"cbb clearfix blue \">\n<div class=\"box-tabs-container clearfix\">\n    <h2>Groups</h2>\n    <ul class=\"box-tabs\">\n        <li id=\"tab-2-1\"><a href=\"#\">Hot Groups</a><span class=\"tab-spacer\"></span></li>\n        <li id=\"tab-2-2\" class=\"selected\"><a href=\"#\">My Groups</a><span class=\"tab-spacer\"></span></li>\n    </ul>\n</div>\n    <div id=\"tab-2-1-content\"  style=\"display: none\">\n    \t\t<div class=\"progressbar\"><img src=\"http://localhost/web-gallery/images/progress_bubbles.gif\" alt=\"\" width=\"29\" height=\"6\" /></div>\n    \t\t<a href=\"http://localhost/habblet/proxy?hid=groups\" class=\"tab-ajax\"></a>\n    </div>\n    <div id=\"tab-2-2-content\" >\n\n\n         <div id=\"groups-habblet-info\" class=\"habblet-content-info\">\n                View the groups you are in, create your own group, or get some inspiration from the 'Hot Groups'-tab!         </div>\n\n    <div id=\"groups-habblet-list-container\" class=\"habblet-list-container groups-list\">\n\n\n<ul class=\"habblet-list two-cols clearfix\">         \n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t    </ul>\n\t\t<div class=\"habblet-button-row clearfix\"><a class=\"new-button\" id=\"purchase-group-button\" href=\"#\"><b>Create/buy a Group</b><i></i></a></div>\n    </div>\n\n    <div id=\"groups-habblet-group-purchase-button\" class=\"habblet-list-container\"></div>\n\n<script type=\"text/javascript\">\n    $(\"purchase-group-button\").observe(\"click\", function(e) { Event.stop(e); GroupPurchase.open(); });\n</script>\n\n\n\n\n\n\n    </div>\n\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<script type=\"text/javascript\">if (!$(document.body).hasClassName('process-template')) { Rounder.init(); }</script>\n\n</div>\n\n<script type=\"text/javascript\">\n\tHabboView.add(LoginFormUI.init);\n</script>\n<script type=\"text/javascript\">\nHabboView.run();\n\n</script>\n\n\n\n<!--[if lt IE 7]>\n<script type=\"text/javascript\">\nPngfix.doPngImageFix();\n</script>\n<![endif]-->\n    </div>\n    </div>\n<div id=\"footer\">\n\t<p><a href=\"http://localhost/\" target=\"_self\">Homepage</a> | <a href=\"http://localhost/papers/disclaimer\" target=\"_self\">Disclaimer</a> | <a href=\"http://localhost/papers/privacy\" target=\"_self\">Privacy Policy</a></p>\n\t\t\t\t<p class=\"copyright\">Powered by HavanaWeb &copy 2023 Quackster<br />HABBO is a registered trademark of Sulake Corporation. All rights reserved to their respective owner(s).</p>\n\t</div></div>\n\n</div>\n<script type=\"text/javascript\">\nHabboView.run();\n</script>\n\n\n</body>\n</html>\n"
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/nextgift"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": "\t\t\t\t\t\t\t\t\t\t<div class=\"gift-img\">\n\t\t\t\t\t                            <img src=\"http://localhost/web-gallery/v2/images/welcome/newbie_furni/noob_stool_3.png\" alt=\"My first starter stool\">\n\t\t\t\t\t                      </div>\n                    <div class=\"gift-content-container\">\n                      <p class=\"gift-content\">\n\t\t\t\t\t                          Your next piece of free furniture will be <strong>STARTER STOOL</strong>\n\t\t\t\t\t  \t\t\t\t\t  </p>\n                      <p>\n                        <b>Time left:</b>\n                        <span <masked>\n                      </p>\n                      <p class=\"last\">\n                        <a class=\"new-button green-button\" href=\"http://localhost/client?forwardId=2&roomId=1000\" target=\"client\" onclick=\"HabboClient.roomForward(this, '1000', 'private'); return false;\"><b>Go to your room &gt;&gt;</b><i></i></a>\n                      </p>\n                      <br style=\"clear: both\" />\n                    </div>\n                    <script type=\"text/javascript\">\n                      L10N.put('time.hours', '{0}h');\n                      L10N.put('time.minutes', '{0}min');\n                      L10N.put('time.seconds', '{0}s');\n                      <masked>;\n                    </script>\n\t\t\t\t\t"
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/giftqueueHide"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/removeFeedItem",
+        "form": {
+          "feedItemIndex": "0"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "post": "/habblet/ajax/roomselectionHide"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    },
+    {
+      "request": {
+        "get": "/welcome"
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          [
+            "content-type",
+            "text/html; charset=utf-8"
+          ],
+          [
+            "location",
+            "/me"
+          ],
+          [
+            "set-cookie",
+            "<masked>; Path=/; HTTPOnly"
+          ]
+        ],
+        "body": ""
+      }
+    }
+  ]
+}

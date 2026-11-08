@@ -176,10 +176,108 @@ pub fn set_statistic(world: &World, user_id: u32, column: &str, value: i64) {
     }
 }
 
-/// Java: `RoomSelectionHandler.selectRoom`: creates the user's pre-decorated room. TODO(web): the
-/// room templates (phase 1, with the room selection habblet).
-pub fn select_room(_world: &World, _user_id: u32, _room_type: i32) -> bool {
-    false
+/// Java: `RoomSelectionHandler.selectRoom`: creates the user's pre-decorated room (`model_s`,
+/// its wallpaper and floor, a stool and a window in the room, a table in the hand).
+pub fn select_room(world: &World, user_id: u32, room_type: i32) -> bool {
+    match try_select_room(world, user_id, room_type) {
+        Ok(v) => v,
+        Err(e) => {
+            tracing::error!("web: room selection: {e}");
+            false
+        }
+    }
+}
+
+fn try_select_room(world: &World, user_id: u32, room_type: i32) -> anyhow::Result<bool> {
+    let Some(user) = world.store.user(user_id)? else {
+        return Ok(false);
+    };
+    let (stool_x, stool_y, stool_rot, floor, wallpaper) = match room_type {
+        0 => (1, 6, 2, 601, 1501),
+        1 => (3, 6, 4, 0, 607),
+        2 => (2, 2, 4, 301, 1901),
+        3 => (1, 2, 2, 110, 1801),
+        4 => (3, 6, 0, 104, 503),
+        5 => (3, 6, 0, 107, 804),
+        _ => return Ok(false),
+    };
+    let now = super::beans::now();
+    // NavigatorDao.createRoom(user, "<name>'s Room", "model_s", showName = true, access 0).
+    let room = rusbbo_storage::Room {
+        owner_id: user_id,
+        category: 2,
+        name: format!("{}'s Room", user.username),
+        model: "model_s".into(),
+        ccts: Some(String::new()),
+        landscape: "0".into(),
+        showname: true,
+        accesstype: 0,
+        password: Some(String::new()),
+        visitors_max: 25,
+        icon_data: "0|0|".into(),
+        created_at: now,
+        updated_at: now,
+        ..Default::default()
+    };
+    let room_id = world.store.create_room(&room)?;
+    let description = format!("{} has entered the building", user.username);
+    if world
+        .store
+        .update_room(room_id, |r| {
+            r.wallpaper = wallpaper;
+            r.floor = floor;
+            r.description = description;
+        })?
+        .is_none()
+    {
+        return Ok(false);
+    }
+    let def = |sprite: &str| {
+        world
+            .items
+            .definition_by_sprite(sprite)
+            .map(|d| d.record.id)
+            .ok_or_else(|| anyhow::anyhow!("no {sprite}"))
+    };
+    let mut w = world.store.write()?;
+    let mut stool = w.insert_item(
+        &rusbbo_storage::Item::with_defaults(
+            user_id,
+            def(&format!("noob_stool*{}", room_type + 1))?,
+            String::new(),
+            now,
+        ),
+        now,
+    )?;
+    stool.x = stool_x;
+    stool.y = stool_y;
+    stool.rotation = stool_rot;
+    stool.room_id = room_id as i32;
+    w.put_item(&stool)?;
+    w.insert_item(
+        &rusbbo_storage::Item::with_defaults(
+            user_id,
+            def(&format!("noob_table*{}", room_type + 1))?,
+            String::new(),
+            now,
+        ),
+        now,
+    )?;
+    let mut window = w.insert_item(
+        &rusbbo_storage::Item::with_defaults(
+            user_id,
+            def("noob_window_double")?,
+            String::new(),
+            now,
+        ),
+        now,
+    )?;
+    window.wall_position = ":w=3,0 l=13,71 r".into();
+    window.room_id = room_id as i32;
+    w.put_item(&window)?;
+    w.update_user(user_id, |u| u.selected_room_id = room_id as i32)?;
+    w.commit()?;
+    Ok(true)
 }
 
 /// Java: `GroupMemberDao.countMembers`.

@@ -67,6 +67,9 @@ struct Cli {
     /// Re-read the templates on every request (for editing them).
     #[arg(long)]
     web_reload_templates: bool,
+    /// The figure data the website validates looks with (Havana's `tools/figuredata.xml`).
+    #[arg(long, value_name = "FILE", default_value = "tools/figuredata.xml")]
+    web_figuredata: PathBuf,
 }
 
 #[tokio::main]
@@ -125,6 +128,7 @@ async fn main() -> Result<()> {
                 template_name: cli.web_template_name.clone(),
                 site_dir: cli.web_site.clone(),
                 reload_templates: cli.web_reload_templates,
+                figuredata: cli.web_figuredata.clone(),
             },
             cli.http_rate_limit,
         ));

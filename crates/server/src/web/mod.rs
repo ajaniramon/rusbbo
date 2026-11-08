@@ -11,8 +11,10 @@
 #![allow(dead_code)]
 
 mod beans;
+mod captcha;
 mod controllers;
 pub mod data;
+pub mod figure;
 pub mod http;
 mod jdate;
 mod mime;
@@ -46,6 +48,8 @@ pub struct WebConfig {
     pub site_dir: PathBuf,
     /// Re-read templates on every request.
     pub reload_templates: bool,
+    /// `figuredata.xml` (Java reads it from its working directory).
+    pub figuredata: PathBuf,
 }
 
 /// The web server's shared state.
@@ -54,12 +58,14 @@ pub struct Web {
     pub config: WebConfig,
     pub engine: Engine,
     pub sessions: Sessions,
+    pub figures: figure::Figures,
     locale: RwLock<Option<(std::time::SystemTime, Arc<rusbbo_pebble::Map>)>>,
     pub api_limiter: crate::ticket_api::RateLimiter,
 }
 
 impl Web {
     pub fn new(world: Arc<World>, config: WebConfig, api_rate_limit: u32) -> Self {
+        let figures = figure::Figures::load(&config.figuredata);
         let engine = Engine::new(config.template_dir.join(&config.template_name))
             .with_reload(config.reload_templates);
         Self {
@@ -67,6 +73,7 @@ impl Web {
             config,
             engine,
             sessions: Sessions::default(),
+            figures,
             locale: RwLock::new(None),
             api_limiter: crate::ticket_api::RateLimiter::new(api_rate_limit),
         }

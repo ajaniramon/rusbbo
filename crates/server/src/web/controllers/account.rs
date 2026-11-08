@@ -128,3 +128,97 @@ pub fn login_popup(conn: &mut Conn) -> WebResult {
     conn.session().delete("alertMessage");
     Ok(())
 }
+
+/// `/welcome`: the room selection page after registering.
+pub fn welcome(conn: &mut Conn) -> WebResult {
+    xss_clear(conn);
+    if !conn.is_authenticated() {
+        conn.redirect("/");
+        return Ok(());
+    }
+    let tpl = conn.template("welcome");
+    let Some(user) = conn.world().store.user(conn.user_id())? else {
+        return Err(crate::web::WebError("welcome: no user".into()));
+    };
+    if crate::web::data::active_ban(conn.world(), &user).is_some() {
+        conn.redirect("/account/banned");
+        return Ok(());
+    }
+    if !crate::web::data::can_select_room(conn.world(), &user) {
+        conn.redirect("/me");
+        return Ok(());
+    }
+    conn.session().set("page", "welcome");
+    conn.render(tpl)
+}
+
+/// `/account/reauthenticate`: the password again before the client opens.
+pub fn reauthenticate(conn: &mut Conn) -> WebResult {
+    xss_clear(conn);
+    if !conn.is_authenticated() {
+        conn.redirect("/");
+        return Ok(());
+    }
+    if !conn.post.is_empty() {
+        let name = conn
+            .world()
+            .store
+            .user(conn.user_id())?
+            .map(|u| u.username)
+            .unwrap_or_default();
+        let password = conn.post.string("password");
+        if login(conn, &name, &password, false) {
+            let target = conn
+                .session()
+                .string("clientRequest")
+                .unwrap_or_else(|| "/me".into());
+            conn.redirect(&target);
+            return Ok(());
+        }
+    }
+    conn.session().set("page", "reauthenticate");
+    let tpl = conn.template("account/reauthenticate");
+    conn.render(tpl)?;
+    conn.session().delete("alertMessage");
+    Ok(())
+}
+
+/// `/account/banned`.
+pub fn banned(conn: &mut Conn) -> WebResult {
+    xss_clear(conn);
+    if !conn.is_authenticated() {
+        conn.redirect("/");
+        return Ok(());
+    }
+    conn.session().delete("lastBrowsedPage");
+    let mut tpl = conn.template("account/banned");
+    let Some(user) = conn.world().store.user(conn.user_id())? else {
+        return Err(crate::web::WebError("banned: no user".into()));
+    };
+    let Some(ban) = crate::web::data::active_ban(conn.world(), &user) else {
+        conn.redirect("/me");
+        return Ok(());
+    };
+    conn.session().set("page", "banned");
+    let site_name = crate::web::data::cfg_string(conn.world(), "site.name");
+    tpl.set(
+        "bannedMsg",
+        format!(
+            "You have been banned from {site_name}. The reason for the ban is \"{}\". The ban will expire at {}.",
+            ban.message,
+            crate::web::jdate::format(ban.banned_until, crate::web::jdate::LONG_DATE)
+        ),
+    );
+    conn.render(tpl)?;
+    if conn.cookie(super::MACHINE_ID_COOKIE) != Some(user.machine_id.as_str())
+        && !user.machine_id.trim().is_empty()
+    {
+        conn.set_cookie(
+            super::MACHINE_ID_COOKIE,
+            &user.machine_id.replace('#', ""),
+            Some(2 * 86_400),
+        );
+    }
+    logout_session(conn);
+    Ok(())
+}

@@ -51,3 +51,24 @@ pub struct User {
     pub home_room: i32,
     pub has_flash_warning: bool,
 }
+
+impl User {
+    /// A new `users` row with the columns' defaults (credits 50, rank 1, the privacy and sound
+    /// switches on, 3 daily respect points, the Flash warning on).
+    pub fn table_defaults() -> Self {
+        User {
+            sex: "M".into(),
+            credits: 50,
+            rank: 1,
+            allow_stalking: true,
+            allow_friend_requests: true,
+            online_status_visible: true,
+            profile_visible: true,
+            wordfilter_enabled: true,
+            sound_enabled: true,
+            daily_respect_points: 3,
+            has_flash_warning: true,
+            ..Default::default()
+        }
+    }
+}

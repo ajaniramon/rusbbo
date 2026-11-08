@@ -4,8 +4,11 @@
 mod account;
 mod api;
 mod client;
+mod habblets;
 mod me;
 mod minimail;
+mod recovery;
+mod register;
 mod site;
 
 use super::routes_table::HOUSEKEEPING_PATH;
@@ -145,6 +148,22 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "AccountController::submit" => account::submit(conn)?,
         "AccountController::securityCheck" => account::security_check(conn)?,
         "AccountController::me" => me::me(conn)?,
+        "AccountController::welcome" => account::welcome(conn)?,
+        "AccountController::reauthenticate" => account::reauthenticate(conn)?,
+        "AccountController::banned" => account::banned(conn)?,
+        "RegisterController::register" => register::register(conn)?,
+        "RegisterController::registerCancelled" => register::cancelled(conn)?,
+        "RegisterController::captcha" => register::captcha_image(conn)?,
+        "RecoveryController::forgot" => recovery::forgot(conn)?,
+        "RecoveryController::recovery" => recovery::recovery(conn)?,
+        "RecoveryController::activate" => recovery::activate(conn)?,
+        "RoomSelectionController::confirm" => habblets::room_selection_confirm(conn)?,
+        "RoomSelectionController::create" => habblets::room_selection_create(conn)?,
+        "RoomSelectionController::hide" => habblets::room_selection_hide(conn)?,
+        "FeedController::removeFeedItem" => habblets::remove_feed_item(conn)?,
+        "FeedController::nextgift" => habblets::next_gift(conn)?,
+        "FeedController::giftqueueHide" => habblets::gift_queue_hide(conn)?,
+        "NameCheckController::namecheck" => habblets::name_check(conn)?,
         "ClientController::shockwaveclient" => client::shockwave_client(conn)?,
         "ClientController::flashClient" => client::flash_client(conn)?,
         "ClientController::betaClient" => client::beta_client(conn)?,

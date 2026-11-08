@@ -1,0 +1,63 @@
+description = "Picking the pre-decorated room from /me (the room, its furni and the beginner gift timer), the gift habblets, the name check and the e-mail pages with SMTP off"
+mask = ['<em class="tag-question">[^<]*</em>', 'sso\.ticket=[^"&;]*', '"sso.ticket", "[^"]*"', 'ssoTicket[^\n]*', 'newbieGiftSeconds = \d+', 'giftSeconds[^\n]*', 'id="gift-countdown"[^\n]*', 'secondsLeft[^\n]*', 'GiftQueueHabblet\.init\(\d+\)']
+
+[[step]]
+post = "/habblet/ajax/namecheck"
+form = { name = "tracepass" }
+
+[[step]]
+post = "/habblet/ajax/namecheck"
+form = { name = "admin" }
+
+[[step]]
+post = "/habblet/ajax/namecheck"
+form = { name = "new_name" }
+
+[[step]]
+post = "/habblet/ajax/namecheck"
+form = { name = "brandnew" }
+
+[[step]]
+get = "/account/password/forgot"
+
+[[step]]
+get = "/account/activate?id=1&code=x"
+
+[[step]]
+post = "/account/submit"
+form = { username = "tracepass", password = "tracepass123" }
+
+[[step]]
+post = "/habblet/ajax/roomselectionConfirm"
+
+[[step]]
+post = "/habblet/ajax/roomselectionCreate"
+form = { roomType = "2" }
+
+[[step]]
+get = "/client?createRoom=2"
+
+[[step]]
+get = "/shockwave_client?createRoom=2"
+
+[[step]]
+get = "/shockwave_client?createRoom=3"
+
+[[step]]
+get = "/me"
+
+[[step]]
+post = "/habblet/ajax/nextgift"
+
+[[step]]
+post = "/habblet/ajax/giftqueueHide"
+
+[[step]]
+post = "/habblet/ajax/removeFeedItem"
+form = { feedItemIndex = "0" }
+
+[[step]]
+post = "/habblet/ajax/roomselectionHide"
+
+[[step]]
+get = "/welcome"
