@@ -47,6 +47,8 @@ pub struct World {
     pub wordfilter: WordFilter,
     /// Java: `CallForHelpManager`.
     pub cfh: crate::game::moderation::cfh::CallForHelpManager,
+    /// Java: `InfobusManager`.
+    pub infobus: crate::game::infobus::InfobusManager,
     /// Set once the world is in its `Arc`, so room tasks can hold on to it.
     self_ref: OnceLock<Weak<World>>,
 }
@@ -84,6 +86,7 @@ impl World {
             walkways,
             wordfilter,
             cfh: Default::default(),
+            infobus: Default::default(),
             self_ref: OnceLock::new(),
         })
     }

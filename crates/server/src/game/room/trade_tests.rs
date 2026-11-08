@@ -57,6 +57,8 @@ fn room() -> Room {
         idol: Default::default(),
         gamehall: Default::default(),
         camera: None,
+        wobble: None,
+        space_cafe: None,
         queue_after_loop: Vec::new(),
         deleted: false,
     }

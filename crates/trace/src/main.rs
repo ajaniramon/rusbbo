@@ -36,6 +36,10 @@ enum Cmd {
         /// Game server address.
         #[arg(long, default_value = "127.0.0.1:12321")]
         target: String,
+        /// The server's RCON address, for `rcon` steps; by default the target's port minus 12
+        /// (Java's defaults: game 12321, RCON 12309).
+        #[arg(long)]
+        rcon: Option<String>,
         /// Shell command that restores the server to a clean state, run before every recording.
         #[arg(long)]
         reset: Option<String>,
@@ -53,6 +57,9 @@ enum Cmd {
         traces: Vec<PathBuf>,
         #[arg(long, default_value = "127.0.0.1:12321")]
         target: String,
+        /// The server's RCON address (see `record`).
+        #[arg(long)]
+        rcon: Option<String>,
         /// Shell command that restores the server to a clean state, run before every trace.
         #[arg(long)]
         reset: Option<String>,
@@ -77,6 +84,7 @@ fn run(cli: Cli) -> Result<bool> {
         Cmd::Record {
             scenarios,
             target,
+            rcon,
             reset,
             runs,
             out_dir,
@@ -85,19 +93,22 @@ fn run(cli: Cli) -> Result<bool> {
                 bail!("--runs must be at least 1");
             }
             std::fs::create_dir_all(&out_dir)?;
+            let rcon = rcon_address(&target, rcon)?;
             for path in scenarios {
-                record(&path, &target, reset.as_deref(), runs, &out_dir)?;
+                record(&path, &target, &rcon, reset.as_deref(), runs, &out_dir)?;
             }
             Ok(true)
         }
         Cmd::Check {
             traces,
             target,
+            rcon,
             reset,
         } => {
+            let rcon = rcon_address(&target, rcon)?;
             let mut all_ok = true;
             for path in traces {
-                all_ok &= check_trace(&path, &target, reset.as_deref())?;
+                all_ok &= check_trace(&path, &target, &rcon, reset.as_deref())?;
             }
             Ok(all_ok)
         }
@@ -106,6 +117,16 @@ fn run(cli: Cli) -> Result<bool> {
             Ok(true)
         }
     }
+}
+
+/// `--rcon`, or the target's host with its port minus 12.
+fn rcon_address(target: &str, rcon: Option<String>) -> Result<String> {
+    if let Some(rcon) = rcon {
+        return Ok(rcon);
+    }
+    let (host, port) = target.rsplit_once(':').context("--target needs a port")?;
+    let port: u16 = port.parse().context("--target port")?;
+    Ok(format!("{host}:{}", port.saturating_sub(12)))
 }
 
 fn reset_server(cmd: Option<&str>) -> Result<()> {
@@ -124,17 +145,19 @@ fn reset_server(cmd: Option<&str>) -> Result<()> {
 
 fn execute(
     target: &str,
+    rcon: &str,
     reset: Option<&str>,
     encrypted: &[bool],
     steps: &[Step],
 ) -> Result<Vec<StepOutput>> {
     reset_server(reset)?;
-    Runner::new(target, encrypted).run(steps)
+    Runner::new(target, rcon, encrypted).run(steps)
 }
 
 fn record(
     path: &Path,
     target: &str,
+    rcon: &str,
     reset: Option<&str>,
     runs: usize,
     out_dir: &Path,
@@ -145,7 +168,7 @@ fn record(
     let mut outputs = Vec::new();
     for run in 1..=runs {
         eprintln!("[record] {} run {run}/{runs}", scenario.name);
-        let out = execute(target, reset, &encrypted, &steps)?;
+        let out = execute(target, rcon, reset, &encrypted, &steps)?;
         for (i, s) in out.iter().enumerate() {
             if !s.missing.is_empty() {
                 eprintln!(
@@ -190,10 +213,10 @@ fn load_trace(path: &Path) -> Result<Trace> {
     Ok(trace)
 }
 
-fn check_trace(path: &Path, target: &str, reset: Option<&str>) -> Result<bool> {
+fn check_trace(path: &Path, target: &str, rcon: &str, reset: Option<&str>) -> Result<bool> {
     let trace = load_trace(path)?;
     let steps = trace.steps()?;
-    let outputs = execute(target, reset, &trace.encrypted_flags(), &steps)?;
+    let outputs = execute(target, rcon, reset, &trace.encrypted_flags(), &steps)?;
     let mismatches = check::compare(&trace, &outputs);
     let failed_steps: std::collections::BTreeSet<usize> =
         mismatches.iter().map(|m| m.step).collect();
@@ -217,6 +240,10 @@ fn step_label(action: &TraceAction) -> String {
         TraceAction::Disconnect => "disconnect".into(),
         TraceAction::Send { header, name, .. } => {
             name.clone().unwrap_or_else(|| format!("#{header}"))
+        }
+        TraceAction::Rcon { rcon, values } => {
+            let values: Vec<String> = values.iter().map(|(k, v)| format!("{k}={v}")).collect();
+            format!("rcon {rcon} {}", values.join(" "))
         }
     }
 }

@@ -132,9 +132,8 @@ pub fn splash_position(
 }
 
 /// Java: `BTCKS`: Lido tickets for oneself or as a gift: 2 for 1 credit (mode 1) or 20 for 6.
-/// The tickets and the charge are one transaction (Java writes them one after the other).
-///
-/// TODO(games): in Rooftop Rumble a buyer on the Wobble Squabble queue joins it.
+/// The tickets and the charge are one transaction (Java writes them one after the other). In
+/// Rooftop Rumble a buyer standing on a Wobble Squabble join tile then joins the bridge.
 pub fn btcks(
     world: &World,
     session: &Arc<Session>,
@@ -219,12 +218,24 @@ pub fn btcks(
             }
         }
     }
-    if let Some(room) = own_room.and_then(|id| world.loaded_room(id)) {
+    let own_room = own_room.and_then(|id| world.loaded_room(id));
+    if let Some(room) = &own_room {
         let mut r = room.lock();
         if let Some(idx) = r.entity_index(session.id) {
             r.reset_room_timer(world, idx);
         }
     }
     session.send(user::credit_balance(credits));
+    // Java: join the queue after buying tickets.
+    if let Some(room) = own_room.filter(|r| r.model_name == "md_a") {
+        let deferred = {
+            let mut r = room.lock();
+            if let Some(idx) = r.entity_index(session.id) {
+                r.wobble_join_after_buying(world, idx);
+            }
+            r.take_deferred()
+        };
+        run_deferred(world, deferred);
+    }
     Ok(())
 }

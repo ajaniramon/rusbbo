@@ -4,10 +4,11 @@
 //!
 //! The pool rooms are public rooms with the models `pool_a` (Habbo Lido: changing booths,
 //! ladders), `pool_b` (Lido B: ladders, the diving queue, lift and camera) and `md_a` (Rooftop
-//! Rumble, whose booths work like the Lido's; its Wobble Squabble is TODO(games)). Their special
-//! tiles are public items: `poolBooth`, `poolLift`, `poolEnter`/`poolExit` (the ladders, with
-//! `teleport_to` and `swim_to`) and `queue_tile2`. Java's `PoolExitInteractor` is not used by
-//! any item (`poolExit` gets the ladder interactor too), so it is not ported.
+//! Rumble, whose booths work like the Lido's and whose camera is Lido B's; its Wobble Squabble is
+//! in `wobble_squabble`). Their special tiles are public items: `poolBooth`, `poolLift`,
+//! `poolEnter`/`poolExit` (the ladders, with `teleport_to` and `swim_to`) and `queue_tile2`.
+//! Java's `PoolExitInteractor` is not used by any item (`poolExit` gets the ladder interactor
+//! too), so it is not ported.
 
 use std::time::Duration;
 
@@ -128,7 +129,7 @@ impl Room {
 
     /// Java: `CurrencyDao.decreaseTickets(details, 1)`: nothing is taken from an empty balance.
     /// The stored balance goes to the entity now and to the player once the room is released.
-    fn decrease_tickets(&mut self, world: Option<&World>, idx: usize) -> i32 {
+    pub(super) fn decrease_tickets(&mut self, world: Option<&World>, idx: usize) -> i32 {
         let e = &self.entities[idx];
         let amount = if e.details.tickets <= 0 { 0 } else { 1 };
         let user_id = e.details.user_id;
@@ -405,13 +406,15 @@ impl Room {
         }
     }
 
-    /// Java: `HabboLidoTrigger.onRoomEntry` and `DivingDeckTrigger.onRoomEntry` (`G_STAT`) for
-    /// the player at `idx`.
+    /// Java: `HabboLidoTrigger.onRoomEntry`, `DivingDeckTrigger.onRoomEntry` and
+    /// `RooftopRumbleTrigger.onRoomEntry` (`G_STAT`) for the player at `idx`. Rooftop Rumble has
+    /// Lido B's camera too.
     pub(super) fn pool_room_entry(&mut self, world: &World, idx: usize) {
         if !self.entities[idx].is_player() {
             return;
         }
-        if self.model.trigger == "diving_deck_trigger" {
+        let trigger = self.model.trigger.as_str();
+        if trigger == "diving_deck_trigger" || trigger == "rooftop_rumble_trigger" {
             let session = self.entities[idx].session.clone();
             match &self.camera {
                 Some(camera) => {
@@ -426,6 +429,9 @@ impl Room {
                 None => self.start_camera(world),
             }
         }
+        if self.model.trigger == "rooftop_rumble_trigger" {
+            return;
+        }
         // Coming from the other pool through the water.
         let e = &mut self.entities[idx];
         if e.position.z == 1.0 {
@@ -434,10 +440,14 @@ impl Room {
         }
     }
 
-    /// Java: `DivingDeckTrigger.onRoomLeave`, once `session_id` left: the camera finds someone
-    /// else to watch.
+    /// Java: `DivingDeckTrigger.onRoomLeave` and `RooftopRumbleTrigger.onRoomLeave`, once
+    /// `session_id` left: the camera finds someone else to watch.
     pub(super) fn pool_room_leave(&mut self, session_id: u64) {
-        if self.model.trigger != "diving_deck_trigger" || self.players() == 0 {
+        let trigger = self.model.trigger.as_str();
+        if trigger != "diving_deck_trigger" && trigger != "rooftop_rumble_trigger" {
+            return;
+        }
+        if self.players() == 0 {
             return;
         }
         // TODO(pool): Java throws (and the rest of leaveRoom is skipped) when nobody ever sent

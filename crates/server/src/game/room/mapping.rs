@@ -4,6 +4,7 @@
 //! Entities are referred to by their instance id, which is unique within a room.
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::game::pathfinder::{Position, Walker};
 use crate::game::room::items::{Behaviour, Interaction, Item};
@@ -68,6 +69,9 @@ pub struct RoomMapping {
     pub is_public: bool,
     /// Walkway arrival tiles of this room (Java: `WalkwaysManager.getDestination`).
     pub walkway_destinations: Vec<Position>,
+    /// `park_a` only: whether the Infobus's door is open (Java: `InfobusManager.isDoorOpen`).
+    /// While it is closed nobody may walk onto the door tile.
+    pub bus_door: Option<Arc<AtomicBool>>,
     /// Indexed `x * size_y + y`; empty until the first [`RoomMapping::regenerate`].
     tiles: Vec<RoomTile>,
 }
@@ -79,6 +83,7 @@ impl RoomMapping {
             items: Vec::new(),
             is_public,
             walkway_destinations: Vec::new(),
+            bus_door: None,
             tiles: Vec::new(),
         }
     }
@@ -399,7 +404,11 @@ pub fn is_valid_tile(map: &RoomMapping, walker: Option<&Walker>, p: Position) ->
     };
     let highest = tile.highest_item.map(|i| &map.items[i]);
     if let Some(walker) = walker {
-        // TODO(infobus): park_a blocks the bus door while it is closed.
+        if let Some(door) = &map.bus_door {
+            if !door.load(Ordering::Relaxed) && p == crate::game::infobus::door_position() {
+                return false;
+            }
+        }
         if let Some(item) = highest {
             if item.sprite == "poolExit" && item.position == Position::new(19, 19) {
                 return walker.swimming;

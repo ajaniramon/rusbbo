@@ -1,0 +1,254 @@
+name = "wobble-squabble"
+description = "Rooftop Rumble's Wobble Squabble: the join tiles (walked onto, or warped onto in teleport mode) warp a player onto the bridge (wsJoinQueue), the queue tiles walk them on (wsQueueTile), the second player on a start tile (wsTileStart) starts a game (PT_PREPARE, PT_START 3 s later), moves (PTM) and PT_STATUS every 200 ms: walking, the ends of the bridge, hits, rebalancing once, WALK ignored, then a falls (PT_WIN), and 1.5 s later PT_END, a ticket from each and the loser in the water"
+
+# Rooftop Rumble is room 38 (md_a, door 3,4). Its pool is reached through the ladder at 11,11
+# (needs a pool figure: SWIMSUIT), and the bridge (column 21, height 8) through the join tiles
+# 21,19 and 21,7, which warp to 21,18 and 21,8. a (tracebot1) goes that way; b is tracemod, a
+# moderator, who uses :teleport so that WALK warps straight onto the join tile (the join tile
+# switches teleport mode off again), which keeps a's connection well under Java's 60 s PING.
+# Nobody sends G_STAT: that would add Jem (an NPC) and start the random camera. The balance
+# changes of BALANCE_LEFT/RIGHT and hits are random (Java's ThreadLocalRandom), so those steps
+# check PT_STATUS by header only; every other PT_STATUS is exact.
+# Java's RooftopRumbleTrigger.onRoomLeave throws while the room's camera task does not exist (it
+# starts with the first G_STAT), skipping the rest of leaveRoom (no LOGOUT, the tile stays taken).
+# A real client always sends G_STAT, so the port does not do that, and b sends one before a leaves;
+# both leave within the 3 s before the camera's first (random) shot.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-22"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "SWIMSUIT"
+args = [{ raw = "ch=s02/238,238,238" }]
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [11, 11]
+settle_ms = 1200
+note = "Down the ladder into the water, on to 13,11"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [21, 19]
+settle_ms = 1200
+note = "The join tile warps a to 21,18 (out of the water); the queue tiles walk a on to the start tile 21,15"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "ROOM_DIRECTORY"
+args = [true, 38]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "CHAT"
+args = [":teleport"]
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [21, 7]
+settle_ms = 1200
+note = "b warps onto the join tile, then to 21,8, and walks to the other start tile 21,11: PT_PREPARE (a is player 0, on 21,15)"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [8]
+wait_for = ["PT_START"]
+settle_ms = 400
+note = "Move 8 is no move; PT_START 3 s after PT_PREPARE"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [6]
+settle_ms = 400
+note = "a steps back: -3 to -2"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "a steps forward: -2 to -3"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "a cannot go past -3: no move"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "b steps forward: 4 to 3"
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [21, 13]
+settle_ms = 400
+note = "WALK is ignored on the bridge"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "3 to 2"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "2 to 1"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "1 to 0"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "0 to -1"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [6]
+settle_ms = 400
+note = "a steps back to -2, next to b"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [5]
+settle_ms = 400
+note = "b cannot step onto a: no move"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [3]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+note = "b hits a (within 2): a's balance changes at random and a is hit"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [7]
+settle_ms = 400
+note = "a rebalances: balance 0"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [7]
+settle_ms = 400
+note = "only once: no change"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [6]
+settle_ms = 400
+note = "b steps back: -1 to 0"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [6]
+settle_ms = 400
+note = "0 to 1"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [4]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+note = "b hits the air (3 away): b's own balance changes at random"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [7]
+settle_ms = 400
+note = "b rebalances: balance 0"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+note = "a leans left"
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [1]
+settle_ms = 400
+header_only = ["PT_STATUS"]
+note = "a leans left again"
+
+
+[[steps]]
+bot = "a"
+send = "PTM"
+args = [1]
+settle_ms = 2200
+header_only = ["PT_STATUS"]
+note = "a falls: PT_WIN for b; 1.5 s later PT_END, a ticket from b and from a, and a thrown into the water at 20,15"
+
+[[steps]]
+bot = "b"
+send = "PTM"
+args = [1]
+note = "The game is over: no move"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+note = "Jem joins and the camera is scheduled, so leaving works (see the header)"
+
+[[steps]]
+bot = "a"
+disconnect = true
+
+[[steps]]
+bot = "b"
+disconnect = true

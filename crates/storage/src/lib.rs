@@ -11,6 +11,7 @@
 
 mod bots;
 mod catalogue;
+mod infobus;
 mod items;
 mod messenger;
 mod moderation;
@@ -34,6 +35,7 @@ use serde::de::DeserializeOwned;
 
 pub use bots::RoomBot;
 pub use catalogue::{CatalogueItem, CataloguePackage, CataloguePage, CatalogueSaleBadge};
+pub use infobus::InfobusPoll;
 pub use items::{Item, ItemDefinition};
 pub use messenger::{MessengerCategory, MessengerMessage, SEARCH_LIMIT};
 pub use moderation::{AuditLogEntry, Ban, BanType, IpLog};
@@ -166,6 +168,7 @@ impl Store {
             bots::create_tables(&tx)?;
             rooms::create_tables(&tx)?;
             catalogue::create_tables(&tx)?;
+            infobus::create_tables(&tx)?;
             items::create_tables(&tx)?;
             messenger::create_tables(&tx)?;
             moodlight::create_tables(&tx)?;

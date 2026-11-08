@@ -360,8 +360,18 @@ pub fn g_stat(
     let Some(room) = current_room(world, session) else {
         return Ok(());
     };
+    // Java: InfobusParkTrigger sends what the bus queued for the player after the door's state.
+    let is_park = room.lock().model.trigger == "infobus_park";
+    let queued = if is_park {
+        std::mem::take(&mut session.player.lock().packet_queue_after_room_leave)
+    } else {
+        Vec::new()
+    };
     let mut r = room.lock();
     r.try_room_entry(world, session.id);
+    for msg in queued {
+        session.send(msg);
+    }
     let model = r.model.name.clone();
     session.send(out_user::user_objects(&r.entities, &model));
     let own = r.entity_index(session.id);

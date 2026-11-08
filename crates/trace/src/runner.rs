@@ -128,6 +128,8 @@ fn substitute_game_id(body: &[u8], game_id: Option<&[u8]>) -> Vec<u8> {
 
 pub struct Runner {
     target: String,
+    /// The server's RCON port, for `rcon` steps.
+    rcon: String,
     bots: Vec<Bot>,
     tx: Sender<Event>,
     rx: Receiver<Event>,
@@ -135,10 +137,11 @@ pub struct Runner {
 
 impl Runner {
     /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport.
-    pub fn new(target: &str, encrypted: &[bool]) -> Self {
+    pub fn new(target: &str, rcon: &str, encrypted: &[bool]) -> Self {
         let (tx, rx) = channel();
         Self {
             target: target.to_string(),
+            rcon: rcon.to_string(),
             bots: encrypted
                 .iter()
                 .map(|&encrypted| Bot {
@@ -184,6 +187,12 @@ impl Runner {
                     None => frame,
                 };
                 stream.write_all(&frame)?;
+            }
+            Action::Rcon { header, values } => {
+                let mut stream = TcpStream::connect(&self.rcon)
+                    .with_context(|| format!("connecting to RCON at {}", self.rcon))?;
+                stream.write_all(&rcon_frame(header, values))?;
+                let _ = stream.shutdown(Shutdown::Both);
             }
         }
         Ok(self.collect(step))
@@ -294,6 +303,26 @@ impl Runner {
         out.missing = pending;
         out
     }
+}
+
+/// Java: what `RconNetworkDecoder` reads: a 4-byte big-endian length, then the header, the number
+/// of parameters and each key and value, every string as a 4-byte length and its bytes.
+pub fn rcon_frame(header: &str, values: &std::collections::BTreeMap<String, String>) -> Vec<u8> {
+    fn string(out: &mut Vec<u8>, s: &str) {
+        let bytes = havana_protocol::body::latin1(s);
+        out.extend_from_slice(&(bytes.len() as i32).to_be_bytes());
+        out.extend_from_slice(&bytes);
+    }
+    let mut payload = Vec::new();
+    string(&mut payload, header);
+    payload.extend_from_slice(&(values.len() as i32).to_be_bytes());
+    for (key, value) in values {
+        string(&mut payload, key);
+        string(&mut payload, value);
+    }
+    let mut out = (payload.len() as i32).to_be_bytes().to_vec();
+    out.extend(payload);
+    out
 }
 
 impl Drop for Runner {

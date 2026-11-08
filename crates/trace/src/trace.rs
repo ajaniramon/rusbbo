@@ -63,6 +63,12 @@ pub enum TraceAction {
         name: Option<String>,
         body: String,
     },
+    /// An RCON message to the server's RCON port.
+    Rcon {
+        rcon: String,
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        values: BTreeMap<String, String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -366,6 +372,10 @@ fn trace_action(action: &Action) -> TraceAction {
             name: ids::client_name(*header).map(str::to_string),
             body: escape::to_text(body),
         },
+        Action::Rcon { header, values } => TraceAction::Rcon {
+            rcon: header.clone(),
+            values: values.clone(),
+        },
     }
 }
 
@@ -395,6 +405,10 @@ impl Trace {
                         header: *header,
                         body: escape::from_text(body)
                             .ok_or_else(|| anyhow::anyhow!("body is not ISO-8859-1"))?,
+                    },
+                    TraceAction::Rcon { rcon, values } => Action::Rcon {
+                        header: rcon.clone(),
+                        values: values.clone(),
                     },
                 };
                 Ok(Step {
