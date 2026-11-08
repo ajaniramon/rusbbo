@@ -87,7 +87,9 @@ pub fn trade_open(
             session.send(out::trade_already_open());
             return Ok(());
         }
-        // TODO(maintenance): INFO_HOTEL_CLOSING while the hotel is in maintenance.
+        if crate::game::maintenance::tell_closing(session) {
+            return Ok(());
+        }
         r.trade_open(idx, partner);
         r.take_deferred()
     };

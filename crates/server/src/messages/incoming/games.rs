@@ -299,10 +299,15 @@ pub fn initiate_join_game(
             let gp = &games.games[cgi].players[cpi];
             if gp.spectator || gp.game_id != instance_id {
                 let serial = gp.serial;
-                // Java's leaveGame on the game the game player's id names. TODO(games): a
-                // spectator whose game restarted (a stale id) names no game or another one.
-                if let Some((target, Some(_))) = games.current_game(session.id) {
-                    games.leave_game(target, serial, op);
+                // Java's leaveGame on the game the game player's id names, if any: their own, or
+                // another one for a spectator whose game's id went stale (where that throws, the
+                // join ends there).
+                match games.current_game(session.id) {
+                    Some((target, Some(_))) => games.leave_game(target, serial, op),
+                    Some((target, None)) if !games.leave_other_game(target, cgi, cpi, op) => {
+                        return;
+                    }
+                    _ => {}
                 }
                 games.set_current(session.id, None);
                 if games.game_by_id(instance_id).is_none() {

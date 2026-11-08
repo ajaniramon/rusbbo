@@ -71,7 +71,8 @@ impl Room {
             Interaction::StepLight => self.step_light_step(item),
             Interaction::PoolLadder => self.pool_ladder_step(idx, item),
             Interaction::PoolQueue => self.pool_queue_step(idx, old),
-            // TODO(games): Wobble Squabble (the game-hall triggers have no onEntityStep).
+            // Every other trigger's `onEntityStep` is empty in Java (Wobble Squabble's, the game
+            // halls').
             _ => {}
         }
     }

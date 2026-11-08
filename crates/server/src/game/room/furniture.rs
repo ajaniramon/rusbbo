@@ -327,7 +327,7 @@ impl Room {
     }
 
     /// Java: `RoomMapping.sendMap`.
-    fn send_map(&self) {
+    pub(crate) fn send_map(&self) {
         self.send(out_rooms::heightmap_update(
             &self.mapping.heightmap_update(),
         ));

@@ -2,8 +2,7 @@
 //!
 //! A command is a table entry: its aliases, the lowest rank that may run it, the names of its
 //! required arguments and a handler. [`commands`] lists them in the order of
-//! `CommandManager.getCommands`. The staff commands are in [`staff`]; `bot` and `shutdown`
-//! are listed but do nothing yet (TODO(commands), see `staff::not_ported`).
+//! `CommandManager.getCommands`. The staff commands are in [`staff`].
 
 pub mod registered;
 pub mod staff;

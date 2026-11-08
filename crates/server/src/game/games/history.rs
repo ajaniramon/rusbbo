@@ -337,8 +337,8 @@ fn game_finish_task(world: &World, work: &FinishWork) {
                 let winner = has_winner && sorted[0].players.contains(&player.serial);
                 let credits = random_credits(world, winner);
                 if credits > 0 {
-                    // TODO(scheduler): Java queues the credits for the next game tick.
-                    give_credits(world, &mut p, &player.session, credits);
+                    // Java: handed out on the next game tick.
+                    crate::game::scheduler::queue_credits(&player.session, credits);
                 }
             }
         }
@@ -424,31 +424,6 @@ fn random_credits(world: &World, winner: bool) -> i32 {
     } else {
         0
     }
-}
-
-/// Java: the scheduler's credits handout (`CurrencyDao.increaseCredits`, the daily coins flag
-/// cleared, `CREDIT_BALANCE`).
-fn give_credits(
-    world: &World,
-    p: &mut crate::game::player::Player,
-    session: &Session,
-    credits: i32,
-) {
-    let Some(details) = p.details.as_mut() else {
-        return;
-    };
-    match world.store.update_user(details.id, |u| {
-        u.credits += credits;
-        u.daily_coins_enabled = false;
-    }) {
-        Ok(Some(stored)) => details.credits = stored.credits,
-        Ok(None) => {}
-        Err(e) => error!(user = details.id, "game credits: {e}"),
-    }
-    details.daily_coins_enabled = false;
-    session.send(crate::messages::outgoing::user::credit_balance(
-        details.credits,
-    ));
 }
 
 #[cfg(test)]

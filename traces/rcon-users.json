@@ -1,0 +1,1228 @@
+{
+  "format": 1,
+  "scenario": "rcon-users",
+  "description": "The website's RCON messages about users and the hotel: hotel_alert (with and without its values, the header in capitals), user_alert, room_alert, refresh_credits, refresh_looks (USER_OBJECT, FIGURE_CHANGE to the room), refresh_club, refresh_hand, friendrequest (stored and sent once), refreshmessengercategories, refreshgroupperms (GROUP_MEMBERSHIP_UPDATE without a group), refreshcatalogue and refreshcataloguefrontpage (the catalogue index to everyone), the messages that only reload a manager, a user who is offline, an unknown header, and disconnect",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "409255882928753975342826\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#803C9B1A239F41628467D196E3094893\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISA",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "ballroom\u0002SA",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxx4444444444444444444\rxxxx4444444444444444444\rxxxx4444444444444444444\rxxxx33x2222444442222x33\rxxxx2222222x00xx2222222\rxxxx22222220000x2222222\rxxxx11x0000x000x0000x11\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxx0000000000000000000\r22210000000000000000000\r22210000000000000000000\r22210000000000000000000\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxxx000x11111111x0000x\rxxxxxx00x1111x111x000xx\rxxxxxxx0x11111111x00xxx\rxxxxxxxxx11111111x0xxxx\rxxxxxxxxx11111111xxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HQCRA0.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "989875601637284075747561\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#708FA287C51747FABF47522B6349C795\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISA",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "ballroom\u0002SA",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxx4444444444444444444\rxxxx4444444444444444444\rxxxx4444444444444444444\rxxxx33x2222444442222x33\rxxxx2222222x00xx2222222\rxxxx22222220000x2222222\rxxxx11x0000x000x0000x11\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxx0000000000000000000\r22210000000000000000000\r22210000000000000000000\r22210000000000000000000\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxxx000x11111111x0000x\rxxxxxx00x1111x111x000xx\rxxxxxxx0x11111111x00xxx\rxxxxxxxxx11111111x0xxxx\rxxxxxxxxx11111111xxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQCRA0.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HQCRA0.0\u0002PAIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IQCRA0.0\u0002PAIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHQCRA0.0\u0002PAPA/\u0002IQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "hotel_alert",
+      "values": {
+        "message": "The hotel closes at ten",
+        "sender": "Staff"
+      },
+      "note": "ALERT to everyone online",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The hotel closes at ten<br><br>- Staff\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The hotel closes at ten<br><br>- Staff\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "hotel_alert",
+      "note": "Without values: Java writes \"null\"",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "null<br><br>- null\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "null<br><br>- null\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "HOTEL_ALERT",
+      "values": {
+        "message": "Again",
+        "sender": "Staff"
+      },
+      "note": "Headers ignore case",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Again<br><br>- Staff\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Again<br><br>- Staff\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "user_alert",
+      "values": {
+        "message": "Only for you",
+        "userId": "2"
+      },
+      "note": "ALERT to b",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Only for you\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "user_alert",
+      "values": {
+        "message": "Nobody",
+        "userId": "99"
+      },
+      "note": "Not online: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "room_alert",
+      "values": {
+        "message": "Ballroom notice",
+        "roomId": "7"
+      },
+      "note": "ALERT to the room",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Ballroom notice\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "Ballroom notice\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "room_alert",
+      "values": {
+        "message": "Empty room",
+        "roomId": "8"
+      },
+      "note": "A room nobody is in: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_credits",
+      "values": {
+        "userId": "1"
+      },
+      "note": "CREDIT_BALANCE",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_looks",
+      "values": {
+        "userId": "1"
+      },
+      "note": "USER_OBJECT to a, FIGURE_CHANGE to the room",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 5,
+              "name": "USER_OBJECT",
+              "body": "1\u0002tracebot1\u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace bot one\u0002RB\u0002RBHHK",
+              "check": "exact"
+            },
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Hhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace bot one\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 266,
+              "name": "FIGURE_CHANGE",
+              "body": "Hhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002M\u0002trace bot one\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_club",
+      "values": {
+        "userId": "2"
+      },
+      "note": "CREDIT_BALANCE, RIGHTS and the club's days",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 7,
+              "name": "CLUB_INFO",
+              "body": "club_habbo\u0002HHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_hand",
+      "values": {
+        "userId": "1"
+      },
+      "note": "The hand again (in a room)",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "friendrequest",
+      "values": {
+        "friendId": "1",
+        "userId": "2"
+      },
+      "note": "FRIEND_REQUEST from b to a",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 132,
+              "name": "FRIEND_REQUEST",
+              "body": "Jtracebot2\u00022\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "friendrequest",
+      "values": {
+        "friendId": "1",
+        "userId": "2"
+      },
+      "note": "a has that request already: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "friendrequest",
+      "values": {
+        "friendId": "1",
+        "userId": "77"
+      },
+      "note": "No such user: Java throws, nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 12,
+      "name": "MESSENGERINIT",
+      "body": "",
+      "note": "The request is stored",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 12,
+              "name": "MESSENGER_INIT",
+              "body": "PYPYXVBHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshmessengercategories",
+      "values": {
+        "userId": "1"
+      },
+      "note": "Nothing changed: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshgroupperms",
+      "values": {
+        "userId": "1"
+      },
+      "note": "GROUP_MEMBERSHIP_UPDATE -1 -1 to the room",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 310,
+              "name": "GROUP_MEMBERSHIP_UPDATE",
+              "body": "HMM",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 310,
+              "name": "GROUP_MEMBERSHIP_UPDATE",
+              "body": "HMM",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshcatalogue",
+      "note": "The catalogue index to everyone",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshcataloguefrontpage",
+      "note": "The settings again, and the index to everyone",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshads",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshitemdefinitions",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshnavigator",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshroommodels",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshwordfilter",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshecotron",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshroombadges",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshstats",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_tags",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 350,
+              "name": "TAG_LIST",
+              "body": "IH",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 350,
+              "name": "TAG_LIST",
+              "body": "IH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "groupdeleted",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refreshgroup",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "clearphoto",
+      "values": {
+        "itemId": "5",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "nosuchheader",
+      "values": {
+        "groupId": "1",
+        "userId": "1"
+      },
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "refresh_credits",
+      "values": {
+        "userId": "x"
+      },
+      "note": "Not a number: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "disconnect",
+      "values": {
+        "userId": "2"
+      },
+      "note": "b's connection is closed; a sees b leave",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

@@ -131,6 +131,8 @@ pub struct Room {
     roller_task: Option<tokio::task::AbortHandle>,
     /// Java: `RoomTaskManager`'s RainbowTask (`:rainbow`), while it cycles the moodlight.
     rainbow_task: Option<tokio::task::AbortHandle>,
+    /// Java: `RoomTaskManager`'s BotCommandTask (`:bot`), from the first party bot on.
+    bot_party_task: Option<tokio::task::AbortHandle>,
     /// Bumped on every dispose request, so only the latest one runs.
     dispose_generation: u64,
     /// Java: the room's `BotTask` is scheduled (the room has bots).
@@ -212,6 +214,7 @@ impl Room {
                 task: None,
                 roller_task: None,
                 rainbow_task: None,
+                bot_party_task: None,
                 dispose_generation: 0,
                 bots_active: false,
                 is_room_muted: false,
@@ -269,6 +272,7 @@ impl Room {
                 task: None,
                 roller_task: None,
                 rainbow_task: None,
+                bot_party_task: None,
                 dispose_generation: 0,
                 bots_active: false,
                 is_room_muted: false,
@@ -581,6 +585,9 @@ impl Room {
             task.abort();
         }
         if let Some(task) = self.rainbow_task.take() {
+            task.abort();
+        }
+        if let Some(task) = self.bot_party_task.take() {
             task.abort();
         }
     }
@@ -954,6 +961,11 @@ impl Room {
         }
         self.invoke_item(Some(world), idx, false, None);
         None
+    }
+
+    /// Java: `invokeItem(null, false)` right after an entry (the RCON trade setting).
+    pub(crate) fn invoke_item_after_entry(&mut self, world: &World, idx: usize) {
+        self.invoke_item(Some(world), idx, false, None);
     }
 
     /// Java: `RoomEntity.invokeItem`: runs the trigger of the item the entity stopped on.
@@ -1724,6 +1736,7 @@ impl Room {
             task: None,
             roller_task: None,
             rainbow_task: None,
+            bot_party_task: None,
             dispose_generation: 0,
             bots_active: false,
             is_room_muted: false,

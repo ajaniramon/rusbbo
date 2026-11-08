@@ -384,11 +384,13 @@ impl Room {
         Some(handle.abort_handle())
     }
 
-    /// The instance id of a game's player in this room (Java: `getRoomUser().getInstanceId()`,
-    /// -1 once they left). TODO(games): Java gives the instance id they have in another room.
-    fn ws_instance_id(&self, session_id: u64) -> i32 {
-        self.entity_index(session_id)
-            .map_or(-1, |i| self.entities[i].instance_id)
+    /// The instance id of a game's player (Java: `getRoomUser().getInstanceId()`): theirs in
+    /// this room, or in the room they went to since, or -1 outside a room.
+    fn ws_instance_id(&self, session: &Session) -> i32 {
+        match self.entity_index(session.id) {
+            Some(i) => self.entities[i].instance_id,
+            None => session.instance_id(),
+        }
     }
 
     /// Java: `WobbleSquabbleGame.run`.
@@ -400,8 +402,11 @@ impl Room {
             return;
         }
         if !game.started {
-            let ids = [&game.players[0], &game.players[1]].map(|p| p.session.id);
-            let msg = out::pt_start(self.ws_instance_id(ids[0]), self.ws_instance_id(ids[1]));
+            let sessions = [&game.players[0], &game.players[1]].map(|p| p.session.clone());
+            let msg = out::pt_start(
+                self.ws_instance_id(&sessions[0]),
+                self.ws_instance_id(&sessions[1]),
+            );
             self.send(msg);
             let game = self.wobble.as_mut().expect("checked above");
             game.started = true;
@@ -479,9 +484,8 @@ impl Room {
         let player = &game.players[order];
         let (session, balance) = (player.session.clone(), player.balance);
         let Some(idx) = self.entity_index(session.id) else {
-            // Gone from the room: the ticket is still taken. TODO(games): Java also sets the
-            // player's walking, swimming and position wherever they are now.
-            self.defer(move |world| take_ticket_elsewhere(world, &session));
+            // Gone from the room: Java does the same wherever they are now.
+            self.defer(move |world| remove_elsewhere(world, &session, thrown, balance));
             return;
         };
         self.entities[idx].walking_allowed = true;
@@ -589,7 +593,11 @@ fn save_statistics(world: &World, players: &[(Arc<Session>, i32); 2], winner: i3
 }
 
 /// `CurrencyDao.decreaseTickets` and `TICKET_BALANCE` for a game's player who left the room.
-fn take_ticket_elsewhere(world: &World, session: &Arc<Session>) {
+/// [`Room::wobble_remove_player`] for a player who left the room mid-game (Java never takes them
+/// out of the game): the ticket is still taken, and in the room they are in now they may walk
+/// again and, when thrown, swim one tile to the side (outside a room Java's `warp` only moves the
+/// position, which the next room entry resets).
+fn remove_elsewhere(world: &World, session: &Arc<Session>, thrown: bool, balance: i32) {
     let (tickets, room_id) = {
         let mut p = session.player.lock();
         let room_id = p.room_id;
@@ -604,13 +612,28 @@ fn take_ticket_elsewhere(world: &World, session: &Arc<Session>) {
         }
         (details.tickets, room_id)
     };
-    if let Some(room) = room_id.and_then(|id| world.loaded_room(id)) {
-        let mut r = room.lock();
-        if let Some(idx) = r.entity_index(session.id) {
-            r.entities[idx].details.tickets = tickets;
-        }
-    }
     session.send(rooms_pool::ticket_balance(tickets));
+    let Some(room) = room_id.and_then(|id| world.loaded_room(id)) else {
+        return;
+    };
+    let deferred = {
+        let mut r = room.lock();
+        let Some(idx) = r.entity_index(session.id) else {
+            return;
+        };
+        r.entities[idx].details.tickets = tickets;
+        r.entities[idx].walking_allowed = true;
+        if thrown {
+            r.entities[idx].statuses.set(StatusType::Swim, "");
+            let at = r.entities[idx].position;
+            let side = if balance < 0 { -1 } else { 1 };
+            let mut position = Position::new(at.x + side, at.y);
+            position.set_rotation(at.rotation());
+            r.warp_to(idx, position, true, false);
+        }
+        r.take_deferred()
+    };
+    run_deferred(world, deferred);
 }
 
 #[cfg(test)]

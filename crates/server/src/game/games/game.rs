@@ -70,6 +70,9 @@ pub struct Game {
     /// Java: `objectId`, the last object id given out.
     pub object_id: i32,
     pub deleted: bool,
+    /// Out of the game manager's list since `:reload games` (Java's `GameManager.reset` makes a
+    /// new manager; the old games go on with their tasks, but no id finds them any more).
+    pub detached: bool,
     pub game_started: bool,
     pub game_finished: bool,
     regenerate_map_interval: i64,
@@ -121,6 +124,7 @@ impl Game {
             restart_countdown: 0,
             object_id: 0,
             deleted: false,
+            detached: false,
             game_started: false,
             game_finished: false,
             regenerate_map_enabled: settings.bool("regenerate.map.enabled"),
@@ -647,9 +651,30 @@ impl Games {
             game.send_instance(op);
             game.send_observers_instance(op);
         }
+        let user_id = session_user(&self.games[gi], serial);
+        if let Some(uid) = self.delete_if_abandoned(gi, user_id, op) {
+            if let Some(p) = self
+                .graveyard
+                .iter_mut()
+                .find(|g| g.uid == uid)
+                .and_then(|g| g.player_mut(serial))
+            {
+                p.game_id = -1;
+            }
+            return;
+        }
+        if let Some(p) = self.games[gi].player_mut(serial) {
+            p.game_id = -1;
+        }
+    }
+
+    /// The end of Java's `leaveGame`: a waiting game its creator (`user_id`) left, or one with no
+    /// active player left, is deleted: `GAMEDELETED` to everyone in it and its observers, who
+    /// stop observing, its spectators back to the lobby, and out of the list. Returns its uid.
+    fn delete_if_abandoned(&mut self, gi: usize, user_id: u32, op: &mut Op) -> Option<u64> {
         let game = &self.games[gi];
-        let creator_left =
-            game.state == GameState::Waiting && game.creator_id == session_user(game, serial);
+        let id = game.id;
+        let creator_left = game.state == GameState::Waiting && game.creator_id == user_id;
         if !game.deleted && (creator_left || game.active_players().next().is_none()) {
             let uid = game.uid;
             self.games[gi].deleted = true;
@@ -687,19 +712,46 @@ impl Games {
                 }
             }
             self.remove_game(uid);
-            if let Some(p) = self
-                .graveyard
-                .iter_mut()
-                .find(|g| g.uid == uid)
-                .and_then(|g| g.player_mut(serial))
-            {
-                p.game_id = -1;
-            }
-            return;
+            return Some(uid);
         }
-        if let Some(p) = self.games[gi].player_mut(serial) {
-            p.game_id = -1;
+        None
+    }
+
+    /// Java: `leaveGame` on the game a stale game id names (`target`), for the game player `pi`
+    /// of another game (`gi`). That happens to a spectator after a game restarted under the id
+    /// of the game they watch (a restart takes `getGameCounter().getAndIncrement()`, the id the
+    /// newest game was created with) and is earlier in the list. Java runs `leaveGame` with a
+    /// game player that is not in that game: `GAMEDELETED` with its id, `movePlayer` from the
+    /// game player's team (a spectator has none, -1), `GAMEINSTANCE` to its players and
+    /// observers, and the check that deletes it. `movePlayer` throws on a team the game does not
+    /// have while it is waiting or over (always, for a spectator): `false` then, as the rest of
+    /// Java's caller is skipped.
+    pub(crate) fn leave_other_game(
+        &mut self,
+        target: usize,
+        gi: usize,
+        pi: usize,
+        op: &mut Op,
+    ) -> bool {
+        let gp = &self.games[gi].players[pi];
+        let (session, team_id, user_id) = (gp.session.clone(), gp.team_id, gp.user_id);
+        self.set_current(session.id, None);
+        let game = &self.games[target];
+        op.send(&session, out::game_deleted(game.id));
+        let waiting_or_ended = matches!(game.state, GameState::Waiting | GameState::Ended);
+        let has_team = usize::try_from(team_id).is_ok_and(|t| t < game.teams.len());
+        // Java: `teams.get(fromTeamId)` (from a team), then `teams.get(getTeamId())`; removing a
+        // player who is not in the team changes nothing.
+        if waiting_or_ended && !has_team {
+            return false;
         }
+        self.games[gi].players[pi].in_game = false;
+        let game = &self.games[target];
+        game.send_instance(op);
+        game.send_observers_instance(op);
+        self.delete_if_abandoned(target, user_id, op);
+        self.games[gi].players[pi].game_id = -1;
+        true
     }
 
     /// Java: `killSpectators`: every spectator back to the lobby.
@@ -745,7 +797,7 @@ impl Games {
         if !self.initialise(gi, op) {
             return;
         }
-        self.assign_spawn_points(gi, op);
+        self.assign_spawn_points(gi, op, true);
         let game = &mut self.games[gi];
         for serial in game.active_serials() {
             if let Some(p) = game.player_mut(serial) {
@@ -941,7 +993,7 @@ impl Games {
         if !self.initialise(gi, op) {
             return;
         }
-        self.assign_spawn_points(gi, op);
+        self.assign_spawn_points(gi, op, false);
         let game = &mut self.games[gi];
         let id = game.id;
         let active: Vec<(u64, i32, crate::game::pathfinder::Position)> = game
@@ -1001,10 +1053,30 @@ impl Games {
         self.games[gi].game_tick_hook(op);
     }
 
-    fn assign_spawn_points(&mut self, gi: usize, op: &mut Op) {
+    fn assign_spawn_points(&mut self, gi: usize, op: &mut Op, first_start: bool) {
         let world = op.world;
         let game = &mut self.games[gi];
-        game.assign_spawn_points_hook(world);
+        let stopped = game.assign_spawn_points_hook(world);
+        // On a first start the players are still in the lobby, whose lock is not held here; a
+        // restart stops them in the arena already (`Room::set_game_position`).
+        if first_start {
+            op.defer(move |world| stop_walks(world, &stopped));
+        }
+    }
+}
+
+/// Java: `getRoomUser().setWalking(false)` and `setNextPosition(null)` for each player, in the
+/// room they are in: the walk stops where it is, with nothing sent.
+fn stop_walks(world: &World, sessions: &[Arc<Session>]) {
+    for session in sessions {
+        let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+            continue;
+        };
+        let mut r = room.lock();
+        if let Some(idx) = r.entity_index(session.id) {
+            r.entities[idx].is_walking = false;
+            r.entities[idx].next_position = None;
+        }
     }
 }
 
@@ -1131,11 +1203,14 @@ impl Game {
         }
     }
 
-    /// Java: `assignSpawnPoints`.
-    fn assign_spawn_points_hook(&mut self, world: &World) {
+    /// Java: `assignSpawnPoints`; the players whose walk it stops.
+    fn assign_spawn_points_hook(&mut self, world: &World) -> Vec<Arc<Session>> {
         match self.kind {
             GameKind::BattleBall(_) => super::battleball::assign_spawn_points(self, world),
-            GameKind::SnowStorm(_) => snowstorm::arena::assign_spawn_points(self),
+            GameKind::SnowStorm(_) => {
+                snowstorm::arena::assign_spawn_points(self);
+                Vec::new()
+            }
         }
     }
 

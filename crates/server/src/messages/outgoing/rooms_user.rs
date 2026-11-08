@@ -147,6 +147,27 @@ pub fn hotel_view() -> Message {
     Message::new(18, vec![])
 }
 
+/// Java: `TAG_LIST`: a user's tags.
+pub fn tag_list(user_id: u32, tags: &[&str]) -> Message {
+    let body = tags.iter().fold(
+        ServerBody::new().int(user_id as i32).int(tags.len() as i32),
+        |b, tag| b.text(tag),
+    );
+    Message::new(350, body.build())
+}
+
+/// Java: `GROUP_MEMBERSHIP_UPDATE`: a user's favourite group and their rank in it (-1 for none).
+pub fn group_membership_update(instance_id: i32, group_id: i32, rank_id: i32) -> Message {
+    Message::new(
+        310,
+        ServerBody::new()
+            .int(instance_id)
+            .int(group_id)
+            .int(rank_id)
+            .build(),
+    )
+}
+
 /// Java: `FIGURE_CHANGE`: a user's look and motto changed (also after `:givebadge` and a
 /// `:teleport` warp).
 pub fn figure_change(instance_id: i32, figure: &str, sex: &str, motto: &str) -> Message {
