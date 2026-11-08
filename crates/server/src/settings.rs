@@ -25,6 +25,11 @@ impl Settings {
         self.string(key).eq_ignore_ascii_case("true")
     }
 
+    /// Java: `GameConfiguration.updateSetting`'s in-memory part.
+    pub fn set(&mut self, key: &str, value: &str) {
+        self.values.insert(key.to_string(), value.to_string());
+    }
+
     /// Java `getInteger`: unparsable or missing values count as 0.
     pub fn int(&self, key: &str) -> i64 {
         self.string(key).trim().parse().unwrap_or(0)

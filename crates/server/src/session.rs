@@ -1,7 +1,7 @@
 //! One client connection: its outgoing queue and its player state.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, Ordering};
 
 use havana_protocol::Message;
 use havana_protocol::crypto::{Crypto, Opener, Sealer};
@@ -43,6 +43,15 @@ pub struct Session {
     /// Java: `RoomPlayer.currentGameId`: the game-hall game (`game::gamehall`) the player sits
     /// at. Java keeps it on the player from room to room (its `reset` leaves it). A leaf lock.
     pub current_game_id: Mutex<Option<String>>,
+    /// Java: `RoomEntity.instanceId` of the player's room user (-1 outside a room), kept here by
+    /// the room so the games (`game::games`) can read it without the room's lock. A leaf value.
+    instance_id: AtomicI32,
+    /// The key of the room whose entity list the player is in (0 for none): Java's
+    /// `getRoomUser().getRoom()`, kept by the room like `instance_id`.
+    room_key: AtomicU32,
+    /// `battleball_score_all_time` and `snowstorm_score_all_time` of the player's statistics,
+    /// for the game lobbies' `GAMEPLAYERINFO`, which a room sends under its lock. A leaf value.
+    game_points: [AtomicI32; 2],
 }
 
 impl Session {
@@ -58,7 +67,39 @@ impl Session {
             ping_ok: AtomicBool::new(true),
             effect_id: AtomicI32::new(0),
             current_game_id: Mutex::new(None),
+            instance_id: AtomicI32::new(-1),
+            room_key: AtomicU32::new(0),
+            game_points: [AtomicI32::new(0), AtomicI32::new(0)],
         }
+    }
+
+    /// The player's instance id in their room, -1 outside one (see the field).
+    pub fn instance_id(&self) -> i32 {
+        self.instance_id.load(Ordering::Relaxed)
+    }
+
+    /// The key of the player's room, if in one (see the field).
+    pub fn room_key(&self) -> Option<u32> {
+        match self.room_key.load(Ordering::Relaxed) {
+            0 => None,
+            key => Some(key),
+        }
+    }
+
+    /// Set by the room when the player's entity joins (`Some`) or leaves (`None`) it.
+    pub fn set_room_presence(&self, presence: Option<(u32, i32)>) {
+        let (key, instance_id) = presence.unwrap_or((0, -1));
+        self.room_key.store(key, Ordering::Relaxed);
+        self.instance_id.store(instance_id, Ordering::Relaxed);
+    }
+
+    /// The all-time BattleBall (or, with `snowstorm`, SnowStorm) points (see the field).
+    pub fn game_points(&self, snowstorm: bool) -> i32 {
+        self.game_points[usize::from(snowstorm)].load(Ordering::Relaxed)
+    }
+
+    pub fn set_game_points(&self, snowstorm: bool, points: i32) {
+        self.game_points[usize::from(snowstorm)].store(points, Ordering::Relaxed);
     }
 
     /// The avatar effect the player wears (0 for none), see the field.

@@ -88,7 +88,10 @@ impl Room {
 
     /// Java: `RoomItemManager.resetItemStates`.
     pub(super) fn reset_item_states(&mut self, world: &World) {
-        // TODO(games): game arenas and custom rooms keep their states.
+        // Java: game arenas keep their states. TODO(custom-rooms): custom rooms too.
+        if self.is_game_arena() {
+            return;
+        }
         for i in 0..self.mapping.items.len() {
             if self.mapping.items[i].flat.is_some()
                 && reset_extra_data(&mut self.mapping.items[i], true)

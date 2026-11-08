@@ -218,6 +218,15 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     p.inventory = Inventory::load(&world.store, &world.items, user.id);
 
     p.statistics = PlayerStatistics::load(&world.store, user.id);
+    // For the game lobbies' GAMEPLAYERINFO (see `Session::game_points`).
+    session.set_game_points(
+        false,
+        p.statistics.int_value(stat::BATTLEBALL_POINTS_ALL_TIME),
+    );
+    session.set_game_points(
+        true,
+        p.statistics.int_value(stat::SNOWSTORM_POINTS_ALL_TIME),
+    );
     p.badges = BadgeManager::load(&world.store, user.id);
     p.achievements = world.store.user_achievements(user.id).unwrap_or_default();
     // TODO(groups): the joined groups are loaded here in Java.
@@ -281,7 +290,8 @@ pub fn dispose(world: &World, session: &Arc<Session>) {
     if session.player.lock().logged_in {
         crate::game::room::leave_current_room(world, session, false);
     }
-    // TODO(games): stop observing and leave the game.
+    // Java: then the games: stop observing, leave the game.
+    world.games.player_disposed(world, session.id);
     let mut p = session.player.lock();
     if !p.logged_in {
         return;

@@ -4,6 +4,7 @@ pub mod badges;
 pub mod catalogue;
 pub mod club;
 pub mod effects;
+pub mod games;
 pub mod handshake;
 pub mod infobus;
 pub mod inventory;
@@ -51,7 +52,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         190 => club::subscribe_club,
         157 => badges::get_available_badges,
         158 => badges::set_badge,
-        159 => badges::get_selected_badges,
+        159 => games::selected_badges_and_instance_list,
         229 => rooms_user::set_sound_setting,
         12 => messenger::messenger_init,
         15 => messenger::friendlist_update,
@@ -193,6 +194,20 @@ pub fn handler(header: u16) -> Option<Handler> {
         113 => infobus::try_bus,
         // registerWobbleSquabblePackets
         114 => wobble_squabble::ptm,
+        // registerGamePackets (159 is with the badges)
+        160 => games::observe_instance,
+        161 => games::unobserve_instance,
+        162 => games::initiate_create_game,
+        163 => games::game_parameter_values,
+        165 => games::initiate_join_game,
+        167 => games::leave_game,
+        168 => games::kick_player,
+        169 => games::watch_game,
+        170 => games::start_game,
+        171 => games::game_event,
+        172 => games::game_restart,
+        250 => games::request_game_lobby,
+        173 => games::request_full_game_status,
         // registerEffects
         372 => effects::use_avatar_effect,
         373 => effects::activate_avatar_effect,

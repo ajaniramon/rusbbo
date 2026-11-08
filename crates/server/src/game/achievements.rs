@@ -59,6 +59,8 @@ pub enum AchievementType {
     AllTimeHotelPresence,
     Guide,
     EmailVerification,
+    /// Java: `ACHIEVEMENT_GAME_PLAYED` (BattleBall and SnowStorm games won).
+    GamePlayed,
 }
 
 impl AchievementType {
@@ -74,6 +76,7 @@ impl AchievementType {
             Self::AllTimeHotelPresence => "ACH_AllTimeHotelPresence",
             Self::Guide => "GL",
             Self::EmailVerification => "ACH_EmailVerification",
+            Self::GamePlayed => "ACH_GamePlayed",
         }
     }
 
@@ -222,6 +225,12 @@ fn progression(
             (hours >= i64::from(info.progress_needed)).then_some(info.progress_needed)
         }
         AchievementType::Login => login_progress(world, p, info),
+        // Java: `AchievementGamePlayed`: the games won, at most the level's progress.
+        AchievementType::GamePlayed => {
+            let won = p.statistics.int_value(stat::BATTLEBALL_GAMES_WON)
+                + p.statistics.int_value(stat::SNOWSTORM_GAMES_WON);
+            (won >= p.achievements[index].progress).then(|| won.min(info.progress_needed))
+        }
     }
 }
 

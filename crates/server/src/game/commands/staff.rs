@@ -634,7 +634,8 @@ pub fn set_config(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
 
 /// Java: `ReloadCommand`. The Rust server reads most of this data from its database at startup
 /// and nothing else writes it while it runs, so only the word filter and the settings are read
-/// again. TODO(commands): `catalogue`/`shop`/`items` also regenerates the room's collision map
+/// again. TODO(games): `games` rebuilds Java's `GameManager` (every live game drops out of its
+/// list, the finished games are numbered from 0 again). TODO(commands): `catalogue`/`shop`/`items` also regenerates the room's collision map
 /// and sends the map and the catalogue index to everyone in Java; here only the alert is sent.
 pub fn reload(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
     if !in_a_room(world, session) {

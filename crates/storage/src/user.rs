@@ -227,6 +227,43 @@ impl Store {
         w.commit()
     }
 
+    /// Java: `GameDao.resetMonthlyXp`: the month's game scores and xp go back to 0 for everyone
+    /// who has any. Returns the number of rows changed.
+    pub fn reset_monthly_scores(&self) -> Result<usize> {
+        const MONTHLY: [&str; 4] = [
+            "battleball_score_month",
+            "snowstorm_score_month",
+            "wobble_squabble_score_month",
+            "xp_earned_month",
+        ];
+        let w = self.write()?;
+        let mut changed = 0;
+        {
+            let mut table = w.tx.open_table(STATISTICS)?;
+            let mut rows: Vec<(u32, UserStatistics)> = Vec::new();
+            for entry in table.iter()? {
+                let (k, v) = entry?;
+                let stats: UserStatistics = decode(v.value())?;
+                if MONTHLY
+                    .iter()
+                    .any(|c| stats.values.get(*c).is_some_and(|v| *v > 0))
+                {
+                    rows.push((k.value(), stats));
+                }
+            }
+            for (user_id, mut stats) in rows {
+                for c in MONTHLY {
+                    stats.values.insert(c.to_string(), 0);
+                }
+                let bytes = encode(&stats)?;
+                table.insert(user_id, bytes.as_slice())?;
+                changed += 1;
+            }
+        }
+        w.commit()?;
+        Ok(changed)
+    }
+
     /// Java: `AchievementDao.getAchievements`, ordered by id.
     pub fn achievements(&self) -> Result<Vec<Achievement>> {
         let tx = self.db.begin_read()?;
@@ -297,6 +334,22 @@ impl Writer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn monthly_scores_go_back_to_zero() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::create(&dir.path().join("t.redb")).unwrap();
+        let mut row = UserStatistics::new_row();
+        row.values.insert("battleball_score_month".into(), 30);
+        row.values.insert("battleball_score_all_time".into(), 30);
+        store.put_statistics(1, &row).unwrap();
+        store.put_statistics(2, &UserStatistics::new_row()).unwrap();
+        assert_eq!(store.reset_monthly_scores().unwrap(), 1);
+        let row = store.statistics(1).unwrap().unwrap();
+        assert_eq!(row.values["battleball_score_month"], 0);
+        assert_eq!(row.values["battleball_score_all_time"], 30);
+        assert_eq!(store.reset_monthly_scores().unwrap(), 0);
+    }
 
     #[test]
     fn per_user_vectors_round_trip_in_order() {

@@ -10,6 +10,7 @@ pub mod currency;
 pub mod effects;
 pub mod fuserights;
 pub mod gamehall;
+pub mod games;
 pub mod infobus;
 pub mod inventory;
 pub mod item;

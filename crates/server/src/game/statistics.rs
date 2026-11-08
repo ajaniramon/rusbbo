@@ -15,6 +15,14 @@ pub mod stat {
     pub const CLUB_MEMBER_TIME_UPDATED: &str = "club_member_time_updated";
     pub const MUTE_EXPIRES_AT: &str = "mute_expires_at";
     pub const WOBBLE_SQUABBLE_GAMES_WON: &str = "wobble_squabble_games_won";
+    pub const BATTLEBALL_GAMES_WON: &str = "battleball_games_won";
+    pub const BATTLEBALL_MONTHLY_SCORES: &str = "battleball_score_month";
+    pub const BATTLEBALL_POINTS_ALL_TIME: &str = "battleball_score_all_time";
+    pub const SNOWSTORM_GAMES_WON: &str = "snowstorm_games_won";
+    pub const SNOWSTORM_MONTHLY_SCORES: &str = "snowstorm_score_month";
+    pub const SNOWSTORM_POINTS_ALL_TIME: &str = "snowstorm_score_all_time";
+    pub const XP_EARNED_MONTH: &str = "xp_earned_month";
+    pub const XP_ALL_TIME: &str = "xp_all_time";
     pub const WOBBLE_SQUABBLE_MONTHLY_SCORES: &str = "wobble_squabble_score_month";
     pub const WOBBLE_SQUABBLE_POINTS_ALL_TIME: &str = "wobble_squabble_score_all_time";
 }

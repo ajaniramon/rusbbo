@@ -55,6 +55,36 @@ pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
     }
 }
 
+/// Java: the arena's game task (`BattleBallTask` every 500 ms, `SnowStormGameTask` every 300 ms),
+/// instead of the room's entity and status tasks; the first run is right away (Java schedules it
+/// with no delay), once the entry that started it released the room's lock.
+pub async fn run_arena(world: Weak<World>, room: Weak<RoomHandle>, period: Duration) {
+    let mut interval = tokio::time::interval(period);
+    loop {
+        interval.tick().await;
+        let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
+            return;
+        };
+        crate::game::contain_panic(format_args!("arena tick"), || {
+            let deferred = {
+                let mut r = room.lock();
+                let Some(uid) = r.arena.as_ref().map(|a| a.game_uid) else {
+                    return;
+                };
+                world.games.run(&world, Some(&mut r), |games, op| {
+                    let room = op.room.take();
+                    if let Some(room) = room {
+                        games.arena_tick(uid, room, op);
+                        op.room = Some(room);
+                    }
+                });
+                r.take_deferred()
+            };
+            run_deferred(&world, deferred);
+        });
+    }
+}
+
 /// An entity that left the room while the entity pass processed it. Java keeps iterating its
 /// snapshot, sees `needsUpdate` set by `reset()` and includes it in the statuses it sends, with
 /// instance id -1; so does this port.

@@ -23,7 +23,7 @@ static TICK_RATE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::n
 fn tick(world: &World) {
     let tick_rate = TICK_RATE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     // Java checks sleep and AFK per player in a room; here per room, one room lock at a time.
-    for room in world.loaded_rooms() {
+    for room in world.loaded_rooms().into_iter().chain(world.arenas()) {
         let deferred = {
             let mut r = room.lock();
             r.afk_tick(world);
@@ -42,6 +42,10 @@ fn tick(world: &World) {
     // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
     if tick_rate % 60 == 0 {
         world.cfh.purge_expired(world);
+    }
+    // Java: "Check xp expiry once every day", every 5 s.
+    if tick_rate % 5 == 0 {
+        crate::game::games::check_xp_expiry(world);
     }
 }
 

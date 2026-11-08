@@ -284,13 +284,23 @@ pub fn kick_to_hotel_view(world: &World, session: &Arc<Session>) -> bool {
 }
 
 /// Java: `Room.forward(player, false)`: `ROOMFORWARD`, with the public room id offset for
-/// Shockwave. TODO(publics): game arenas (sent to their lobby) and hidden public rooms
+/// Shockwave; a game's arena sends to its lobby. TODO(publics): hidden public rooms
 /// (`followRedirect`) are not redirected.
-pub fn forward(session: &Session, room: &crate::game::room::RoomRef) {
-    let (is_public, id) = {
+pub fn forward(world: &World, session: &Session, room: &crate::game::room::RoomRef) {
+    let (is_public, id, arena) = {
         let r = room.lock();
-        (r.is_public(), r.data.id as i32)
+        (
+            r.is_public(),
+            r.data.id as i32,
+            r.arena.as_ref().map(|a| a.game_type),
+        )
     };
+    if let Some(game_type) = arena {
+        if let Some(lobby) = world.games.lobby_room_id(world, game_type) {
+            forward_to(session, true, lobby);
+        }
+        return;
+    }
     forward_to(session, is_public, id as u32);
 }
 

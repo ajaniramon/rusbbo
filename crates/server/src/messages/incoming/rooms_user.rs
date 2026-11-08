@@ -512,11 +512,19 @@ pub fn start_typing(
     let Some(idx) = r.entity_index(session.id) else {
         return Ok(());
     };
-    // TODO(games): not in game arenas.
     let e = &mut r.entities[idx];
     if e.is_typing {
         return Ok(());
     }
+    // Java: not for a player in a game.
+    if world
+        .games
+        .player_flags(session.id)
+        .is_some_and(|(_, in_game, _)| in_game)
+    {
+        return Ok(());
+    }
+    let e = &mut r.entities[idx];
     if timeout > 0 {
         e.chat_bubble_timer = now() + timeout;
     }
