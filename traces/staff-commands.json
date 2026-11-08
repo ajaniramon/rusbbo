@@ -43,7 +43,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "230957553947994565678505\u0002I",
+              "body": "069007639703544680701271\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#0ED334F9F33C44E399DB5C7D3618642E\u0002",
+              "body": "#494F9C99710049D49DC310E74462EA8D\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -202,8 +202,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
@@ -305,7 +305,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "828456040846646204139553\u0002I",
+              "body": "722769052884359836888610\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -337,7 +337,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#00777A047A784483BAA243AB1E18BF5B\u0002",
+              "body": "#9C5A7D283AE84E27ABF1658D2AB9908A\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -476,8 +476,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
@@ -649,7 +649,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "122127792926638767144241\u0002I",
+              "body": "828440293346564042758509\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -681,7 +681,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#7946640E27604A2B80706A797357A934\u0002",
+              "body": "#AAAFECDDC03B432DAE504FE0CD175B5B\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -832,8 +832,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHg149\u0002broom_bench1\u0002PAHPAPAHe483\u0002broom_bench2\u0002QAHPAPAHv837\u0002broom_bench3\u0002RAHPAPAHq623\u0002broom_bench1\u0002SAHPAPAHq48\u0002broom_bench2\u0002PBHPAPAHd850\u0002broom_bench2\u0002QBHPAPAHt459\u0002broom_bench3\u0002RBHPAPAHj608\u0002broom_bench1\u0002SBHPAPAHf217\u0002broom_bench2\u0002PCHPAPAHy202\u0002broom_bench2\u0002QCHPAPAHr528\u0002broom_bench2\u0002RCHPAPAHg991\u0002broom_bench3\u0002SCHPAPAHa62\u0002broom_bench1\u0002PDHPAPAHn671\u0002broom_bench2\u0002QDHPAPAHt303\u0002broom_bench2\u0002RDHPAPAHh853\u0002broom_bench3\u0002SDHPAPAHh284\u0002broom_bench1\u0002PEHPAPAHr170\u0002broom_bench2\u0002QEHPAPAHu366\u0002broom_bench3\u0002REHPAPAHj780\u0002broom_seatb1\u0002SAKJPAHj362\u0002broom_seatb2\u0002PBKJPAHl551\u0002broom_seatb3\u0002QBKJPAHm540\u0002broom_seatb4\u0002RBKJPAHu239\u0002broom_seat1\u0002PDKJPAHn303\u0002broom_seat2\u0002QDKJPAHc488\u0002broom_seat3\u0002RDKJPAHn50\u0002broom_seat4\u0002SDKJPAHh18\u0002broom_seatb1\u0002SARAHPAHn30\u0002broom_seatb2\u0002PBRAHPAHr988\u0002broom_seatb3\u0002QBRAHPAHy213\u0002broom_seatb4\u0002RBRAHPAHy680\u0002broom_seat1\u0002PDRAHPAHj665\u0002broom_seat2\u0002QDRAHPAHl78\u0002broom_seat3\u0002RDRAHPAHn355\u0002broom_seat4\u0002SDRAHPAHf659\u0002broom_chair\u0002SDRBHPAHy627\u0002broom_chair\u0002PERBHPAHy948\u0002broom_chair\u0002QERBHPAHc390\u0002broom_table1\u0002SDSBHHHv278\u0002broom_table2\u0002PESBHHHq887\u0002broom_table3\u0002QESBHHHp382\u0002broom_chair\u0002SDPCHHHn433\u0002broom_chair\u0002PEPCHHHo90\u0002broom_chair\u0002QEPCHHHs257\u0002broom_chair\u0002SDSCHPAHb509\u0002broom_chair\u0002PESCHPAHn660\u0002broom_chair\u0002QESCHPAHl41\u0002broom_table1\u0002SDPDHHHu729\u0002broom_table2\u0002PEPDHHHo853\u0002broom_table3\u0002QEPDHHHc388\u0002broom_chair\u0002SDQDHHHi878\u0002broom_chair\u0002PEQDHHHt531\u0002broom_chair\u0002QEQDHHHj236\u0002broom_stool\u0002QBPEIJHv848\u0002broom_stool\u0002QBQEIJHa796\u0002broom_stool\u0002QBREIJHr542\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
@@ -1344,7 +1344,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot1) mute expiration date set to: 08-11-2026 04:03:57\u0002",
+              "body": "Player (tracebot1) mute expiration date set to: 08-11-2026 20:32:43\u0002",
               "check": "mask",
               "mask": "................................................??????????.????????."
             }
@@ -1784,7 +1784,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot2) trade ban time set to: 08-11-2026 04:54:03\u0002",
+              "body": "Player (tracebot2) trade ban time set to: 08-11-2026 21:22:48\u0002",
               "check": "mask",
               "mask": "..........................................??????????.????????."
             }
@@ -2527,7 +2527,7 @@
           "messages": []
         },
         "s": {
-          "ordered": false,
+          "ordered": true,
           "closed": false,
           "messages": [
             {
@@ -2535,13 +2535,6 @@
               "name": "LOGOUT",
               "body": "2\u0002",
               "check": "exact"
-            },
-            {
-              "header": 50,
-              "name": "PING",
-              "body": "",
-              "check": "exact",
-              "optional": true
             }
           ]
         }

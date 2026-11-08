@@ -44,7 +44,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "430797808357736649723927\u0002I",
+              "body": "481111918822882212709549\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -76,7 +76,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#038A3318E81945EF8E79FED6AEDBC906\u0002",
+              "body": "#78F565DED37B467E86D4D1C6159CDE97\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -142,7 +142,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "888592862711010631708891\u0002I",
+              "body": "149203182881671386713068\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -174,7 +174,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#5F1D785CE565402F909F1D077C66A48B\u0002",
+              "body": "#316D9911115A48C48EEBB222B8AE4810\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -240,7 +240,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "672306349289730575818957\u0002I",
+              "body": "705968854328206433334964\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -272,7 +272,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#7BE785E88C2B42829958F40F55BDB706\u0002",
+              "body": "#4CB28B68FD67421B8922FF2274D24A9D\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -338,7 +338,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "667378404768087890503305\u0002I",
+              "body": "385920466981251033604813\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -370,7 +370,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#5237B6C575E241C39AB6B13DBB6B8713\u0002",
+              "body": "#287B5FD8CA2E4F21A4C4B1FAA46D9FFF\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -507,8 +507,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHy873\u0002broom_bench1\u0002PAHPAPAHj407\u0002broom_bench2\u0002QAHPAPAHc46\u0002broom_bench3\u0002RAHPAPAHn93\u0002broom_bench1\u0002SAHPAPAHr721\u0002broom_bench2\u0002PBHPAPAHy587\u0002broom_bench2\u0002QBHPAPAHh581\u0002broom_bench3\u0002RBHPAPAHv302\u0002broom_bench1\u0002SBHPAPAHh942\u0002broom_bench2\u0002PCHPAPAHn534\u0002broom_bench2\u0002QCHPAPAHz48\u0002broom_bench2\u0002RCHPAPAHq893\u0002broom_bench3\u0002SCHPAPAHm247\u0002broom_bench1\u0002PDHPAPAHe675\u0002broom_bench2\u0002QDHPAPAHc51\u0002broom_bench2\u0002RDHPAPAHr852\u0002broom_bench3\u0002SDHPAPAHj62\u0002broom_bench1\u0002PEHPAPAHc939\u0002broom_bench2\u0002QEHPAPAHi330\u0002broom_bench3\u0002REHPAPAHc846\u0002broom_seatb1\u0002SAKJPAHi123\u0002broom_seatb2\u0002PBKJPAHc650\u0002broom_seatb3\u0002QBKJPAHn798\u0002broom_seatb4\u0002RBKJPAHj703\u0002broom_seat1\u0002PDKJPAHn988\u0002broom_seat2\u0002QDKJPAHy466\u0002broom_seat3\u0002RDKJPAHn955\u0002broom_seat4\u0002SDKJPAHo824\u0002broom_seatb1\u0002SARAHPAHg87\u0002broom_seatb2\u0002PBRAHPAHe737\u0002broom_seatb3\u0002QBRAHPAHv88\u0002broom_seatb4\u0002RBRAHPAHv883\u0002broom_seat1\u0002PDRAHPAHh283\u0002broom_seat2\u0002QDRAHPAHj694\u0002broom_seat3\u0002RDRAHPAHu548\u0002broom_seat4\u0002SDRAHPAHe604\u0002broom_chair\u0002SDRBHPAHu217\u0002broom_chair\u0002PERBHPAHv404\u0002broom_chair\u0002QERBHPAHe918\u0002broom_table1\u0002SDSBHHHu739\u0002broom_table2\u0002PESBHHHq644\u0002broom_table3\u0002QESBHHHr34\u0002broom_chair\u0002SDPCHHHd947\u0002broom_chair\u0002PEPCHHHr981\u0002broom_chair\u0002QEPCHHHj953\u0002broom_chair\u0002SDSCHPAHc515\u0002broom_chair\u0002PESCHPAHh747\u0002broom_chair\u0002QESCHPAHf833\u0002broom_table1\u0002SDPDHHHb303\u0002broom_table2\u0002PEPDHHHs862\u0002broom_table3\u0002QEPDHHHn683\u0002broom_chair\u0002SDQDHHHf752\u0002broom_chair\u0002PEQDHHHd467\u0002broom_chair\u0002QEQDHHHe549\u0002broom_stool\u0002QBPEIJHf776\u0002broom_stool\u0002QBQEIJHy154\u0002broom_stool\u0002QBREIJHw985\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
@@ -630,7 +630,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "0\u0002J22:47 7/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "0\u0002J19:42 8/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -642,7 +642,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "0\u0002J22:47 7/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "0\u0002J19:42 8/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -677,7 +677,7 @@
             {
               "header": 319,
               "name": "CFH_ACK",
-              "body": "I0\u000222:47 7/11/2026\u0002Someone is being rude\u0002",
+              "body": "I0\u000219:42 8/11/2026\u0002Someone is being rude\u0002",
               "check": "header"
             }
           ]
@@ -712,7 +712,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "0\u0002K22:47 7/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "0\u0002K19:42 8/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -724,7 +724,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "0\u0002K22:47 7/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "0\u0002K19:42 8/11/2026\u00021\u0002Someone is being rude\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -876,7 +876,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "1\u0002J22:47 7/11/2026\u00021\u0002Second call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "1\u0002J19:42 8/11/2026\u00021\u0002Second call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -888,7 +888,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "1\u0002J22:47 7/11/2026\u00021\u0002Second call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "1\u0002J19:42 8/11/2026\u00021\u0002Second call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -982,7 +982,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "2\u0002J22:47 7/11/2026\u00021\u0002Third call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "2\u0002J19:42 8/11/2026\u00021\u0002Third call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -994,7 +994,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "2\u0002J22:47 7/11/2026\u00021\u0002Third call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "2\u0002J19:42 8/11/2026\u00021\u0002Third call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -1078,7 +1078,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "3\u0002J22:47 7/11/2026\u00021\u0002Fourth call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "3\u0002J19:42 8/11/2026\u00021\u0002Fourth call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]
@@ -1090,7 +1090,7 @@
             {
               "header": 148,
               "name": "CALL_FOR_HELP",
-              "body": "3\u0002J22:47 7/11/2026\u00021\u0002Fourth call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
+              "body": "3\u0002J19:42 8/11/2026\u00021\u0002Fourth call\u00021\u0002Olympic Stadium\u0002Hhh_room_ballroom\u0002[{CSA",
               "check": "header"
             }
           ]

@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "757467365793761190127588\u0002I",
+              "body": "382163225048618052017882\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#FFF5AE1E2D944729A53F76AE8E5AD815\u0002",
+              "body": "#FDC5B165C76B4F999E1ECAB3E370A8E8\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -140,7 +140,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "894400931980566006481736\u0002I",
+              "body": "600008399289652639518094\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -172,7 +172,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#662EDBD07D734386AAC49CF342DF31F8\u0002",
+              "body": "#523A96FB931D4FEEA5290890E3863877\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -299,8 +299,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHy219\u0002broom_bench1\u0002PAHPAPAHn976\u0002broom_bench2\u0002QAHPAPAHq856\u0002broom_bench3\u0002RAHPAPAHy745\u0002broom_bench1\u0002SAHPAPAHv339\u0002broom_bench2\u0002PBHPAPAHn566\u0002broom_bench2\u0002QBHPAPAHt444\u0002broom_bench3\u0002RBHPAPAHh493\u0002broom_bench1\u0002SBHPAPAHu288\u0002broom_bench2\u0002PCHPAPAHp960\u0002broom_bench2\u0002QCHPAPAHg888\u0002broom_bench2\u0002RCHPAPAHo2\u0002broom_bench3\u0002SCHPAPAHq643\u0002broom_bench1\u0002PDHPAPAHh292\u0002broom_bench2\u0002QDHPAPAHw711\u0002broom_bench2\u0002RDHPAPAHr752\u0002broom_bench3\u0002SDHPAPAHd614\u0002broom_bench1\u0002PEHPAPAHm119\u0002broom_bench2\u0002QEHPAPAHh62\u0002broom_bench3\u0002REHPAPAHq335\u0002broom_seatb1\u0002SAKJPAHe29\u0002broom_seatb2\u0002PBKJPAHg198\u0002broom_seatb3\u0002QBKJPAHm997\u0002broom_seatb4\u0002RBKJPAHd401\u0002broom_seat1\u0002PDKJPAHs533\u0002broom_seat2\u0002QDKJPAHp633\u0002broom_seat3\u0002RDKJPAHi615\u0002broom_seat4\u0002SDKJPAHt279\u0002broom_seatb1\u0002SARAHPAHn724\u0002broom_seatb2\u0002PBRAHPAHp346\u0002broom_seatb3\u0002QBRAHPAHi738\u0002broom_seatb4\u0002RBRAHPAHv957\u0002broom_seat1\u0002PDRAHPAHp588\u0002broom_seat2\u0002QDRAHPAHe377\u0002broom_seat3\u0002RDRAHPAHg906\u0002broom_seat4\u0002SDRAHPAHv709\u0002broom_chair\u0002SDRBHPAHw923\u0002broom_chair\u0002PERBHPAHc765\u0002broom_chair\u0002QERBHPAHs145\u0002broom_table1\u0002SDSBHHHu471\u0002broom_table2\u0002PESBHHHr953\u0002broom_table3\u0002QESBHHHw596\u0002broom_chair\u0002SDPCHHHy364\u0002broom_chair\u0002PEPCHHHu12\u0002broom_chair\u0002QEPCHHHq108\u0002broom_chair\u0002SDSCHPAHa638\u0002broom_chair\u0002PESCHPAHd151\u0002broom_chair\u0002QESCHPAHw485\u0002broom_table1\u0002SDPDHHHn232\u0002broom_table2\u0002PEPDHHHd363\u0002broom_table3\u0002QEPDHHHc848\u0002broom_chair\u0002SDQDHHHu585\u0002broom_chair\u0002PEQDHHHu465\u0002broom_chair\u0002QEQDHHHo100\u0002broom_stool\u0002QBPEIJHa905\u0002broom_stool\u0002QBQEIJHo312\u0002broom_stool\u0002QBREIJHe56\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
@@ -475,8 +475,8 @@
             {
               "header": 30,
               "name": "OBJECTS_WORLD",
-              "body": "QNHy219\u0002broom_bench1\u0002PAHPAPAHn976\u0002broom_bench2\u0002QAHPAPAHq856\u0002broom_bench3\u0002RAHPAPAHy745\u0002broom_bench1\u0002SAHPAPAHv339\u0002broom_bench2\u0002PBHPAPAHn566\u0002broom_bench2\u0002QBHPAPAHt444\u0002broom_bench3\u0002RBHPAPAHh493\u0002broom_bench1\u0002SBHPAPAHu288\u0002broom_bench2\u0002PCHPAPAHp960\u0002broom_bench2\u0002QCHPAPAHg888\u0002broom_bench2\u0002RCHPAPAHo2\u0002broom_bench3\u0002SCHPAPAHq643\u0002broom_bench1\u0002PDHPAPAHh292\u0002broom_bench2\u0002QDHPAPAHw711\u0002broom_bench2\u0002RDHPAPAHr752\u0002broom_bench3\u0002SDHPAPAHd614\u0002broom_bench1\u0002PEHPAPAHm119\u0002broom_bench2\u0002QEHPAPAHh62\u0002broom_bench3\u0002REHPAPAHq335\u0002broom_seatb1\u0002SAKJPAHe29\u0002broom_seatb2\u0002PBKJPAHg198\u0002broom_seatb3\u0002QBKJPAHm997\u0002broom_seatb4\u0002RBKJPAHd401\u0002broom_seat1\u0002PDKJPAHs533\u0002broom_seat2\u0002QDKJPAHp633\u0002broom_seat3\u0002RDKJPAHi615\u0002broom_seat4\u0002SDKJPAHt279\u0002broom_seatb1\u0002SARAHPAHn724\u0002broom_seatb2\u0002PBRAHPAHp346\u0002broom_seatb3\u0002QBRAHPAHi738\u0002broom_seatb4\u0002RBRAHPAHv957\u0002broom_seat1\u0002PDRAHPAHp588\u0002broom_seat2\u0002QDRAHPAHe377\u0002broom_seat3\u0002RDRAHPAHg906\u0002broom_seat4\u0002SDRAHPAHv709\u0002broom_chair\u0002SDRBHPAHw923\u0002broom_chair\u0002PERBHPAHc765\u0002broom_chair\u0002QERBHPAHs145\u0002broom_table1\u0002SDSBHHHu471\u0002broom_table2\u0002PESBHHHr953\u0002broom_table3\u0002QESBHHHw596\u0002broom_chair\u0002SDPCHHHy364\u0002broom_chair\u0002PEPCHHHu12\u0002broom_chair\u0002QEPCHHHq108\u0002broom_chair\u0002SDSCHPAHa638\u0002broom_chair\u0002PESCHPAHd151\u0002broom_chair\u0002QESCHPAHw485\u0002broom_table1\u0002SDPDHHHn232\u0002broom_table2\u0002PEPDHHHd363\u0002broom_table3\u0002QEPDHHHc848\u0002broom_chair\u0002SDQDHHHu585\u0002broom_chair\u0002PEQDHHHu465\u0002broom_chair\u0002QEQDHHHo100\u0002broom_stool\u0002QBPEIJHa905\u0002broom_stool\u0002QBQEIJHo312\u0002broom_stool\u0002QBREIJHe56\u0002broom_stool\u0002QBSEIJ",
-              "check": "header"
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
             },
             {
               "header": 32,
