@@ -17,6 +17,7 @@ mod controllers;
 pub mod data;
 pub mod figure;
 mod forum;
+mod hk;
 mod homes;
 pub mod http;
 mod jdate;

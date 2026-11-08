@@ -8,6 +8,7 @@ mod club;
 mod groups;
 mod habblets;
 mod habblets2;
+mod hk_core;
 mod homes;
 mod me;
 mod minimail;
@@ -146,7 +147,9 @@ pub fn remove_html_tags(s: &str) -> String {
 }
 
 /// Java: `HousekeepingBinder`. TODO(web): housekeeping (phase 5).
-pub fn housekeeping_binder(_conn: &mut Conn, _tpl: &mut Tpl) {}
+pub fn housekeeping_binder(conn: &mut Conn, tpl: &mut Tpl) {
+    super::hk::binder(conn, tpl);
+}
 
 /// Runs the controller for a route's Java handler; `false` when it is not ported yet.
 pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
@@ -359,6 +362,15 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "DiscussionActionsController::savepost" => groups::save_post(conn)?,
         "DiscussionPreviewController::previewtopic" => groups::preview_topic(conn)?,
         "DiscussionPreviewController::previewpost" => groups::preview_post(conn)?,
+        "HousekeepingController::dashboard" => hk_core::dashboard(conn)?,
+        "HousekeepingController::login" => hk_core::login(conn)?,
+        "HousekeepingController::logout" => hk_core::logout(conn)?,
+        "HousekeepingCommandsController::ban" => hk_core::command_ban(conn)?,
+        "HousekeepingBansController::bans" => hk_core::bans(conn)?,
+        "HousekeepingBansController::unban" => hk_core::unban(conn)?,
+        "HousekeepingTransactionsController::search" => hk_core::transactions(conn)?,
+        "HousekeepingTransactionsController::item_lookup" => hk_core::item_lookup(conn)?,
+        "HousekeepingConfigController::configurations" => hk_core::configurations(conn)?,
         _ => return Ok(false),
     }
     Ok(true)

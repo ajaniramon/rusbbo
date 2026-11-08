@@ -32,7 +32,9 @@ def rust_str(s):
 
 def main():
     rows = []
-    for line in SRC.read_text(encoding="utf-8").splitlines():
+    # Block comments hold defaults Java no longer writes.
+    source = re.sub(r"/\*.*?\*/", "", SRC.read_text(encoding="utf-8"), flags=re.S)
+    for line in source.splitlines():
         code = line.strip()
         if code.startswith("//") or "config.put(" not in code:
             continue
@@ -68,7 +70,7 @@ def main():
     )
     if shutil.which("rustfmt"):
         subprocess.run(["rustfmt", "--edition", "2024", str(OUT)], check=True)
-    print(f"{OUT.relative_to(ROOT)}: {len(rows)} defaults")
+    print(f"{OUT.relative_to(HERE)}: {len(rows)} defaults")
 
 
 if __name__ == "__main__":

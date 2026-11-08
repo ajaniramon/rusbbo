@@ -139,6 +139,16 @@ impl Store {
         Ok(out)
     }
 
+    /// Every item, in id order (the housekeeping panel's counts and searches).
+    pub fn all_items(&self) -> Result<Vec<Item>> {
+        let tx = self.db.begin_read()?;
+        let mut out = Vec::new();
+        for entry in tx.open_table(ITEMS)?.iter()? {
+            out.push(decode(entry?.1.value())?);
+        }
+        Ok(out)
+    }
+
     /// Java: `ItemDao.getUserItemsByDefinition`: every item `user_id` owns of a definition, in
     /// the hand or in a room, in id order.
     pub fn user_items_by_definition(&self, user_id: u32, definition_id: u32) -> Result<Vec<Item>> {

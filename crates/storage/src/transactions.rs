@@ -64,6 +64,17 @@ impl Store {
         Ok(out)
     }
 
+    /// Every transaction, in id order (the housekeeping panel's reports).
+    pub fn all_transactions(&self) -> Result<Vec<(u64, Transaction)>> {
+        let tx = self.db.begin_read()?;
+        let mut out = Vec::new();
+        for entry in tx.open_table(TRANSACTIONS)?.iter()? {
+            let (k, v) = entry?;
+            out.push((k.value(), decode(v.value())?));
+        }
+        Ok(out)
+    }
+
     /// How many transactions are stored, for every user.
     pub fn transaction_count(&self) -> Result<u64> {
         use redb::ReadableTableMetadata;

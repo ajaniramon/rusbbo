@@ -88,3 +88,7 @@ Pages show what Java shows, so these Havana-Web bugs are reproduced on purpose:
   ticket API was.
 - Static files are never served from outside the site directory (Java's `Paths.get` follows
   `..`).
+- The housekeeping audit log shows the panel's and the game's actions. Java's query fails on
+  the shipped schema (`tools/migrations/hk_audit_log.sql` creates the table with another
+  collation than the rest, and the `UNION` is refused), so the Java panel shows none;
+  `oracle/web-seed.sql` converts the table so the traces compare the logs.

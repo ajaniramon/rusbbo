@@ -9,9 +9,11 @@ use rusbbo_storage::*;
 
 use crate::col;
 
-/// `CAST(UNIX_TIMESTAMP(c) AS SIGNED) AS c` (0 for NULL).
+/// `c` as Unix seconds (0 for NULL), with `import_users`' fallback for dates after 2038.
 fn ts(c: &str) -> String {
-    format!("IFNULL(CAST(UNIX_TIMESTAMP({c}) AS SIGNED), 0) AS {c}")
+    format!(
+        "IFNULL(CAST(IF(IFNULL(UNIX_TIMESTAMP({c}), 0) = 0 AND {c} > '1970-01-02',          TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', {c}), UNIX_TIMESTAMP({c})) AS SIGNED), 0) AS {c}"
+    )
 }
 
 fn rows(conn: &mut mysql::PooledConn, sql: &str) -> Result<Vec<Row>> {
@@ -35,7 +37,9 @@ fn u(row: &Row, name: &str) -> Result<u32> {
 }
 
 fn t(row: &Row, name: &str) -> Result<i64> {
-    Ok(col::<Option<i64>>(row, name)?.unwrap_or(0))
+    Ok(crate::far_future_local(
+        col::<Option<i64>>(row, name)?.unwrap_or(0),
+    ))
 }
 
 /// Copies every website table; returns the number of rows.
@@ -464,6 +468,30 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    // The panel creates this table on first use: it may not exist yet.
+    let has_hk_log: Option<String> = conn.query_first("SHOW TABLES LIKE 'hk_audit_log'")?;
+    if has_hk_log.is_some() {
+        for r in rows(
+            conn,
+            &format!(
+                "SELECT id, staff_id, action, target_type, target_id, target_name, details, ip_address, {} FROM hk_audit_log",
+                ts("created_at")
+            ),
+        )? {
+            w.put_record(&HkAudit {
+                id: u(&r, "id")?,
+                created_at: t(&r, "created_at")?,
+                staff_id: u(&r, "staff_id")?,
+                action: s(&r, "action")?,
+                target_type: s(&r, "target_type")?,
+                target_id: i(&r, "target_id")?,
+                target_name: s(&r, "target_name")?,
+                details: s(&r, "details")?,
+                ip_address: s(&r, "ip_address")?,
+            })?;
+            n += 1;
+        }
+    }
     for r in rows(
         conn,
         "SELECT store_page, admin_page, expiry, lifetime, current_position, class_names FROM catalogue_collectables",
@@ -518,6 +546,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         "cms_guestbook_entries",
         "cms_stickers",
         "cms_stickers_catalogue",
+        "hk_audit_log",
     ] {
         if let Some(next) = crate::auto_increment(conn, table)? {
             w.set_auto_increment(table, next as u32)?;

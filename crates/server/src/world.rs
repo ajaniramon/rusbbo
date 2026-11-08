@@ -332,6 +332,13 @@ fn load_settings(store: &Store) -> Result<std::collections::BTreeMap<String, Str
         };
         w.put_setting(key, &value)?;
     }
+    // GameConfigWriter: an empty `groups.ids.permission.<command>` for every staff command.
+    for command in crate::game::commands::commands() {
+        let key = format!("groups.ids.permission.{}", command.aliases[0]);
+        if command.rank > 1 && !existing.contains_key(&key) {
+            w.put_setting(&key, "")?;
+        }
+    }
     w.commit()?;
     Ok(store.settings()?)
 }

@@ -17,8 +17,6 @@ pub const DEFAULTS: &[(&str, Value)] = &[
     ("site.path", Text("http://localhost")),
     ("room.ads", Text("false")),
     ("room.intersitial.ads", Text("false")),
-    ("bot.connection.allow", Text("false")),
-    ("bot.connection.sso.prefix", Text("botcon2019-")),
     ("fuck.aaron", Text("true")),
     ("max.connections.per.ip", Text("2")),
     ("normalise.input.strings", Text("false")),

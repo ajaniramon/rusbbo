@@ -333,6 +333,20 @@ record!(
 );
 
 record!(
+    /// `hk_audit_log`: what staff did in the housekeeping panel (Aeyra's `HkDao.audit`).
+    HkAudit, "hk_audit_log" {
+        created_at: i64,
+        staff_id: u32,
+        action: String,
+        target_type: String,
+        target_id: i32,
+        target_name: String,
+        details: String,
+        ip_address: String,
+    }
+);
+
+record!(
     /// `room_visits`; ids are synthetic.
     RoomVisit, "room_visits" {
         room_id: u32,
@@ -399,6 +413,7 @@ record_tables!(
     ClubGift,
     RoomVisit,
     Collectable,
+    HkAudit,
 );
 
 impl Store {

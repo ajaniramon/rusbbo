@@ -16,6 +16,11 @@
 //! client = "b"        # another browser (cookie jar); "a" by default
 //! body = "ignore"     # or "hash" (binary bodies); "text" by default
 //! headers = { "X-Requested-With" = "XMLHttpRequest" }
+//! capture = { token = 'name="hk_token" value="([0-9a-f]+)"' }  # from this response's body
+//!
+//! [[step]]
+//! post = "/allseeingeye/hk/bans/unban"
+//! form = { hk_token = "{{token}}" }   # a captured value, in paths and form values
 //! ```
 //!
 //! Recording runs the scenario `runs` times and fails if the (masked) responses differ, so every
@@ -77,6 +82,29 @@ pub struct WebStep {
     /// Milliseconds to wait before the request (for work the server does after answering).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wait_ms: Option<u64>,
+    /// Values to take from this response's body (before masking): name -> regex whose first
+    /// group is the value. Later steps use them as `{{name}}` in their path and form values.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub capture: BTreeMap<String, String>,
+}
+
+/// `{{name}}` replaced by the captured values.
+fn substitute(s: &str, vars: &BTreeMap<String, String>) -> String {
+    let mut out = s.to_string();
+    for (k, v) in vars {
+        out = out.replace(&format!("{{{{{k}}}}}"), v);
+    }
+    out
+}
+
+fn with_vars(step: &WebStep, vars: &BTreeMap<String, String>) -> WebStep {
+    let mut s = step.clone();
+    s.get = s.get.map(|p| substitute(&p, vars));
+    s.post = s.post.map(|p| substitute(&p, vars));
+    for v in s.form.values_mut() {
+        *v = substitute(v, vars);
+    }
+    s
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -149,6 +177,7 @@ struct Jars(BTreeMap<String, BTreeMap<String, String>>);
 
 fn run_steps(target: &str, steps: &[WebStep], masks: &Masks) -> Result<Vec<WebResponse>> {
     let mut jars = Jars::default();
+    let mut vars: BTreeMap<String, String> = BTreeMap::new();
     let mut out = Vec::new();
     for (i, step) in steps.iter().enumerate() {
         if let Some(ms) = step.wait_ms {
@@ -158,7 +187,17 @@ fn run_steps(target: &str, steps: &[WebStep], masks: &Masks) -> Result<Vec<WebRe
             .0
             .entry(step.client.clone().unwrap_or_else(|| "a".into()))
             .or_default();
-        let r = request(target, step, jar).with_context(|| format!("step {}", i + 1))?;
+        let sent = with_vars(step, &vars);
+        let r = request(target, &sent, jar).with_context(|| format!("step {}", i + 1))?;
+        for (name, pattern) in &step.capture {
+            let re = Regex::new(pattern).with_context(|| format!("capture {name}"))?;
+            match re.captures(&r.body).and_then(|c| c.get(1)) {
+                Some(m) => {
+                    vars.insert(name.clone(), m.as_str().to_string());
+                }
+                None => bail!("step {}: nothing to capture as {name}", i + 1),
+            }
+        }
         out.push(normalise(r, step, masks));
     }
     Ok(out)

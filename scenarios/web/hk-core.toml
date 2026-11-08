@@ -1,0 +1,121 @@
+description = "Housekeeping: logging in (empty, wrong, no rights, staff), the dashboard, bans and unbanning, the token and POST-only guards, finding a user to ban, transactions, settings (no changes, a change), a moderator without rights, logging out"
+mask = ['name="hk_token" value="[0-9a-f]{48}"', '\?\d{6,}"', '<span class="when">\d{4}-\d\d-\d\d \d\d:\d\d</span>']
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+get = "/allseeingeye/hk/login"
+
+[[step]]
+post = "/allseeingeye/hk/login"
+form = { hkusername = "", hkpassword = "" }
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+post = "/allseeingeye/hk/login"
+form = { hkusername = "tracestaff", hkpassword = "wrong" }
+
+[[step]]
+post = "/allseeingeye/hk/login"
+form = { hkusername = "tracebot1", hkpassword = "tracepass123" }
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+post = "/allseeingeye/hk/login"
+form = { hkusername = "tracestaff", hkpassword = "tracepass123" }
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+get = "/allseeingeye/hk/bans"
+capture = { token = 'name="hk_token" value="([0-9a-f]{48})"' }
+
+[[step]]
+get = "/allseeingeye/hk/bans?view=history"
+
+[[step]]
+post = "/allseeingeye/hk/bans/unban"
+form = { type = "USER_ID", value = "23" }
+
+[[step]]
+get = "/allseeingeye/hk/bans/unban"
+
+[[step]]
+get = "/allseeingeye/hk/bans"
+
+[[step]]
+post = "/allseeingeye/hk/bans/unban"
+form = { hk_token = "{{token}}", type = "NOPE", value = "1", return = "/allseeingeye/hk/bans?view=history" }
+
+[[step]]
+wait_ms = 1100
+post = "/allseeingeye/hk/bans/unban"
+form = { hk_token = "{{token}}", type = "USER_ID", value = "23" }
+
+[[step]]
+get = "/allseeingeye/hk/bans"
+
+[[step]]
+get = "/allseeingeye/hk/api/ban?username=tracebot1"
+
+[[step]]
+get = "/allseeingeye/hk/api/ban?username=nobody"
+
+[[step]]
+get = "/allseeingeye/hk/transaction/lookup"
+
+[[step]]
+get = "/allseeingeye/hk/transaction/lookup?user=tracepass&days=0&text=x"
+
+[[step]]
+get = "/allseeingeye/hk/transaction/track_item?id=5"
+
+[[step]]
+get = "/allseeingeye/hk/configurations"
+
+[[step]]
+post = "/allseeingeye/hk/configurations"
+form = { hk_token = "{{token}}", "cfg:site.name" = "Habbo" }
+
+[[step]]
+get = "/allseeingeye/hk/configurations?q=site"
+
+[[step]]
+wait_ms = 1100
+post = "/allseeingeye/hk/configurations"
+form = { hk_token = "{{token}}", "cfg:welcome.message.content" = "Hola %username%", "cfg:no.such.key" = "x", q = "welcome" }
+
+[[step]]
+get = "/allseeingeye/hk/configurations"
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+wait_ms = 1100
+client = "b"
+post = "/allseeingeye/hk/login"
+form = { hkusername = "tracemod", hkpassword = "tracepass123" }
+
+[[step]]
+client = "b"
+get = "/allseeingeye/hk/configurations"
+
+[[step]]
+client = "b"
+get = "/allseeingeye/hk"
+
+[[step]]
+get = "/allseeingeye/hk/logout"
+
+[[step]]
+get = "/allseeingeye/hk"
+
+[[step]]
+get = "/allseeingeye/hk/logout"

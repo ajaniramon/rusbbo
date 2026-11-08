@@ -49,6 +49,16 @@ pub struct Pet {
 }
 
 impl Store {
+    /// Every pet, in id order (the housekeeping panel).
+    pub fn all_pets(&self) -> Result<Vec<Pet>> {
+        let tx = self.db.begin_read()?;
+        let mut out = Vec::new();
+        for entry in tx.open_table(PETS)?.iter()? {
+            out.push(decode(entry?.1.value())?);
+        }
+        Ok(out)
+    }
+
     /// Java: `PetDao.getPetDetails(itemId)`.
     pub fn pet_by_item(&self, item_id: u64) -> Result<Option<Pet>> {
         let tx = self.db.begin_read()?;

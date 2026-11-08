@@ -83,3 +83,9 @@ INSERT INTO users_badges (user_id, badge, equipped, slot_id) VALUES
   (25, 'B13', 0, 0), (25, 'B14', 0, 0), (25, 'B15', 0, 0);
 INSERT INTO soundmachine_songs (id, user_id, title, item_id, length, data, burnt) VALUES
   (1, 25, 'Trace Song', 0, 16, '1:1,4;2,4:2:0,8:3:0,8:4:0,8:', 0);
+
+-- Aeyra's migration hk_audit_log.sql creates the panel's audit log as utf8mb4_general_ci while
+-- every other table is utf8mb4_uca1400_ai_ci, so the panel's audit query (a UNION with
+-- housekeeping_audit_log) fails with "Illegal mix of collations" and shows nothing. The port's
+-- log works; this makes the oracle's schema consistent so the traces compare the logs.
+ALTER TABLE hk_audit_log CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci;

@@ -167,9 +167,26 @@ fn timestamp(row: &Row, name: &str) -> Result<i64> {
     let value: Option<String> = col(row, name)?;
     let Some(value) = value else { return Ok(0) };
     let seconds = value.split('.').next().unwrap_or("0");
-    seconds
+    let seconds: i64 = seconds
         .parse()
-        .with_context(|| format!("bad timestamp {value:?} in {name}"))
+        .with_context(|| format!("bad timestamp {value:?} in {name}"))?;
+    Ok(far_future_local(seconds))
+}
+
+/// The fallback for dates after 2038 (`TIMESTAMPDIFF` from the epoch) counts the local wall
+/// time as if it were UTC; JDBC reads such a date in the local time zone, so take the offset off.
+pub(crate) fn far_future_local(seconds: i64) -> i64 {
+    use chrono::TimeZone;
+    if seconds <= i32::MAX as i64 {
+        return seconds;
+    }
+    let Some(wall) = chrono::DateTime::from_timestamp(seconds, 0) else {
+        return seconds;
+    };
+    chrono::Local
+        .from_local_datetime(&wall.naive_utc())
+        .earliest()
+        .map_or(seconds, |t| t.timestamp())
 }
 
 fn import_settings(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {

@@ -74,6 +74,16 @@ impl Store {
         Ok(out)
     }
 
+    /// Every chat line, in id order (the housekeeping panel).
+    pub fn all_chat_logs(&self) -> Result<Vec<ChatLog>> {
+        let tx = self.db.begin_read()?;
+        let mut out = Vec::new();
+        for entry in tx.open_table(CHATLOGS)?.iter()? {
+            out.push(decode(entry?.1.value())?);
+        }
+        Ok(out)
+    }
+
     pub fn chat_log_count(&self) -> Result<u64> {
         let tx = self.db.begin_read()?;
         Ok(tx.open_table(CHATLOGS)?.len()?)
