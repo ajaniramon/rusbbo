@@ -26,8 +26,14 @@
 //!                            # recorded and checked, for a known Java thread race (an owner's
 //!                            # first status in a freshly loaded flat may or may not carry
 //!                            # `flatctrl`); everything else in the status is still compared
+//!
+//! [[steps]]
+//! bot = "a"                  # whose `wait_for` the step waits for; every bot's messages count
+//! rcon = "infobusdoorstatus" # instead of `send`: an RCON message to the server's RCON port
+//! rcon_values = { doorStatus = "1" } # (Java: `RconMessage`, what the website's housekeeping sends)
 //! ```
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
@@ -83,6 +89,11 @@ pub struct StepDef {
     pub send: Option<MsgRef>,
     #[serde(default)]
     pub args: Vec<Arg>,
+    /// An RCON message's header instead of `send` (see the module docs).
+    #[serde(default)]
+    pub rcon: Option<String>,
+    #[serde(default)]
+    pub rcon_values: BTreeMap<String, String>,
     #[serde(default)]
     pub wait_for: Vec<MsgRef>,
     #[serde(default)]
@@ -132,7 +143,15 @@ pub struct Step {
 pub enum Action {
     Connect,
     Disconnect,
-    Send { header: u16, body: Vec<u8> },
+    Send {
+        header: u16,
+        body: Vec<u8>,
+    },
+    /// An RCON message (header and parameters) to the server's RCON port.
+    Rcon {
+        header: String,
+        values: BTreeMap<String, String>,
+    },
 }
 
 pub const DEFAULT_SETTLE_MS: u64 = 300;
@@ -188,16 +207,20 @@ impl Scenario {
                 }
                 continue;
             }
-            let action = match (def.connect, def.disconnect, &def.send) {
-                (true, false, None) => Action::Connect,
-                (false, true, None) => Action::Disconnect,
-                (false, false, Some(m)) => {
+            let action = match (def.connect, def.disconnect, &def.send, &def.rcon) {
+                (true, false, None, None) => Action::Connect,
+                (false, true, None, None) => Action::Disconnect,
+                (false, false, Some(m), None) => {
                     let header = client_id(m)?;
                     let body =
                         encode_args(&def.args, ticket).with_context(|| format!("step {i}"))?;
                     Action::Send { header, body }
                 }
-                _ => bail!("step {i}: needs exactly one of macro, connect, disconnect, send"),
+                (false, false, None, Some(header)) => Action::Rcon {
+                    header: header.clone(),
+                    values: def.rcon_values.clone(),
+                },
+                _ => bail!("step {i}: needs exactly one of macro, connect, disconnect, send, rcon"),
             };
             out.push(Step {
                 wait_for,

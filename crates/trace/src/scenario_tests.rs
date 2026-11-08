@@ -46,3 +46,36 @@ fn scenarios_without_the_encrypt_option_still_load() {
     let text = "name = \"t\"\n[[bots]]\nname = \"a\"\nticket = \"x\"\n[[steps]]\nbot = \"a\"\nconnect = true\n";
     assert!(!toml::from_str::<Scenario>(text).unwrap().bots[0].encrypt);
 }
+
+#[test]
+fn rcon_steps_compile_and_encode_like_java_reads_them() {
+    let text = "name = \"t\"\n[[bots]]\nname = \"a\"\nticket = \"x\"\n[[steps]]\nbot = \"a\"\n\
+                rcon = \"infobuspoll\"\nrcon_values = { pollId = \"1\" }\n";
+    let steps = toml::from_str::<Scenario>(text).unwrap().compile().unwrap();
+    let Action::Rcon { header, values } = &steps[0].action else {
+        panic!("not an rcon step");
+    };
+    assert_eq!(header, "infobuspoll");
+    // Length, then the header, one parameter, its key and value: each string length-prefixed.
+    let frame = crate::runner::rcon_frame(header, values);
+    let mut expected = 34i32.to_be_bytes().to_vec();
+    for part in [
+        &11i32.to_be_bytes()[..],
+        b"infobuspoll",
+        &1i32.to_be_bytes(),
+    ] {
+        expected.extend_from_slice(part);
+    }
+    for part in [
+        &6i32.to_be_bytes()[..],
+        b"pollId",
+        &1i32.to_be_bytes(),
+        b"1",
+    ] {
+        expected.extend_from_slice(part);
+    }
+    assert_eq!(frame, expected);
+    let both = "name = \"t\"\n[[bots]]\nname = \"a\"\nticket = \"x\"\n[[steps]]\nbot = \"a\"\n\
+                rcon = \"x\"\nsend = \"WALK\"\n";
+    assert!(toml::from_str::<Scenario>(both).unwrap().compile().is_err());
+}

@@ -11,6 +11,7 @@
 #
 # Environment, for running several copies at once (e.g. one per git worktree):
 #   TARGET_PORT    game port (12331)
+#   TARGET_RCON_PORT  RCON port (TARGET_PORT - 12: what havana-trace assumes without --rcon)
 #   FIXTURE_DB     scratch MariaDB database used to build the fixture (havana_fixture)
 #   ORACLE_GOLDEN  golden.sql to build the fixture from (oracle/run/golden.sql of this checkout)
 set -euo pipefail
@@ -23,6 +24,7 @@ FIXTURE_DB="${FIXTURE_DB:-havana_fixture}"
 DB_CONTAINER="${ORACLE_DB_CONTAINER:-havana-oracle-db}"
 DB_PORT="${ORACLE_DB_PORT:-13307}"
 PORT="${TARGET_PORT:-12331}"
+RCON_PORT="${TARGET_RCON_PORT:-$((PORT - 12))}"
 PID_FILE="$RUN_DIR/server.pid"
 
 log() { echo "[target-rs] $*" >&2; }
@@ -66,7 +68,7 @@ case "${1:-}" in
     stop_server
     build_fixture
     cp "$RUN_DIR/fixture.redb" "$RUN_DIR/havana.redb"
-    nohup "$WS_DIR/target/debug/havana-server" --db "$RUN_DIR/havana.redb" --bind "127.0.0.1:$PORT" \
+    nohup "$WS_DIR/target/debug/havana-server" --db "$RUN_DIR/havana.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" \
       --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 --dev-ticket 3=trace-sso-3 --dev-ticket 4=trace-sso-4 --dev-ticket 5=trace-sso-5 --dev-ticket 6=trace-sso-6 --dev-ticket 21=trace-sso-21 --dev-ticket 22=trace-sso-22 --dev-ticket 23=trace-sso-23 --dev-ticket 24=trace-sso-24 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port
