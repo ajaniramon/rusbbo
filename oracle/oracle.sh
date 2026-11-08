@@ -123,6 +123,9 @@ EOF
 
 start_server() {
   if server_running; then return; fi
+  # Written on every start, so a fresh checkout (oracle/run/ holds only the jar and golden.sql)
+  # never lets Havana fall back to the server.ini it generates itself (port 3306).
+  write_config
   log "starting Java server"
   # Background the java process itself (not a subshell), so $! is its pid and no
   # shell is left holding our stdout open.

@@ -100,7 +100,8 @@ window() {
 start_java() {
   local dir="$OUT/java-run"
   rm -rf "$dir"; mkdir -p "$dir/tools"
-  cp "$WS_DIR/oracle/run/Havana-Server.jar" "$WS_DIR/oracle/run/logback.xml" "$REPO_DIR/tools/figuredata.xml" "$dir/"
+  cp "$WS_DIR/oracle/run/Havana-Server.jar" "$REPO_DIR/tools/figuredata.xml" "$dir/"
+  if [[ -f "$WS_DIR/oracle/run/logback.xml" ]]; then cp "$WS_DIR/oracle/run/logback.xml" "$dir/"; fi
   cp -r "$WS_DIR/tools/snowstorm_maps" "$dir/tools/"
   cat > "$dir/server.ini" <<EOF
 [Global]

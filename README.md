@@ -1,12 +1,51 @@
 # rusbbo
 
-A Rust rewrite of Havana (formerly `havana-rs`), built for fun: small enough to run on a Raspberry Pi, with an embedded
-key-value store instead of MariaDB. It is in its early stages.
+A Rust rewrite of [Havana](https://github.com/Quackster/Havana), the Habbo Hotel v31 (Shockwave)
+server, formerly `havana-rs`. One binary with an embedded key-value store (redb) instead of
+MariaDB, small enough to run on a Raspberry Pi.
 
-The Java server (the Havana repository, `HAVANA_DIR`, by default a sibling checkout named
-`aeyra-havana`) is the reference. Anything the Rust server does is judged by one
-question: **does it answer the clients exactly like the Java server does?** The trace harness in
-this repository answers that question automatically.
+The Java server is the reference. Anything the Rust server does is judged by one question: **does
+it answer the clients exactly like the Java server does?** The trace harness in this repository
+answers that automatically: scripted bots record how the Java server answers, and the Rust server
+must give the same bytes back.
+
+## Status
+
+- **Coverage**: logging in (plain and encrypted), the navigator, public and private rooms,
+  furniture and the item interactors, the catalogue and purchases, the messenger, trading,
+  NPCs and pets, the room dimmer and the jukebox, moderation and bans, the website's ticket API,
+  the Habbo Lido, the public room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop
+  Rumble), the game hall tables, and BattleBall and SnowStorm. Details below; what is left is under
+  [Known gaps](#known-gaps).
+- **Conformance**: the 75 traces in `traces/` pass against the Java server and against
+  `rusbbo-server` (`harness/ported.txt`). The real v31 client (HabboLauncher) has been played
+  against it on a copy of a real hotel's database, including the Lido, the game hall, BattleBall
+  and SnowStorm.
+- **Performance**: same data and machine (12 cores, WSL), 500 bots logging in, entering public
+  rooms, walking and chatting (`harness/bench.sh`):
+
+  | | Java Havana | rusbbo |
+  |---|---|---|
+  | Memory idle / with 500 bots | 150 / 302 MiB | 13 / 32 MiB |
+  | CPU with 500 bots (% of one core) | 27.6 % | 8.7 % |
+  | Login p50 / p99 | 7.7 / 10.1 ms | 1.7 / 2.5 ms |
+  | Room entry p50 / p99 | 1.2 / 3.3 ms | 1.1 / 1.5 ms |
+  | Chat round trip p50 / p99 | 0.70 / 1.26 ms | 0.26 / 0.46 ms |
+
+## Quick start
+
+```sh
+cargo build --release
+# Copy a Java Havana database into a redb file (once; the server never talks to MariaDB).
+target/release/rusbbo-import --mysql mysql://user:pass@host:3306/havana --out rusbbo.redb
+# Serve the Shockwave port and the website's ticket API for the launcher.
+target/release/rusbbo-server --db rusbbo.redb --bind 0.0.0.0:12321 --http 0.0.0.0:8095
+```
+
+The trace harness, the load test and the id generators also need a checkout of the Java Havana
+repository (`HAVANA_DIR`, by default a sibling directory named `aeyra-havana`); the server
+itself does not. CI runs `cargo fmt`, `clippy` and the unit tests; the traces need the Java
+oracle, so they run locally (see [Trace harness](#trace-harness)).
 
 ## Layout
 
@@ -212,6 +251,11 @@ cargo run -p rusbbo-trace -- check traces/*.json --target 127.0.0.1:12321 --rese
 Prints `scenario: N/M steps ok` per trace and every difference; exits 1 if anything differs. Running
 it against the Java server itself must always pass (that is how the corpus is validated).
 
+A few traces hang on the server's timers landing in the right step (the SnowStorm and BattleBall
+games, Wobble Squabble, the cameras), and in a full run on a busy machine one of them now and then
+misses by a tick, against Java as well as Rust. Re-run a failing trace on its own before reading
+anything into it.
+
 `rusbbo-trace show traces/login.json` prints a trace readably.
 
 ### Load test
@@ -340,5 +384,11 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   reach): `oracle/no-jitpack.init.gradle` swaps `GameChess` for a stub, so chess does nothing.
   The Rust chess (`game/gamehall/chess.rs`, `chess_board.rs`) follows the Java source and
   chesslib 1.1.1 and is checked by unit tests only.
-- `tools/migrations/aeyra-settings-20261025.sql` is not applied: its string literals lost their
+- The Java checkout's `tools/migrations/aeyra-settings-20261025.sql` is not applied: its string literals lost their
   quotes and it fails to parse.
+- Games: `:reload games` (Java rebuilds the game manager) is not ported; a game's credit
+  rewards are paid at once, where Java pays them on the next 1 s scheduler tick
+  (`TODO(scheduler)`); a few spectator cases with a stale game id, and stopping a lobby walk on
+  the first game start, are `TODO(games)`.
+- RCON (`--rcon`) handles only the Infobus messages (`TODO(rcon)`); the `:bot` and `:shutdown`
+  commands, the room-hire interactor and the idol's songs are `TODO(...)` markers too.
