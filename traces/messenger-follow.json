@@ -1,0 +1,1629 @@
+{
+  "format": 1,
+  "scenario": "messenger-follow",
+  "description": "Following friends and the console with rooms: FOLLOW_FRIEND (not a friend, on the hotel view, into a public room and the navigator's was_follow forward, into a flat, offline), the room's name in FINDUSER, INVITE_FRIEND, and friends' consoles when a user enters and leaves rooms",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b",
+    "c"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "938157344103751507973592\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#12BB4DD89B7E4422A7C1A777F9C93A74\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 12,
+      "name": "MESSENGERINIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 12,
+              "name": "MESSENGER_INIT",
+              "body": "PYPYXVBHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "055698818736460197668069\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#CAB4B3CEDE824E27A30146D58E50118C\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 12,
+      "name": "MESSENGERINIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 12,
+              "name": "MESSENGER_INIT",
+              "body": "PYPYXVBHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "745988586022471606141820\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-3",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#D60E2DF937D14620AE86DC7EEBA0F7F0\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "KIXDNJMIXDNJMJXDNIM",
+              "check": "exact"
+            },
+            {
+              "header": 352,
+              "name": "HELP_ITEMS",
+              "body": "PBIJKPAQARASAPB",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 39,
+      "name": "MESSENGER_REQUESTBUDDY",
+      "body": "@Itracebot2",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 132,
+              "name": "FRIEND_REQUEST",
+              "body": "Itracebot1\u00021\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 37,
+      "name": "MESSENGER_ACCEPTBUDDY",
+      "body": "II",
+      "note": "a and b are friends",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIIJtracebot2\u0002HIHhd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002Htrace bot two\u000208-11-2026 19:10:45\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIIItracebot1\u0002IIHhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            },
+            {
+              "header": 315,
+              "name": "BUDDY_REQUEST_RESULT",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "K",
+      "note": "Not a friend: FOLLOW_ERROR 0",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 349,
+              "name": "FOLLOW_ERROR",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "I",
+      "note": "a is on the hotel view: FOLLOW_ERROR 2",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 349,
+              "name": "FOLLOW_ERROR",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itracebot1",
+      "note": "Online, in no room",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "IItracebot1\u0002trace bot one\u0002IH\u0002Ihd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u000208-11-2026 19:10:42\u0002H",
+              "check": "mask",
+              "mask": "...............................................................................??????????.????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 34,
+      "name": "INVITE_FRIEND",
+      "body": "IJ@Mnot in a room",
+      "note": "a is in no room: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISA",
+      "note": "a enters the Olympic Stadium (no NPCs): b's console sees a in a room",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "ballroom\u0002SA",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIIhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxx4444444444444444444\rxxxx4444444444444444444\rxxxx4444444444444444444\rxxxx33x2222444442222x33\rxxxx2222222x00xx2222222\rxxxx22222220000x2222222\rxxxx11x0000x000x0000x11\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxx0000000000000000000\r22210000000000000000000\r22210000000000000000000\r22210000000000000000000\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxxx000x11111111x0000x\rxxxxxx00x1111x111x000xx\rxxxxxxx0x11111111x00xxx\rxxxxxxxxx11111111x0xxxx\rxxxxxxxxx11111111xxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "QNHd353\u0002broom_bench1\u0002PAHPAPAHd536\u0002broom_bench2\u0002QAHPAPAHo255\u0002broom_bench3\u0002RAHPAPAHa993\u0002broom_bench1\u0002SAHPAPAHp51\u0002broom_bench2\u0002PBHPAPAHz727\u0002broom_bench2\u0002QBHPAPAHg237\u0002broom_bench3\u0002RBHPAPAHb45\u0002broom_bench1\u0002SBHPAPAHu501\u0002broom_bench2\u0002PCHPAPAHn36\u0002broom_bench2\u0002QCHPAPAHm805\u0002broom_bench2\u0002RCHPAPAHl789\u0002broom_bench3\u0002SCHPAPAHh868\u0002broom_bench1\u0002PDHPAPAHo784\u0002broom_bench2\u0002QDHPAPAHp834\u0002broom_bench2\u0002RDHPAPAHh265\u0002broom_bench3\u0002SDHPAPAHq752\u0002broom_bench1\u0002PEHPAPAHp40\u0002broom_bench2\u0002QEHPAPAHo909\u0002broom_bench3\u0002REHPAPAHg779\u0002broom_seatb1\u0002SAKJPAHp766\u0002broom_seatb2\u0002PBKJPAHz7\u0002broom_seatb3\u0002QBKJPAHe424\u0002broom_seatb4\u0002RBKJPAHs921\u0002broom_seat1\u0002PDKJPAHq22\u0002broom_seat2\u0002QDKJPAHr486\u0002broom_seat3\u0002RDKJPAHr756\u0002broom_seat4\u0002SDKJPAHi682\u0002broom_seatb1\u0002SARAHPAHi922\u0002broom_seatb2\u0002PBRAHPAHj656\u0002broom_seatb3\u0002QBRAHPAHe128\u0002broom_seatb4\u0002RBRAHPAHf688\u0002broom_seat1\u0002PDRAHPAHz309\u0002broom_seat2\u0002QDRAHPAHw801\u0002broom_seat3\u0002RDRAHPAHt844\u0002broom_seat4\u0002SDRAHPAHb975\u0002broom_chair\u0002SDRBHPAHr843\u0002broom_chair\u0002PERBHPAHt492\u0002broom_chair\u0002QERBHPAHr814\u0002broom_table1\u0002SDSBHHHl590\u0002broom_table2\u0002PESBHHHc709\u0002broom_table3\u0002QESBHHHw471\u0002broom_chair\u0002SDPCHHHr342\u0002broom_chair\u0002PEPCHHHv82\u0002broom_chair\u0002QEPCHHHw122\u0002broom_chair\u0002SDSCHPAHo808\u0002broom_chair\u0002PESCHPAHl266\u0002broom_chair\u0002QESCHPAHg721\u0002broom_table1\u0002SDPDHHHw277\u0002broom_table2\u0002PEPDHHHi689\u0002broom_table3\u0002QEPDHHHf366\u0002broom_chair\u0002SDQDHHHv493\u0002broom_chair\u0002PEQDHHHc149\u0002broom_chair\u0002QEQDHHHa104\u0002broom_stool\u0002QBPEIJHs638\u0002broom_stool\u0002QBQEIJHq762\u0002broom_stool\u0002QBREIJHl411\u0002broom_stool\u0002QBSEIJ",
+              "check": "header"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIIhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HQCRA0.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 15,
+      "name": "FRIENDLIST_UPDATE",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itracebot1",
+      "note": "In a room: the room's name",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "IItracebot1\u0002trace bot one\u0002IIOlympic Stadium\u0002Ihd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u000208-11-2026 19:10:42\u0002H",
+              "check": "mask",
+              "mask": "..............................................................................................??????????.????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itracebot1",
+      "note": "Not a friend: the room's name too",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "HIItracebot1\u0002trace bot one\u0002IIOlympic Stadium\u0002Ihd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": "...............................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "I",
+      "note": "ROOMFORWARD to public room 7 (1007)",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 286,
+              "name": "ROOMFORWARD",
+              "body": "I[{C",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 150,
+      "name": "NAVIGATE",
+      "body": "H[{C",
+      "note": "The client opens the room's category: NAVNODEINFO, then ROOMFORWARD again (was_follow)",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 220,
+              "name": "NAVNODEINFO",
+              "body": "HQAHEntertainment\u0002IYtAK[{CIOlympic Stadium\u0002IRLQAballroom\u0002SAHhh_room_ballroom\u0002HIZzCITheatredome\u0002HPYQAtheatredrome\u0002JHhh_room_theater\u0002HI[zCILibrary\u0002HRGQAlibrary\u0002KHhh_room_library\u0002HIX{CITV Studio\u0002HPEQAtv_studio\u0002PAHhh_room_tv_studio_general\u0002HIY{CICinema\u0002HRLQAhabbo_cinema\u0002QAHhh_room_cinema\u0002HIZ{CIPower Gym\u0002HSHQAsport\u0002RAHhh_room_sport\u0002HIYEDIBeauty Salon\u0002HRLQAbeauty_salon_loreal\u0002QKHhh_room_beauty_salon_general\u0002HIZEDIThe Den\u0002HPYQAthe_den\u0002RKHhh_room_den\u0002HIXKDIImperial Palace\u0002HRGQAemperors\u0002PQHhh_room_emperors\u0002HI",
+              "check": "exact"
+            },
+            {
+              "header": 286,
+              "name": "ROOMFORWARD",
+              "body": "I[{C",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 150,
+      "name": "NAVIGATE",
+      "body": "H[{C",
+      "note": "The follow is used up: only NAVNODEINFO",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 220,
+              "name": "NAVNODEINFO",
+              "body": "HQAHEntertainment\u0002IYtAK[{CIOlympic Stadium\u0002IRLQAballroom\u0002SAHhh_room_ballroom\u0002HIZzCITheatredome\u0002HPYQAtheatredrome\u0002JHhh_room_theater\u0002HI[zCILibrary\u0002HRGQAlibrary\u0002KHhh_room_library\u0002HIX{CITV Studio\u0002HPEQAtv_studio\u0002PAHhh_room_tv_studio_general\u0002HIY{CICinema\u0002HRLQAhabbo_cinema\u0002QAHhh_room_cinema\u0002HIZ{CIPower Gym\u0002HSHQAsport\u0002RAHhh_room_sport\u0002HIYEDIBeauty Salon\u0002HRLQAbeauty_salon_loreal\u0002QKHhh_room_beauty_salon_general\u0002HIZEDIThe Den\u0002HPYQAthe_den\u0002RKHhh_room_den\u0002HIXKDIImperial Palace\u0002HRGQAemperors\u0002PQHhh_room_emperors\u0002HI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 34,
+      "name": "INVITE_FRIEND",
+      "body": "IJ@Scome to the stadium",
+      "note": "b gets INSTANT_MESSAGE_INVITATION",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 135,
+              "name": "INSTANT_MESSAGE_INVITATION",
+              "body": "Icome to the stadium\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 34,
+      "name": "INVITE_FRIEND",
+      "body": "JJK@Gand you",
+      "note": "3 is not a friend: INVITATION_ERROR, the loop stops; b still gets it",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 262,
+              "name": "INVITATION_ERROR",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 135,
+              "name": "INSTANT_MESSAGE_INVITATION",
+              "body": "Iand you\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 34,
+      "name": "INVITE_FRIEND",
+      "body": "IK@Honly you",
+      "note": "Only a stranger: INVITATION_ERROR, nobody invited",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 262,
+              "name": "INVITATION_ERROR",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 53,
+      "name": "QUIT",
+      "body": "",
+      "note": "a leaves: b's console is told",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIHhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "I",
+      "note": "On the hotel view again: FOLLOW_ERROR 2",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 349,
+              "name": "FOLLOW_ERROR",
+              "body": "J",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@KFollow Flat@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "XzCFollow Flat\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 57,
+      "name": "TRYFLAT",
+      "body": "XzC@@",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 41,
+              "name": "FLAT_LETIN",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 59,
+      "name": "GOTOFLAT",
+      "body": "XzC",
+      "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "model_a\u0002XzC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 47,
+              "name": "YOUAROWNER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 42,
+              "name": "YOUARECONTROLLER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIIhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIIhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 63,
+      "name": "G_ITEMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 45,
+              "name": "ITEMS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HKQA0.0\u0002JIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/flatctrl useradmin/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itracebot1",
+      "note": "The flat's name",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "IItracebot1\u0002trace bot one\u0002IIFollow Flat\u0002Ihd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u000208-11-2026 19:10:42\u0002H",
+              "check": "mask",
+              "mask": "..........................................................................................??????????.????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "I",
+      "note": "ROOMFORWARD to flat 1000",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 286,
+              "name": "ROOMFORWARD",
+              "body": "HXzC",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 57,
+      "name": "TRYFLAT",
+      "body": "XzC@@",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 41,
+              "name": "FLAT_LETIN",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 59,
+      "name": "GOTOFLAT",
+      "body": "XzC",
+      "note": "b follows a in",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHJtracebot2\u0002HIIhd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002Htrace bot two\u000208-11-2026 19:10:45\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "model_a\u0002XzC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 43,
+              "name": "YOUNOTCONTROLLER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHJtracebot2\u0002HIIhd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002Htrace bot two\u000208-11-2026 19:10:45\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 63,
+      "name": "G_ITEMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 45,
+              "name": "ITEMS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HKQA0.0\u0002JIM\u0002MMM\u0002Jtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHKQA0.0\u0002JJ/flatctrl useradmin/\u0002IKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itracebot2",
+      "note": "b is in the flat too",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "IJtracebot2\u0002trace bot two\u0002IIFollow Flat\u0002Hhd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u000208-11-2026 19:10:45\u0002H",
+              "check": "mask",
+              "mask": "..........................................................................................??????????.????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "disconnect",
+      "note": "a goes offline: b's console is told",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IIHhd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................................................................??????????.????????."
+            },
+            {
+              "header": 13,
+              "name": "ADD_BUDDY/FRIENDS_UPDATE/REMOVE_BUDDY",
+              "body": "HIHItracebot1\u0002IHH\u0002Htrace bot one\u000208-11-2026 19:10:42\u0002",
+              "check": "mask",
+              "mask": ".................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 262,
+      "name": "FOLLOW_FRIEND",
+      "body": "I",
+      "note": "Offline: FOLLOW_ERROR 1",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 349,
+              "name": "FOLLOW_ERROR",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "disconnect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

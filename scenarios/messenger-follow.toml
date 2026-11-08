@@ -1,0 +1,268 @@
+name = "messenger-follow"
+description = "Following friends and the console with rooms: FOLLOW_FRIEND (not a friend, on the hotel view, into a public room and the navigator's was_follow forward, into a flat, offline), the room's name in FINDUSER, INVITE_FRIEND, and friends' consoles when a user enters and leaves rooms"
+
+# a (tracebot1) and b (tracebot2) become friends; c (tracebot3) is a stranger.
+# With messenger.enable.official.update.speed off, friends get FRIENDS_UPDATE at once.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-3"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "c"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "b"
+send = "MESSENGER_ACCEPTBUDDY"
+args = [1, 1]
+note = "a and b are friends"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [3]
+note = "Not a friend: FOLLOW_ERROR 0"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [1]
+note = "a is on the hotel view: FOLLOW_ERROR 2"
+
+[[steps]]
+bot = "b"
+send = "FINDUSER"
+args = ["tracebot1"]
+note = "Online, in no room"
+
+[[steps]]
+bot = "a"
+send = "INVITE_FRIEND"
+args = [1, 2, "not in a room"]
+note = "a is in no room: nothing"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+note = "a enters the Olympic Stadium (no NPCs): b's console sees a in a room"
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "FRIENDLIST_UPDATE"
+
+[[steps]]
+bot = "b"
+send = "FINDUSER"
+args = ["tracebot1"]
+note = "In a room: the room's name"
+
+[[steps]]
+bot = "c"
+send = "FINDUSER"
+args = ["tracebot1"]
+note = "Not a friend: the room's name too"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [1]
+note = "ROOMFORWARD to public room 7 (1007)"
+
+[[steps]]
+bot = "b"
+send = "NAVIGATE"
+args = [0, 1007]
+note = "The client opens the room's category: NAVNODEINFO, then ROOMFORWARD again (was_follow)"
+
+[[steps]]
+bot = "b"
+send = "NAVIGATE"
+args = [0, 1007]
+note = "The follow is used up: only NAVNODEINFO"
+
+[[steps]]
+bot = "a"
+send = "INVITE_FRIEND"
+args = [1, 2, "come to the stadium"]
+note = "b gets INSTANT_MESSAGE_INVITATION"
+
+[[steps]]
+bot = "a"
+send = "INVITE_FRIEND"
+args = [2, 2, 3, "and you"]
+note = "3 is not a friend: INVITATION_ERROR, the loop stops; b still gets it"
+
+[[steps]]
+bot = "a"
+send = "INVITE_FRIEND"
+args = [1, 3, "only you"]
+note = "Only a stranger: INVITATION_ERROR, nobody invited"
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+note = "a leaves: b's console is told"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [1]
+note = "On the hotel view again: FOLLOW_ERROR 2"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Follow Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+ignore_status = ["flatctrl"]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "FINDUSER"
+args = ["tracebot1"]
+note = "The flat's name"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [1]
+note = "ROOMFORWARD to flat 1000"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+note = "b follows a in"
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "FINDUSER"
+args = ["tracebot2"]
+note = "b is in the flat too"
+
+[[steps]]
+bot = "a"
+disconnect = true
+settle_ms = 800
+note = "a goes offline: b's console is told"
+
+[[steps]]
+bot = "b"
+send = "FOLLOW_FRIEND"
+args = [1]
+note = "Offline: FOLLOW_ERROR 1"
+
+[[steps]]
+bot = "b"
+disconnect = true
+
+[[steps]]
+bot = "c"
+disconnect = true

@@ -7,6 +7,7 @@ battleball-restart
 call-for-help
 catalogue
 catalogue-effects
+catalogue-trophy
 chat-commands
 chat-filter
 client-flow
@@ -15,6 +16,7 @@ flat-create
 flat-decor
 flat-delete
 flat-dice
+flat-events
 flat-furni
 flat-gates
 flat-idol
@@ -31,6 +33,7 @@ flat-teleport
 flat-trax
 flat-vending
 flat-visit
+flat-votes
 gamehall-battleships
 gamehall-chess
 gamehall-poker
@@ -41,11 +44,13 @@ infobus-poll
 login
 login-encrypted
 messenger
+messenger-follow
 messenger-search
 moderation-autoban
 moderation-login
 moderation-tool
 navigator
+navigator-favourites
 pool-booth
 pool-camera
 pool-diving
