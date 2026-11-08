@@ -827,13 +827,11 @@ pub fn set_random_state(
     Ok(())
 }
 
-/// The room of the session and the session's entity index in it, locked.
+/// `room` locked, with the index of the session's entity in it.
 fn in_room<'a>(
-    world: &World,
     session: &Session,
     room: &'a Option<RoomRef>,
 ) -> Option<(parking_lot::MutexGuard<'a, Room>, usize)> {
-    let _ = world;
     let r = room.as_ref()?.lock();
     let e = r.entity_index(session.id)?;
     Some((r, e))
@@ -846,7 +844,7 @@ pub fn throw_dice(
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let room = room_of(world, session);
-    let Some((mut r, e)) = in_room(world, session, &room) else {
+    let Some((mut r, e)) = in_room(session, &room) else {
         return Ok(());
     };
     let item_id = reader.int().ok_or(Malformed)?;
@@ -863,7 +861,7 @@ pub fn dice_off(
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let room = room_of(world, session);
-    let Some((mut r, e)) = in_room(world, session, &room) else {
+    let Some((mut r, e)) = in_room(session, &room) else {
         return Ok(());
     };
     let item_id = reader.int().ok_or(Malformed)?;
