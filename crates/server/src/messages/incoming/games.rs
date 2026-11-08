@@ -503,7 +503,8 @@ pub fn game_event(
         }
         let event = reader.int().ok_or(Malformed)?;
         if matches!(game.kind, GameKind::SnowStorm(_)) {
-            // TODO(snowstorm): SnowStormMessageHandler.handleMessage(event, reader, game, player).
+            // Java: SnowStormMessageHandler.handleMessage(event, reader, game, player).
+            games.snowstorm_event(gi, serial, event, reader);
             return Ok(());
         }
         match event {
@@ -646,7 +647,10 @@ pub fn request_full_game_status(
     if current_room(world, session).is_none() {
         return Ok(());
     }
-    // TODO(snowstorm): `FULLGAMESTATUS` of the player's SnowStorm game (Java throws for one
-    // that has not started: its preparing countdown is null). BattleBall games get nothing.
+    // Java throws for a game that never started (its preparing countdown is null); BattleBall
+    // games get nothing.
+    if let Some(status) = world.games.snowstorm_full_status(world, session) {
+        session.send(status);
+    }
     Ok(())
 }

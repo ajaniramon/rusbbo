@@ -8,7 +8,7 @@ use havana_protocol::body::{ClientBody, ClientReader};
 
 use super::attributes::ActivityState;
 use super::events::TurnEvent;
-use super::game::{Output, PlayerInfo, SnowStormGame, circle};
+use super::game::{Output, PlayerInfo, SnowStormGame, circle, length_choice_seconds};
 use super::mapping::java_split;
 use super::maps::{self, SnowStormMaps};
 use super::objects::{Snowball, Trajectory};
@@ -42,9 +42,42 @@ fn bot(user_id: u32, team_id: i32) -> PlayerInfo {
     }
 }
 
+/// A game with its arena task, which runs a turn every 300 ms from `next_tick` (the server's
+/// arena task calls [`SnowStormGame::tick`] the same way).
+struct Arena {
+    game: SnowStormGame,
+    next_tick: i64,
+}
+
+impl std::ops::Deref for Arena {
+    type Target = SnowStormGame;
+    fn deref(&self) -> &SnowStormGame {
+        &self.game
+    }
+}
+
+impl std::ops::DerefMut for Arena {
+    fn deref_mut(&mut self) -> &mut SnowStormGame {
+        &mut self.game
+    }
+}
+
+impl Arena {
+    /// Every turn due up to `to`, then the timers up to `to`.
+    fn run_until(&mut self, to: i64) -> Vec<Output> {
+        let mut out = Vec::new();
+        while self.next_tick <= to {
+            out.extend(self.game.tick(self.next_tick));
+            self.next_tick += 300;
+        }
+        self.game.advance(to);
+        out
+    }
+}
+
 /// The recorded game: arena 1, tracebot1 (team 0) and tracebot2 (team 1) placed where Java
 /// spawned them, both in the arena room, the turn task running from `T0`.
-fn recorded_game() -> SnowStormGame {
+fn recorded_game() -> Arena {
     let mut game = SnowStormGame::new(1, 2, 1, &SnowStormMaps::embedded());
     game.add_player(bot(1, 0));
     game.add_player(bot(2, 1));
@@ -59,8 +92,11 @@ fn recorded_game() -> SnowStormGame {
     for user in [1, 2] {
         game.set_in_room(user, true);
     }
-    game.start_turns(T0);
-    game
+    game.start_external_turns();
+    Arena {
+        game,
+        next_tick: T0,
+    }
 }
 
 fn place(game: &mut SnowStormGame, user_id: u32, x: i32, y: i32, rotation: i32) {
@@ -82,15 +118,16 @@ fn broadcasts(out: Vec<Output>) -> Vec<Vec<u8>> {
 }
 
 /// Every turn body from `from` to `to` (inclusive), turn by turn.
-fn turns_until(game: &mut SnowStormGame, to: i64) -> Vec<Vec<u8>> {
-    broadcasts(game.advance(to))
+fn turns_until(game: &mut Arena, to: i64) -> Vec<Vec<u8>> {
+    broadcasts(game.run_until(to))
 }
 
-fn event(game: &mut SnowStormGame, user_id: u32, body: ClientBody, now: i64) -> Vec<Vec<u8>> {
+fn event(game: &mut Arena, user_id: u32, body: ClientBody, now: i64) -> Vec<Vec<u8>> {
     let bytes = body.build();
     let mut reader = ClientReader::new(&bytes);
     let event_type = reader.int().unwrap();
-    broadcasts(game.handle_event(user_id, event_type, &mut reader, true, now))
+    game.handle_event(user_id, event_type, &mut reader, true, now);
+    Vec::new()
 }
 
 const EMPTY_TURN: &[u8] = b"IIQAHHHHH";
@@ -151,14 +188,6 @@ fn a_missing_arena_file_leaves_the_arena_out() {
     assert_eq!(two.items().len(), 1);
     assert_eq!(two.items()[0].height, 3);
     assert!(two.spawn_clusters().is_empty());
-    assert_eq!(
-        check_create(1, 2, "x", &maps),
-        Err(CreateRefusal::MapUnavailable)
-    );
-    assert_eq!(check_create(2, 2, "x", &maps), Ok(()));
-    assert_eq!(check_create(8, 2, "x", &maps), Err(CreateRefusal::Silent));
-    assert_eq!(check_create(2, 5, "x", &maps), Err(CreateRefusal::Silent));
-    assert_eq!(check_create(2, 2, "", &maps), Err(CreateRefusal::Silent));
     // Java's parseInt failure is an error for that arena only.
     assert!(maps::parse_map(3, "a1 sw_tree1 x 4 0 0", None, None).is_err());
 }
@@ -266,10 +295,11 @@ fn walking_to_the_machine_matches_the_oracle() {
     place(&mut game, 1, 25, 26, 0);
     let turns = turns_until(&mut game, T0 + 300 * 23 + 10_000);
     assert!(non_empty(&turns).is_empty());
-    assert!(game.timers.iter().all(|(_, k)| matches!(
-        k,
-        timers::TimerKind::Turn { .. } | timers::TimerKind::ActivityReset { .. }
-    )));
+    assert!(
+        game.timers
+            .iter()
+            .all(|(_, k)| matches!(k, timers::TimerKind::ActivityReset { .. }))
+    );
 }
 
 #[test]
@@ -517,8 +547,8 @@ fn making_a_snowball_takes_1200_ms() {
 #[test]
 fn throw_requests_are_checked_like_java() {
     let mut game = recorded_game();
-    turns_until(&mut game, T0);
     let t = T0 + 1000;
+    turns_until(&mut game, t);
     // Bad trajectories.
     event(&mut game, 1, ClientBody::new().int(1).int(3).int(1), t);
     event(
@@ -542,15 +572,10 @@ fn throw_requests_are_checked_like_java() {
     event(&mut game, 1, ClientBody::new().int(9), t);
     event(&mut game, 77, ClientBody::new().int(3), t);
     // In a one-team game everybody else is an opponent.
-    let mut solo = SnowStormGame::new(1, 1, 1, &SnowStormMaps::embedded());
+    let solo = SnowStormGame::new(1, 1, 1, &SnowStormMaps::embedded());
     assert!(solo.is_opposition((1, 0), (2, 0)));
     assert!(!solo.is_opposition((1, 0), (1, 0)));
-    solo.add_player(bot(1, 0));
-    assert_eq!(solo.can_start_one_team(), Some(false));
-    solo.add_player(bot(2, 0));
-    assert_eq!(solo.can_start_one_team(), Some(true));
     assert!(!game.is_opposition((1, 0), (2, 0)));
-    assert_eq!(game.can_start_one_team(), None);
 }
 
 #[test]
@@ -743,7 +768,7 @@ fn walk_requests_are_checked_like_java() {
 fn the_turn_task_follows_java() {
     let mut game = recorded_game();
     // Spam ticks for the players in the room, then the status.
-    let out = game.advance(T0);
+    let out = game.run_until(T0);
     assert_eq!(
         out,
         [
@@ -752,12 +777,11 @@ fn the_turn_task_follows_java() {
             Output::Broadcast(Message::new(244, EMPTY_TURN.to_vec()))
         ]
     );
-    // Every 300 ms, catching up like scheduleAtFixedRate.
-    assert_eq!(game.next_deadline(), Some(T0 + 300));
+    // Every 300 ms.
     assert_eq!(turns_until(&mut game, T0 + 1000).len(), 3);
     // A player out of the room is not moved or ticked.
     game.set_in_room(2, false);
-    assert_eq!(game.advance(T0 + 1200).len(), 2);
+    assert_eq!(game.run_until(T0 + 1200).len(), 2);
     // Events queued before the turn appear in FULLGAMESTATUS and the next status.
     game.send_queue(0, 1, TurnEvent::DeleteObject { object_id: 9 });
     game.send_queue(0, 6, TurnEvent::DeleteObject { object_id: 9 }); // out of range: dropped
@@ -777,15 +801,14 @@ fn the_turn_task_follows_java() {
     // Nobody in the game: nothing at all.
     game.set_in_game(1, false);
     game.set_in_game(2, false);
-    assert!(game.advance(T0 + 3000).is_empty());
+    assert!(game.run_until(T0 + 3000).is_empty());
     // Stopping the task drops its turns; starting again starts a new task.
     game.set_in_game(1, true);
     game.send_queue(0, 1, TurnEvent::DeleteObject { object_id: 9 });
     game.stop_turns();
-    assert!(game.advance(T0 + 4000).is_empty());
-    game.start_turns(T0 + 4000);
-    game.start_turns(T0 + 4100); // kept
-    assert_eq!(turns_until(&mut game, T0 + 4300).len(), 2);
+    assert!(game.run_until(T0 + 4000).is_empty());
+    game.start_external_turns();
+    assert_eq!(turns_until(&mut game, T0 + 4300).len(), 1);
 }
 
 #[test]
@@ -842,32 +865,15 @@ fn circle_is_javas_get_circle() {
 }
 
 #[test]
-fn lengths_and_instances() {
+fn lengths_follow_the_choice() {
     let maps = SnowStormMaps::embedded();
     let game = SnowStormGame::new(1, 2, 2, &maps);
-    assert_eq!(game.game_length(false, 17), 180);
-    assert_eq!(game.game_length(true, 17), 17);
     assert_eq!(game.lifetime_seconds(0), 180);
     assert_eq!(game.lifetime_seconds(45), 45);
     assert_eq!(length_choice_seconds(3), Some(300));
     assert_eq!(length_choice_seconds(4), None);
     let odd = SnowStormGame::new(1, 2, 9, &maps);
-    assert_eq!(odd.game_length(false, 17), 17);
     assert_eq!(odd.lifetime_seconds(0), 0);
-
-    // Oracle: GAMEINSTANCE (waiting) is "H I probe Itracebot1 [I] I H J ...": the length
-    // choice (1) after the creator's name.
-    let body = havana_protocol::body::ServerBody::new().text("tracebot1");
-    let body = SnowStormGame::new(1, 2, 1, &maps).write_length_choice(body);
-    assert_eq!(body.build(), b"tracebot1\x02I");
-    let body = havana_protocol::body::ServerBody::new();
-    assert_eq!(
-        outgoing::write_finished_length_choice(body.clone(), "3")
-            .unwrap()
-            .build(),
-        b"K"
-    );
-    assert!(outgoing::write_finished_length_choice(body, "x").is_none());
 }
 
 #[test]
@@ -908,4 +914,55 @@ fn coordinates_convert_like_java() {
     assert_eq!(to_world_coordinate(42), 134400);
     assert_eq!(maps::raw_heightmap(4), maps::raw_heightmap(5));
     assert_ne!(maps::raw_heightmap(1), maps::raw_heightmap(4));
+}
+
+/// `scenarios/snowstorm-game.toml` relies on this: from any spawn of arena 4, Java's greedy
+/// walk reaches a's tile (23,24) and b's (27,24) within 24 turns.
+#[test]
+fn every_spawn_of_arena_4_reaches_the_scenario_tiles() {
+    let maps = SnowStormMaps::embedded();
+    let map = maps.get(4).unwrap();
+    let mut spawns = Vec::new();
+    for cl in map.spawn_clusters() {
+        for p in circle(Position::new(cl.x, cl.y), cl.radius) {
+            if map.tile(p).is_some_and(|t| t.is_walkable()) && !spawns.contains(&p) {
+                spawns.push(p);
+            }
+        }
+    }
+    assert!(spawns.len() > 1000);
+    let mut game = SnowStormGame::new(4, 2, 1, &maps);
+    game.add_player(bot(1, 0));
+    game.initialise();
+    game.assign_spawn_points(&mut |_| 0, T0);
+    game.set_in_room(1, true);
+    game.start_external_turns();
+    for goal in [Position::new(23, 24), Position::new(27, 24)] {
+        let mut worst = 0;
+        for &spawn in &spawns {
+            let a = &mut game.player_mut(1).unwrap().attrs;
+            a.current_position = spawn;
+            a.walking = spawn != goal;
+            a.walk_goal = Some(goal);
+            a.goal_world_coordinates = Some([goal.x * 3200, goal.y * 3200]);
+            let mut turns = 0;
+            while game.player(1).unwrap().attrs.walking && turns < 30 {
+                game.tick(T0 + turns * 300);
+                turns += 1;
+            }
+            if spawn == Position::new(0, 22) {
+                // An island of one tile (1 spawn in 1241): the walk stops at once. The scenario
+                // fails in such a run, on Java too.
+                assert_ne!(game.player(1).unwrap().attrs.current_position, goal);
+                continue;
+            }
+            assert_eq!(
+                game.player(1).unwrap().attrs.current_position,
+                goal,
+                "from {spawn:?}"
+            );
+            worst = worst.max(turns);
+        }
+        assert!(worst <= 24, "{goal:?}: {worst} turns");
+    }
 }

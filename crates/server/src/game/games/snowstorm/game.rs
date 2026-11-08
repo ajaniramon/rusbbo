@@ -45,6 +45,14 @@ pub struct SnowStormPlayer {
     pub attrs: SnowStormAttributes,
 }
 
+/// One team member for [`SnowStormGame::sync_roster`].
+#[derive(Clone, Debug)]
+pub struct RosterEntry {
+    pub info: PlayerInfo,
+    pub in_game: bool,
+    pub in_room: bool,
+}
+
 /// What `assignSpawnPoints` decided for one player; the core copies it onto its `GamePlayer`
 /// (object id, score 0) and, on a restart, onto the room user (instance id = object id,
 /// position = spawn).
@@ -85,7 +93,6 @@ pub struct SnowStormGame {
     object_counter: i32,
     /// Java: the room's `UpdateTask`, `None` while the arena room has no tasks.
     pub(super) turns: Option<TurnTask>,
-    pub(super) turn_generation: u64,
     pub(super) timers: Timers,
 }
 
@@ -103,7 +110,6 @@ impl SnowStormGame {
             flights: BTreeMap::new(),
             object_counter: 0,
             turns: None,
-            turn_generation: 0,
             timers: Timers::default(),
         }
     }
@@ -112,6 +118,7 @@ impl SnowStormGame {
         self.map.as_deref()
     }
 
+    #[cfg(test)]
     pub fn players(&self) -> &[SnowStormPlayer] {
         &self.players
     }
@@ -130,6 +137,7 @@ impl SnowStormGame {
 
     /// Java: `Game.movePlayer(gamePlayer, from, to)` onto a team: the player goes to the end of
     /// `info.team_id`'s list (a player already in the game changes team and keeps its state).
+    #[cfg(test)]
     pub fn add_player(&mut self, info: PlayerInfo) {
         let existing = self.index_of(info.user_id).map(|i| self.players.remove(i));
         let at = self
@@ -157,12 +165,53 @@ impl SnowStormGame {
 
     /// Java: `Game.leaveGame` (`objects.remove(gamePlayer.getGameObject())` and the move out of
     /// the team). Snowballs it threw still land; it scores nothing for them.
+    #[cfg(test)]
     pub fn remove_player(&mut self, user_id: u32) {
         self.players.retain(|p| p.info.user_id != user_id);
         self.objects.retain(|o| *o != ObjectRef::Avatar(user_id));
     }
 
+    /// The game's team members as the core has them, in Java's order (team by team, in the
+    /// order they joined): players no longer listed are forgotten, the others keep their
+    /// SnowStorm state.
+    pub fn sync_roster(&mut self, roster: Vec<RosterEntry>) {
+        let mut old = std::mem::take(&mut self.players);
+        for entry in roster {
+            let player = match old
+                .iter()
+                .position(|p| p.info.user_id == entry.info.user_id)
+            {
+                Some(i) => {
+                    let mut p = old.remove(i);
+                    p.info = entry.info;
+                    p
+                }
+                None => SnowStormPlayer {
+                    info: entry.info,
+                    in_game: true,
+                    in_room: false,
+                    object_id: -1,
+                    spawn: Position::default(),
+                    assigned_spawn: false,
+                    attrs: SnowStormAttributes::default(),
+                },
+            };
+            self.players.push(SnowStormPlayer {
+                in_game: entry.in_game,
+                in_room: entry.in_room,
+                ..player
+            });
+        }
+    }
+
+    /// Java: `objects.remove(gamePlayer.getGameObject())` (`leaveGame`): the avatar goes, the
+    /// player stays on its team until the core says otherwise.
+    pub fn remove_avatar(&mut self, user_id: u32) {
+        self.objects.retain(|o| *o != ObjectRef::Avatar(user_id));
+    }
+
     /// Java: `GamePlayer.setInGame`.
+    #[cfg(test)]
     pub fn set_in_game(&mut self, user_id: u32, in_game: bool) {
         if let Some(p) = self.player_mut(user_id) {
             p.in_game = in_game;
@@ -171,6 +220,7 @@ impl SnowStormGame {
 
     /// Whether the player's room is the arena room (Java checks
     /// `player.getRoomUser().getRoom() == this.room` each turn).
+    #[cfg(test)]
     pub fn set_in_room(&mut self, user_id: u32, in_room: bool) {
         if let Some(p) = self.player_mut(user_id) {
             p.in_room = in_room;
@@ -483,28 +533,6 @@ impl SnowStormGame {
         self.active()
             .map(|(_, p)| (p.info.user_id, p.attrs.score))
             .collect()
-    }
-
-    /// Java: `hasEnoughPlayers` (whether a finished game may restart): somebody still active.
-    pub fn has_enough_players(&self) -> bool {
-        self.active().next().is_some()
-    }
-
-    /// Java: `Game.canGameStart`'s SnowStorm branch for one team: at least two active players.
-    /// For more teams the core's generic rule applies (`snowstorm.start.minimum.active.teams`
-    /// teams with an active player).
-    pub fn can_start_one_team(&self) -> Option<bool> {
-        (self.team_amount == 1).then(|| self.active().count() > 1)
-    }
-
-    /// Java: `getGameLength`: the chosen length while waiting or ended, else the seconds left.
-    pub fn game_length(&self, started: bool, total_seconds_left: i32) -> i32 {
-        if !started {
-            if let Some(seconds) = length_choice_seconds(self.length_choice) {
-                return seconds;
-            }
-        }
-        total_seconds_left
     }
 
     /// Java: the lifetime `SnowStormGame.initialise` passes to `Game.initialise`: the length

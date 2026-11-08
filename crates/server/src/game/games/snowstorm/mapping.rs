@@ -39,12 +39,9 @@ pub struct SnowStormSpawn {
 /// Java: `SnowStormTile`.
 #[derive(Clone, Debug)]
 pub struct SnowStormTile {
-    pub x: i32,
-    pub y: i32,
     blocked: bool,
-    /// Indexes into [`SnowStormMap::items`], sorted by z (stable, like Java's `List.sort`).
-    items: Vec<usize>,
-    /// The first item with the greatest z.
+    /// The first item with the greatest z (Java sorts the tile's items by z, stably, and
+    /// keeps the first of the highest).
     highest: Option<usize>,
 }
 
@@ -53,16 +50,11 @@ impl SnowStormTile {
     pub fn is_walkable(&self) -> bool {
         !self.blocked && self.highest.is_none()
     }
-
-    pub fn items(&self) -> &[usize] {
-        &self.items
-    }
 }
 
 /// Java: `SnowStormMap`.
 #[derive(Clone, Debug)]
 pub struct SnowStormMap {
-    pub map_id: i32,
     items: Vec<SnowStormItem>,
     spawn_clusters: Vec<SnowStormSpawn>,
     /// The raw `arena_<id>.dat` (what `OBJECTS_WORLD` is built from).
@@ -113,10 +105,7 @@ impl SnowStormMap {
                     }
                 }
                 tiles.push(SnowStormTile {
-                    x,
-                    y,
                     blocked: ch.eq_ignore_ascii_case(&b'x'),
-                    items: on_tile,
                     highest,
                 });
             }
@@ -131,7 +120,6 @@ impl SnowStormMap {
         }
 
         Ok(Self {
-            map_id,
             items,
             spawn_clusters,
             compiled_items,
@@ -186,10 +174,12 @@ impl SnowStormMap {
         &self.heightmap
     }
 
+    #[cfg(test)]
     pub fn size_x(&self) -> i32 {
         self.size_x
     }
 
+    #[cfg(test)]
     pub fn size_y(&self) -> i32 {
         self.size_y
     }

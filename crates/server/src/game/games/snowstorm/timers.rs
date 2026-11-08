@@ -12,8 +12,6 @@ use std::collections::BTreeMap;
 /// What a timer does when due.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TimerKind {
-    /// Java: `SnowStormGameTask.run`, every 300 ms while the arena room has its tasks.
-    Turn { generation: u64 },
     /// Java: the reset scheduled by `SnowStormAttributes.setActivityState`.
     ActivityReset {
         user_id: u32,
@@ -62,14 +60,7 @@ impl Timers {
         Some((due, kind))
     }
 
-    pub fn next_deadline(&self) -> Option<i64> {
-        self.queue.keys().next().map(|&(due, _)| due)
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.queue.is_empty()
-    }
-
+    #[cfg(test)]
     pub fn iter(&self) -> impl Iterator<Item = (i64, &TimerKind)> {
         self.queue.iter().map(|(&(due, _), kind)| (due, kind))
     }

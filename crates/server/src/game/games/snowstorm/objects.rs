@@ -4,7 +4,8 @@
 use havana_protocol::body::ServerBody;
 
 use super::events::object_type;
-use super::{SnowStormPlayer, to_world_coordinate};
+use super::game::SnowStormPlayer;
+use super::to_world_coordinate;
 use crate::game::pathfinder::Position;
 
 /// Java: `SnowballObject.SnowballTrajectory` (all three have velocity 3000).

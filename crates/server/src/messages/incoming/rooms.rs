@@ -309,8 +309,8 @@ pub fn get_floormap(
     Ok(())
 }
 
-/// Java: `G_HMAP`: the heightmap, and in a game's arena the game's full status. TODO(snowstorm):
-/// a SnowStorm arena sends its map's heightmap and items. TODO(flash): FLOOR_MAP.
+/// Java: `G_HMAP`: the heightmap, and in a game's arena the game's full status (a SnowStorm
+/// arena: its map's heightmap, the full status and the map's items). TODO(flash): FLOOR_MAP.
 pub fn g_hmap(
     world: &World,
     session: &Arc<Session>,
@@ -319,6 +319,12 @@ pub fn g_hmap(
     let Some(room) = current_room(world, session) else {
         return Ok(());
     };
+    if let Some(messages) = world.games.snowstorm_arena_view(world, session) {
+        for msg in messages {
+            session.send(msg);
+        }
+        return Ok(());
+    }
     let msg = out::heightmap(&room.lock().model.heightmap);
     session.send(msg);
     if let Some(status) = world.games.full_game_status_for(world, session) {

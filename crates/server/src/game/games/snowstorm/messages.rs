@@ -9,7 +9,7 @@ use havana_protocol::body::ClientReader;
 
 use super::attributes::ActivityState;
 use super::events::TurnEvent;
-use super::game::{Output, SnowStormGame};
+use super::game::SnowStormGame;
 use super::objects::Snowball;
 use super::timers::ResetAction;
 use super::{MAX_QUICK_THROW_DISTANCE, THROW_COOLDOWN_MS, to_game_coordinate, to_world_coordinate};
@@ -48,8 +48,8 @@ impl SnowStormGame {
         reader: &mut ClientReader<'_>,
         walking_allowed: bool,
         now: i64,
-    ) -> Vec<Output> {
-        let mut out = self.advance(now);
+    ) {
+        self.advance(now);
         if let (Some(i), Some(event)) = (self.index_of(user_id), EventType::from_id(event_type)) {
             let _ = match event {
                 EventType::Walk => self.walk(i, reader, walking_allowed),
@@ -61,8 +61,7 @@ impl SnowStormGame {
                 }
             };
         }
-        out.extend(self.advance(now));
-        out
+        self.advance(now);
     }
 
     /// Java: `SnowStormWalkMessage`: world coordinates; the turn task walks there.

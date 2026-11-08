@@ -53,6 +53,7 @@ impl SnowStormGame {
     }
 
     /// Java: `getObjects().size()`.
+    #[cfg(test)]
     pub fn object_count(&self) -> usize {
         self.objects.len()
     }
@@ -81,21 +82,13 @@ impl SnowStormGame {
         Message::new(FULLGAMESTATUS, write_turns(body, turns).build())
     }
 
-    /// Java: `GAMEINSTANCE` (waiting or started) and `INSTANCELIST`: SnowStorm writes the
-    /// length choice right after the creator's name (`INSTANCELIST` writes
-    /// [`SnowStormGame::game_length`] there instead).
-    pub fn write_length_choice(&self, body: ServerBody) -> ServerBody {
-        body.int(self.length_choice)
+    /// Java: `GAMERESET` for SnowStorm: the seconds until the game starts, then every object.
+    pub fn game_reset(&self, seconds_until_start: i32, now: i64) -> Message {
+        let body = ServerBody::new()
+            .int(seconds_until_start)
+            .int(self.objects.len() as i32);
+        Message::new(249, self.write_objects(body, now).build())
     }
-}
-
-/// Java: `GAMEINSTANCE` of a finished SnowStorm game: `Integer.valueOf(history.extraData)` (the
-/// length choice) after the creator's name. `None` where Java throws (the message is not sent).
-pub fn write_finished_length_choice(body: ServerBody, extra_data: &str) -> Option<ServerBody> {
-    extra_data
-        .parse::<i32>()
-        .ok()
-        .map(|choice| body.int(choice))
 }
 
 /// Java: `G_HMAP` in a SnowStorm arena: `HEIGHTMAP(map.getHeightMap())` (the parsed one).

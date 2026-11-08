@@ -34,8 +34,8 @@
 //! # The seam: what a game type provides
 //!
 //! The game-type specific parts (Java's abstract `Game` with `BattleBallGame` and
-//! `SnowStormGame`) are the variants of [`GameKind`] and every `match` on it. Grep
-//! `TODO(snowstorm)` for the arms SnowStorm still lacks. A game type provides:
+//! `SnowStormGame`) are the variants of [`GameKind`] and every `match` on it. A game type
+//! provides:
 //!
 //! - its state: a [`GameKind`] variant (BattleBall keeps its tiles, power ups, objects and event
 //!   queues there; per-player state is either on [`GamePlayer`](player::GamePlayer), as Java
@@ -59,9 +59,8 @@
 //!
 //! Everything else (teams, observers, spectators, the timers, the start, end and restart,
 //! leaving, the tickets, the history, the statistics) is shared and needs nothing from the
-//! game type. BattleBall is in [`battleball`]. SnowStorm stops at the lobby here (its engine lives
-//! in `game/games/snowstorm/`, to be wired in): a SnowStorm game can be made, listed, joined and
-//! left, but `STARTGAME` does not start it yet.
+//! game type. BattleBall is in [`battleball`], SnowStorm in [`snowstorm`] (its engine, and
+//! `snowstorm/arena.rs` for its arms of the seam).
 
 pub mod battleball;
 pub mod game;

@@ -60,11 +60,13 @@ pub async fn run(world: Weak<World>, room: Weak<RoomHandle>) {
 /// with no delay), once the entry that started it released the room's lock.
 pub async fn run_arena(world: Weak<World>, room: Weak<RoomHandle>, period: Duration) {
     let mut interval = tokio::time::interval(period);
+    let mut first = true;
     loop {
         interval.tick().await;
         let (Some(world), Some(room)) = (world.upgrade(), room.upgrade()) else {
             return;
         };
+        let is_first = std::mem::replace(&mut first, false);
         crate::game::contain_panic(format_args!("arena tick"), || {
             let deferred = {
                 let mut r = room.lock();
@@ -74,7 +76,7 @@ pub async fn run_arena(world: Weak<World>, room: Weak<RoomHandle>, period: Durat
                 world.games.run(&world, Some(&mut r), |games, op| {
                     let room = op.room.take();
                     if let Some(room) = room {
-                        games.arena_tick(uid, room, op);
+                        games.arena_tick(uid, room, is_first, op);
                         op.room = Some(room);
                     }
                 });

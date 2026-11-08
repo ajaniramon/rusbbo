@@ -8,7 +8,7 @@ use std::sync::Arc;
 use havana_protocol::Message;
 
 use super::battleball::BattleBall;
-use super::game::{Game, GameKind, SnowStormLobby};
+use super::game::{Game, GameKind};
 use super::player::{GamePlayer, PlayerDetails};
 use super::{GameType, Games, Op, points_of};
 use crate::game::room::Room;
@@ -188,9 +188,17 @@ pub fn create_game(
             if !(1..=7).contains(&map_id) {
                 return Created::Done;
             }
-            // TODO(snowstorm): `SnowStormMapsManager.getMap(mapId) == null` (an arena that did
-            // not load from tools/snowstorm_maps) sends an ALERT and makes no game; every map
-            // loads in the oracle.
+            // Java: an arena that did not load from tools/snowstorm_maps.
+            let maps = super::snowstorm::maps::instance();
+            if maps.get(map_id).is_none() {
+                op.send(
+                    session,
+                    crate::messages::outgoing::alerts::alert(
+                        super::snowstorm::MAP_UNAVAILABLE_ALERT,
+                    ),
+                );
+                return Created::Done;
+            }
             let Some(teams) = int(params, "numTeams") else {
                 return Created::Failed;
             };
@@ -209,7 +217,12 @@ pub fn create_game(
             (
                 teams,
                 name.to_string(),
-                GameKind::SnowStorm(Box::new(SnowStormLobby { length_choice })),
+                GameKind::SnowStorm(Box::new(super::snowstorm::SnowStormGame::new(
+                    map_id,
+                    teams,
+                    length_choice,
+                    &maps,
+                ))),
             )
         }
         GameType::WobbleSquabble => return Created::Done,

@@ -700,16 +700,20 @@ pub(crate) struct Tick {
 
 impl Games {
     /// Java: `BattleBallTask.run` for the arena `room` of the game `uid`.
-    pub fn arena_tick(&mut self, uid: u64, room: &mut Room, op: &mut Op) {
+    pub fn arena_tick(&mut self, uid: u64, room: &mut Room, first: bool, op: &mut Op) {
         let Some(gi) = self.game_index(uid) else {
             return;
         };
+        if matches!(self.games[gi].kind, GameKind::SnowStorm(_)) {
+            // Java's SnowStormGameTask (it goes on after the end, unlike BattleBall's).
+            self.snowstorm_arena_tick(gi, room, first);
+            return;
+        }
         let game = &mut self.games[gi];
         if game.active_players().next().is_none() || game.state == GameState::Ended {
             return;
         }
         let GameKind::BattleBall(bb) = &mut game.kind else {
-            // TODO(snowstorm): SnowStormGameTask.
             return;
         };
         let mut tick = Tick {

@@ -9,7 +9,7 @@ use super::game::{Output, SnowStormGame};
 use super::objects::{ObjectRef, Snowball, Trajectory};
 use super::outgoing::snowstorm_gamestatus;
 use super::timers::{MACHINE_ANIMATION_MS, MACHINE_RESTOCK_MS, TimerKind};
-use super::{MAX_QUICK_THROW_DISTANCE, TURN_MS, TURNS, java_distance};
+use super::{MAX_QUICK_THROW_DISTANCE, TURNS, java_distance};
 use crate::game::pathfinder::{Position, walk_direction};
 
 /// Java: `SnowStormFuture`: an event queued `frames_future` turns ahead.
@@ -26,15 +26,13 @@ pub struct FutureEvent {
 pub struct TurnTask {
     pub turns: Vec<Vec<TurnEvent>>,
     pub futures: Vec<FutureEvent>,
-    pub generation: u64,
 }
 
 impl TurnTask {
-    pub fn new(generation: u64) -> Self {
+    pub fn new() -> Self {
         Self {
             turns: vec![Vec::new(); TURNS],
             futures: Vec::new(),
-            generation,
         }
     }
 
@@ -69,29 +67,30 @@ pub struct Flight {
 }
 
 impl SnowStormGame {
-    /// Java: `RoomTaskManager.loadGameTasks` scheduling `UpdateTask` (a new
-    /// `SnowStormGameTask`, delay 0, every 300 ms). Like Aeyra's guard, a running task is
-    /// kept.
-    pub fn start_turns(&mut self, now: i64) {
-        if self.turns.is_some() {
-            return;
-        }
-        self.turn_generation += 1;
-        let generation = self.turn_generation;
-        self.turns = Some(TurnTask::new(generation));
-        self.timers.schedule(now, TimerKind::Turn { generation });
-    }
-
     /// Java: `RoomTaskManager.stopTasks` (the arena room emptied): the task and the events it
     /// had queued are gone. Snowballs, machines and state resets keep running (they are on
     /// Java's `GameScheduler`, not the room's tasks).
+    #[cfg(test)]
     pub fn stop_turns(&mut self) {
         self.turns = None;
     }
 
-    /// Whether the arena has its turn task (Java: `getUpdateTask() != null`).
-    pub fn turns_running(&self) -> bool {
-        self.turns.is_some()
+    /// Java: `RoomTaskManager.loadGameTasks` scheduling `UpdateTask` (a new
+    /// `SnowStormGameTask`, with nothing queued). The arena's 300 ms task drives it with
+    /// [`Self::tick`].
+    pub fn start_external_turns(&mut self) {
+        self.turns = Some(TurnTask::new());
+    }
+
+    /// One run of the arena's task at `now` (Java: `SnowStormGameTask.run`): every timer due by
+    /// then, then the turn.
+    pub fn tick(&mut self, now: i64) -> Vec<Output> {
+        self.advance(now);
+        let mut out = Vec::new();
+        if self.turns.is_some() {
+            self.run_turn(now, &mut out);
+        }
+        out
     }
 
     /// Java: `getUpdateTask().getExecutingTurns()`: the turn being built.
@@ -99,29 +98,15 @@ impl SnowStormGame {
         self.turns.as_ref().map(|t| t.turns.as_slice())
     }
 
-    /// When the next timer is due (the core should call [`Self::advance`] then).
-    pub fn next_deadline(&self) -> Option<i64> {
-        self.timers.next_deadline()
-    }
-
     /// Runs every timer due at or before `now`.
-    pub fn advance(&mut self, now: i64) -> Vec<Output> {
-        let mut out = Vec::new();
+    pub fn advance(&mut self, now: i64) {
         while let Some((due, kind)) = self.timers.pop_due(now) {
-            self.run_timer(due, kind, &mut out);
+            self.run_timer(due, kind);
         }
-        out
     }
 
-    fn run_timer(&mut self, due: i64, kind: TimerKind, out: &mut Vec<Output>) {
+    fn run_timer(&mut self, due: i64, kind: TimerKind) {
         match kind {
-            TimerKind::Turn { generation } => {
-                if self.turns.as_ref().map(|t| t.generation) != Some(generation) {
-                    return;
-                }
-                self.run_turn(due, out);
-                self.timers.schedule(due + TURN_MS, kind);
-            }
             TimerKind::ActivityReset {
                 user_id,
                 token,

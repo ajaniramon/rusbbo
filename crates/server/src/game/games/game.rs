@@ -11,6 +11,7 @@ use tracing::error;
 use super::battleball::BattleBall;
 use super::history::{self, FinishWork};
 use super::player::{GamePlayer, PlayerState, Team};
+use super::snowstorm::{self, SnowStormGame};
 use super::{GameState, GameType, Games, Op};
 use crate::game::room::model::RoomModel;
 use crate::game::room::{Room, RoomRef};
@@ -21,14 +22,8 @@ use crate::world::World;
 /// The game-type specific state of a game (Java's subclasses of `Game`).
 pub enum GameKind {
     BattleBall(Box<BattleBall>),
-    /// TODO(snowstorm): the arena engine (`game/games/snowstorm/`): its map, objects, turns and
-    /// task. Until it is wired in, a SnowStorm game only exists in its lobby.
-    SnowStorm(Box<SnowStormLobby>),
-}
-
-/// What the lobby knows of a SnowStorm game (Java: `SnowStormGame.gameLengthChoice`).
-pub struct SnowStormLobby {
-    pub length_choice: i32,
+    /// The arena engine (`game/games/snowstorm/`): its map, players, objects, turns and timers.
+    SnowStorm(Box<SnowStormGame>),
 }
 
 /// Java: the game's `FutureRunnable`s.
@@ -770,7 +765,7 @@ impl Games {
     }
 
     /// Java: `initialise()`: started, the timers' seconds, the arena and its map. Returns false
-    /// when the game type has no arena for the map (TODO(snowstorm)).
+    /// when the game type has no arena for the map.
     fn initialise(&mut self, gi: usize, op: &mut Op) -> bool {
         let world = op.world;
         let Some((model, room_name, lifetime)) = self.games[gi].arena_setup(world) else {
@@ -1090,7 +1085,7 @@ impl Game {
     pub fn can_timer_continue(&self) -> bool {
         match &self.kind {
             GameKind::BattleBall(bb) => bb.can_timer_continue(),
-            // TODO(snowstorm): SnowStormGame.canTimerContinue.
+            // Java: SnowStormGame.canTimerContinue.
             GameKind::SnowStorm(_) => true,
         }
     }
@@ -1110,11 +1105,14 @@ impl Game {
                     lifetime_seconds(world, self.game_type),
                 ))
             }
-            // TODO(snowstorm): SnowStormGame.initialise: the map's heightmap
-            // (`snowwar_arena_0`), the length from the choice (2, 3 or 5 minutes, or
-            // `snowstorm.game.lifetime.seconds` when above 0), "SnowStorm Arena", and the snow
-            // machines. Without the engine the game cannot start.
-            GameKind::SnowStorm(_) => None,
+            // Java: SnowStormGame.initialise: the map's heightmap (`snowwar_arena_0`), the
+            // length from the choice (2, 3 or 5 minutes, or `snowstorm.game.lifetime.seconds`
+            // when above 0); the machines are `build_map`'s.
+            GameKind::SnowStorm(s) => Some((
+                snowstorm::arena::arena_model(self.map_id),
+                "SnowStorm Arena",
+                s.lifetime_seconds(lifetime_seconds(world, self.game_type)),
+            )),
         }
     }
 
@@ -1124,15 +1122,20 @@ impl Game {
             return;
         };
         let map_id = self.map_id;
-        if let GameKind::BattleBall(bb) = &mut self.kind {
-            bb.build_map(&model, world.games.data.battleball_map(map_id));
+        match &mut self.kind {
+            GameKind::BattleBall(bb) => {
+                bb.build_map(&model, world.games.data.battleball_map(map_id));
+            }
+            // Java: the machines of SnowStormGame.initialise.
+            GameKind::SnowStorm(s) => s.initialise(),
         }
     }
 
     /// Java: `assignSpawnPoints`.
     fn assign_spawn_points_hook(&mut self, world: &World) {
-        if matches!(self.kind, GameKind::BattleBall(_)) {
-            super::battleball::assign_spawn_points(self, world);
+        match self.kind {
+            GameKind::BattleBall(_) => super::battleball::assign_spawn_points(self, world),
+            GameKind::SnowStorm(_) => snowstorm::arena::assign_spawn_points(self),
         }
     }
 
@@ -1167,8 +1170,14 @@ impl Game {
 
     /// Java: `objects.remove(gamePlayer.getGameObject())`.
     pub fn remove_player_object(&mut self, serial: u64) {
-        if let GameKind::BattleBall(bb) = &mut self.kind {
-            bb.remove_player_object(serial);
+        let user_id = self.player(serial).map(|p| p.user_id);
+        match &mut self.kind {
+            GameKind::BattleBall(bb) => bb.remove_player_object(serial),
+            GameKind::SnowStorm(s) => {
+                if let Some(user_id) = user_id {
+                    s.remove_avatar(user_id);
+                }
+            }
         }
     }
 
@@ -1190,7 +1199,7 @@ impl Game {
                         2 => 180,
                         3 => 300,
                         // Java reads totalSecondsLeft, which is null before the first start
-                        // (and throws); TODO(snowstorm): a real client only sends 1-3.
+                        // (and throws); a real client only sends 1-3.
                         _ => self.total_seconds_left,
                     }
                 } else {
@@ -1227,6 +1236,7 @@ impl Game {
                 }
             }
             GameKind::SnowStorm(_) => {
+                snowstorm::arena::set_final_scores(self);
                 for t in 0..self.teams.len() {
                     let sum = self.teams[t]
                         .players
@@ -1269,8 +1279,7 @@ impl Game {
     ) -> Message {
         match &self.kind {
             GameKind::BattleBall(bb) => bb.full_game_status(self, world, arena, positions),
-            // TODO(snowstorm): FULLGAMESTATUS with the turns of the SnowStorm task.
-            GameKind::SnowStorm(_) => Message::new(243, Vec::new()),
+            GameKind::SnowStorm(s) => snowstorm::arena::full_game_status(self, s, world),
         }
     }
 
@@ -1278,8 +1287,7 @@ impl Game {
     fn game_reset(&self, world: &World, players: &[u64], arena: Option<&Room>) -> Message {
         match &self.kind {
             GameKind::BattleBall(_) => super::battleball::game_reset(self, world, players, arena),
-            // TODO(snowstorm): GAMERESET with the SnowStorm objects.
-            GameKind::SnowStorm(_) => Message::new(249, Vec::new()),
+            GameKind::SnowStorm(s) => snowstorm::arena::game_reset(s, world),
         }
     }
 
