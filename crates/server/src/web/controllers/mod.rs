@@ -9,6 +9,8 @@ mod groups;
 mod habblets;
 mod habblets2;
 mod hk_core;
+mod hk_tools;
+mod hk_users;
 mod homes;
 mod me;
 mod minimail;
@@ -371,6 +373,18 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "HousekeepingTransactionsController::search" => hk_core::transactions(conn)?,
         "HousekeepingTransactionsController::item_lookup" => hk_core::item_lookup(conn)?,
         "HousekeepingConfigController::configurations" => hk_core::configurations(conn)?,
+        "HousekeepingUsersController::search" => hk_users::search(conn)?,
+        "HousekeepingUsersController::view" => hk_users::view(conn)?,
+        "HousekeepingUsersController::save" => hk_users::save(conn)?,
+        "HousekeepingUsersController::action" => hk_users::action(conn)?,
+        "HousekeepingUsersController::create" => hk_users::create(conn)?,
+        "HousekeepingUsersController::edit" => hk_users::edit(conn)?,
+        "HousekeepingUsersController::imitate" => hk_users::imitate(conn)?,
+        "HousekeepingToolsController::hotelAlert" => hk_tools::hotel_alert(conn)?,
+        "HousekeepingToolsController::chatlogs" => hk_tools::chatlogs(conn)?,
+        "HousekeepingToolsController::audit" => hk_tools::audit(conn)?,
+        "HousekeepingToolsController::roomView" => hk_tools::room_view(conn)?,
+        "HousekeepingToolsController::roomAction" => hk_tools::room_action(conn)?,
         _ => return Ok(false),
     }
     Ok(true)

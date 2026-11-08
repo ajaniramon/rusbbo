@@ -75,6 +75,18 @@ impl Store {
         w.commit()
     }
 
+    /// Every ban of a room: (user id, expiry), any order.
+    pub fn room_bans(&self, room_id: u32) -> Result<Vec<(u32, i64)>> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(BANS)?;
+        let mut out = Vec::new();
+        for entry in table.range((room_id, 0)..=(room_id, u32::MAX))? {
+            let (k, v) = entry?;
+            out.push((k.value().1, v.value()));
+        }
+        Ok(out)
+    }
+
     /// Java: `RoomBanDao.hasBan`: a ban of `user_id` from `room_id` that expires after `now`.
     pub fn has_room_ban(&self, room_id: u32, user_id: u32, now: i64) -> Result<bool> {
         let tx = self.db.begin_read()?;

@@ -112,6 +112,9 @@ case "${1:-}" in
     "$ORACLE_DIR/oracle.sh" reset
     # The web traces' own data (oracle/web-seed.sql), on top of the golden snapshot.
     docker exec -i "${ORACLE_DB_CONTAINER:-havana-oracle-db}" mariadb -uroot -proot havana < "$ORACLE_DIR/web-seed.sql"
+    # Connections in the tables' collation: with the driver's utf8mb4_general_ci, the panel's
+    # queries that compare a column with a CAST fail ("Illegal mix of collations").
+    docker exec -i "${ORACLE_DB_CONTAINER:-havana-oracle-db}" mariadb -uroot -proot       -e "SET GLOBAL character_set_collations = 'utf8mb4=utf8mb4_uca1400_ai_ci'"
     start
     ;;
   *) sed -n '2,12p' "$0"; exit 1 ;;

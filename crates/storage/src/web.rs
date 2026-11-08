@@ -333,6 +333,14 @@ record!(
 );
 
 record!(
+    /// `rooms_entry_badges`: badges a room gives on entry (Java: `BadgeDao`); ids are synthetic.
+    RoomEntryBadge, "rooms_entry_badges" {
+        room_id: u32,
+        badge: String,
+    }
+);
+
+record!(
     /// `hk_audit_log`: what staff did in the housekeeping panel (Aeyra's `HkDao.audit`).
     HkAudit, "hk_audit_log" {
         created_at: i64,
@@ -414,6 +422,7 @@ record_tables!(
     RoomVisit,
     Collectable,
     HkAudit,
+    RoomEntryBadge,
 );
 
 impl Store {

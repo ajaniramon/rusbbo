@@ -292,7 +292,7 @@ pub fn register(conn: &mut Conn) -> WebResult {
 }
 
 /// Java: `RegisterDao.newUser`: the new row with the table's defaults.
-fn new_user(
+pub(super) fn new_user(
     world: &crate::world::World,
     name: &str,
     password: &str,

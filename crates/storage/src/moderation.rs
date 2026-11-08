@@ -184,6 +184,18 @@ impl Store {
             .map(|l| l.ip_address.clone()))
     }
 
+    /// Every user's IP log rows, by user id (the housekeeping panel).
+    pub fn all_ip_logs(&self) -> Result<Vec<(u32, Vec<IpLog>)>> {
+        let tx = self.db.begin_read()?;
+        let table = tx.open_table(IP_LOGS)?;
+        let mut out = Vec::new();
+        for entry in table.iter()? {
+            let (k, v) = entry?;
+            out.push((k.value(), decode(v.value())?));
+        }
+        Ok(out)
+    }
+
     /// Java: `PlayerDao.countIpAddress`: how many users logged in from `ip`.
     pub fn users_with_ip(&self, ip: &str) -> Result<usize> {
         let tx = self.db.begin_read()?;

@@ -89,3 +89,18 @@ INSERT INTO soundmachine_songs (id, user_id, title, item_id, length, data, burnt
 -- housekeeping_audit_log) fails with "Illegal mix of collations" and shows nothing. The port's
 -- log works; this makes the oracle's schema consistent so the traces compare the logs.
 ALTER TABLE hk_audit_log CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci;
+
+-- Housekeeping: chat, IP logs, purchases and room visits to list (distinct times: the panel
+-- orders by them).
+INSERT INTO room_chatlogs (user_id, room_id, timestamp, chat_type, message) VALUES
+  (25, 1, UNIX_TIMESTAMP(CURDATE() + INTERVAL 1 HOUR), 0, 'Hello lounge'),
+  (1, 1, UNIX_TIMESTAMP(CURDATE() + INTERVAL 1 HOUR + INTERVAL 5 MINUTE), 1, 'HELLO BACK'),
+  (25, 2, UNIX_TIMESTAMP(CURDATE() - INTERVAL 3 DAY), 2, 'An old whisper');
+INSERT INTO users_ip_logs (user_id, ip_address, created_at) VALUES
+  (25, '10.0.0.1', CURDATE() - INTERVAL 2 DAY), (25, '10.0.0.2', CURDATE() - INTERVAL 1 DAY),
+  (25, '10.0.0.1', CURDATE() + INTERVAL 2 HOUR), (1, '10.0.0.1', CURDATE() + INTERVAL 3 HOUR);
+INSERT INTO users_transactions (user_id, item_id, catalogue_id, amount, description, credit_cost, pixel_cost, created_at) VALUES
+  (25, '5', '12', 1, 'Purchased a chair', 3, 0, CURDATE() + INTERVAL 1 HOUR),
+  (25, '6,7', '13', 2, 'Purchased two lamps', 6, 10, CURDATE() - INTERVAL 2 DAY);
+INSERT INTO room_visits (room_id, user_id, visited_at) VALUES
+  (1, 25, CURDATE() + INTERVAL 1 HOUR), (2, 25, CURDATE() - INTERVAL 3 DAY), (1, 1, CURDATE() + INTERVAL 2 HOUR);

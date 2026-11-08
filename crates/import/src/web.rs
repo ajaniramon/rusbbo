@@ -468,6 +468,14 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    for r in rows(conn, "SELECT room_id, badge FROM rooms_entry_badges")? {
+        w.put_record(&RoomEntryBadge {
+            id: synthetic(),
+            room_id: u(&r, "room_id")?,
+            badge: s(&r, "badge")?,
+        })?;
+        n += 1;
+    }
     // The panel creates this table on first use: it may not exist yet.
     let has_hk_log: Option<String> = conn.query_first("SHOW TABLES LIKE 'hk_audit_log'")?;
     if has_hk_log.is_some() {
