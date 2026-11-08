@@ -42,7 +42,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "016678317007427244446025\u0002I",
+              "body": "627648525238718383689185\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -74,7 +74,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#6F2C8936F01F4FA18D03012F1E074717\u0002",
+              "body": "#3DCD785DB59D435B98BD02E6F8554B34\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -140,7 +140,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "809921582573671960641440\u0002I",
+              "body": "978224477908207923249788\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -172,7 +172,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#08155999840F4BBB9B53EA375462632F\u0002",
+              "body": "#824DE2AC25B94391980A9C963A549D47\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -620,7 +620,7 @@
             {
               "header": 145,
               "name": "OPENGAMEBOARD",
-              "body": "ZZ1J01\tChess\t",
+              "body": "1F5lGG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -699,7 +699,7 @@
             {
               "header": 145,
               "name": "OPENGAMEBOARD",
-              "body": "ZZ1J01\tChess\t",
+              "body": "1F5lGG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -739,7 +739,7 @@
             {
               "header": 146,
               "name": "CLOSEGAMEBOARD",
-              "body": "ZZ1J01\tChess\t",
+              "body": "1F5lGG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -770,7 +770,7 @@
             {
               "header": 146,
               "name": "CLOSEGAMEBOARD",
-              "body": "ZZ1J01\tChess\t",
+              "body": "1F5lGG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -833,7 +833,7 @@
             {
               "header": 145,
               "name": "OPENGAMEBOARD",
-              "body": "9AVMQY\tChess\t",
+              "body": "v88MbG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -870,7 +870,7 @@
             {
               "header": 145,
               "name": "OPENGAMEBOARD",
-              "body": "9AVMQY\tChess\t",
+              "body": "v88MbG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -900,7 +900,7 @@
             {
               "header": 146,
               "name": "CLOSEGAMEBOARD",
-              "body": "9AVMQY\tChess\t",
+              "body": "v88MbG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             },
@@ -919,7 +919,7 @@
             {
               "header": 146,
               "name": "CLOSEGAMEBOARD",
-              "body": "9AVMQY\tChess\t",
+              "body": "v88MbG\tChess\t",
               "check": "mask",
               "mask": "??????......."
             }

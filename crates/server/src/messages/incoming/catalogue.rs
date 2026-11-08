@@ -27,9 +27,16 @@ pub fn get_catalog_index(
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
+    send_catalog_index(world, session);
+    Ok(())
+}
+
+/// Java: `new GET_CATALOG_INDEX().handle(player, null)`: the catalogue index for the player's
+/// rank and club.
+pub fn send_catalog_index(world: &World, session: &Session) {
     let p = session.player.lock();
     let Some(user) = p.details.as_ref() else {
-        return Ok(());
+        return;
     };
     let settings = world.settings.read();
     session.send(outgoing::catalogue::catalogue_pages(
@@ -38,7 +45,6 @@ pub fn get_catalog_index(
         &world.catalogue,
         &settings,
     ));
-    Ok(())
 }
 
 /// Java: `GET_CATALOGUE_PAGE`.
@@ -84,7 +90,7 @@ pub fn get_catalogue_page(
 
 /// Java: `GRPC` (purchase). The first int is ignored, the second is the catalogue item id.
 ///
-/// TODO(maintenance): `PlayerManager.isMaintenance` answers `INFO_HOTEL_CLOSING`.
+/// While the hotel is closing (`:shutdown`) nothing is bought: `INFO_HOTEL_CLOSING`.
 /// TODO(collectables): collectable prices and page rules.
 /// TODO(badges): `catalogue_sale_badges` rewards via the badge manager.
 /// TODO(flash,rooms): `getView("new")` after buying, for Flash clients and players in a room.
@@ -94,6 +100,9 @@ pub fn grpc(
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     reader.int().ok_or(Malformed)?;
+    if crate::game::maintenance::tell_closing(session) {
+        return Ok(());
+    }
     let item_id = reader.int().ok_or(Malformed)?;
 
     let mut guard = session.player.lock();

@@ -79,6 +79,11 @@ pub fn session_parameters(vouchers: bool, profile_editing: bool, tutorial: bool)
     Message::new(257, body.build())
 }
 
+/// Java: `INFO_HOTEL_CLOSING`: the hotel closes in that many minutes (the maintenance shutdown).
+pub fn info_hotel_closing(minutes: i32) -> Message {
+    Message::new(291, ServerBody::new().int(minutes).build())
+}
+
 /// Java: `INFO_HOTEL_CLOSED`: the hotel closes (sent to everyone on shutdown, with the time it
 /// closed and `disconnect = false`, by `PlayerManager.dispose`).
 pub fn info_hotel_closed(hour: u32, minute: u32, disconnect: bool) -> Message {

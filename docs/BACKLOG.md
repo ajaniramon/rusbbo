@@ -23,7 +23,8 @@ oracle first, passing against it twice, then the port.
 | Ecotron | `ecotron` | `ECO_BOX` boxes and their `FLAG:` prizes | not used |
 | Room-hire teleporter | `room-hire` | `TeleportRoomHireInteractor` | no item definition uses it |
 | Club gifts | `club-gifts` | The `CLUB_GIFT_DUE` statistic and the monthly club gift | 1 `users_club_gifts` row |
-| Maintenance mode | `maintenance`, `alerts` | `INFO_HOTEL_CLOSING` while the hotel is in maintenance (login, catalogue, trade), the other placeholders of `StringUtil.replaceAlertMessage` | `maintenance` = false |
+| Alert placeholders | `alerts` | The other placeholders of `StringUtil.replaceAlertMessage` | `maintenance` = false |
+| Photos | `photos` | The camera's photos (`items_photos`) and RCON's `clearphoto` | not used |
 | Hidden public rooms | `publics` | Hidden public rooms in the navigator and teleporters in public rooms | not used |
 | Custom rooms | `custom-rooms` | Custom rooms keeping their item states and getting game tasks like arenas | not used |
 

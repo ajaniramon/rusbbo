@@ -139,7 +139,7 @@ pub static ALL: &[Command] = &[
         rank: RANK_ADMINISTRATOR,
         description: "<minutes> - Shutdown Havana",
         arguments: &[],
-        handler: staff::not_ported,
+        handler: staff::shutdown,
     },
     Command {
         aliases: &["setconfig"],
@@ -167,7 +167,7 @@ pub static ALL: &[Command] = &[
         rank: RANK_ADMINISTRATOR,
         description: "Creates a bot partay!",
         arguments: &["amount"],
-        handler: staff::not_ported,
+        handler: staff::bot,
     },
     Command {
         aliases: &["headrotate", "hr"],
@@ -567,11 +567,136 @@ fn add_to_hand(
     session.send(crate::messages::outgoing::inventory::inventory(&hand));
 }
 
-/// Java: `UptimeCommand`. TODO(commands): uptime, peak and online counts.
-fn uptime(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
+/// Java: `UptimeCommand`'s counts, read again at most every 5 s: the players online, the active
+/// ones (in a room and awake) and the memory in use, with the time they expire. The first
+/// expiry is the server's start (Java: when `CommandManager` makes the command).
+static UPTIME_CACHE: parking_lot::Mutex<Option<(i64, usize, usize, u64)>> =
+    parking_lot::Mutex::new(None);
 
-/// Java: `UsersOnlineCommand`. TODO(commands): the list of players online.
-fn users_online(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
+/// Java: `UptimeCommand`: the uptime, the players online (and the active ones with
+/// `show.inactive.players`), the peaks, the games, and the system. The system lines describe this
+/// process where Java describes its JVM (`os.arch`, `java.vm.name`, `os.name`, the heap in use).
+fn uptime(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
+    use crate::game::scheduler;
+
+    let now = crate::game::now();
+    let (players, active, memory) = {
+        let mut cache = UPTIME_CACHE.lock();
+        let (expiry, ..) = *cache.get_or_insert((scheduler::startup_time(), 0, 0, 0));
+        if now > expiry {
+            let sessions = world.players();
+            let active = sessions.iter().filter(|s| is_active(world, s)).count();
+            *cache = Some((now + 5, sessions.len(), active, memory_mb()));
+        }
+        let (_, players, active, memory) = cache.expect("filled above");
+        (players, active, memory)
+    };
+    let (daily_peak, all_time_peak) = scheduler::player_peaks(world);
+    let (games_on, games_played) = world.games.counts();
+    let mut text = format!(
+        "Server uptime is {}<br>",
+        readable_seconds(now - scheduler::startup_time())
+    );
+    if world.settings.read().bool("show.inactive.players") {
+        text.push_str(&format!(
+            "There are {active} active players out of {players} online players<br>"
+        ));
+    } else {
+        text.push_str(&format!("There are {players} online players<br>"));
+    }
+    text.push_str(&format!("Daily player peak: {daily_peak}<br>"));
+    text.push_str(&format!("All time player peak: {all_time_peak}<br>"));
+    text.push_str(&format!(
+        "Active games: {games_on} ({games_played} games played since server boot)<br>"
+    ));
+    text.push_str("<br>SYSTEM<br>");
+    let arch = match std::env::consts::ARCH {
+        "x86_64" => "amd64",
+        other => other,
+    };
+    let os = match std::env::consts::OS {
+        "linux" => "Linux",
+        "macos" => "Mac OS X",
+        "windows" => "Windows",
+        other => other,
+    };
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    text.push_str(&format!("CPU architecture: {arch}<br>"));
+    text.push_str(&format!("CPU cores: {cores}<br>"));
+    text.push_str(&format!("memory usage: {memory} MB<br>"));
+    text.push_str(&format!(
+        "JVM: rusbbo-server {}<br>",
+        env!("CARGO_PKG_VERSION")
+    ));
+    text.push_str(&format!("OS: {os}"));
+    session.send(alert(&text));
+}
+
+/// Java: `PlayerManager.getActivePlayers`' test: in a room and not asleep.
+fn is_active(world: &World, session: &Session) -> bool {
+    let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+        return false;
+    };
+    let r = room.lock();
+    r.entity_index(session.id)
+        .is_some_and(|idx| !r.entities[idx].is_sleeping)
+}
+
+/// The resident memory of this process in MB (Linux), 0 elsewhere.
+fn memory_mb() -> u64 {
+    let pages = std::fs::read_to_string("/proc/self/statm")
+        .ok()
+        .and_then(|s| s.split_whitespace().nth(1)?.parse::<u64>().ok())
+        .unwrap_or(0);
+    pages * 4096 / 1024 / 1024
+}
+
+/// Java: `DateUtil.getReadableSeconds`.
+fn readable_seconds(seconds: i64) -> String {
+    let days = seconds / 86_400;
+    let hours = (seconds % 86_400) / 3600;
+    let minutes = (seconds % 3600) / 60;
+    let secs = seconds % 60;
+    format!("{days} day(s), {hours} hour(s), {minutes} minute(s) and {secs} second(s)")
+}
+
+/// Java: `UsersOnlineCommand`: everyone online in lines of five, in the order they logged in.
+/// Players who hide their online status are left out, but still count for the line's commas
+/// (Java compares with the line's length), so a line can end in `", "`.
+fn users_online(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
+    let mut players = world.players();
+    players.sort_by_key(|s| s.id);
+    let (daily_peak, _) = crate::game::scheduler::player_peaks(world);
+    let mut text = format!(
+        "Users online: {}<br>Daily player peak count: {daily_peak}<br>List of users online: \
+         <br><br>",
+        players.len()
+    );
+    for line in players.chunks(5) {
+        let mut i = 0;
+        for player in line {
+            let Some((name, visible)) = player
+                .player
+                .lock()
+                .details
+                .as_ref()
+                .map(|d| (d.username.clone(), d.online_status_visible))
+            else {
+                continue;
+            };
+            if !visible {
+                continue;
+            }
+            text.push_str(&name);
+            i += 1;
+            if i < line.len() {
+                text.push_str(", ");
+            }
+        }
+        text.push_str("<br>");
+    }
+    session.send(alert(&text));
+}
 
 /// Java: `RainbowDimmerCommand`: the owner (or a room controller) starts the room's moodlight
 /// cycling through the rainbow, a colour every `<seconds>` (5), or stops it. The owner hears

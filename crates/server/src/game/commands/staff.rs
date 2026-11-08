@@ -633,20 +633,29 @@ pub fn set_config(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
 }
 
 /// Java: `ReloadCommand`. The Rust server reads most of this data from its database at startup
-/// and nothing else writes it while it runs, so only the word filter, the room events and the
-/// settings are read again. TODO(games): `games` rebuilds Java's `GameManager` (every live game drops out of its
-/// list, the finished games are numbered from 0 again). TODO(commands): `catalogue`/`shop`/`items` also regenerates the room's collision map
-/// and sends the map and the catalogue index to everyone in Java; here only the alert is sent.
+/// and nothing else writes it while it runs, so reading it again changes nothing; what Java does
+/// besides is done: `catalogue`/`shop`/`items` regenerates the sender's room's collision map and
+/// sends its heightmap, and every player gets the catalogue index again; `games` rebuilds the
+/// game manager ([`crate::game::games::Games::reset`]); the word filter, the room events, the
+/// SnowStorm maps and the settings are read again.
 pub fn reload(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
-    if !in_a_room(world, session) {
+    let Some(room) = current_room(world, session) else {
         return;
-    }
+    };
     let Some(component) = arg(args, 0) else {
         return;
     };
     let c = component.to_lowercase();
     let mut name = None;
     if matches!(c.as_str(), "catalogue" | "shop" | "items") {
+        {
+            let mut r = room.lock();
+            r.regenerate_map();
+            r.send_map();
+        }
+        for player in world.players() {
+            crate::messages::incoming::catalogue::send_catalog_index(world, &player);
+        }
         name = Some("Catalogue and item definitions");
     }
     if c == "wordfilter" {
@@ -675,6 +684,9 @@ pub fn reload(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
         if c == key {
             name = Some(component_name);
         }
+    }
+    if c == "games" {
+        world.games.reset(world);
     }
     if c == "gamemaps" {
         crate::game::games::snowstorm::maps::reload();
@@ -1039,11 +1051,69 @@ pub fn copy_room(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
     crate::game::moderation::forward_to(session, false, room_id);
 }
 
-/// The commands Java has that are not ported: `bot` and `shutdown`.
-/// TODO(commands): `:bot` (random bots that walk, dance and carry drinks every 10 s; an admin
-/// toy, random by nature) and `:shutdown` (the maintenance countdown,
-/// `PlayerManager.planMaintenance`, which is not ported either). They do nothing for now.
-pub fn not_ported(_: &World, _: &Arc<Session>, _: &[Vec<u8>]) {}
+/// Java: `ShutdownCommand`: `cancel`, `off` or `stop` stops the maintenance countdown;
+/// otherwise the hotel closes in `<minutes>` (`shutdown.minutes` without one, or when it is not a
+/// number). The whispers go to the sender's instance id in their room.
+pub fn shutdown(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
+    let whisper = |text: &str| {
+        let instance_id = with_room(world, session, |r, idx| r.entities[idx].instance_id);
+        // Java: `getRoomUser().getInstanceId()`, -1 outside a room.
+        session.send(out::chat_message(
+            ChatType::Whisper,
+            instance_id.unwrap_or(-1),
+            text.as_bytes(),
+            0,
+        ));
+    };
+    if let Some(first) = arg(args, 0) {
+        if ["cancel", "off", "stop"]
+            .iter()
+            .any(|w| first.eq_ignore_ascii_case(w))
+        {
+            // Java throws (and whispers nothing) when nothing was ever planned.
+            if crate::game::maintenance::cancel(world) {
+                whisper("Cancelled shutdown");
+            }
+            return;
+        }
+    }
+    let default = world.settings.read().int("shutdown.minutes");
+    let minutes = match arg(args, 0) {
+        // Java: `Long.parseLong`.
+        Some(first) => match first.parse::<i64>() {
+            Ok(minutes) => minutes,
+            _ => {
+                whisper(&format!(
+                    "Failed to parse minutes provided to shutdown command, defaulting to \
+                     {default} minute(s)"
+                ));
+                default
+            }
+        },
+        None => default,
+    };
+    if crate::game::maintenance::plan(world, minutes).is_none() {
+        return;
+    }
+    whisper(&format!("Shutting down in {minutes} minute(s)"));
+}
+
+/// Java: `BotCommand` (`:bot <amount>`, see [`Room::bot_party`]).
+pub fn bot(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
+    let Some(room) = current_room(world, session) else {
+        return;
+    };
+    // Java: `Integer.parseInt`, which throws on anything else.
+    let Some(amount) = arg(args, 0).and_then(|a| a.parse::<i32>().ok()) else {
+        return;
+    };
+    let deferred = {
+        let mut r = room.lock();
+        r.bot_party(world, amount);
+        r.take_deferred()
+    };
+    run_deferred(world, deferred);
+}
 
 #[cfg(test)]
 mod tests {

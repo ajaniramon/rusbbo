@@ -276,3 +276,55 @@ fn harlequin_players_colour_for_the_other_team() {
     assert_eq!(bb_of(&g).player_score(1), 6);
     assert_eq!(bb_of(&g).player_score(2), 0);
 }
+
+#[test]
+fn reloading_the_games_detaches_them_and_keeps_the_counter() {
+    let (_dir, world) = world();
+    world.games.run(&world, None, |games, _| {
+        games.counter = 5;
+        games.finished_counter = 3;
+        games.games.push(game(&world, 1, vec![]));
+        assert!(games.game_by_id(1).is_some());
+        games.reset(&world.store);
+        // Out of the manager's list, but still there for its tasks (by uid).
+        assert!(games.game_by_id(1).is_none());
+        assert_eq!(games.games_of_type(GameType::BattleBall).count(), 0);
+        assert!(games.game_by_uid(1).is_some());
+        assert_eq!((games.counter, games.finished_counter), (5, 0));
+    });
+    assert_eq!(world.games.counts(), (0, 0));
+}
+
+#[test]
+fn a_stale_spectator_leaves_the_game_its_id_names() {
+    let (_dir, world) = world();
+    world.games.run(&world, None, |games, op| {
+        // Game A restarted under the id of game B, which s watches.
+        let mut a = game(&world, 1, vec![]);
+        a.id = 2;
+        a.state = crate::game::games::GameState::Started;
+        let mut b = game(&world, 1, vec![]);
+        b.uid = 2;
+        b.id = 2;
+        let session = Session::detached();
+        let mut s = GamePlayer::new(9, session.clone(), PlayerDetails::default());
+        s.spectator = true;
+        s.game_id = 2;
+        b.players.push(s);
+        b.spectators.push(9);
+        games.games.push(a);
+        games.games.push(b);
+        games.set_current(session.id, Some(9));
+        assert_eq!(games.current_game(session.id), Some((0, None)));
+        // A is on: no team needed, the spectator is out of both.
+        assert!(games.leave_other_game(0, 1, 2, op));
+        assert_eq!(games.games[1].players[2].game_id, -1);
+        assert!(games.current(session.id).is_none());
+        // A waiting game throws on the spectator's team -1.
+        games.games[0].state = crate::game::games::GameState::Waiting;
+        games.games[1].players[2].game_id = 2;
+        games.set_current(session.id, Some(9));
+        assert!(!games.leave_other_game(0, 1, 2, op));
+        assert!(games.current(session.id).is_none());
+    });
+}

@@ -269,7 +269,7 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
             .replace("%username%", &user.username);
         session.send(outgoing::alerts::alert(&text));
     }
-    // TODO(alerts): the maintenance notice (INFO_HOTEL_CLOSING).
+    crate::game::maintenance::tell_closing(session);
     // TODO(alerts): the other placeholders of StringUtil.replaceAlertMessage.
 
     // TODO(guides): a guide has no tutorial and starts guiding; nobody is a guide yet.

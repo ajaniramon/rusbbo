@@ -2,9 +2,7 @@ name = "gamehall-chess"
 description = "The Chess hall (room 64, hallC): one player waits, the second one starts the game (OPENGAMEBOARD to both), a commands with another game id, one player walking off ends it for both (CLOSEGAMEBOARD), sitting down again starts a new game, the king chairs, leaving the room mid-game"
 
 # hallC: door 0,0; chairs 2,7 + 2,9 and the king chairs 12,12 + 12,14 (ChessTrigger). No NPCs.
-# The oracle is built without chesslib (oracle/no-jitpack.init.gradle): its GameChess stub
-# ignores every command, so this trace only covers joining and leaving; the moves are unit
-# tests (game/gamehall/chess.rs).
+# Joining and leaving only; the moves are in gamehall-chess-mate and gamehall-chess-draw.
 
 [[bots]]
 name = "a"

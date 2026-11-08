@@ -3,9 +3,8 @@
 //! strings (each a 4-byte length and its bytes), with the number of parameters before them. The
 //! server never answers.
 //!
-//! Ported so far: the Infobus (`infobusdoorstatus`, `infobuspoll`, `infobusendevent`).
-//! TODO(rcon): the other headers of `RconHeader` (hotel and user alerts, refreshing looks, club,
-//! credits, the hand, the catalogue, the navigator, the word filter...) are logged and ignored.
+//! Every header of Java's `RconHeader` is handled (see [`handle`]); those for features that are
+//! not ported (groups, tags, photos) are `TODO`s there.
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -15,9 +14,13 @@ use anyhow::Result;
 use rusbbo_protocol::body::from_latin1;
 use tokio::io::AsyncReadExt;
 use tokio::net::{TcpListener, TcpStream};
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
-use crate::game::infobus;
+use crate::game::achievements::{self, AchievementType};
+use crate::game::{club, fuserights, infobus};
+use crate::messages::outgoing;
+use crate::messages::outgoing::alerts::alert;
+use crate::session::Session;
 use crate::world::World;
 
 /// Java: `RconMessage`.
@@ -92,10 +95,119 @@ fn decode(buffer: &mut Vec<u8>) -> Option<Option<RconMessage>> {
     Some(parse())
 }
 
-/// Java: `RconConnectionHandler.channelRead`.
+/// Java: `RconConnectionHandler.channelRead`. The header is matched ignoring case
+/// (`RconHeader.getByHeader`). Where Java reads a missing value or parses a bad number it throws,
+/// the handler logs it and nothing more happens: here the message is dropped at that point.
+///
+/// The `refresh*` messages tell Java to read again what the website changed in MariaDB. The Rust
+/// server keeps its own database, which nothing else writes, so reading it again gives what is in
+/// memory: those that only reload a manager (`refreshads`, `refreshitemdefinitions`,
+/// `refreshnavigator`, `refreshroommodels`, `refreshecotron`, `refreshroombadges`,
+/// `refreshstats`) change nothing, and the others send what Java sends.
 fn handle(world: &World, message: &RconMessage) {
     let value = |key: &str| message.values.get(key).map(String::as_str);
-    match message.header.as_str() {
+    // Java: `Integer.parseInt(get(key))`.
+    let int = |key: &str| value(key).and_then(|v| v.parse::<i32>().ok());
+    let online = |key: &str| {
+        let id = u32::try_from(int(key)?).ok()?;
+        world.player_by_id(id)
+    };
+    match message.header.to_ascii_lowercase().as_str() {
+        "disconnect" => {
+            if let Some(session) = online("userId") {
+                session.close();
+            }
+        }
+        "refresh_looks" => {
+            if let Some(session) = online("userId") {
+                refresh_looks(world, &session);
+            }
+        }
+        "hotel_alert" => {
+            // Java concatenates a missing value as "null".
+            let sender = value("sender").unwrap_or("null");
+            let text = value("message").unwrap_or("null");
+            let alert = alert(&format!("{text}<br><br>- {sender}"));
+            for session in world.players() {
+                session.send(alert.clone());
+            }
+        }
+        "refresh_club" => {
+            if let Some(session) = online("userId") {
+                refresh_club(world, &session);
+            }
+        }
+        "refresh_tags" => {
+            if let Some(session) = online("userId") {
+                refresh_tags(world, &session);
+            }
+        }
+        "refresh_hand" => {
+            if let Some(session) = online("userId") {
+                let in_room = session.room_key().is_some();
+                let mut p = session.player.lock();
+                let Some(user_id) = p.user_id() else {
+                    return;
+                };
+                p.inventory.reload(&world.store, &world.items, user_id);
+                if in_room {
+                    let hand = p.inventory.get_view(&world.store, "new");
+                    session.send(outgoing::inventory::inventory(&hand));
+                }
+            }
+        }
+        "refresh_credits" => {
+            if let Some(session) = online("userId") {
+                let mut p = session.player.lock();
+                let Some(user) = p.details.as_mut() else {
+                    return;
+                };
+                if let Ok(Some(stored)) = world.store.user(user.id) {
+                    user.credits = stored.credits;
+                }
+                session.send(outgoing::user::credit_balance(user.credits));
+            }
+        }
+        "friendrequest" => {
+            let target = online("friendId");
+            let Some(from) = int("userId") else {
+                return;
+            };
+            let Some(target) = target else {
+                return;
+            };
+            friend_request(world, &target, from);
+        }
+        "refreshmessengercategories" => {
+            if let Some(session) = online("userId") {
+                refresh_messenger_categories(world, &session);
+            }
+        }
+        "refreshtrade" => {
+            if let Some(session) = online("userId") {
+                refresh_trade(world, &session, value("tradeEnabled"));
+            }
+        }
+        "refreshgroupperms" => {
+            if let Some(session) = online("userId") {
+                // TODO(groups): the joined groups, the favourite group's badge and member rank;
+                // without groups the favourite group is none: -1 and -1 to the room.
+                refresh_group_membership(world, &session);
+            }
+        }
+        // TODO(groups): no player has groups, so no favourite group to clear or refresh.
+        "groupdeleted" | "refreshgroup" => {}
+        "refreshwordfilter" => match world.store.wordfilter() {
+            Ok(words) => world.wordfilter.reload(words),
+            Err(e) => error!("reloading the word filter: {e}"),
+        },
+        "refreshads"
+        | "refreshitemdefinitions"
+        | "refreshnavigator"
+        | "refreshroommodels"
+        | "refreshecotron"
+        | "refreshroombadges"
+        | "refreshstats" => {}
         "infobusdoorstatus" => {
             // Java: `get("doorStatus").equals("1")` throws without the value.
             let Some(status) = value("doorStatus") else {
@@ -105,16 +217,248 @@ fn handle(world: &World, message: &RconMessage) {
         }
         "infobusendevent" => infobus::stop_event(world),
         "infobuspoll" => {
-            // Java: `Integer.parseInt`, which throws on anything else.
-            let Some(poll_id) = value("pollId").and_then(|v| v.parse::<i32>().ok()) else {
+            let Some(poll_id) = int("pollId") else {
                 return;
             };
             if let Ok(poll_id) = u32::try_from(poll_id) {
                 infobus::start_polling(world, poll_id);
             }
         }
-        other => warn!(header = other, "RCON message not ported"),
+        "refreshcatalogue" => {
+            for session in world.players() {
+                crate::messages::incoming::catalogue::send_catalog_index(world, &session);
+            }
+        }
+        "refreshcataloguefrontpage" => {
+            world.reload_settings();
+            for session in world.players() {
+                crate::messages::incoming::catalogue::send_catalog_index(world, &session);
+            }
+        }
+        "clearphoto" => {
+            // TODO(photos): the camera's photos (`items_photos`) are not ported; Java removes the
+            // photo item from its room, deletes it and writes a "Hidden photo" transaction.
+        }
+        "user_alert" => {
+            if let (Some(session), Some(text)) = (online("userId"), value("message")) {
+                session.send(alert(text));
+            }
+        }
+        "room_alert" => {
+            let Some(room_id) = int("roomId").and_then(|id| u32::try_from(id).ok()) else {
+                return;
+            };
+            if let (Some(room), Some(text)) = (world.loaded_room(room_id), value("message")) {
+                room.lock().send(alert(text));
+            }
+        }
+        // Java: `getByHeader` gives null and the switch throws.
+        other => warn!(header = other, "unknown RCON message"),
     }
+}
+
+/// Java: `RoomPlayer.refreshAppearance`: the look, sex and motto read again, `USER_OBJECT` to the
+/// player and `FIGURE_CHANGE` to their room, except during a game that is on. (Java also
+/// progresses `ACH_Motto` and `ACH_AvatarLooks` when they changed, which they cannot here: the
+/// stored user is the one in memory.)
+fn refresh_looks(world: &World, session: &Arc<Session>) {
+    let user = {
+        let mut p = session.player.lock();
+        let Some(details) = p.details.as_mut() else {
+            return;
+        };
+        if let Ok(Some(stored)) = world.store.user(details.id) {
+            details.figure = stored.figure;
+            details.sex = stored.sex;
+            details.motto = stored.motto;
+        }
+        details.clone()
+    };
+    if world.games.in_started_game(session.id) {
+        return;
+    }
+    session.send(outgoing::user::user_object(&user));
+    let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+        return;
+    };
+    let mut r = room.lock();
+    let Some(idx) = r.entity_index(session.id) else {
+        return;
+    };
+    let e = &mut r.entities[idx];
+    e.details.figure = user.figure.clone();
+    e.details.sex = user.sex.clone();
+    e.details.motto = user.motto.clone();
+    let msg =
+        outgoing::rooms_user::figure_change(e.instance_id, &user.figure, &user.sex, &user.motto);
+    r.send(msg);
+}
+
+/// Java: `REFRESH_TAGS`: the ACH_AvatarTags progress and, in a room, `TAG_LIST` to the room
+/// (`RoomPlayer.refreshTags`). TODO(tags): `users_tags` is not ported, so the list is empty.
+fn refresh_tags(world: &World, session: &Arc<Session>) {
+    let user_id = {
+        let mut p = session.player.lock();
+        let Some(user_id) = p.user_id() else {
+            return;
+        };
+        achievements::try_progress(world, session, &mut p, AchievementType::Tags);
+        user_id
+    };
+    let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+        return;
+    };
+    room.lock()
+        .send(outgoing::rooms_user::tag_list(user_id, &[]));
+}
+
+/// Java: `REFRESH_CLUB`: the credits and the club read again (and the currency saved), then
+/// `CREDIT_BALANCE`, `RIGHTS`, `Player.refreshClub` and the HC achievement.
+fn refresh_club(world: &World, session: &Arc<Session>) {
+    let mut p = session.player.lock();
+    let Some(details) = p.details.as_mut() else {
+        return;
+    };
+    if let Ok(Some(stored)) = world.store.user(details.id) {
+        details.credits = stored.credits;
+        details.club_expiration = stored.club_expiration;
+        details.club_subscribed = stored.club_subscribed;
+    }
+    let (credits, rank, club) = (details.credits, details.rank, club::has_club(details));
+    session.send(outgoing::user::credit_balance(credits));
+    session.send(outgoing::handshake::rights(&fuserights::for_player(
+        rank, club,
+    )));
+    club::refresh_club(world, session, &mut p);
+    achievements::try_progress(world, session, &mut p, AchievementType::Hc);
+}
+
+/// Java: `FRIEND_REQUEST`: unless the target already has a request from that user, the request
+/// is stored and sent (`Messenger.addRequest`). An unknown requester makes Java throw.
+fn friend_request(world: &World, target: &Arc<Session>, from: i32) {
+    let Ok(from) = u32::try_from(from) else {
+        return;
+    };
+    let has_request = {
+        let p = target.player.lock();
+        let Some(m) = p.messenger.as_ref() else {
+            return;
+        };
+        m.requests.contains_key(&from)
+    };
+    if has_request {
+        return;
+    }
+    // Java: `PlayerManager.getPlayerData`, the online player's details or the stored ones.
+    let requester = match world.player_by_id(from) {
+        Some(s) => s.player.lock().details.clone(),
+        None => world.store.user(from).ok().flatten(),
+    };
+    let Some(requester) = requester else {
+        return;
+    };
+    let requester = crate::game::messenger::MessengerUser::from_user(&requester, 0);
+    let Some(target_id) = target.player.lock().user_id() else {
+        return;
+    };
+    crate::game::messenger::manager::add_request(world, &requester, target_id);
+}
+
+/// Java: `REFRESH_MESSENGER_CATEGORIES`: the categories read again, and every friend whose stored
+/// category changed is queued for the next `FRIENDS_UPDATE`.
+fn refresh_messenger_categories(world: &World, session: &Arc<Session>) {
+    let mut p = session.player.lock();
+    let Some(user_id) = p.user_id() else {
+        return;
+    };
+    let categories = match world.store.messenger_categories(user_id) {
+        Ok(c) => c,
+        Err(e) => {
+            error!(user = user_id, "reading messenger categories: {e}");
+            return;
+        }
+    };
+    let stored = world.store.messenger_friends(user_id).unwrap_or_default();
+    let Some(m) = p.messenger.as_mut() else {
+        return;
+    };
+    m.categories = categories;
+    for (friend_id, category_id) in stored {
+        let Some(friend) = m.friends.get_mut(&friend_id) else {
+            continue;
+        };
+        if friend.category_id != category_id {
+            friend.category_id = category_id;
+            let friend = friend.clone();
+            m.queue_friend_update(friend);
+        }
+    }
+}
+
+/// Java: `REFRESH_TRADE_SETTING`: the trade setting changes; switched on, the player gets
+/// `ACH_TraderPass` and, in a room that is not a game's arena, enters it again where they stand
+/// (`enterRoom` at the current position, then `invokeItem`).
+fn refresh_trade(world: &World, session: &Arc<Session>, value: Option<&str>) {
+    // Java: `get("tradeEnabled").equalsIgnoreCase("1")` throws without the value.
+    let Some(value) = value else {
+        return;
+    };
+    let enabled = value.eq_ignore_ascii_case("1");
+    let switched_on = {
+        let mut p = session.player.lock();
+        let Some(details) = p.details.as_mut() else {
+            return;
+        };
+        let old = details.trade_enabled;
+        details.trade_enabled = enabled;
+        let switched_on = !old && enabled;
+        if switched_on {
+            achievements::try_progress(world, session, &mut p, AchievementType::TraderPass);
+        }
+        switched_on
+    };
+    let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+        return;
+    };
+    let position = {
+        let mut r = room.lock();
+        let Some(idx) = r.entity_index(session.id) else {
+            return;
+        };
+        // Java reads `isTradeEnabled` from the player's details wherever it asks.
+        r.entities[idx].details.trade_enabled = enabled;
+        if !switched_on || r.arena.is_some() {
+            return;
+        }
+        r.entities[idx].position
+    };
+    crate::game::room::enter_room(world, session, room.clone(), Some(position), true);
+    let deferred = {
+        let mut r = room.lock();
+        let Some(idx) = r.entity_index(session.id) else {
+            return;
+        };
+        r.invoke_item_after_entry(world, idx);
+        r.take_deferred()
+    };
+    crate::game::room::run_deferred(world, deferred);
+}
+
+/// Java: `REFRESH_GROUP_PERMS` without groups: `GROUP_MEMBERSHIP_UPDATE` with no group (-1, -1)
+/// to the player's room.
+fn refresh_group_membership(world: &World, session: &Arc<Session>) {
+    let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
+        return;
+    };
+    let r = room.lock();
+    let Some(idx) = r.entity_index(session.id) else {
+        return;
+    };
+    r.send(outgoing::rooms_user::group_membership_update(
+        r.entities[idx].instance_id,
+        -1,
+        -1,
+    ));
 }
 
 #[cfg(test)]

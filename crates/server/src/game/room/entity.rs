@@ -235,7 +235,7 @@ pub struct EntityDetails {
     pub club_expiration: i64,
     /// Java: `PlayerDetails.getMachineId`, for `Room.hasVoted`.
     pub machine_id: String,
-    /// Java: `PlayerDetails.isTradeEnabled`. TODO(rcon): changes while the player is in a room.
+    /// Java: `PlayerDetails.isTradeEnabled` (RCON's `refreshtrade` changes it in the room too).
     pub trade_enabled: bool,
     /// Java: `PlayerDetails.getTradeBanExpiration`.
     pub trade_ban_expiration: i64,
@@ -380,9 +380,10 @@ impl RoomEntity {
         }
     }
 
+    /// A public room NPC's state (Java: a `Bot` with its `BotData`); not a `:bot` party bot.
     pub fn bot(&self) -> Option<&crate::game::bot::BotState> {
         match &self.kind {
-            EntityKind::Bot(b) => Some(b),
+            EntityKind::Bot(b) if !b.party => Some(b),
             _ => None,
         }
     }
@@ -403,7 +404,7 @@ impl RoomEntity {
 
     pub fn bot_mut(&mut self) -> Option<&mut crate::game::bot::BotState> {
         match &mut self.kind {
-            EntityKind::Bot(b) => Some(b),
+            EntityKind::Bot(b) if !b.party => Some(b),
             _ => None,
         }
     }

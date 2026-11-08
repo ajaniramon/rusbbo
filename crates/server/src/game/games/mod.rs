@@ -443,15 +443,41 @@ impl GameManager {
         };
         let games = self.state.lock();
         let started: Vec<&Game> = games
-            .games
-            .iter()
-            .filter(|g| g.game_type == game_type && g.state == GameState::Started)
+            .games_of_type(game_type)
+            .filter(|g| g.state == GameState::Started)
             .collect();
         let now = started.first().map_or(0, |g| {
             g.active_players().count() as i32 + g.spectators.len() as i32
         });
         let max = started.iter().map(|g| g.max_players()).sum();
         (now, max)
+    }
+
+    /// Java: `UptimeCommand`'s games: those started, and how many finished since the server
+    /// started (`finishedGameCounter`).
+    pub fn counts(&self) -> (usize, i32) {
+        let games = self.state.lock();
+        let started = games
+            .games
+            .iter()
+            .filter(|g| !g.detached && g.state == GameState::Started)
+            .count();
+        (started, games.finished_counter)
+    }
+
+    /// Java: `GameManager.reset` (see [`Games::reset`]); the static data is read at startup and
+    /// nothing else writes it, so it stays.
+    pub fn reset(&self, world: &World) {
+        self.state.lock().reset(&world.store);
+    }
+
+    /// Java: `getGamePlayer() != null && getGamePlayer().getGame() != null && getGame()
+    /// .getGameState() == STARTED`.
+    pub fn in_started_game(&self, session_id: u64) -> bool {
+        let games = self.state.lock();
+        games
+            .current_game(session_id)
+            .is_some_and(|(gi, _)| games.games[gi].state == GameState::Started)
     }
 
     /// Whether the player's game is SnowStorm, whose ticks are twice as fast (Java:
@@ -628,7 +654,7 @@ impl Games {
 
     /// Java: `GameManager.getGameById`.
     pub fn game_by_id(&self, id: i32) -> Option<usize> {
-        self.games.iter().position(|g| g.id == id)
+        self.games.iter().position(|g| g.id == id && !g.detached)
     }
 
     pub fn game_by_uid(&self, uid: u64) -> Option<&Game> {
@@ -735,7 +761,25 @@ impl Games {
 
     /// Java: `GameManager.getGamesByType`.
     pub fn games_of_type(&self, game_type: GameType) -> impl Iterator<Item = &Game> {
-        self.games.iter().filter(move |g| g.game_type == game_type)
+        self.games
+            .iter()
+            .filter(move |g| g.game_type == game_type && !g.detached)
+    }
+
+    /// Java: `GameManager.reset` (`:reload games`): a new manager, so every game drops out of the
+    /// list (it goes on, see [`Game::detached`]), the finished games are listed again with ids
+    /// from 0, the id counter carries on where it was, and the finished games count from 0. What
+    /// Java keeps on the players (their game player, the game they observe, their last lobby)
+    /// stays.
+    pub fn reset(&mut self, store: &Store) {
+        for game in &mut self.games {
+            game.detached = true;
+        }
+        let counter = self.counter;
+        self.counter = 0;
+        self.refresh_played_games(store);
+        self.counter = counter;
+        self.finished_counter = 0;
     }
 
     /// Java: `GameManager.getLastPlayedGames`.
@@ -772,8 +816,12 @@ impl Games {
                 let serial = self.games[target].players[pi].serial;
                 self.leave_game(target, serial, op);
             }
-            // TODO(games): Java's leaveGame on another game the stale id names.
-            Some((_, None)) => {}
+            // Java's `leaveGame` on another game the stale id names. Where it throws, Java skips
+            // the rest of `leaveRoom` too (the messenger update and saving the visitors), which
+            // the room does anyway.
+            Some((target, None)) => {
+                self.leave_other_game(target, gi, pi, op);
+            }
             None => self.set_current(session_id, None),
         }
     }

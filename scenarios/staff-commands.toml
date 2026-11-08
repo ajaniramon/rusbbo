@@ -5,8 +5,9 @@ description = "The staff chat commands: :help for an administrator, alerts (:ha,
 # (instance 1), m = tracemod (MODERATOR, instance 2). tracebot2 stays offline (offline targets).
 # Commands are never chat: nobody looks, so no look timer. The only plain chat that is heard is
 # m's, near the end, which waits 8 s for the look timer.
-# Left out: :uptime/:usersonline (timing), :giftroom (random gift wrapping), :headrotate (a
-# 200 ms timer), :shutdown, :copyroom, :bot (not ported, see TODO(commands)).
+# Left out: :giftroom (random gift wrapping), :headrotate (a 200 ms timer), :copyroom;
+# :uptime, :usersonline, :shutdown and :reload catalogue/games are in staff-ops, :bot in
+# staff-bot.
 # Each bot's part stays well under Java's 60 s PING.
 
 [[bots]]

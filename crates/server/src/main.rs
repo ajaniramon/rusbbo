@@ -152,6 +152,10 @@ async fn main() -> Result<()> {
             shutdown(&world).await;
             Ok(())
         }
+        () = game::maintenance::shutdown_requested() => {
+            shutdown(&world).await;
+            Ok(())
+        }
     }
 }
 

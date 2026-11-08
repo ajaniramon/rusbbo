@@ -148,6 +148,80 @@ pub fn strip_status_actions(
         .collect()
 }
 
+/// `OBJECTS_WORLD` (Java `OBJECTS_WORLD`, id 30): a public room's furniture.
+const OBJECTS_WORLD: u16 = 30;
+
+/// What a public room item's random id becomes in [`normalize`].
+pub const PUBLIC_ITEM_ID: &[u8] = b"<id>";
+
+/// What every recording and every checked message goes through before it is compared:
+/// [`strip_status_actions`], then [`mask_public_item_ids`] on `OBJECTS_WORLD`.
+pub fn normalize(
+    messages: &[rusbbo_protocol::Message],
+    actions: &[String],
+) -> Vec<rusbbo_protocol::Message> {
+    strip_status_actions(messages, actions)
+        .into_iter()
+        .map(|mut m| {
+            if m.header == OBJECTS_WORLD {
+                if let Some(body) = mask_public_item_ids(&m.body) {
+                    m.body = body;
+                }
+            }
+            m
+        })
+        .collect()
+}
+
+/// Java's `PublicItemParser` gives every public room item a random id on room load: a letter of
+/// `abcdefghijlmnopqrstuvwyz` and `nextInt(0, 999)`, e.g. `r697` or `o2`. In an `OBJECTS_WORLD`
+/// body (a VL64 count, then per item a VL64 flag, the id and the sprite as strings, x, y, z and
+/// either the rotation or, with the flag set, the length and width) exactly those ids become
+/// [`PUBLIC_ITEM_ID`], so the rest (sprites, positions, order) can be compared. `None` when the
+/// body does not parse that way (nothing is changed then); other ids (SnowStorm's UUID prefixes)
+/// are kept.
+pub fn mask_public_item_ids(body: &[u8]) -> Option<Vec<u8>> {
+    use rusbbo_protocol::encoding::vl64_decode;
+    const ALPHABET: &[u8] = b"abcdefghijlmnopqrstuvwyz";
+    let is_random_id = |id: &[u8]| {
+        let Some((letter, digits)) = id.split_first() else {
+            return false;
+        };
+        ALPHABET.contains(letter)
+            && (1..=3).contains(&digits.len())
+            && digits.iter().all(u8::is_ascii_digit)
+            && (digits.len() == 1 || digits[0] != b'0')
+    };
+    let mut out = Vec::with_capacity(body.len());
+    let mut at = 0;
+    let int = |out: &mut Vec<u8>, at: &mut usize| -> Option<i32> {
+        let (value, len) = vl64_decode(&body[*at..])?;
+        out.extend_from_slice(&body[*at..*at + len]);
+        *at += len;
+        Some(value)
+    };
+    let string = |at: &mut usize| -> Option<&[u8]> {
+        let len = body[*at..].iter().position(|&b| b == 2)?;
+        let s = &body[*at..*at + len];
+        *at += len + 1;
+        Some(s)
+    };
+    let count = int(&mut out, &mut at)?;
+    for _ in 0..count {
+        let has_dimensions = int(&mut out, &mut at)? != 0;
+        let id = string(&mut at)?;
+        out.extend_from_slice(if is_random_id(id) { PUBLIC_ITEM_ID } else { id });
+        out.push(2);
+        let sprite = string(&mut at)?;
+        out.extend_from_slice(sprite);
+        out.push(2);
+        for _ in 0..if has_dimensions { 5 } else { 4 } {
+            int(&mut out, &mut at)?;
+        }
+    }
+    (at == body.len()).then_some(out)
+}
+
 /// Removes `<action>` or `<action> <args>` up to and including its trailing `/`, wherever it
 /// directly follows a `/`.
 fn strip_action(body: &[u8], action: &[u8]) -> Vec<u8> {
@@ -191,7 +265,7 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 };
                 let normalized: Vec<Vec<rusbbo_protocol::Message>> = outputs
                     .iter()
-                    .map(|o| strip_status_actions(&o.messages, &step.ignore_status))
+                    .map(|o| normalize(&o.messages, &step.ignore_status))
                     .collect();
                 let seqs: Vec<&[rusbbo_protocol::Message]> =
                     normalized.iter().map(Vec::as_slice).collect();
@@ -525,6 +599,33 @@ mod tests {
             strip_status_actions(&[msg(b"JJ/flatctrlx/\x02")], &flags)[0].body,
             b"JJ/flatctrlx/\x02"
         );
+    }
+
+    #[test]
+    fn public_item_ids_are_masked() {
+        // From traces/public-room.json: two benches, then an item with dimensions.
+        let body = b"KHr697\x02broom_bench1\x02PAHPAPAHo2\x02broom_bench2\x02QAHPAPAIg90\x02floor\x02HHHJK";
+        let masked = mask_public_item_ids(body).unwrap();
+        assert_eq!(
+            masked,
+            b"KH<id>\x02broom_bench1\x02PAHPAPAH<id>\x02broom_bench2\x02QAHPAPAI<id>\x02floor\x02HHHJK"
+        );
+        let msg = |b: &[u8]| rusbbo_protocol::Message::new(30, b.to_vec());
+        let other =
+            b"KHq5\x02broom_bench1\x02PAHPAPAHn998\x02broom_bench2\x02QAHPAPAIz0\x02floor\x02HHHJK";
+        assert_eq!(normalize(&[msg(other)], &[])[0].body, masked);
+        // Not random ids: a letter outside the alphabet, a leading zero, four digits, a UUID
+        // prefix; and bodies that do not parse are left alone.
+        for id in [&b"k12"[..], b"a012", b"a1000", b"66a59862"] {
+            let mut body = b"IH".to_vec();
+            body.extend_from_slice(id);
+            body.extend_from_slice(b"\x02sw_tree2\x02REIHI");
+            assert_eq!(mask_public_item_ids(&body).unwrap(), body);
+        }
+        assert_eq!(mask_public_item_ids(b"IHr697\x02broom"), None);
+        assert_eq!(mask_public_item_ids(b"Hx"), None);
+        let flat = rusbbo_protocol::Message::new(31, b"IHr697\x02a\x02HHHH".to_vec());
+        assert_eq!(normalize(std::slice::from_ref(&flat), &[])[0], flat);
     }
 
     #[test]

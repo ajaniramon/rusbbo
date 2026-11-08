@@ -601,8 +601,13 @@ impl View<'_> {
     }
 }
 
-/// Java: `BattleBallGame.assignSpawnPoints`.
-pub fn assign_spawn_points(game: &mut Game, world: &World) {
+/// Java: `BattleBallGame.assignSpawnPoints`. Returns the sessions of the players who got a spawn,
+/// whose walk Java stops wherever they are (see [`Games::stop_walks`](super::Games::stop_walks)).
+pub fn assign_spawn_points(
+    game: &mut Game,
+    world: &World,
+) -> Vec<std::sync::Arc<crate::session::Session>> {
+    let mut stopped = Vec::new();
     let map_id = game.map_id;
     let model = game.model.clone();
     for t in 0..game.teams.len() {
@@ -616,7 +621,7 @@ pub fn assign_spawn_points(game: &mut Game, world: &World) {
             .collect();
         for serial in game.teams[t].players.clone() {
             let GameKind::BattleBall(bb) = &mut game.kind else {
-                return;
+                return stopped;
             };
             let mut spawn = None;
             for &(x, y, rotation) in &spawns {
@@ -653,16 +658,17 @@ pub fn assign_spawn_points(game: &mut Game, world: &World) {
             } else {
                 game.player(serial).map_or(-1, |p| p.object_id)
             };
-            // TODO(games): Java also stops the player's walk wherever they are
-            // (`setWalking(false)`, `setNextPosition(null)`); a restart does it in the arena
-            // (`Room::set_game_position`), a first start leaves the lobby walk alone.
+            // Java also stops the player's walk wherever they are (`setWalking(false)`,
+            // `setNextPosition(null)`).
             let gp = game.player_mut(serial).expect("team member");
+            stopped.push(gp.session.clone());
             gp.player_state = Some(PlayerState::Normal);
             gp.harlequin = None;
             gp.object_id = object_id;
             gp.spawn = spawn;
         }
     }
+    stopped
 }
 
 /// Java: `GAMERESET` for BattleBall: the players' new positions.

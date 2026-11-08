@@ -113,6 +113,9 @@ fn parse_speech(text: &str) -> Vec<BotSpeech> {
 #[derive(Debug)]
 pub struct BotState {
     pub data: BotData,
+    /// A `:bot` party bot (Java: `new Bot()`, with no `BotData`): no walkspace, speeches or
+    /// drinks, and [`RoomEntity::bot`](crate::game::room::entity::RoomEntity::bot) leaves it out.
+    pub party: bool,
     /// Unix seconds.
     pub next_walk: i64,
     pub next_speech: i64,
