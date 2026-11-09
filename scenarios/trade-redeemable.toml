@@ -45,7 +45,8 @@ note = "tracebot2 has logged in from the same IP: trade banned for 5 days, nothi
 bot = "a"
 send = "GRPC"
 args = [0, 6, "", true, "tracebot2", "Coins"]
-note = "the trade ban's alert"
+header_only = ["ALERT"]
+note = "the trade ban's alert (by header: its time left turns from 5 days to 4 days 23 hours on a second boundary)"
 
 [[steps]]
 bot = "a"
@@ -150,7 +151,8 @@ note = "a coin in the room of an account on the same IP: trade banned"
 bot = "c"
 send = "PLACESTUFF"
 args = ["2 6 5 0"]
-note = "the trade ban's alert"
+header_only = ["ALERT"]
+note = "the trade ban's alert (by header: its time left turns from 5 days to 4 days 23 hours on a second boundary)"
 
 [[steps]]
 bot = "d"

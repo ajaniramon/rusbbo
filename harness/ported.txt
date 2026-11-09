@@ -13,6 +13,7 @@ chat-commands
 chat-filter
 client-flow
 club-gifts
+collectables
 flash-login
 flash-navigator
 flash-room

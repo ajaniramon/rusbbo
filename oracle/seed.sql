@@ -196,3 +196,7 @@ INSERT INTO users_referred (user_id, referred_id) VALUES (33, 1), (33, 2), (33, 
 UPDATE catalogue_pages SET seasonal_start = '01-01', seasonal_length = 0 WHERE seasonal_start IS NOT NULL;
 UPDATE catalogue_pages SET seasonal_length = 31622400 WHERE id = 68;
 UPDATE catalogue_pages SET seasonal_start = 'EASTER' WHERE id = 79;
+
+-- The collectables cycles of store pages 51 and 93 stay on their current furni until 2100, so the
+-- collectables trace does not depend on the day it runs.
+UPDATE catalogue_collectables SET expiry = 4102444800 WHERE store_page IN (51, 93);

@@ -7,5 +7,8 @@ mod page;
 pub mod voucher;
 
 pub use item::{CatalogueItem, CataloguePackage};
-pub use manager::{CatalogueManager, Purchase, transaction_description};
+pub use manager::{
+    COMMUNITY_MANAGER_RANK, CatalogueManager, Purchase, collectable_page_items,
+    transaction_description,
+};
 pub use page::CataloguePage;

@@ -74,20 +74,11 @@ fn check_cycle(world: &World, c: &mut Collectable) {
     }
 }
 
-/// Java: `CollectableData.getActiveItem`: the admin page's item with the current class name.
+/// Java: `CollectableData.getActiveItem` (Havana-Web's copy of it).
 fn active_item(world: &World, c: &Collectable) -> Option<CatalogueItem> {
-    let names: Vec<&str> = c.class_names.split(',').collect();
-    let name = names.get(c.current_position.max(0) as usize)?;
-    let settings = world.settings.read();
-    world
-        .catalogue
-        .page_items(c.admin_page, true, &settings)
-        .into_iter()
-        .find(|i| {
-            i.definition
-                .as_ref()
-                .is_some_and(|d| d.record.sprite == *name)
-        })
+    crate::game::catalogue::collectables::active_item(world, c)
+        .ok()
+        .flatten()
 }
 
 fn collectables_page(world: &World) -> i64 {

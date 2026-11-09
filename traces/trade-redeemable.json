@@ -44,7 +44,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "644564644197699733887675\u0002I",
+              "body": "728485204334752066684693\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -76,7 +76,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#F2140FA03ED942FDB89B0F9A0B1ED6EB\u0002",
+              "body": "#07265BCF56C6420588873C10914461C2\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -152,7 +152,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "686399023071007320057866\u0002I",
+              "body": "455109242146157307465632\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -184,7 +184,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#541F3CB71A704A2D8B681BDC38BD67D5\u0002",
+              "body": "#7ADE5AECFDEE42AF907FCE8CD709D7A8\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -245,8 +245,11 @@
       "header": 100,
       "name": "GRPC",
       "body": "HRA@@I@Itracebot2@ECoins",
-      "note": "the trade ban's alert",
+      "note": "the trade ban's alert (by header: its time left turns from 5 days to 4 days 23 hours on a second boundary)",
       "settle_ms": 300,
+      "header_only": [
+        139
+      ],
       "received": {
         "a": {
           "ordered": true,
@@ -256,7 +259,7 @@
               "header": 139,
               "name": "ALERT",
               "body": "You are temporarily banned from trading.<br>The ban will expire in 5 day(s) and 0 hours(s)\u0002",
-              "check": "exact"
+              "check": "header"
             }
           ]
         }
@@ -567,7 +570,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "451435669419122084558749\u0002I",
+              "body": "064034093211523851134174\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -599,7 +602,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#EF5EE211EF234894A5EF703D038EF094\u0002",
+              "body": "#77D263B8BC1F49FC81B1621A9CF41071\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -954,8 +957,11 @@
       "header": 90,
       "name": "PLACESTUFF",
       "body": "@G2 6 5 0",
-      "note": "the trade ban's alert",
+      "note": "the trade ban's alert (by header: its time left turns from 5 days to 4 days 23 hours on a second boundary)",
       "settle_ms": 300,
+      "header_only": [
+        139
+      ],
       "received": {
         "c": {
           "ordered": true,
@@ -1005,7 +1011,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "024489051148109447922138\u0002I",
+              "body": "431775961502554900838549\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -1037,7 +1043,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#FC7001B57AB340B3B5529C4DDF3C21CA\u0002",
+              "body": "#3F46A1CA0F8F497F991A209EC14AF5F4\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -1087,7 +1093,7 @@
             {
               "header": 140,
               "name": "INVENTORY",
-              "body": "IKHS\u0002KXWEI\u0002HIIM\u0002MI",
+              "body": "IKHS\u0002KYWEI\u0002HIIM\u0002MI",
               "check": "header"
             },
             {

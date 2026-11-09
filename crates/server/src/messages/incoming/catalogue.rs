@@ -79,9 +79,28 @@ pub fn get_catalogue_page(
         }
         .to_string();
     }
-    // TODO(collectables): the layout of a collectable page follows the price of its active item.
+    // Java: a collectables page's layout follows its active item's price.
+    if let Some(c) = crate::game::catalogue::collectables::by_page(world, page.id) {
+        let Ok(active) = crate::game::catalogue::collectables::active_item(world, &c) else {
+            return Ok(());
+        };
+        if let Some(item) = active {
+            let layout = match (item.price_coins > 0, item.price_pixels > 0) {
+                (true, true) => Some("cars"),
+                (true, false) => Some("default_3x3"),
+                (false, true) => Some("pixelrent"),
+                (false, false) => None,
+            };
+            if let Some(layout) = layout {
+                page.layout = layout.to_string();
+            }
+        }
+    }
 
-    let items = world.catalogue.page_items(page.id, false, &settings);
+    let Ok(items) = crate::game::catalogue::collectable_page_items(world, page.id, &settings)
+    else {
+        return Ok(());
+    };
     if let Some(msg) =
         outgoing::catalogue::catalogue_page(&page, &items, &settings, session.is_flash())
     {
@@ -93,7 +112,8 @@ pub fn get_catalogue_page(
 /// Java: `GRPC` (purchase). The first int is ignored, the second is the catalogue item id.
 ///
 /// While the hotel is closing (`:shutdown`) nothing is bought: `INFO_HOTEL_CLOSING`.
-/// TODO(collectables): collectable prices and page rules.
+/// A collectables cycle's active item needs no page the player can see, and below a community
+/// manager costs what the cycle's active item costs; its transaction is a "Collectible - " one.
 /// The badges the sale code rewards (`catalogue_sale_badges`) come last, gifts included.
 /// A Flash client, or a player in a room, is shown the hand after buying (not for film or an
 /// effect).
@@ -125,8 +145,13 @@ pub fn grpc(
         return Ok(());
     }
 
+    // Java: `CollectablesManager.isCollectable` (asked here once; it throws on a broken cycle).
+    let Ok(collectable) = crate::game::catalogue::collectables::is_collectable(world, found.id)
+    else {
+        return Ok(());
+    };
     // An item on its seasonal day is bought at the seasonal price; otherwise the player needs to
-    // be able to see a page that sells it.
+    // be able to see a page that sells it (not for a collectable).
     let item = match world
         .catalogue
         .seasonal_items()
@@ -134,6 +159,7 @@ pub fn grpc(
         .find(|s| s.id == found.id)
     {
         Some(seasonal) => seasonal,
+        None if collectable => found.clone(),
         None => {
             let pages = world.catalogue.pages();
             let Some(page) = pages.iter().find(|pg| found.has_page(pg.id)) else {
@@ -146,7 +172,15 @@ pub fn grpc(
         }
     };
 
-    let (price_coins, price_pixels) = (item.price_coins, item.price_pixels);
+    let (mut price_coins, mut price_pixels) = (item.price_coins, item.price_pixels);
+    if rank < crate::game::catalogue::COMMUNITY_MANAGER_RANK && collectable {
+        match crate::game::catalogue::collectables::active_by_item(world, item.id) {
+            Ok(Some(active)) => {
+                (price_coins, price_pixels) = (active.price_coins, active.price_pixels)
+            }
+            Ok(None) | Err(_) => return Ok(()),
+        }
+    }
     if price_coins > credits {
         session.send(outgoing::catalogue::no_credits(true, false));
         return Ok(());
@@ -162,8 +196,15 @@ pub fn grpc(
         let Some(gift) = check_gift(world, session, p, &item, extra_data, reader)? else {
             return Ok(());
         };
-        let Some(present) = buy_gift(world, session, p, &item, gift, price_coins, price_pixels)
-        else {
+        let Some(present) = buy_gift(
+            world,
+            session,
+            p,
+            &item,
+            gift,
+            (price_coins, price_pixels),
+            collectable,
+        ) else {
             return Ok(());
         };
         drop(guard);
@@ -208,7 +249,7 @@ pub fn grpc(
                 details.id,
                 bought.id_list(),
                 &item,
-                description,
+                collectible(description, collectable),
                 price_coins,
                 price_pixels,
                 t,
@@ -248,6 +289,15 @@ fn award_sale_badges(
     for code in world.catalogue.badge_rewards(sale_code) {
         p.badges
             .try_add_badge(&world.store, session, &code, None, 0);
+    }
+}
+
+/// Java: a collectable's purchase row is `"Collectible - " + description` (the gift rows are not).
+fn collectible(description: String, collectable: bool) -> String {
+    if collectable {
+        format!("Collectible - {description}")
+    } else {
+        description
     }
 }
 
@@ -412,8 +462,8 @@ fn buy_gift(
     p: &mut Player,
     item: &CatalogueItem,
     gift: Gift,
-    price_coins: i32,
-    price_pixels: i32,
+    (price_coins, price_pixels): (i32, i32),
+    collectable: bool,
 ) -> Option<Option<Item>> {
     let user = p.details.clone()?;
     let t = now();
@@ -437,7 +487,7 @@ fn buy_gift(
                 user.id,
                 ids.clone(),
                 item,
-                description.clone(),
+                collectible(description.clone(), collectable),
                 price_coins,
                 price_pixels,
                 t,

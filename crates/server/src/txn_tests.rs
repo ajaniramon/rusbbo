@@ -484,3 +484,26 @@ fn exchanging_credit_furni_writes_its_transaction() {
     assert_eq!((row.amount, row.credit_cost, row.pixel_cost), (1, 5, 0));
     assert!(!row.is_visible);
 }
+
+#[test]
+fn a_collectable_purchase_is_a_collectible_transaction() {
+    // Java: when the bought item is a cycle's active item, the buyer's row is
+    // "Collectible - " + the usual description.
+    let f = Fixture::new();
+    let mut alice = f.client(ALICE);
+    f.store()
+        .put_record(&rusbbo_storage::Collectable {
+            id: 2,
+            admin_page: 1,
+            expiry: 4_102_444_800,
+            lifetime: 3600,
+            current_position: 0,
+            class_names: "chair_plasto".into(),
+        })
+        .unwrap();
+    alice.send(&f.world, catalogue::grpc, grpc_body(CHAIR, ""));
+    assert!(!alice.headers().is_empty());
+    let rows = f.store().transactions(ALICE).unwrap();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].description, "Collectible - Chair purchase");
+}

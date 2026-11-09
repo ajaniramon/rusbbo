@@ -223,9 +223,7 @@ impl CatalogueManager {
     }
 
     /// Java: `getCataloguePageItems`. With `raw_items` false the rares page lists today's
-    /// seasonal items.
-    ///
-    /// TODO(collectables): collectable pages list only the active collectable.
+    /// seasonal items; a collectables page is [`collectable_page_items`] (it needs the world).
     pub fn page_items(
         &self,
         page_id: i32,
@@ -572,4 +570,26 @@ fn pet_from_extra_data(
         last_playuser: now,
         ..Default::default()
     })
+}
+
+/// Java: `getCataloguePageItems(pageId, false)` with the collectables part: a collectables page
+/// lists only its cycle's active item (Java's `List.of(null)` throws when there is none).
+pub fn collectable_page_items(
+    world: &crate::world::World,
+    page_id: i32,
+    settings: &Settings,
+) -> Result<Vec<CatalogueItem>, super::collectables::Throws> {
+    if i64::from(page_id) == settings.int("rare.cycle.page.id") {
+        let seasonal = world.catalogue.seasonal_items();
+        if !seasonal.is_empty() {
+            return Ok(seasonal);
+        }
+    }
+    if let Some(c) = super::collectables::by_page(world, page_id) {
+        return match super::collectables::active_item(world, &c)? {
+            Some(item) => Ok(vec![item]),
+            None => Err(super::collectables::Throws),
+        };
+    }
+    Ok(world.catalogue.page_items(page_id, true, settings))
 }
