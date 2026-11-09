@@ -47,7 +47,7 @@ pub fn invite_tutors(
         return Ok(());
     }
     session.send(out::invitation_sent());
-    let minutes = i64::from(world.settings.read().int("guide.search.timeout.minutes"));
+    let minutes = world.settings.read().int("guide.search.timeout.minutes");
     // Java keeps the time in an int.
     p.guides.started_waiting_time = i64::from((now() + minutes * 60) as i32);
     p.guides.waiting_for_guide = true;

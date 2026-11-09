@@ -161,7 +161,7 @@ pub fn try_progress(world: &World, session: &Session, p: &mut Player) {
         return;
     };
     let online_minutes = p.statistics.long_value(stat::ONLINE_TIME) / 60;
-    let required = i64::from(world.settings.read().int("guide.completion.minutes"));
+    let required = world.settings.read().int("guide.completion.minutes");
     if online_minutes < required {
         let friends = world.store.messenger_friends(user_id).unwrap_or_default();
         if !friends.iter().any(|(id, _)| *id as i32 == guide_id) {
