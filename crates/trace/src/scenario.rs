@@ -9,6 +9,7 @@
 //! ticket = "trace-sso-1"
 //! encrypt = true             # optional: also GENERATEKEY, then talk over the RC4 layer
 //! flash = true               # optional: a Flash client, on the game port + 2 (no HELLO)
+//! mus = true                 # optional: a camera's MUS connection, on the game port + 1
 //!
 //! [[steps]]
 //! bot = "a"
@@ -39,6 +40,15 @@
 //! rcon_values = { doorStatus = "1" } # (Java's `RconMessage`, what the website's housekeeping
 //!                            # sends); `rusbbo-trace --rcon` says where, by default the
 //!                            # target's port minus 12
+//!
+//! [[steps]]
+//! bot = "m"                  # a `mus` bot
+//! mus = { subject = "LOGIN", string = "1 x" }   # or `int = 5`, or `props = [{ name = "cs",
+//!                            # int = 1 }, { name = "image", media = "0a0b" (hex) },
+//!                            # { name = "time", string = ".." }]; nothing is a void content.
+//!                            # The server's MUS messages are recorded as `MUS` messages:
+//!                            # subject, sender, receivers, error code and the content (media
+//!                            # as length and hash), without the timestamp
 //! ```
 
 use std::collections::BTreeMap;
@@ -73,6 +83,75 @@ pub struct BotDef {
     /// A Flash client: it connects to the Flash port (the game port + 2).
     #[serde(default)]
     pub flash: bool,
+    /// A camera's MUS connection: it connects to the MUS port (the game port + 1) and sends `mus`
+    /// steps.
+    #[serde(default)]
+    pub mus: bool,
+}
+
+/// The pseudo message id of MUS messages in traces, sent and received.
+pub const MUS_HEADER: u16 = 65000;
+
+/// A MUS message a `mus` bot sends.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MusDef {
+    pub subject: String,
+    #[serde(default)]
+    pub string: Option<String>,
+    #[serde(default)]
+    pub int: Option<i32>,
+    #[serde(default)]
+    pub props: Vec<MusPropDef>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MusPropDef {
+    pub name: String,
+    #[serde(default)]
+    pub string: Option<String>,
+    #[serde(default)]
+    pub int: Option<i32>,
+    /// Media bytes, in hex.
+    #[serde(default)]
+    pub media: Option<String>,
+}
+
+impl MusDef {
+    /// The frame as the camera sends it.
+    pub fn frame(&self) -> Result<Vec<u8>> {
+        use rusbbo_protocol::mus::{Content, MusMessage, Prop, encode, types};
+        let content = if !self.props.is_empty() {
+            let mut props = Vec::new();
+            for p in &self.props {
+                props.push(match (&p.string, p.int, &p.media) {
+                    (Some(s), None, None) => Prop::string(&p.name, s),
+                    (None, Some(i), None) => Prop::int(&p.name, i),
+                    (None, None, Some(hex)) => Prop::bytes(&p.name, types::MEDIA, from_hex(hex)?),
+                    _ => bail!("prop {}: needs exactly one of string, int, media", p.name),
+                });
+            }
+            Content::Props(props)
+        } else if let Some(s) = &self.string {
+            Content::Str(s.clone())
+        } else if let Some(i) = self.int {
+            Content::Int(i)
+        } else {
+            Content::Void
+        };
+        Ok(encode(&MusMessage::new(&self.subject, content)))
+    }
+}
+
+fn from_hex(hex: &str) -> Result<Vec<u8>> {
+    if hex.len() % 2 != 0 {
+        bail!("odd hex length");
+    }
+    (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).context("bad hex"))
+        .collect()
 }
 
 /// The private Diffie-Hellman key every encrypted bot uses. Fixed so that the `GENERATEKEY` body
@@ -105,6 +184,9 @@ pub struct StepDef {
     pub rcon: Option<String>,
     #[serde(default)]
     pub rcon_values: BTreeMap<String, String>,
+    /// A MUS message, for a `mus` bot (see the module docs).
+    #[serde(default)]
+    pub mus: Option<MusDef>,
     #[serde(default)]
     pub wait_for: Vec<MsgRef>,
     #[serde(default)]
@@ -227,6 +309,20 @@ impl Scenario {
                         ..s
                     });
                 }
+                continue;
+            }
+            if let Some(m) = &def.mus {
+                if !self.bots[bot].mus || def.send.is_some() || def.rcon.is_some() {
+                    bail!("step {i}: a mus step needs a mus bot and nothing else");
+                }
+                let body = m.frame().with_context(|| format!("step {i}"))?;
+                out.push(Step {
+                    wait_for,
+                    ..step(Action::Send {
+                        header: MUS_HEADER,
+                        body,
+                    })
+                });
                 continue;
             }
             let action = match (def.connect, def.disconnect, &def.send, &def.rcon) {

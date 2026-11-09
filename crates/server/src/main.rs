@@ -2,6 +2,7 @@
 
 mod game;
 mod messages;
+mod mus;
 mod net;
 mod rcon;
 mod session;
@@ -44,6 +45,10 @@ struct Cli {
     /// Shockwave address with its port + 2.
     #[arg(long, value_name = "ADDR")]
     flash_bind: Option<SocketAddr>,
+    /// Address for the Multi User Server, the Shockwave camera's connection (Java: `mus.bind`
+    /// and `mus.port`). Defaults to the Shockwave address with its port + 1.
+    #[arg(long, value_name = "ADDR")]
+    mus: Option<SocketAddr>,
     /// Issue an SSO ticket at startup, after the startup reset: `<user_id>=<ticket>`. Repeatable.
     /// Stands in for the website until it exists; used by the trace harness.
     #[arg(long = "dev-ticket", value_name = "USER_ID=TICKET")]
@@ -172,6 +177,19 @@ async fn main() -> Result<()> {
         tokio::spawn(async move {
             if let Err(e) = net::serve(world, flash_bind, true).await {
                 tracing::error!("Flash game port: {e:#}");
+            }
+        });
+    }
+    let mus_bind = cli.mus.unwrap_or_else(|| {
+        let mut addr = cli.bind;
+        addr.set_port(addr.port().wrapping_add(1));
+        addr
+    });
+    {
+        let world = world.clone();
+        tokio::spawn(async move {
+            if let Err(e) = mus::serve(world, mus_bind).await {
+                tracing::error!("MUS port: {e:#}");
             }
         });
     }

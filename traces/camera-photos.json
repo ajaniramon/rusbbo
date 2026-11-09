@@ -1,0 +1,569 @@
+{
+  "format": 1,
+  "scenario": "camera-photos",
+  "description": "The camera's Multi User Server (MUS, the game port + 1): Logon, LOGIN (a user online from the same IP; an offline one is shut out; a bad id), PHOTOTXT, BINDATA (a photo item in the hand, one film less, BINDATA_SAVED), the photo hung in a flat, GETBINDATA (BINARYDATA with the image), RCON clear_photo (the photo leaves the room and stops loading)",
+  "runs": 3,
+  "bots": [
+    "a",
+    "m",
+    "x"
+  ],
+  "mus": [
+    "m",
+    "x"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "210475580807646203144741\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#21F5ADA2951D4C7E97CA3CEEDEEC9077\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JPhoto Room@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "XzCPhoto Room\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 57,
+      "name": "TRYFLAT",
+      "body": "XzC@@",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 41,
+              "name": "FLAT_LETIN",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 59,
+      "name": "GOTOFLAT",
+      "body": "XzC",
+      "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "model_a\u0002XzC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 47,
+              "name": "YOUAROWNER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 42,
+              "name": "YOUARECONTROLLER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 63,
+      "name": "G_ITEMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 45,
+              "name": "ITEMS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HKQA0.0\u0002JIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/flatctrl useradmin/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "m",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0005Logon\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0006camera",
+      "note": "Logon and HELLO back",
+      "settle_ms": 300,
+      "received": {
+        "m": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 65000,
+              "name": "MUS",
+              "body": "Logon\u0002System\u0002*\u00020\u0002string \u0000\u0003\u0000\u0000\u0000&Havana: Habbo Hotel shockwave emulator",
+              "check": "exact"
+            },
+            {
+              "header": 65000,
+              "name": "MUS",
+              "body": "HELLO\u0002System\u0002*\u00020\u0002string ",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0005LOGIN\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0007abc def\u0000",
+      "note": "not a number: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0005LOGIN\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\b1 secret",
+      "note": "tracebot1 is online from the same IP",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u00002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\bPHOTOTXT\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u000f Me and my flat\u0000",
+      "note": "the first character goes",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007BINDATA\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n\u0000\u0000\u0000\u0003\u0000\u0002\u0000\u0000\u0000\u0005image\u0000\u0000\u0014\u0000\u0000\u0000\u0005\u0001\u0002\u0003\u0004\u0005\u0000\u0000\u0002\u0000\u0000\u0000\u0004time\u0000\u0003\u0000\u0000\u0000\u0003now\u0000\u0000\u0002\u0000\u0000\u0000\u0002cs\u0000\u0001\u0000\u0000\u0004Ò",
+      "note": "BINDATA_SAVED; the photo in a's hand and FILM 9",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IIHI\u0002IYukI09-11-2026 06:03:12\rMe and my flat\u0002HIIMI",
+              "check": "mask",
+              "mask": ".....???????????????.????????....................."
+            },
+            {
+              "header": 4,
+              "name": "FILM",
+              "body": "QB",
+              "check": "exact"
+            }
+          ]
+        },
+        "m": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 65000,
+              "name": "MUS",
+              "body": "BINDATA_SAVED\u0002System\u0002*\u00020\u0002string 1",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 90,
+      "name": "PLACESTUFF",
+      "body": "@Q1 :w=6,1 l=8,32 r",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 83,
+              "name": "PLACE_WALLITEM",
+              "body": "1\u0002Yuk:w=6,1 l=8,32 r\u000209-11-2026 06:03:12\rMe and my flat\u0002",
+              "check": "mask",
+              "mask": ".....................??????????.????????................"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\nGETBINDATA\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u00031 x\u0000",
+      "note": "BINARYDATA: the image, its date and checksum",
+      "settle_ms": 300,
+      "received": {
+        "m": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 65000,
+              "name": "MUS",
+              "body": "BINARYDATA\u0002System\u0002*\u00020\u0002props image=type 20 5 bytes bfe534e8; time=string 09-11-2026 06:03:12; cs=int 1234",
+              "check": "mask",
+              "mask": "........................................................................??????????.????????............."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\nGETBINDATA\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0003999\u0000",
+      "note": "no such item in the room: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "x",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "x",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0005LOGIN\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\b2 secret",
+      "note": "tracebot2 is offline: the connection is closed",
+      "settle_ms": 300,
+      "received": {
+        "x": {
+          "ordered": true,
+          "closed": true,
+          "messages": []
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "rcon",
+      "rcon": "clearphoto",
+      "values": {
+        "itemId": "1",
+        "userId": "21"
+      },
+      "note": "the photo leaves the room",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 84,
+              "name": "REMOVE_WALLITEM",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "m",
+      "action": "send",
+      "header": 65000,
+      "name": "MUS",
+      "body": "r\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\nGETBINDATA\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u00011\u0000",
+      "note": "nothing any more",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}

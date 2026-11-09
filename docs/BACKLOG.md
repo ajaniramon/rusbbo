@@ -13,7 +13,6 @@ oracle first, passing against it twice, then the port.
 | Feature | Tag | What is missing | Aeyra today |
 |---|---|---|---|
 | Room-hire teleporter | `room-hire` | `TeleportRoomHireInteractor` | no item definition uses it |
-| Photos | `photos` | The camera's photos (`items_photos`), RCON's `clearphoto` and the housekeeping's photo list | not used |
 | Idol songs | `sound`, `idol` | The performer's song disc in `START_PERFORMANCE`, `START_PLAYING_SONG`/`STOP_PLAYING_SONG` and the listeners | not used |
 | Hidden public rooms | `publics` | Hidden public rooms in the navigator and teleporters in public rooms | not used |
 | Custom rooms | `custom-rooms` | Custom rooms keeping their item states and getting game tasks like arenas | not used |

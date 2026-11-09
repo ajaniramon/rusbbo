@@ -312,8 +312,14 @@ fn handle(world: &World, message: &RconMessage) {
             }
         }
         "clearphoto" => {
-            // TODO(photos): the camera's photos (`items_photos`) are not ported; Java removes the
-            // photo item from its room, deletes it and writes a "Hidden photo" transaction.
+            // Java: parseLong(itemId) and parseInt(userId), which throw on anything else.
+            let (Some(item_id), Some(user_id)) = (
+                value("itemId").and_then(|v| v.parse::<i64>().ok()),
+                int("userId"),
+            ) else {
+                return;
+            };
+            clear_photo(world, item_id, user_id);
         }
         "user_alert" => {
             if let (Some(session), Some(text)) = (online("userId"), value("message")) {
@@ -677,6 +683,64 @@ fn give_room_badges(world: &World) {
                 }
             }
         }
+    }
+}
+
+/// Java: RCON `CLEAR_PHOTO`: a photo the housekeeping hides. Only an item Java can resolve (in a
+/// loaded room, or in its online owner's hand: `ItemManager.resolveItem`) is taken away and
+/// deleted; its photo is then hidden and a "Hidden photo" transaction written.
+fn clear_photo(world: &World, item_id: i64, user_id: i32) {
+    let Ok(id) = u64::try_from(item_id) else {
+        return;
+    };
+    let Ok(Some(record)) = world.store.item(id) else {
+        return;
+    };
+    let resolved = if let Some(room) = (record.room_id > 0)
+        .then(|| world.loaded_room(record.room_id as u32))
+        .flatten()
+    {
+        let (found, deferred) = {
+            let mut r = room.lock();
+            let idx = r
+                .mapping
+                .items
+                .iter()
+                .position(|i| i.flat.as_ref().is_some_and(|f| f.record.id == id));
+            if let Some(idx) = idx {
+                r.remove_flat_item(world, idx);
+            }
+            (idx.is_some(), r.take_deferred())
+        };
+        crate::game::room::run_deferred(world, deferred);
+        found
+    } else if let Some(owner) = record.user_id.and_then(|o| world.player_by_id(o)) {
+        owner.player.lock().inventory.take_record(id).is_some()
+    } else {
+        false
+    };
+    if !resolved {
+        return;
+    }
+    if let Err(e) = world.store.delete_items(&[id]) {
+        error!(item = id, "deleting a photo: {e}");
+    }
+    if let Err(e) = world.store.hide_photo(id) {
+        error!(item = id, "hiding a photo: {e}");
+    }
+    let row = rusbbo_storage::Transaction {
+        user_id: user_id as u32,
+        item_id: item_id.to_string(),
+        catalogue_id: "0".into(),
+        amount: 1,
+        description: format!("Hidden photo {item_id}"),
+        credit_cost: 0,
+        pixel_cost: 0,
+        created_at: crate::game::now(),
+        is_visible: false,
+    };
+    if let Err(e) = world.store.insert_transaction(&row) {
+        error!(item = id, "logging a hidden photo: {e}");
     }
 }
 

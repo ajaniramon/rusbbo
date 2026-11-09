@@ -66,6 +66,8 @@ fn main() -> Result<()> {
     let bots = import_room_bots(&mut conn, &store)?;
     let pets = import_pets(&mut conn, &store)?;
     let transactions = import_transactions(&mut conn, &store)?;
+    let photos = import_photos(&mut conn, &store)?;
+    eprintln!("[import] {photos} photos");
     let user_rows = user::import_user_data(&mut conn, &store)?;
     let sound_rows = sound::import_sound(&mut conn, &store)?;
     eprintln!("[import] {sound_rows} moodlight preset/sound machine rows");
@@ -439,6 +441,27 @@ fn import_transactions(conn: &mut mysql::PooledConn, store: &Store) -> Result<us
             pixel_cost: col(row, "pixel_cost")?,
             created_at: timestamp(row, "created_at_ts")?,
             is_visible: col::<i32>(row, "is_visible")? != 0,
+        })?;
+    }
+    w.commit()?;
+    Ok(rows.len())
+}
+
+/// `items_photos` (Java: `PhotoDao`): the camera's photos.
+fn import_photos(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+    let rows: Vec<Row> = conn.query(
+        "SELECT photo_id, photo_user_id, timestamp, photo_data, photo_checksum, is_active \
+         FROM items_photos",
+    )?;
+    let mut w = store.write()?;
+    for row in &rows {
+        w.put_photo(&rusbbo_storage::Photo {
+            photo_id: col(row, "photo_id")?,
+            user_id: col(row, "photo_user_id")?,
+            timestamp: col(row, "timestamp")?,
+            data: col(row, "photo_data")?,
+            checksum: col(row, "photo_checksum")?,
+            is_active: col::<i32>(row, "is_active")? != 0,
         })?;
     }
     w.commit()?;

@@ -9,5 +9,6 @@ pub mod encoding;
 pub mod escape;
 pub mod frame;
 pub mod ids;
+pub mod mus;
 
 pub use frame::{Decoder, Message};

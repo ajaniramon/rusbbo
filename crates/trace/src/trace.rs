@@ -31,6 +31,9 @@ pub struct Trace {
     /// Flash clients (`flash = true` in the scenario).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub flash: Vec<String>,
+    /// MUS connections (`mus = true` in the scenario).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mus: Vec<String>,
     pub steps: Vec<TraceStep>,
 }
 
@@ -331,6 +334,12 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
             .filter(|b| b.flash)
             .map(|b| b.name.clone())
             .collect(),
+        mus: scenario
+            .bots
+            .iter()
+            .filter(|b| b.mus)
+            .map(|b| b.name.clone())
+            .collect(),
         steps: trace_steps,
     }
 }
@@ -402,7 +411,7 @@ fn expected(header: u16, bodies: &[&[u8]], optional: bool) -> Expected {
     };
     Expected {
         header,
-        name: ids::server_name(header).map(str::to_string),
+        name: server_name(header),
         body: escape::to_text(first),
         check,
         mask,
@@ -469,7 +478,7 @@ fn trace_action(action: &Action) -> TraceAction {
         Action::Disconnect => TraceAction::Disconnect,
         Action::Send { header, body } => TraceAction::Send {
             header: *header,
-            name: ids::client_name(*header).map(str::to_string),
+            name: client_name(*header),
             body: escape::to_text(body),
         },
         Action::Rcon { header, values } => TraceAction::Rcon {
@@ -491,6 +500,11 @@ impl Trace {
     /// Per bot, whether it is a Flash client.
     pub fn flash_flags(&self) -> Vec<bool> {
         self.bots.iter().map(|b| self.flash.contains(b)).collect()
+    }
+
+    /// Per bot, whether it is a MUS connection.
+    pub fn mus_flags(&self) -> Vec<bool> {
+        self.bots.iter().map(|b| self.mus.contains(b)).collect()
     }
 
     /// Steps to replay this trace.
@@ -529,6 +543,20 @@ impl Trace {
             })
             .collect()
     }
+}
+
+fn server_name(header: u16) -> Option<String> {
+    if header == crate::scenario::MUS_HEADER {
+        return Some("MUS".into());
+    }
+    ids::server_name(header).map(str::to_string)
+}
+
+fn client_name(header: u16) -> Option<String> {
+    if header == crate::scenario::MUS_HEADER {
+        return Some("MUS".into());
+    }
+    ids::client_name(header).map(str::to_string)
 }
 
 #[cfg(test)]

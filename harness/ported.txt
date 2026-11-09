@@ -6,6 +6,7 @@ battleball-lobby
 battleball-reload
 battleball-restart
 call-for-help
+camera-photos
 catalogue
 catalogue-effects
 catalogue-trophy

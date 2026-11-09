@@ -12,7 +12,7 @@ use rand::RngExt;
 use rusbbo_protocol::crypto::{self, Crypto, DiffieHellman, Opener, Sealer};
 use rusbbo_protocol::frame::{Decoder, Message, encode_client};
 
-use crate::scenario::{Action, BOT_DH_PRIVATE, Step};
+use crate::scenario::{Action, BOT_DH_PRIVATE, MUS_HEADER, Step};
 
 /// Longest a step may wait for its `wait_for` messages.
 const WAIT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -94,6 +94,8 @@ struct Bot {
     encrypted: bool,
     /// A Flash client: connects to the game port + 2.
     flash: bool,
+    /// A MUS connection: connects to the game port + 1 and speaks MUS.
+    mus: bool,
     /// Sending half of the current connection's cipher; filled in by the reader thread when
     /// `SECRET_KEY` arrives.
     sealer: Arc<Mutex<Option<Sealer>>>,
@@ -128,6 +130,70 @@ fn substitute_game_id(body: &[u8], game_id: Option<&[u8]>) -> Vec<u8> {
     out
 }
 
+/// A MUS message as a trace records it: subject, sender, receivers, error code and content, one
+/// per `\x02`-separated field, without the timestamp (the server's clock). Media are their length
+/// and an FNV-1a hash.
+pub fn render_mus(msg: &rusbbo_protocol::mus::MusMessage) -> Vec<u8> {
+    use rusbbo_protocol::mus::{Content, types};
+    fn fnv(data: &[u8]) -> u32 {
+        data.iter().fold(0x811c_9dc5u32, |h, &b| {
+            (h ^ u32::from(b)).wrapping_mul(0x0100_0193)
+        })
+    }
+    let content = match &msg.content {
+        Content::Void => "void".to_string(),
+        Content::Int(i) => format!("int {i}"),
+        Content::Str(s) => format!("string {s}"),
+        Content::Other(k) => format!("type {k}"),
+        Content::Props(props) => {
+            let parts: Vec<String> = props
+                .iter()
+                .map(|p| match p.kind {
+                    types::INTEGER => {
+                        format!(
+                            "{}=int {}",
+                            p.symbol,
+                            rusbbo_protocol::mus::prop_int(std::slice::from_ref(p), &p.symbol)
+                        )
+                    }
+                    types::STRING | types::SYMBOL => {
+                        format!("{}=string {}", p.symbol, String::from_utf8_lossy(&p.data))
+                    }
+                    kind => format!(
+                        "{}=type {kind} {} bytes {:08x}",
+                        p.symbol,
+                        p.data.len(),
+                        fnv(&p.data)
+                    ),
+                })
+                .collect();
+            format!("props {}", parts.join("; "))
+        }
+    };
+    let text = format!(
+        "{}\x02{}\x02{}\x02{}\x02{}",
+        msg.subject,
+        msg.sender,
+        msg.receivers.join(","),
+        msg.error_code,
+        content
+    );
+    text.chars()
+        .map(|c| if (c as u32) < 256 { c as u8 } else { b'?' })
+        .collect()
+}
+
+/// The MUS port of a game server: its port + 1 (Java's `mus.port`).
+fn mus_address(target: &str) -> Result<String> {
+    let (host, port) = target
+        .rsplit_once(':')
+        .with_context(|| format!("no port in {target}"))?;
+    let port: u16 = port
+        .parse()
+        .with_context(|| format!("bad port in {target}"))?;
+    Ok(format!("{host}:{}", port + 1))
+}
+
 /// The Flash port of a game server: its port + 2 (Java's `getFlashPort`).
 fn flash_address(target: &str) -> Result<String> {
     let (host, port) = target
@@ -149,9 +215,9 @@ pub struct Runner {
 }
 
 impl Runner {
-    /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport, and
-    /// `flash` (same length) a Flash client.
-    pub fn new(target: &str, rcon: &str, encrypted: &[bool], flash: &[bool]) -> Self {
+    /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport,
+    /// `flash` (same length) a Flash client and `mus` a MUS connection.
+    pub fn new(target: &str, rcon: &str, encrypted: &[bool], flash: &[bool], mus: &[bool]) -> Self {
         let (tx, rx) = channel();
         Self {
             target: target.to_string(),
@@ -163,6 +229,7 @@ impl Runner {
                     stream: None,
                     encrypted,
                     flash: flash.get(i).copied().unwrap_or(false),
+                    mus: mus.get(i).copied().unwrap_or(false),
                     sealer: Arc::new(Mutex::new(None)),
                     game_id: None,
                 })
@@ -191,6 +258,11 @@ impl Runner {
             Action::Send { header, body } => {
                 let bot = &mut self.bots[step.bot];
                 let stream = bot.stream.as_mut().context("bot is not connected")?;
+                if bot.mus || *header == MUS_HEADER {
+                    // A MUS frame, ready to go.
+                    stream.write_all(body)?;
+                    return Ok(self.collect(step));
+                }
                 let body = substitute_game_id(body, bot.game_id.as_deref());
                 let frame = encode_client(&Message::new(*header, body));
                 let frame = match bot.sealer.lock().unwrap().as_mut() {
@@ -218,7 +290,9 @@ impl Runner {
         if self.bots[bot].stream.is_some() {
             bail!("bot already connected");
         }
-        let address = if self.bots[bot].flash {
+        let address = if self.bots[bot].mus {
+            mus_address(&self.target)?
+        } else if self.bots[bot].flash {
             flash_address(&self.target)?
         } else {
             self.target.clone()
@@ -232,6 +306,36 @@ impl Runner {
         let sealer_slot = Arc::new(Mutex::new(None));
         self.bots[bot].sealer = sealer_slot.clone();
         self.bots[bot].game_id = None;
+        if self.bots[bot].mus {
+            thread::spawn(move || {
+                let mut decoder = rusbbo_protocol::mus::Decoder::default();
+                let mut buf = [0u8; 8192];
+                loop {
+                    match reader.read(&mut buf) {
+                        Ok(0) | Err(_) => {
+                            let _ = tx.send(Event::Closed(bot));
+                            return;
+                        }
+                        Ok(n) => {
+                            decoder.push(&buf[..n]);
+                            while let Some(decoded) = decoder.next_message() {
+                                let rusbbo_protocol::mus::Decoded::Message(msg) = decoded else {
+                                    eprintln!("[runner] bot {bot}: a frame that is not MUS");
+                                    let _ = tx.send(Event::Closed(bot));
+                                    return;
+                                };
+                                let msg = Message::new(MUS_HEADER, render_mus(&msg));
+                                if tx.send(Event::Msg(bot, msg)).is_err() {
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            self.bots[bot].stream = Some(stream);
+            return Ok(());
+        }
         thread::spawn(move || {
             let mut decoder = Decoder::default();
             // The client end of the handshake: token from CRYPTO_PARAMETERS, then the shared key

@@ -83,8 +83,16 @@ pub fn dashboard(conn: &mut Conn) -> WebResult {
                 .filter(|p| item_ids.contains(&p.item_id))
                 .count(),
         )
-        // TODO(photos): the port does not store photos (items_photos) yet.
-        .with("photos", 0)
+        // Java: `COUNT(*) FROM items_photos INNER JOIN items ON photo_id = items.id`.
+        .with(
+            "photos",
+            world
+                .store
+                .photo_ids()?
+                .into_iter()
+                .filter(|id| world.store.item(*id).ok().flatten().is_some())
+                .count(),
+        )
         .with(
             "credits",
             users.iter().map(|u| u.credits as i64).sum::<i64>(),

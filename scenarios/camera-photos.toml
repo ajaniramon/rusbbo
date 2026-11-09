@@ -1,0 +1,128 @@
+name = "camera-photos"
+description = "The camera's Multi User Server (MUS, the game port + 1): Logon, LOGIN (a user online from the same IP; an offline one is shut out; a bad id), PHOTOTXT, BINDATA (a photo item in the hand, one film less, BINDATA_SAVED), the photo hung in a flat, GETBINDATA (BINARYDATA with the image), RCON clear_photo (the photo leaves the room and stops loading)"
+
+# a = tracebot1 in its new flat 1000 (film 10); m = a's camera on the MUS port; x = a second MUS
+# connection that names an offline user. The photo is the first item made, item 1.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "m"
+ticket = "trace-sso-1"
+mus = true
+
+[[bots]]
+name = "x"
+ticket = "trace-sso-1"
+mus = true
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Photo Room", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "m"
+connect = true
+
+[[steps]]
+bot = "m"
+mus = { subject = "Logon", string = "camera" }
+note = "Logon and HELLO back"
+
+[[steps]]
+bot = "m"
+mus = { subject = "LOGIN", string = "abc def" }
+note = "not a number: nothing"
+
+[[steps]]
+bot = "m"
+mus = { subject = "LOGIN", string = "1 secret" }
+note = "tracebot1 is online from the same IP"
+
+[[steps]]
+bot = "m"
+mus = { subject = "PHOTOTXT", string = " Me and my flat" }
+note = "the first character goes"
+
+[[steps]]
+bot = "m"
+mus = { subject = "BINDATA", props = [{ name = "image", media = "0102030405" }, { name = "time", string = "now" }, { name = "cs", int = 1234 }] }
+settle_ms = 800
+note = "BINDATA_SAVED; the photo in a's hand and FILM 9"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 :w=6,1 l=8,32 r"]
+settle_ms = 600
+
+[[steps]]
+bot = "m"
+mus = { subject = "GETBINDATA", string = "1 x" }
+note = "BINARYDATA: the image, its date and checksum"
+
+[[steps]]
+bot = "m"
+mus = { subject = "GETBINDATA", string = "999" }
+note = "no such item in the room: nothing"
+
+[[steps]]
+bot = "x"
+connect = true
+
+[[steps]]
+bot = "x"
+mus = { subject = "LOGIN", string = "2 secret" }
+note = "tracebot2 is offline: the connection is closed"
+
+[[steps]]
+bot = "a"
+rcon = "clearphoto"
+rcon_values = { itemId = "1", userId = "21" }
+settle_ms = 800
+note = "the photo leaves the room"
+
+[[steps]]
+bot = "m"
+mus = { subject = "GETBINDATA", string = "1" }
+note = "nothing any more"
