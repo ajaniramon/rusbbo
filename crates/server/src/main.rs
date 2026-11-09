@@ -29,64 +29,111 @@ use tracing::info;
 use world::World;
 
 #[derive(Parser)]
-#[command(version, about)]
+#[command(
+    version,
+    about = "A Habbo Hotel v31 (Shockwave) and r39 (Flash) server with its website, a Rust rewrite of Havana",
+    after_help = "Logging: set RUST_LOG (default `info`, e.g. RUST_LOG=debug or RUST_LOG=rusbbo_server=debug).
+                  Create the database with `rusbbo-import`. See the README for a complete setup."
+)]
 struct Cli {
-    /// Database file (create one with rusbbo-import).
-    #[arg(long, default_value = "rusbbo.redb")]
+    /// The database file, created with `rusbbo-import`.
+    #[arg(
+        long,
+        value_name = "FILE",
+        default_value = "rusbbo.redb",
+        help_heading = "Game"
+    )]
     db: PathBuf,
-    /// Address for the Shockwave game port.
-    #[arg(long, default_value = "127.0.0.1:12321")]
+    /// Address of the game port for the Shockwave client.
+    #[arg(
+        long,
+        value_name = "ADDR",
+        default_value = "127.0.0.1:12321",
+        help_heading = "Game"
+    )]
     bind: SocketAddr,
-    /// The figure data the game validates looks with (Java: `figuredata.xml` in its working
-    /// directory; Havana's `tools/figuredata.xml`).
-    #[arg(long, value_name = "FILE", default_value = "figuredata.xml")]
-    figuredata: PathBuf,
-    /// Address for the Flash client's game port (Java: the game port + 2). Defaults to the
-    /// Shockwave address with its port + 2.
-    #[arg(long, value_name = "ADDR")]
+    /// Address of the game port for the Flash client [default: the Shockwave port + 2].
+    #[arg(long, value_name = "ADDR", help_heading = "Game")]
     flash_bind: Option<SocketAddr>,
-    /// Address for the Multi User Server, the Shockwave camera's connection (Java: `mus.bind`
-    /// and `mus.port`). Defaults to the Shockwave address with its port + 1.
-    #[arg(long, value_name = "ADDR")]
+    /// Address of the MUS port, the Shockwave camera's connection [default: the Shockwave port
+    /// + 1].
+    #[arg(long, value_name = "ADDR", help_heading = "Game")]
     mus: Option<SocketAddr>,
-    /// Issue an SSO ticket at startup, after the startup reset: `<user_id>=<ticket>`. Repeatable.
-    /// Stands in for the website until it exists; used by the trace harness.
-    #[arg(long = "dev-ticket", value_name = "USER_ID=TICKET")]
-    dev_tickets: Vec<String>,
-    /// Serve the website's ticket API (`GET /api/ticket?username=..&password=..`, as Havana-Web's
-    /// TicketController, and `/api/login`) on this address, e.g. 127.0.0.1:8095. Off by default.
-    #[arg(long, value_name = "ADDR")]
-    http: Option<SocketAddr>,
-    /// Ticket API requests allowed per client IP and minute (brute-force protection).
-    #[arg(long, value_name = "N", default_value_t = ticket_api::DEFAULT_RATE_LIMIT)]
-    http_rate_limit: u32,
-    /// Listen for the website's RCON messages (Java: `rcon.bind`/`rcon.port`, 127.0.0.1:12309)
-    /// on this address. Off by default; only the Infobus ones are ported.
-    #[arg(long, value_name = "ADDR")]
+    /// The figure data looks are checked against (Havana's `tools/figuredata.xml`).
+    #[arg(
+        long,
+        value_name = "FILE",
+        default_value = "figuredata.xml",
+        help_heading = "Game"
+    )]
+    figuredata: PathBuf,
+    /// Accept RCON messages from a separate website (Havana-Web's RCON, e.g. 127.0.0.1:12309).
+    /// Not needed with `--web`, which talks to the game directly. Off by default; keep it on
+    /// localhost.
+    #[arg(long, value_name = "ADDR", help_heading = "Game")]
     rcon: Option<SocketAddr>,
-    /// Serve the website (a port of Havana-Web) on this address, e.g. 0.0.0.0:80. It includes the
-    /// ticket API, so `--http` is not needed with it.
-    #[arg(long, value_name = "ADDR")]
+    /// Serve the website (Havana-Web: pages, housekeeping, imager and the launcher's ticket API)
+    /// on this address, e.g. 0.0.0.0:80. Off by default.
+    #[arg(long, value_name = "ADDR", help_heading = "Website")]
     web: Option<SocketAddr>,
-    /// The website's template directory (Havana's `tools/www-tpl`, holding `locale-en.ini`).
-    #[arg(long, value_name = "DIR", default_value = "tools/www-tpl")]
+    /// The website's template directory (Havana's `tools/www-tpl`).
+    #[arg(
+        long,
+        value_name = "DIR",
+        default_value = "tools/www-tpl",
+        help_heading = "Website"
+    )]
     web_templates: PathBuf,
     /// The template set inside `--web-templates`.
-    #[arg(long, value_name = "NAME", default_value = "default")]
+    #[arg(
+        long,
+        value_name = "NAME",
+        default_value = "default",
+        help_heading = "Website"
+    )]
     web_template_name: String,
     /// The website's static files (Havana's `tools/www`).
-    #[arg(long, value_name = "DIR", default_value = "tools/www")]
+    #[arg(
+        long,
+        value_name = "DIR",
+        default_value = "tools/www",
+        help_heading = "Website"
+    )]
     web_site: PathBuf,
-    /// Re-read the templates on every request (for editing them).
-    #[arg(long)]
-    web_reload_templates: bool,
-    /// The figure data the website validates looks with (Havana's `tools/figuredata.xml`).
-    #[arg(long, value_name = "FILE", default_value = "tools/figuredata.xml")]
-    web_figuredata: PathBuf,
-    /// The imager's resources: the `figuredata/` and `badges/` folders of Havana-Web's avatara4j
-    /// jar, extracted.
-    #[arg(long, value_name = "DIR", default_value = "tools/imaging")]
+    /// The figure data the website checks looks against [default: `--figuredata`].
+    #[arg(long, value_name = "FILE", help_heading = "Website")]
+    web_figuredata: Option<PathBuf>,
+    /// The avatar imager's resources: the `figuredata/` and `badges/` folders of Havana-Web's
+    /// avatara4j jar, extracted.
+    #[arg(
+        long,
+        value_name = "DIR",
+        default_value = "tools/imaging",
+        help_heading = "Website"
+    )]
     web_imaging: PathBuf,
+    /// Re-read the templates on every request (while editing them).
+    #[arg(long, help_heading = "Website")]
+    web_reload_templates: bool,
+    /// Serve only the launcher's ticket API (`/api/ticket`, `/api/login`) on this address,
+    /// without the website. `--web` includes it.
+    #[arg(long, value_name = "ADDR", help_heading = "Website")]
+    http: Option<SocketAddr>,
+    /// Ticket API requests allowed per client IP and minute (brute-force protection).
+    #[arg(long, value_name = "N", default_value_t = ticket_api::DEFAULT_RATE_LIMIT, help_heading = "Website")]
+    http_rate_limit: u32,
+    /// Issue an SSO ticket at startup: `<user_id>=<ticket>`. Repeatable. For testing without the
+    /// website.
+    #[arg(
+        long = "dev-ticket",
+        value_name = "USER_ID=TICKET",
+        help_heading = "Testing"
+    )]
+    dev_tickets: Vec<String>,
+    /// Set a user's rank at startup, e.g. `--set-rank alice=8`, then serve as usual. Repeatable.
+    /// Rank 5 opens the housekeeping (`/allseeingeye/hk`), 8 (Administrator) gives all of it.
+    #[arg(long, value_name = "USERNAME=RANK", help_heading = "Administration")]
+    set_rank: Vec<String>,
 }
 
 #[tokio::main]
@@ -113,6 +160,20 @@ async fn main() -> Result<()> {
         {
             bail!("--dev-ticket: no user {id}");
         }
+    }
+    for spec in &cli.set_rank {
+        let (name, rank) = spec
+            .rsplit_once('=')
+            .context("--set-rank expects USERNAME=RANK")?;
+        let rank: u8 = rank.parse().context("--set-rank rank")?;
+        if !(1..=8).contains(&rank) {
+            bail!("--set-rank: the rank must be 1 to 8");
+        }
+        let user = store
+            .user_by_name(name)?
+            .with_context(|| format!("--set-rank: no user {name}"))?;
+        store.update_user(user.id, |u| u.rank = rank)?;
+        info!(user = %user.username, rank, "rank set");
     }
     info!(
         users = store.user_count()?,
@@ -145,7 +206,10 @@ async fn main() -> Result<()> {
                 template_name: cli.web_template_name.clone(),
                 site_dir: cli.web_site.clone(),
                 reload_templates: cli.web_reload_templates,
-                figuredata: cli.web_figuredata.clone(),
+                figuredata: cli
+                    .web_figuredata
+                    .clone()
+                    .unwrap_or_else(|| cli.figuredata.clone()),
                 imaging: cli.web_imaging.clone(),
             },
             cli.http_rate_limit,

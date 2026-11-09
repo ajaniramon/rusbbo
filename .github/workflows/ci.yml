@@ -1,7 +1,6 @@
 name: CI
 
-# fmt, clippy and the unit tests. The conformance traces need the Java oracle (MariaDB, a JDK and
-# the Java Havana checkout), so they run locally: see "Trace harness" in the README.
+# fmt, clippy and the unit tests.
 on:
   push:
     branches: [main]

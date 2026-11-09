@@ -1,3 +1,16 @@
 /target/
 /oracle/run/
 /harness/run/
+
+# The conformance harness against the Java server: kept locally, not published.
+/oracle/
+/harness/
+/traces/
+/scenarios/
+/tools/crypto-vectors/
+/tools/gen_*.py
+/CLAUDE.md
+/docs/flats-notes.md
+/docs/social-trade-items-notes.md
+/run.sh
+/w.sh

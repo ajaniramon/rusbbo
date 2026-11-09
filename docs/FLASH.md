@@ -52,8 +52,8 @@ walkers do not enter the Lido's queue, booths and lift or the idol's scoreboard 
 and a Flash client cannot follow a friend into a public room that has no Flash navigator style
 (`navigator_styles`, after the walkway redirect).
 
-## Traces
+## Checked
 
-`flash-login`, `flash-navigator` and `flash-room` (bots with `flash = true` connect to the target
-port plus 2). `flash-room` has a Flash and a Shockwave client in the same rooms, so each kind's
-`USER_OBJECTS`, `USERBADGE` and `ROOMEEVENT_INFO` is compared.
+Bots with `flash = true` connect to the target's port plus 2. The Flash traces log in, browse the
+navigator and share rooms with Shockwave clients, so each kind's `USER_OBJECTS`, `USERBADGE` and
+`ROOMEEVENT_INFO` is compared with what the Java server sends it.

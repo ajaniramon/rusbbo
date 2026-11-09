@@ -1,6 +1,7 @@
 [package]
 name = "rusbbo-storage"
 version = "0.1.0"
+description = "rusbbo's redb storage: typed tables with their indexes"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

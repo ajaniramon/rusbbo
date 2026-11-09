@@ -1,8 +1,6 @@
 # Backlog
 
 Every Java Havana feature, game and website, is ported: the code has no `TODO(...)` markers left.
-New work follows the usual rule: a scenario recorded against the Java oracle first, passing
-against it in three runs, then the port.
 
 ## Kept as Java does it
 

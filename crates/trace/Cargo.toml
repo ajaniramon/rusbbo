@@ -1,6 +1,7 @@
 [package]
 name = "rusbbo-trace"
 version = "0.1.0"
+description = "Scripted bots that record a server's answers, check another server against them and load test it"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

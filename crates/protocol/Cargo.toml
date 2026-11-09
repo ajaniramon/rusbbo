@@ -1,6 +1,7 @@
 [package]
 name = "rusbbo-protocol"
 version = "0.1.0"
+description = "The Habbo v31 FUSE wire protocol: encodings, framing, encryption and message ids"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

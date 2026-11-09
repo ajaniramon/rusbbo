@@ -185,11 +185,11 @@ mod tests {
 
     #[test]
     fn names() {
-        assert_eq!(name_status("ra1996", "Lacoste"), 0);
-        assert_eq!(name_status("ra1996", "RA1996"), 4);
-        assert_eq!(name_status("ra1996", "two words"), 2);
-        assert_eq!(name_status("ra1996", ""), 2);
-        assert_eq!(name_status("ra1996", "abcdefghijklmnop"), 1);
+        assert_eq!(name_status("tracebot1", "Lacoste"), 0);
+        assert_eq!(name_status("tracebot1", "TRACEBOT1"), 4);
+        assert_eq!(name_status("tracebot1", "two words"), 2);
+        assert_eq!(name_status("tracebot1", ""), 2);
+        assert_eq!(name_status("tracebot1", "abcdefghijklmnop"), 1);
     }
 
     #[test]

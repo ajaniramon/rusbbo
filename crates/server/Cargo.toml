@@ -1,6 +1,7 @@
 [package]
 name = "rusbbo-server"
 version = "0.1.0"
+description = "A Habbo Hotel v31 and r39 server with its website, a Rust rewrite of Havana"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

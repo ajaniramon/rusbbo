@@ -1,6 +1,7 @@
 [package]
 name = "rusbbo-import"
 version = "0.1.0"
+description = "Copies a Havana MariaDB database into a rusbbo database file"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

@@ -24,13 +24,18 @@ use rusbbo_storage::{
 };
 
 #[derive(Parser)]
-#[command(version, about)]
+#[command(
+    version,
+    about = "Copies a Havana MariaDB/MySQL database into a new rusbbo database file (redb)",
+    after_help = "Example:
+  rusbbo-import --mysql mysql://havana:password@127.0.0.1:3306/havana --out rusbbo.redb"
+)]
 struct Cli {
-    /// Source database, e.g. mysql://havana:goldfish@127.0.0.1:13307/havana
-    #[arg(long)]
+    /// The Havana database, as mysql://USER:PASSWORD@HOST:PORT/DATABASE.
+    #[arg(long, value_name = "URL")]
     mysql: String,
-    /// redb file to create.
-    #[arg(long)]
+    /// The rusbbo database file to create.
+    #[arg(long, value_name = "FILE")]
     out: PathBuf,
     /// Replace `--out` if it exists.
     #[arg(long)]

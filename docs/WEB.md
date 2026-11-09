@@ -12,24 +12,17 @@ configures it.
 
 ## How it is checked
 
-Web scenarios (`scenarios/web/*.toml`) are HTTP request scripts. `rusbbo-trace web-record`
-runs them against the Java Havana-Web (`oracle/web.sh`, port 12380, on the oracle's database and
-next to the Java game server) and fails if two runs differ after masking, so everything volatile
-is masked explicitly. `rusbbo-trace web-check` replays a trace against the Rust server
-(`harness/target-rs.sh` with `TARGET_WEB_PORT`) and compares status, headers and body byte for
-byte.
-
-```
-flock ~/oracle.lock -c "rusbbo-trace web-record scenarios/web/x.toml --reset 'oracle/web.sh reset'; oracle/web.sh stop; oracle/oracle.sh stop"
-TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.1:12380 --reset "harness/target-rs.sh reset"
-```
+Web scenarios are HTTP request scripts. `rusbbo-trace web-record` runs them against the Java
+Havana-Web, on the same database as the Java game server, and fails if two runs differ after
+masking, so everything volatile is masked explicitly. `rusbbo-trace web-check` replays a trace
+against the Rust server and compares status, headers and body byte for byte. The traces and the
+Java setup are kept out of this repository.
 
 ## Layout
 
 - `crates/pebble`: the template engine.
 - `crates/server/src/web/`: `server.rs` (duckHTTPD's request pipeline), `http.rs` (parameters,
-  cookies, sessions), `router.rs` + `routes_table.rs` (generated from `Routes.java` by
-  `tools/gen_web_routes.py`), `tpl.rs` (templates and their binders), `beans.rs` (what Java
+  cookies, sessions), `router.rs` + `routes_table.rs` (generated from Havana-Web's `Routes.java`), `tpl.rs` (templates and their binders), `beans.rs` (what Java
   objects look like to templates), `data.rs` (the DAOs), `controllers/` (one module per Java
   controller group), `imager.rs` (avatara4j).
 - `homes.rs` (`Widget`, the sticker catalogue, guestbooks, ratings, edit sessions) and
@@ -51,20 +44,10 @@ TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.
 
 `web/imager.rs` ports avatara4j, the library Havana-Web draws avatars and badges with. It reads
 the library's resources from `--web-imaging <DIR>`: the `figuredata/` and `badges/` folders of
-Havana-Web's jar, extracted (`unzip Havana-Web.jar 'figuredata/*' 'badges/*' -d <DIR>`;
-`harness/target-rs.sh` does it). The images are drawn with Java2D's own `SrcOver` arithmetic
+Havana-Web's jar, extracted (`unzip Havana-Web.jar 'figuredata/*' 'badges/*' -d <DIR>`). The images are drawn with Java2D's own `SrcOver` arithmetic
 (its 8-bit multiply and divide tables), so every pixel is Java's; the encoders are not ImageIO's,
 so web traces compare these bodies decoded (`body = "image"`). GIFs follow ImageIO's
 `PaletteBuilder`: pixels that are not opaque become transparent.
-
-## Data the traces need
-
-`oracle/web-seed.sql` holds the web traces' own data (news, tags, scores, friends, groups,
-minimail, forums, vouchers), loaded on top of `golden.sql` by `oracle/web.sh reset`; the Rust
-fixture for web checks is built from both (`harness/target-rs.sh` with `TARGET_WEB_PORT`). Dates
-are fixed times of the current day, so a recording and a check on the same day agree. Wherever
-MariaDB or Java orders ties in no fixed way (GROUP BY, ORDER BY with LIMIT, identity-hash maps),
-the seed avoids ties.
 
 ## Caching
 

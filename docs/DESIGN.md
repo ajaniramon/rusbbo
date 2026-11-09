@@ -1,12 +1,10 @@
 # rusbbo design
 
-Status: block 2, first draft. Decisions marked **(review)** are the ones worth a second opinion
-before many agents build on them.
-
 ## Goals and non-goals
 
-- Same behaviour on the wire as the Java Havana (the reference repository, `HAVANA_DIR`), for the Shockwave (v31) and
-  Flash (r39) clients. "Same" is defined by the trace corpus (`traces/`), not by reading the code.
+- Same behaviour on the wire as the Java Havana, for the Shockwave (v31) and Flash (r39) clients.
+  "Same" is defined by a corpus of traces recorded from the Java server and replayed against the
+  Rust one (kept out of this repository), not by reading the code.
 - One small binary that runs on a Raspberry Pi: target under 50 MB RSS with a few dozen users.
 - No external database: the data lives in one embedded file.
 - Not a goal: being faster than the Java server on big hardware, horizontal scaling, keeping the
@@ -20,14 +18,16 @@ before many agents build on them.
 | `storage` | redb file: typed tables, secondary indexes, schema version | — |
 | `server` | Game server: connections, sessions, handlers, game state, ticks | protocol, storage |
 | `import` | One-off tool: MariaDB (Java schema) → redb file | storage |
-| `trace` | Conformance harness (block 1) | protocol |
-| `web` (later) | Website + housekeeping (axum + minijinja), **in the same process** as the server | storage |
+| `trace` | Scripted bots: record a server's answers, check another server against them, load test | protocol |
+| `pebble` | The Pebble 3.1 template engine the website's templates need | — |
+
+The website and the housekeeping live in `server` (`src/web`), **in the same process** as the game.
 
 Handlers are grouped by the Java packages (`handshake`, `user`, `navigator`, `rooms`,
 `catalogue`, `messenger`...) as modules of `server`, so an agent can port one Java package at a
 time and own a separate set of files.
 
-## Concurrency model **(review)**
+## Concurrency model
 
 The Java server shares mutable state across threads (Netty event loops, a 1 s `GameScheduler`, a
 500 ms task per room). The Rust server keeps the same shape, because porting it 1:1 is what lets
@@ -50,7 +50,7 @@ Actors per room were considered. They avoid lock-order rules but make every cros
 cross-player action a message protocol, which is much harder to port from Java mechanically.
 If lock contention ever shows up on a Pi with a few dozen users, it would be a surprise.
 
-## Storage **(review)**
+## Storage
 
 **redb** (single file, ACID, B-trees, one writer at a time). fjall (LSM) was the alternative.
 redb wins here: the workload is read-heavy with small writes, and a single file is simpler to
@@ -101,8 +101,8 @@ Each table is ported when the first handler that needs it is ported, not all upf
 ## Import
 
 `rusbbo-import --mysql mysql://user:pass@host:port/db --out rusbbo.redb`. It reads the Java schema
-and writes a fresh redb file. Uses: migrating an existing hotel, and building the harness
-fixture from the same snapshot the Java oracle uses, so both servers start from identical data.
+and writes a fresh redb file. Uses: migrating an existing hotel, and building a test fixture from
+the same snapshot the Java server runs on, so both servers start from identical data.
 
 ## Handshake and encryption
 
@@ -125,9 +125,9 @@ reader task switches to decrypting after the handler of `GENERATEKEY` returns.
 handlers (confirmed against the oracle with a raw socket: `@A<digits>\x01`). The first encrypted
 bytes are the server's answer to the next client message.
 
-Test vectors come from the real Java classes (`tools/crypto-vectors`, including the unmodified
-`EncryptionEncoder`/`EncryptionDecoder` in an `EmbeddedChannel`), and `login-encrypted` checks the
-whole path against the oracle with a bot that does what the client does. One deliberate deviation:
+Test vectors come from the real Java classes (`crates/protocol/testdata/crypto-vectors.txt`,
+including the unmodified `EncryptionEncoder`/`EncryptionDecoder` in an `EmbeddedChannel`), and a
+trace checks the whole path against the Java server with a bot that does what the client does. One deliberate deviation:
 Java's decoder re-decrypts a header when the body has not fully arrived, which garbles frames split
 across TCP reads; the Rust decoder remembers the header.
 
@@ -139,8 +139,8 @@ the harness). `TRY_LOGIN` and the ticket API check the Argon2 hashes the Java we
 
 ## Testing
 
-- Unit tests per crate (encodings, composers against literal byte strings from traces).
-- `rusbbo-trace check` against the Rust server for every ported area. A trace that passes is never
-  allowed to regress (CI runs the full corpus).
-- `harness/target-rs.sh reset` builds the fixture (import of the oracle's golden snapshot), restarts
-  the Rust server and issues the bot tickets, the same way `oracle.sh reset` does for Java.
+- Unit tests per crate (encodings, composers against literal byte strings recorded from the Java
+  server, transactions with injected commit failures, the template engine, the imager's pixels).
+- Conformance: scripted bots (`rusbbo-trace`) record what the Java server answers and check that
+  the Rust server answers the same bytes, game and website. The traces and the Java reference
+  setup are kept out of this repository.
