@@ -8,9 +8,12 @@ use parking_lot::Mutex;
 use rand::RngExt;
 use rusbbo_storage::{RoomAd, Store};
 
+/// The ads by room id.
+type Ads = Arc<HashMap<i32, Vec<RoomAd>>>;
+
 #[derive(Default)]
 pub struct AdManager {
-    ads: Mutex<Option<Arc<HashMap<i32, Vec<RoomAd>>>>>,
+    ads: Mutex<Option<Ads>>,
 }
 
 fn load(store: &Store) -> HashMap<i32, Vec<RoomAd>> {
@@ -22,7 +25,7 @@ fn load(store: &Store) -> HashMap<i32, Vec<RoomAd>> {
 }
 
 impl AdManager {
-    fn ads(&self, store: &Store) -> Arc<HashMap<i32, Vec<RoomAd>>> {
+    fn ads(&self, store: &Store) -> Ads {
         self.ads
             .lock()
             .get_or_insert_with(|| Arc::new(load(store)))
