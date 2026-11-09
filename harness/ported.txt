@@ -73,6 +73,7 @@ referrals
 rooftop-camera
 room-bots
 room-two-bots
+seasonal-catalogue
 snowstorm-game
 snowstorm-leave
 snowstorm-lobby

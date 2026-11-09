@@ -1,0 +1,85 @@
+name = "seasonal-catalogue"
+description = "Seasonal catalogue pages (CataloguePage.isValidSeasonal) with seasonal.items on: the index without the pages out of season for a user, with them for a community manager; GET_CATALOGUE_PAGE of a page in season, out of season and an Easter Monday page"
+
+# oracle/seed.sql pins the seasons: page 68 (Romantique) is always in season, 79 (Christmas 09)
+# only on Easter Monday, 98, 99, 101, 104, 117 and 119 never. s = tracestaff (ADMINISTRATOR,
+# above a community manager) turns seasonal.items on; a = tracebot1 is a normal user. On Easter
+# Monday page 79 is in season and this trace differs.
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig seasonal.items true"]
+
+[[steps]]
+bot = "s"
+send = "GET_CATALOG_INDEX"
+note = "a community manager or above sees every page"
+
+[[steps]]
+bot = "s"
+send = "GET_CATALOGUE_PAGE"
+args = [101]
+note = "but not the page out of season"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOG_INDEX"
+note = "the pages out of season are gone"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOGUE_PAGE"
+args = [68]
+note = "in season"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOGUE_PAGE"
+args = [101]
+note = "out of season: nothing"
+
+[[steps]]
+bot = "a"
+send = "GET_CATALOGUE_PAGE"
+args = [79]
+note = "Easter Monday's page: nothing (on any other day)"

@@ -189,3 +189,10 @@ VALUES
 
 INSERT INTO users_statistics (user_id, has_tutorial, is_guidable) VALUES (33, 0, 0);
 INSERT INTO users_referred (user_id, referred_id) VALUES (33, 1), (33, 2), (33, 3);
+
+-- The seasonal pages (only with seasonal.items on, which the seasonal-catalogue scenario sets),
+-- made independent of the day the traces run: Romantique (68) is always in season, Christmas 09
+-- (79) is Easter Monday's, the others are never in season.
+UPDATE catalogue_pages SET seasonal_start = '01-01', seasonal_length = 0 WHERE seasonal_start IS NOT NULL;
+UPDATE catalogue_pages SET seasonal_length = 31622400 WHERE id = 68;
+UPDATE catalogue_pages SET seasonal_start = 'EASTER' WHERE id = 79;

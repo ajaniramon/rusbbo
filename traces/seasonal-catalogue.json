@@ -1,0 +1,493 @@
+{
+  "format": 1,
+  "scenario": "seasonal-catalogue",
+  "description": "Seasonal catalogue pages (CataloguePage.isValidSeasonal) with seasonal.items on: the index without the pages out of season for a user, with them for a community manager; GET_CATALOGUE_PAGE of a page in season, out of season and an Easter Monday page",
+  "runs": 3,
+  "bots": [
+    "s",
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "s",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "619332501697966989079816\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ltrace-sso-21",
+      "settle_ms": 1500,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#F096E5B179BE4EF3BE5244BA2CE651FA\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002fuse_mute\u0002fuse_kick\u0002fuse_receive_calls_for_help\u0002fuse_remove_photos\u0002fuse_remove_stickies\u0002fuse_mod\u0002fuse_moderator_access\u0002fuse_chat_log\u0002fuse_room_alert\u0002fuse_room_kick\u0002fuse_ignore_room_owner\u0002fuse_enter_full_rooms\u0002fuse_enter_locked_rooms\u0002fuse_see_all_roomowners\u0002fuse_search_users\u0002fuse_ban\u0002fuse_see_chat_log_link\u0002fuse_cancel_roomevent\u0002fuse_administrator_access\u0002fuse_any_room_controller\u0002fuse_pick_up_any_furni\u0002fuse_see_flat_ids\u0002fuse_credits\u0002fuse_debug_window\u0002fuse_housekeeping_alert\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISA",
+      "settle_ms": 600,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "ballroom\u0002SA",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxx4444444444444444444\rxxxx4444444444444444444\rxxxx4444444444444444444\rxxxx33x2222444442222x33\rxxxx2222222x00xx2222222\rxxxx22222220000x2222222\rxxxx11x0000x000x0000x11\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxx0000000000000000000\r22210000000000000000000\r22210000000000000000000\r22210000000000000000000\rxxxx0000000000000000000\r11100000000000000000000\r11100000000000000000000\r11100000000000000000000\rxxxxx000x11111111x0000x\rxxxxxx00x1111x111x000xx\rxxxxxxx0x11111111x00xxx\rxxxxxxxxx11111111x0xxxx\rxxxxxxxxx11111111xxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "QNH<id>\u0002broom_bench1\u0002PAHPAPAH<id>\u0002broom_bench2\u0002QAHPAPAH<id>\u0002broom_bench3\u0002RAHPAPAH<id>\u0002broom_bench1\u0002SAHPAPAH<id>\u0002broom_bench2\u0002PBHPAPAH<id>\u0002broom_bench2\u0002QBHPAPAH<id>\u0002broom_bench3\u0002RBHPAPAH<id>\u0002broom_bench1\u0002SBHPAPAH<id>\u0002broom_bench2\u0002PCHPAPAH<id>\u0002broom_bench2\u0002QCHPAPAH<id>\u0002broom_bench2\u0002RCHPAPAH<id>\u0002broom_bench3\u0002SCHPAPAH<id>\u0002broom_bench1\u0002PDHPAPAH<id>\u0002broom_bench2\u0002QDHPAPAH<id>\u0002broom_bench2\u0002RDHPAPAH<id>\u0002broom_bench3\u0002SDHPAPAH<id>\u0002broom_bench1\u0002PEHPAPAH<id>\u0002broom_bench2\u0002QEHPAPAH<id>\u0002broom_bench3\u0002REHPAPAH<id>\u0002broom_seatb1\u0002SAKJPAH<id>\u0002broom_seatb2\u0002PBKJPAH<id>\u0002broom_seatb3\u0002QBKJPAH<id>\u0002broom_seatb4\u0002RBKJPAH<id>\u0002broom_seat1\u0002PDKJPAH<id>\u0002broom_seat2\u0002QDKJPAH<id>\u0002broom_seat3\u0002RDKJPAH<id>\u0002broom_seat4\u0002SDKJPAH<id>\u0002broom_seatb1\u0002SARAHPAH<id>\u0002broom_seatb2\u0002PBRAHPAH<id>\u0002broom_seatb3\u0002QBRAHPAH<id>\u0002broom_seatb4\u0002RBRAHPAH<id>\u0002broom_seat1\u0002PDRAHPAH<id>\u0002broom_seat2\u0002QDRAHPAH<id>\u0002broom_seat3\u0002RDRAHPAH<id>\u0002broom_seat4\u0002SDRAHPAH<id>\u0002broom_chair\u0002SDRBHPAH<id>\u0002broom_chair\u0002PERBHPAH<id>\u0002broom_chair\u0002QERBHPAH<id>\u0002broom_table1\u0002SDSBHHH<id>\u0002broom_table2\u0002PESBHHH<id>\u0002broom_table3\u0002QESBHHH<id>\u0002broom_chair\u0002SDPCHHH<id>\u0002broom_chair\u0002PEPCHHH<id>\u0002broom_chair\u0002QEPCHHH<id>\u0002broom_chair\u0002SDSCHPAH<id>\u0002broom_chair\u0002PESCHPAH<id>\u0002broom_chair\u0002QESCHPAH<id>\u0002broom_table1\u0002SDPDHHH<id>\u0002broom_table2\u0002PEPDHHH<id>\u0002broom_table3\u0002QEPDHHH<id>\u0002broom_chair\u0002SDQDHHH<id>\u0002broom_chair\u0002PEQDHHH<id>\u0002broom_chair\u0002QEQDHHH<id>\u0002broom_stool\u0002QBPEIJH<id>\u0002broom_stool\u0002QBQEIJH<id>\u0002broom_stool\u0002QBREIJH<id>\u0002broom_stool\u0002QBSEIJ",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IQEtracestaff\u0002trace staff \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002HQCRA0.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHQCRA0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 52,
+      "name": "CHAT",
+      "body": "@^:setconfig seasonal.items true",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 139,
+              "name": "ALERT",
+              "body": "The setting \"seasonal.items\" value has been updated from \"false\" to \"true\"\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 101,
+      "name": "GET_CATALOG_INDEX",
+      "body": "",
+      "note": "a community manager or above sees every page",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HSBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HIIHHSTCollectables Shop\u0002HHIKJJFurni Shop\u0002HRNIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHQ]Christmas 06\u0002HHIHHS]Christmas 07\u0002HHIHHSSChristmas 09\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHRXHabbowood\u0002HHIHHSXLove\u0002HHIHHPYValentines\u0002HHIHHQYHabboween\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHPZHaunted House\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HJIHHQPClub Info\u0002HHIHHSFClub Gifts\u0002HHIKSARNEcotron\u0002HPAIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HHIHHPSEcotron Shop\u0002HHIRAIROAdmin Shop\u0002HQGIHHP`Super Trophies\u0002HHIHHPGDragons\u0002HHIHHQGSci-fi Doors\u0002HHIHHRGParasols\u0002HHIHHSGScreens\u0002HHIHHPHMarquees\u0002HHIHHQHPillows\u0002HHIHHRHIcecream\u0002HHIHHSHSmoke machines\u0002HHIHHPISci-Fi Ports\u0002HHIHHQIAmber Lamp\u0002HHIHHRIFountains\u0002HHIHHSIElephants\u0002HHIHHPJFans\u0002HHIHHSJInflatable Chairs\u0002HHIHHPKRares Mixed\u0002HHIHHRWPixel Collectables\u0002HHIHHQ[Various Ads\u0002HHIHHS[Extra Rollers\u0002HHIHHQ\\Sleeping Bags\u0002HHIHHR\\Pillars\u0002HHIHHP]Penguins\u0002HHIHHR]Various Misc\u0002HHIHHP^Recycler (Old)\u0002HHIHHQ^Super Rares\u0002HHIHHR^Expensive Rares\u0002HHIHHPaPremium Rares\u0002HHIHHS_StrayPixels\u0002HHIHHRcStreets of Bobba\u0002HHIKRAP_Advertisements\u0002HPAIHHS^Child Line\u0002HHIHHQ_Calippo\u0002HHIHHR_Habbo Mall\u0002HHIHHQaMountain Dew\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "QY",
+      "note": "but not the page out of season",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "062226038333100676769834\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#BB010147B64941EF93692E32526CF15E\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 101,
+      "name": "GET_CATALOG_INDEX",
+      "body": "",
+      "note": "the pages out of season are gone",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 126,
+              "name": "CATALOGUE_PAGES",
+              "body": "HHHM\u0002HQBIRAIIFrontpage\u0002HHIJKSLCollectables\u0002HHIKJJFurni Shop\u0002HSLIHHPbEaster\u0002HHIHHKSpaces\u0002HHIHHQMWindows\u0002HHIHHQJCamera\u0002HHIHHQARollers\u0002HHIHHRATeleporters\u0002HHIHHQBArea\u0002HHIHHRBGothic\u0002HHIHHPCCandy\u0002HHIHHQCAsian\u0002HHIHHRCIced\u0002HHIHHSCLodge\u0002HHIHHPDPlasto\u0002HHIHHQDPura\u0002HHIHHRDMode\u0002HHIHHSDAccessories\u0002HHIHHPEBathroom\u0002HHIHHRESports\u0002HHIHHQEPlants\u0002HHIHHSERugs\u0002HHIHHPFGallery\u0002HHIHHQFFlags\u0002HHIHHRFTrophies\u0002HHIHHQKExecutive\u0002HHIHHRKAlhambra\u0002HHIHHSNCountry\u0002HHIHHRPGlass\u0002HHIHHSPGreek\u0002HHIHHPQRomantique\u0002HHIHHQQArctic\u0002HHIHHRQBensalem\u0002HHIHHSQNeon\u0002HHIHHPRLost Tribe\u0002HHIHHQRVirus\u0002HHIHHRSKitchen\u0002HHIHHPTUrban\u0002HHIHHQTGrunge\u0002HHIHHRTShalimar\u0002HHIHHRVSci-Fi\u0002HHIHHSVAmerican Idol\u0002HHIHHPXTiki\u0002HHIHHQXTwilight\u0002HHIHHPYValentines\u0002HHIHHRYRelax\u0002HHIHHSYJapanese\u0002HHIHHQZIgor\u0002HHIHHRZSpiderwick\u0002HHIHHSZSummer\u0002HHIHHP[Moodlights\u0002HHIHHP\\Diner\u0002HHIHHR[Memorial\u0002HHISAPBRMPets Shop\u0002HKIHHSAPets\u0002HHIHHPBPet Accessories\u0002HHIHHSMPets Info\u0002HHIPAPASBTrax\u0002HRAIHHPUHow to make music?\u0002HHIHHQUAmbient\u0002HHIHHRUDance\u0002HHIHHSURock\u0002HHIHHPVSFX\u0002HHIHHQVUrban\u0002HHIQAQAPNPixel Shop\u0002HQAIHHPWRentals\u0002HHIHHQWPixel Collectable\u0002HHIHHPOSpecial Effects\u0002HHIHHQNHello Furni\u0002HHIHHQOAutomobile\u0002HHISBRAPAHabbo Exchange\u0002HHISAQBSOHabbo Club\u0002HIIHHQPClub Info\u0002HHIKSARNEcotron\u0002HKIHHRREcotron\u0002HHIHHSRRewards\u0002HHIHHQSInstructions\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "PQ",
+      "note": "in season",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 127,
+              "name": "CATALOGUE_PAGE",
+              "body": "PQdefault_3x3\u0002Jcatalog_romantique_headline1\u0002catalog_romantique_teaser1\u0002KThe Romantique range features Grand Pianos, old antique lamps and tables. It is the ideal range for setting a warm and loving mood in your room. Spruce up your room and invite that special someone over. Now featuring the extra special COLOUR edition.\u0002Click on the item you want for more information\u0002\u0002PI[BDromantique_mirrortabl\u0002KHIs\u0002XyA\u0002IMXCDwallmirror\u0002KHIi\u0002YxA\u0002IMYCDromantique_tray1\u0002KHIs\u0002YXH\u0002IMZCDromantique_tray2\u0002KHIs\u0002ZxA\u0002IM[CDrom_lamp\u0002KHIs\u0002[xA\u0002IMXDDromantique_clock\u0002KHIs\u0002YyA\u0002IMZADromantique_pianochair*1\u0002KHIs\u0002XmC\u0002IMYDDromantique_pianochair*2\u0002KHIs\u0002ZnC\u0002IMZEDromantique_pianochair*3\u0002KHIs\u0002XpC\u0002IM[FDromantique_pianochair*4\u0002KHIs\u0002ZqC\u0002IMXHDromantique_pianochair*5\u0002KHIs\u0002XsC\u0002IM[ADromantique_divan*1\u0002KHIs\u0002ZmC\u0002IMZDDromantique_divan*2\u0002KHIs\u0002XoC\u0002IM[EDromantique_divan*3\u0002KHIs\u0002ZpC\u0002IMXGDromantique_divan*4\u0002KHIs\u0002XrC\u0002IMYHDromantique_divan*5\u0002KHIs\u0002ZsC\u0002IMXBDromantique_chair*1\u0002KHIs\u0002YmC\u0002IM[DDromantique_chair*2\u0002KHIs\u0002[nC\u0002IMXFDromantique_chair*3\u0002KHIs\u0002YpC\u0002IMYGDromantique_chair*4\u0002KHIs\u0002[qC\u0002IMZHDromantique_chair*5\u0002KHIs\u0002YsC\u0002IMYBDromantique_divider*1\u0002KHIs\u0002[mC\u0002IMXEDromantique_divider*2\u0002KHIs\u0002YoC\u0002IMYFDromantique_divider*3\u0002KHIs\u0002[pC\u0002IMZGDromantique_divider*4\u0002KHIs\u0002YrC\u0002IM[HDromantique_divider*5\u0002KHIs\u0002XbQ\u0002IMZBDromantique_smalltabl*1\u0002KHIs\u0002XnC\u0002IMYEDromantique_smalltabl*2\u0002KHIs\u0002ZoC\u0002IMZFDromantique_smalltabl*3\u0002KHIs\u0002XqC\u0002IM[GDromantique_smalltabl*4\u0002KHIs\u0002ZrC\u0002IMXIDromantique_smalltabl*6\u0002KHIs\u0002XtC\u0002IMYIDgrand_piano*1\u0002KHIs\u0002[lC\u0002IMZIDgrand_piano*2\u0002KHIs\u0002YnC\u0002IM[IDgrand_piano*3\u0002KHIs\u0002[oC\u0002IMXJDgrand_piano*4\u0002KHIs\u0002YqC\u0002IMYJDgrand_piano*5\u0002KHIs\u0002[rC\u0002IM",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "QY",
+      "note": "out of season: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 102,
+      "name": "GET_CATALOGUE_PAGE",
+      "body": "SS",
+      "note": "Easter Monday's page: nothing (on any other day)",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}
