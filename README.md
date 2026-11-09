@@ -15,12 +15,14 @@ must give the same bytes back.
   furniture and the item interactors, the catalogue and purchases, the messenger, trading,
   NPCs and pets, the room dimmer and the jukebox, moderation and bans, the Habbo Lido, the public
   room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop Rumble), the game hall tables,
-  BattleBall and SnowStorm, groups, guides, user tags, room ads, the Ecotron recycler and club
-  gifts; the Flash client on its own port ([docs/FLASH.md](docs/FLASH.md)); and the whole website,
-  housekeeping and imager included ([docs/WEB.md](docs/WEB.md)). Details below; what is left is
-  under [Known gaps](#known-gaps) and in [docs/BACKLOG.md](docs/BACKLOG.md).
-- **Conformance**: the 95 game traces in `traces/` (`harness/ported.txt`) and the 16 web traces
-  in `traces/web/` pass against the Java server and against `rusbbo-server`. The real v31 client (HabboLauncher) has been played
+  BattleBall and SnowStorm, groups, guides, user tags, referrals, room ads, the Ecotron recycler,
+  club gifts, seasonal and collectable catalogue pages, the camera and its photos (the Multi User
+  Server), the idol's songs and the Hire-A-Room teleporter; the Flash client on its own port
+  ([docs/FLASH.md](docs/FLASH.md)); and the whole website, e-mail, housekeeping and imager
+  included ([docs/WEB.md](docs/WEB.md)). Nothing of Java Havana is left to port; what is kept as
+  Java does it on purpose is in [docs/BACKLOG.md](docs/BACKLOG.md).
+- **Conformance**: the 113 game traces in `traces/` (`harness/ported.txt`) and the 17 web
+  traces in `traces/web/` pass against the Java server and against `rusbbo-server`. The real v31 client (HabboLauncher) has been played
   against it on a copy of a real hotel's database, including the Lido, the game hall, BattleBall
   and SnowStorm.
 - **Performance**: same data and machine (12 cores, WSL), 500 bots logging in, entering public
@@ -42,7 +44,8 @@ cargo build --release
 target/release/rusbbo-import --mysql mysql://user:pass@host:3306/havana --out rusbbo.redb
 # Serve the Shockwave port, the Flash port and the website (templates and files from Havana's
 # tools/ directory, see docs/WEB.md).
-target/release/rusbbo-server --db rusbbo.redb --bind 0.0.0.0:12321 --flash-bind 0.0.0.0:12323 \
+target/release/rusbbo-server --db rusbbo.redb --bind 0.0.0.0:12321 --mus 0.0.0.0:12322 \
+  --flash-bind 0.0.0.0:12323 \
   --figuredata havana/tools/figuredata.xml \
   --web 0.0.0.0:80 --web-templates havana/tools/www-tpl --web-site havana/tools/www \
   --web-figuredata havana/tools/figuredata.xml --web-imaging imaging/
@@ -92,7 +95,9 @@ limit is shared. A bad login is a `404` with an empty body (Java sends its 404 p
 The website itself (`--web`, [docs/WEB.md](docs/WEB.md)) serves the same ticket routes and every
 Havana-Web page from the game server's process, on the same store. The Flash client connects to
 `--flash-bind` ([docs/FLASH.md](docs/FLASH.md)); `--figuredata` is the figure data its
-`CHANGE_LOOKS` is checked against.
+`CHANGE_LOOKS` is checked against. `--mus` (the game port + 1 by default) is the Multi User Server
+the Shockwave camera saves and loads photos through (`crates/protocol/src/mus.rs`,
+`crates/server/src/mus.rs`); `rusbbo-trace` bots with `mus = true` talk to it.
 
 To check it against the corpus (needs the oracle's MariaDB container for the fixture):
 
@@ -420,6 +425,24 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `flash-login` | a Flash client on the Flash port: no `HELLO`, `SESSION_PARAMETERS`, `HOME_ROOM`, `FLASH_FAVOURITES`, `FLASH_MODTOOL`, the Flash `AVATAR_EFFECTS` |
 | `flash-navigator` | the Flash navigator: public and guest rooms, room info, icon and settings, search by name, owner and tag, popular tags, events, the home room, the wardrobe |
 | `flash-room` | a Flash and a Shockwave client in the same rooms: event 390, each kind's `USER_OBJECTS`, `USERBADGE` and `ROOMEEVENT_INFO`, rights by id, favourites, the hand after buying, placing and deleting, event tags, `CHANGE_LOOKS`, `QUIT` |
+| `welcome-alert` | the welcome message's line breaks and `%username%` (`StringUtil.replaceAlertMessage`), for Shockwave and Flash |
+| `staff-rank` | a moderator's command above their rank: plain chat with the look timer |
+| `trade-redeemable` | credit furniture to another account on the same IP: gifts and placing it (and a present holding it) trade-ban the buyer |
+| `referrals` | `ACH_MGM` levels from the users a player referred |
+| `seasonal-catalogue` | seasonal pages with `seasonal.items` on: the index for a user and for staff, a page in and out of season, Easter Monday's |
+| `collectables` | collectables cycles: the store and admin pages list only the active item (its layout from the price), buying it without seeing the admin page |
+| `camera-photos` | the MUS port: Logon, LOGIN (same IP, offline user shut out), PHOTOTXT, BINDATA (the photo in the hand, film), GETBINDATA, RCON `clear_photo` |
+| `idol-song` | an idol performance with the performer's song disc: `START_PLAYING_SONG`/`STOP_PLAYING_SONG` and the sound machine |
+| `room-hire` | the Hire-A-Room teleporter: in, `LOGOUT`, `ROOMFORWARD` to room 0, which cannot be entered |
+| `follow-hidden` | following a friend into a hidden public room: the forward goes to its walkway's room |
+| `teleport-public` | a teleporter from a flat to a hidden public room: `Room.forward`'s offset and redirect |
+| `walkway-others` | a walkway seen from the room left behind: the walker's new status |
+| `generatekey-parity` | a second `GENERATEKEY`, a zero shared secret, a key that is not a number, BigInteger's signs |
+| `messenger-order` | friends in Java's `HashMap` order |
+| `search-accents` | room search and name lookups without case or accents, as MariaDB's collation compares |
+| `normalise-input` | `normalise.input.strings`: accents become `?` on the wire |
+| `rooms-carry` | `:teleport`, `:itemdebug` and the flood mute kept from room to room |
+| `pool-no-stat` | leaving Lido B before anyone sent `G_STAT`: Java's exception skips the rest of the leave |
 | `infobus-poll` | an Infobus poll over RCON: `POLL_QUESTION`, `VOTE` (out of range, twice), `VOTE_RESULTS` 30 s later and on a new vote, a poll that does not exist, the end of the event (everyone walks out into the park and hears it again there) |
 
 ## Known gaps
@@ -442,6 +465,5 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   game was created with, Java's `getAndIncrement`), stopping a lobby walk on the first BattleBall
   start, or a Wobble Squabble player who left for another room when the game ends; they follow
   the Java source.
-- RCON's `clearphoto` does what Java does without photos (`TODO(photos)`); the room-hire
-  interactor and the idol's songs are `TODO(...)` markers. The rest is in
-  [docs/BACKLOG.md](docs/BACKLOG.md).
+- What Java does that cannot be reproduced (identity-hash orders, ties in MariaDB's `ORDER BY`,
+  thread races) is listed in [docs/BACKLOG.md](docs/BACKLOG.md).

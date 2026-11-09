@@ -40,7 +40,7 @@ TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.
 
 | Phase | Java | Status |
 |---|---|---|
-| 1. Core | `HomepageController`, `AccountController`, `ClientController`, `TicketController`, `RegisterController`, `RecoveryController`, the `/me` page and what it shows (news, alerts, tags, minimail, friends, events, room selection, beginner gifts) | done (TODO(email): the SMTP mails) |
+| 1. Core | `HomepageController`, `AccountController`, `ClientController`, `TicketController`, `RegisterController`, `RecoveryController`, the `/me` page and what it shows (news, alerts, tags, minimail, friends, events, room selection, beginner gifts) | done (the e-mails as Java sends them: see docs/BACKLOG.md) |
 | 2. Site | `ProfileController`, `CreditsController`, `ClubController`, `CollectablesController`, `CommunityController`, `NewsController`, `GamesController`, `TagController`, `FaqController`, `SiteController`, the habblets (`habblet/*`), `FriendManagementController`, `MinimailController`, `QuickmenuController`, `TagController`, `VoucherController`, `CollectablesController` | done |
 | 3. Homes | `HomesController`, `StoreController`, `NoteEditorController`, `WidgetController`, `GuestbookController`, `RateController`, `BadgesController`, `TraxController`, the friends/members widgets | done |
 | 4. Groups | `GroupController`, `GroupHabbletController`, `GroupMemberController`, `GroupFavouriteController`, `GroupTagController`, `GroupDiscussionsController`, `DiscussionController`, `DiscussionActionsController`, `DiscussionPreviewController` | done (creating topics and replies needs the captcha, so the traces only cover its errors) |
