@@ -482,6 +482,18 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
     }
     for r in rows(
         conn,
+        "SELECT room_id, description, thumbnail_url, thumbnail_layout FROM navigator_styles",
+    )? {
+        w.put_record(&NavigatorStyle {
+            id: u(&r, "room_id")?,
+            description: s(&r, "description")?,
+            thumbnail_url: s(&r, "thumbnail_url")?,
+            thumbnail_layout: i(&r, "thumbnail_layout")?,
+        })?;
+        n += 1;
+    }
+    for r in rows(
+        conn,
         "SELECT asset_name, version_id FROM furniture_versions",
     )? {
         w.put_record(&FurnitureVersion {

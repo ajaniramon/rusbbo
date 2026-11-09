@@ -6,6 +6,7 @@ pub mod club;
 mod ecotron;
 pub mod effects;
 pub mod events;
+mod flash;
 pub mod games;
 pub mod handshake;
 pub mod infobus;
@@ -112,6 +113,30 @@ pub fn handler(header: u16) -> Option<Handler> {
         215 => catalogue::get_alias_list,
         251 => handshake::get_furni_versions,
         374 => catalogue::purchase_and_wear,
+        375 => flash::get_wardrobe,
+        376 => flash::save_wardrobe,
+        380 => flash::public_rooms,
+        381 => flash::get_guest_rooms,
+        382 => flash::popular_tags,
+        384 => flash::set_home_room,
+        385 => flash::room_info,
+        386 => flash::room_icon_data,
+        387 => flash::can_create_room,
+        388 => flash::get_public_room_data,
+        400 => flash::room_edit_data,
+        401 => flash::room_save_data,
+        430 => flash::popular_rooms_list,
+        431 => flash::highest_voted_rooms,
+        432 => flash::rooms_friends_own,
+        433 => flash::friends_in_room,
+        434 => flash::user_flats,
+        435 => flash::favourite_rooms,
+        436 => flash::rooms_recently_visited,
+        437 => flash::search,
+        438 => flash::search_tags,
+        439 => flash::event_rooms,
+        456 => flash::modtool_room_chatlog,
+        459 => flash::modtool_room_info,
         412 => ecotron::get_recycler_prizes,
         413 => ecotron::get_recycler_status,
         414 => ecotron::recycle_items,

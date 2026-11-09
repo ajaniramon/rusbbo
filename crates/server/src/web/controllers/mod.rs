@@ -24,7 +24,7 @@ mod recovery;
 mod register;
 mod shop;
 mod site;
-mod tags;
+pub(crate) mod tags;
 
 use super::routes_table::HOUSEKEEPING_PATH;
 use super::tpl::Tpl;

@@ -9,6 +9,8 @@
 //! `RoomData.getVisitorsNow/Max` add the players and capacity of started BattleBall and SnowStorm
 //! games to their lobby rooms ([`game_visitors`]).
 
+pub mod flash;
+
 use std::collections::HashMap;
 
 use rusbbo_storage::{Room, RoomCategory};
@@ -19,6 +21,9 @@ use crate::world::World;
 /// Java: `RoomManager.PUBLIC_ROOM_OFFSET`: public rooms are addressed as `room id + 1000` in
 /// `NAVNODEINFO` and in `NAVIGATE` when following a user into a public room.
 pub const PUBLIC_ROOM_OFFSET: i32 = 1000;
+
+/// Java: `RoomDao.FLASH_SEARCH_LIMIT`.
+pub const FLASH_SEARCH_LIMIT: usize = 100;
 
 /// Java: `RoomDao.SHOCKWAVE_SEARCH_LIMIT`.
 pub const SEARCH_LIMIT: usize = 100;

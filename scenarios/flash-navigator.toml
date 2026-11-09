@@ -1,0 +1,201 @@
+name = "flash-navigator"
+description = "The Flash navigator: public rooms, the guest room lists by mode, room info, icon and settings (with tags) of an own room, search by name, owner and tag, popular tags, events, the home room and the wardrobe"
+
+# f = tracebot1 on the Flash port. Room 1000 is the first flat made after the server start.
+
+[[bots]]
+name = "f"
+ticket = "trace-sso-1"
+flash = true
+
+[[steps]]
+bot = "f"
+macro = "login"
+header_only = ["SESSION_PARAMETERS"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_PUBLICROOMS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_CANCREATEROOM"
+
+[[steps]]
+bot = "f"
+send = "CREATEFLAT"
+args = ["Flash Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "f"
+send = "FLASH_USERFLATS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOM_INFO"
+args = [1000, false, true]
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOM_INFO"
+args = [7, true, false]
+note = "a public room"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMICONDATA"
+args = [1000, 3, 2, 2, 1, 4, 2, 5]
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMICONDATA"
+args = [1000, 30, 2, 0]
+note = "background out of range: nothing"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMEDITDATA"
+args = [1000]
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMSAVEDATA"
+args = [1000, "Renamed Flat", "A Flash flat", 1, "", 60, false, false, false, 2, 2, "flashtag", "tracetag"]
+note = "too many visitors becomes 25"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMSAVEDATA"
+args = [1000, " ", "blank", 0, "", 25, false, false, false, 2, 0]
+note = "a blank name: nothing"
+
+[[steps]]
+bot = "f"
+send = "FLASH_USERFLATS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMEDITDATA"
+args = [1000]
+
+[[steps]]
+bot = "f"
+send = "FLASH_SEARCH"
+args = ["Renamed"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_SEARCH"
+args = ["owner:tracebot1 Flat"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_SEARCH_TAGS"
+args = ["flash"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_POPULARTAGS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETGUESTROOMS"
+args = [0, 5]
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETGUESTROOMS"
+args = [1, 2]
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETGUESTROOMS"
+args = [0, 7]
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETGUESTROOMS"
+args = [0, 9]
+note = "no such mode: an empty list"
+
+[[steps]]
+bot = "f"
+send = "FLASH_HIGHESTVOTEDROOMS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_POPULARROOMS"
+args = ["-1"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_POPULARROOMS"
+args = ["2"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_FAVOURITE_ROOMS"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMS_RECENTLY_VISTED"
+
+[[steps]]
+bot = "f"
+send = "FLASH_ROOMS_FRIENDS_OWN"
+
+[[steps]]
+bot = "f"
+send = "FLASH_FRIENDS_IN_ROOM"
+
+[[steps]]
+bot = "f"
+send = "FLASH_EVENTROOMS"
+args = ["-1"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETPUBLICROOMDATA"
+args = [7]
+
+[[steps]]
+bot = "f"
+send = "SET_HOME_ROOM"
+args = [1000]
+
+[[steps]]
+bot = "f"
+send = "SET_HOME_ROOM"
+args = [7]
+note = "a public room: nothing"
+
+[[steps]]
+bot = "f"
+send = "SET_HOME_ROOM"
+args = [-5]
+note = "none"
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETWARDROBE"
+
+[[steps]]
+bot = "f"
+send = "FLASH_SAVEWARDROBE"
+args = [2, "hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61", "M"]
+
+[[steps]]
+bot = "f"
+send = "FLASH_SAVEWARDROBE"
+args = [2, "hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33", "F"]
+note = "the same slot again: updated"
+
+[[steps]]
+bot = "f"
+send = "FLASH_SAVEWARDROBE"
+args = [6, "hd-180-1", "M"]
+note = "no such slot: nothing"
+
+[[steps]]
+bot = "f"
+send = "FLASH_GETWARDROBE"

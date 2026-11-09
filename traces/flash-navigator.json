@@ -1,0 +1,911 @@
+{
+  "format": 1,
+  "scenario": "flash-navigator",
+  "description": "The Flash navigator: public rooms, the guest room lists by mode, room info, icon and settings (with tags) of an own room, search by name, owner and tag, popular tags, events, the home room and the wardrobe",
+  "runs": 3,
+  "bots": [
+    "f"
+  ],
+  "flash": [
+    "f"
+  ],
+  "steps": [
+    {
+      "bot": "f",
+      "action": "connect",
+      "settle_ms": 300,
+      "header_only": [
+        257
+      ],
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "header_only": [
+        257
+      ],
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 257,
+              "name": "SESSION_PARAMETERS",
+              "body": "QBJHRAHKHQBIIIPB\u0002SAHQAyyyy-MM-dd\u0002PAH",
+              "check": "header"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "header_only": [
+        257
+      ],
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "header_only": [
+        257
+      ],
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#5039C0DF0B82443FB86247AB44A3A7BB\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 455,
+              "name": "HOME_ROOM",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 458,
+              "name": "FLASH_FAVOURITES",
+              "body": "RGH",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 380,
+      "name": "FLASH_PUBLICROOMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 450,
+              "name": "FLASH_FRONTPAGERESULT/BETA_FLASH_FRONTPAGERESULT",
+              "body": "IPublic Rooms\u0002PJWelcome Lounge\u0002New? Lost? Get a warm welcome here!\u0002PAWelcome Lounge\u0002officialrooms_defaults/hh_room_nlobby.png\u0002HKofficialrooms_defaults/hh_room_nlobby.png\u0002IHhh_room_nlobby\u0002PJITheatredome\u0002Perform your latest master piece, or simply catch the latest gossip.\u0002PATheatredome\u0002officialrooms_defaults/hh_room_theater.png\u0002HKofficialrooms_defaults/hh_room_theater.png\u0002JHhh_room_theater\u0002PYJLibrary\u0002Books! Glorious books! Fill yourself with information and lose yourself in wonderful literary worlds.\u0002PALibrary\u0002officialrooms_defaults/hh_room_library.png\u0002HKofficialrooms_defaults/hh_room_library.png\u0002KHhh_room_library\u0002RGKTV Studio\u0002Will you reach the final of the biggest brains in Habbo competition?\u0002ITV Studio\u0002officialrooms_hq/hh_room_tv_studio_m6.png\u0002HKofficialrooms_hq/hh_room_tv_studio_m6.png\u0002PAHhh_room_tv_studio_general\u0002PEPACinema\u0002Now Showing: The Making of Habbo Big Brother\u0002ICinema\u0002officialrooms_defaults/hh_room_cinema.png\u0002HKofficialrooms_defaults/hh_room_cinema.png\u0002QAHhh_room_cinema\u0002RLQAPower Gym\u0002Zac Efron owns in the 17 Again basketball court ? what would you do with your second shot?\u0002IPower Gym\u0002officialrooms_defaults/hh_room_sport.png\u0002HKofficialrooms_defaults/hh_room_sport.png\u0002RAHhh_room_sport\u0002SHRAOlympic Stadium\u0002Forget Beijing, check out Habbo's very own Olympic Stadium!\u0002IOlympic Stadium\u0002officialrooms_hq/official_fball.png\u0002HKofficialrooms_hq/official_fball.png\u0002SAHhh_room_ballroom\u0002RLSAHabbo Kitchen\u0002Beware the flying knives!\u0002IHabbo Kitchen\u0002officialrooms_defaults/hh_room_kitchen.png\u0002HKofficialrooms_defaults/hh_room_kitchen.png\u0002PBHhh_room_kitchen\u0002PEPBThe Dirty Duck Pub\u0002Grab a stool and hear Dave and Sadie talk about the good old days...\u0002IThe Dirty Duck Pub\u0002officialrooms_defaults/hh_room_pub.png\u0002HKofficialrooms_defaults/hh_room_pub.png\u0002QBHhh_room_pub\u0002PJQBCafe Ole\u0002Relax with friends over one of Marias specialty coffees\u0002ICafe Ole\u0002officialrooms_hq/hh_room_cafe_xms08.png\u0002HKofficialrooms_hq/hh_room_cafe_xms08.png\u0002RBHhh_room_cafe\u0002SHRBEric's Eaterie\u0002Join Billy for a bite to eat and some office gossip in the HABprentice\u0002IEric's Eaterie\u0002officialrooms_defaults/hh_room_erics.png\u0002HKofficialrooms_defaults/hh_room_erics.png\u0002SBHhh_room_erics\u0002SHSBSpace Cafe\u0002Star Wars The Clone Wars on Blu-Ray and DVD from December 8\u0002ISpace Cafe\u0002officialrooms_defaults/hh_room_space_cafe.png\u0002HKofficialrooms_defaults/hh_room_space_cafe.png\u0002PCHhh_room_space_cafe\u0002SHPCRooftop Terrace\u0002One of the highest points in Habbo Hotel!\u0002IRooftop Terrace\u0002officialrooms_defaults/hh_room_rooftop.png\u0002HKofficialrooms_defaults/hh_room_rooftop.png\u0002QCHhh_room_rooftop\u0002RLQCPalazzo Pizza\u0002Pizza; food of the hungry!\u0002IPalazzo Pizza\u0002officialrooms_defaults/hh_room_pizza.png\u0002HKofficialrooms_defaults/hh_room_pizza.png\u0002SCHhh_room_pizza\u0002PJSCHabburgers\u0002Get food here!\u0002IHabburgers\u0002officialrooms_defaults/hh_room_habburger.png\u0002HKofficialrooms_defaults/hh_room_habburger.png\u0002PDHhh_room_habburger\u0002PJPDGrandfathers Lounge\u0002Old, cool, Dusty and the perfect room for the biggest brains in Habbo\u0002IGrandfathers Lounge\u0002officialrooms_defaults/hh_room_dustylounge.png\u0002HKofficialrooms_defaults/hh_room_dustylounge.png\u0002QDHhh_room_dustylounge\u0002QKQDOriental Tearoom\u0002Try the tea in this Mongol cafe - it is to die for darlings!\u0002IOriental Tearoom\u0002officialrooms_defaults/hh_room_tearoom.png\u0002HKofficialrooms_defaults/hh_room_tearoom.png\u0002RDHhh_room_tearoom\u0002PJRDOldskool Lounge\u0002A set of rooms inspired by the original and legendary Mobiles Disco, the progenitor of Habbo\u0002IOldskool Lounge\u0002officialrooms_defaults/hh_room_old_skool.png\u0002HKofficialrooms_defaults/hh_room_old_skool.png\u0002SDHhh_room_old_skool\u0002RVSDThe Chromide Club\u0002Ghetto Fabulous\u0002IThe Chromide Club\u0002officialrooms_defaults/hh_room_disco.png\u0002HKofficialrooms_defaults/hh_room_disco.png\u0002QEHhh_room_disco\u0002SWQEClub Massiva\u0002Strut your funky stuff\u0002IClub Massiva\u0002officialrooms_defaults/hh_room_bar.png\u0002HKofficialrooms_defaults/hh_room_bar.png\u0002SEHhh_room_bar\u0002S\\SESunset Cafe\u0002Home to the Duck Island residents.\u0002ISunset Cafe\u0002officialrooms_defaults/hh_room_sunsetcafe.png\u0002HKofficialrooms_defaults/hh_room_sunsetcafe.png\u0002QFHhh_room_sunsetcafe\u0002SHQFZen Garden\u0002Where Ideas can flow freely\u0002IZen Garden\u0002officialrooms_defaults/hh_room_chill.png\u0002HKofficialrooms_defaults/hh_room_chill.png\u0002SFHhh_room_chill\u0002RGSFClub Mammoth\u0002Monumental and magnificient. For Habbo Club Members only.\u0002IClub Mammoth\u0002officialrooms_defaults/hh_room_clubmammoth.png\u0002HKofficialrooms_defaults/hh_room_clubmammoth.png\u0002PGHhh_room_clubmammoth\u0002QKPGFloating Garden\u0002Climb the rocks, chill in the shade and watch for pirate ships!\u0002IFloating Garden\u0002officialrooms_defaults/hh_room_floatinggarden.png\u0002HKofficialrooms_defaults/hh_room_floatinggarden.png\u0002QGHhh_room_floatinggarden\u0002PTQGPicnic Fields\u0002Enjoy the great outdoors, celebrate mother nature and party!\u0002IPicnic Fields\u0002officialrooms_defaults/hh_room_picnic.png\u0002HKofficialrooms_defaults/hh_room_picnic.png\u0002RGHhh_room_picnic\u0002SMRGSun Terrace\u0002Grab a sunbed and top up that tan!\u0002ISun Terrace\u0002officialrooms_defaults/hh_room_sun_terrace.png\u0002HKofficialrooms_defaults/hh_room_sun_terrace.png\u0002SGHhh_room_sun_terrace\u0002RLSGPeaceful Park\u0002Follow the path...\u0002IPeaceful Park\u0002officialrooms_defaults/hh_room_gate_park.png\u0002HKofficialrooms_defaults/hh_room_gate_park.png\u0002PHHhh_room_gate_park\u0002PYPHThe Park\u0002Follow the path...\u0002IThe Park\u0002officialrooms_defaults/hh_room_park.png\u0002HKofficialrooms_defaults/hh_room_park.png\u0002RHHhh_room_park,hh_room_park_general\u0002QPRHHabbo Lido\u0002Splish, splash and have a bash in the Habbo pool!\u0002IHabbo Lido\u0002officialrooms_defaults/hh_room_pool.png\u0002HKofficialrooms_defaults/hh_room_pool.png\u0002PIHhh_room_pool,hh_people_pool\u0002P^PIMain Lobby\u0002The heart of Habbo Hotel\u0002IMain Lobby\u0002officialrooms_defaults/hh_room_lobby.png\u0002HKofficialrooms_defaults/hh_room_lobby.png\u0002SIHhh_room_lobby\u0002PYSISkylight Lobby\u0002This was the Habbo Big Brother Lounge during series 1 (2008)\u0002ISkylight Lobby\u0002officialrooms_defaults/hh_room_floorlobbies.png\u0002HKofficialrooms_defaults/hh_room_floorlobbies.png\u0002RJHhh_room_floorlobbies\u0002RLRJIce Cafe\u0002Grab some brain juice!\u0002IIce Cafe\u0002officialrooms_defaults/hh_room_icecafe.png\u0002HKofficialrooms_defaults/hh_room_icecafe.png\u0002SJHhh_room_icecafe\u0002QFSJNet Cafe\u0002Learn a foreign language and win Habbo Credits in our quests!\u0002INet Cafe\u0002officialrooms_defaults/hh_room_netcafe.png\u0002HKofficialrooms_defaults/hh_room_netcafe.png\u0002PKHhh_room_netcafe\u0002QFPKBeauty Salon\u0002Angus, Thongs and Perfect Snogging in cinemas July 25th\u0002IBeauty Salon\u0002officialrooms_defaults/hh_room_beauty_salon_general.png\u0002HKofficialrooms_defaults/hh_room_beauty_salon_general.png\u0002QKHhh_room_beauty_salon_general\u0002RLQKThe Den\u0002Popular? Win a cool band and party at your school. You soon will be!\u0002IThe Den\u0002officialrooms_defaults/hh_room_den.png\u0002HKofficialrooms_defaults/hh_room_den.png\u0002RKHhh_room_den\u0002PYRKLower Hallways\u0002Connecting you to the heart of Habbo Hotel\u0002ILower Hallways\u0002officialrooms_defaults/hh_room_hallway.png\u0002HKofficialrooms_defaults/hh_room_hallway.png\u0002SKHhh_room_hallway\u0002PYSKUpper Hallways\u0002Taking you to the far reaches of Habbo Hotel\u0002IUpper Hallways\u0002officialrooms_defaults/hh_room_hallway2.png\u0002HKofficialrooms_defaults/hh_room_hallway2.png\u0002QMHhh_room_hallway\u0002Q_QMStar Lounge\u0002Celebrities favourite hangout\u0002IStar Lounge\u0002officialrooms_defaults/hh_room_starlounge.png\u0002HKofficialrooms_defaults/hh_room_starlounge.png\u0002SNHhh_room_starlounge\u0002SHSNClub Orient\u0002Tres chic with an eastern twist. For Habbo Club Members only.\u0002IClub Orient\u0002officialrooms_defaults/hh_room_orient.png\u0002HKofficialrooms_defaults/hh_room_orient.png\u0002POHhh_room_orient\u0002SHPOImperial Palace\u0002Even the smallest of light... shines in the darkness\u0002IImperial Palace\u0002officialrooms_defaults/hh_room_emperors.png\u0002HKofficialrooms_defaults/hh_room_emperors.png\u0002PQHhh_room_emperors\u0002RGPQ",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 387,
+      "name": "FLASH_CANCREATEROOM",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 512,
+              "body": "HQF",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JFlash Flat@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "XzCFlash Flat\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 434,
+      "name": "FLASH_USERFLATS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002IXzCHFlash Flat\u0002tracebot1\u0002HHQF\u0002IHHJ\u0002HHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 385,
+      "name": "FLASH_ROOM_INFO",
+      "body": "XzCHI",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 454,
+              "name": "FLASH_FLATINFO",
+              "body": "HXzCIFlash Flat\u0002tracebot1\u0002HHQF\u0002IHHJ\u0002HHHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 385,
+      "name": "FLASH_ROOM_INFO",
+      "body": "SAIH",
+      "note": "a public room",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 454,
+              "name": "FLASH_FLATINFO",
+              "body": "ISAHOlympic Stadium\u0002-\u0002HHRLballroom\u0002IHHQA\u0002HHHHI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 386,
+      "name": "FLASH_ROOMICONDATA",
+      "body": "XzCKJJIPAJQA",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 467,
+              "body": "XzC",
+              "check": "exact"
+            },
+            {
+              "header": 456,
+              "body": "XzC",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 386,
+      "name": "FLASH_ROOMICONDATA",
+      "body": "XzCRGJH",
+      "note": "background out of range: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 400,
+      "name": "FLASH_ROOMEDITDATA",
+      "body": "XzC",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 465,
+              "name": "FLASH_EDITDATA",
+              "body": "XzCFlash Flat\u0002\u0002HJQFQFHHHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 401,
+      "name": "FLASH_ROOMSAVEDATA",
+      "body": "XzC@LRenamed Flat@LA Flash flatI@@POHHHJJ@Hflashtag@Htracetag",
+      "note": "too many visitors becomes 25",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 467,
+              "body": "XzC",
+              "check": "exact"
+            },
+            {
+              "header": 456,
+              "body": "XzC",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 401,
+      "name": "FLASH_ROOMSAVEDATA",
+      "body": "XzC@A @EblankH@@QFHHHJH",
+      "note": "a blank name: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 434,
+      "name": "FLASH_USERFLATS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHJ\u0002Jflashtag\u0002tracetag\u0002KJJIPAJQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 400,
+      "name": "FLASH_ROOMEDITDATA",
+      "body": "XzC",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 465,
+              "name": "FLASH_EDITDATA",
+              "body": "XzCRenamed Flat\u0002A Flash flat\u0002IJQFQFHHHJflashtag\u0002tracetag\u0002HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 437,
+      "name": "FLASH_SEARCH",
+      "body": "@GRenamed",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "IQBRenamed\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHH\u0002Jflashtag\u0002tracetag\u0002HHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 437,
+      "name": "FLASH_SEARCH",
+      "body": "@Towner:tracebot1 Flat",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "IQBFlat\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHH\u0002Jflashtag\u0002tracetag\u0002HHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 438,
+      "name": "FLASH_SEARCH_TAGS",
+      "body": "@Eflash",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "IQBflash\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHH\u0002Jflashtag\u0002tracetag\u0002HHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 382,
+      "name": "FLASH_POPULARTAGS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 452,
+              "body": "Jtracetag\u0002Iflashtag\u0002I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 381,
+      "name": "FLASH_GETGUESTROOMS",
+      "body": "HQA",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "HQA\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002HHHJflashtag\u0002tracetag\u0002KJJIPAJQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 381,
+      "name": "FLASH_GETGUESTROOMS",
+      "body": "IJ",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "IJ\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002HHHJflashtag\u0002tracetag\u0002KJJIPAJQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 381,
+      "name": "FLASH_GETGUESTROOMS",
+      "body": "HSA",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "HSA\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 381,
+      "name": "FLASH_GETGUESTROOMS",
+      "body": "HQB",
+      "note": "no such mode: an empty list",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "HQB\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 431,
+      "name": "FLASH_HIGHESTVOTEDROOMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHJ\u0002Jflashtag\u0002tracetag\u0002KJJIPAJQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 430,
+      "name": "FLASH_POPULARROOMS",
+      "body": "@B-1",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 430,
+      "name": "FLASH_POPULARROOMS",
+      "body": "@A2",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002IXzCHRenamed Flat\u0002tracebot1\u0002IHQFA Flash flat\u0002IHHJ\u0002Jflashtag\u0002tracetag\u0002KJJIPAJQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 435,
+      "name": "FLASH_FAVOURITE_ROOMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 436,
+      "name": "FLASH_ROOMS_RECENTLY_VISTED",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 432,
+      "name": "FLASH_ROOMS_FRIENDS_OWN",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 433,
+      "name": "FLASH_FRIENDS_IN_ROOM",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 439,
+      "name": "FLASH_EVENTROOMS",
+      "body": "@B-1",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 451,
+              "name": "FLASH_FLAT_RESULTS/FLASH_GET_GUEST_ROOM_RESULT/FLASH_SEARCHRESULTS",
+              "body": "H\u0002H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 388,
+      "name": "FLASH_GETPUBLICROOMDATA",
+      "body": "SA",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 453,
+              "name": "FLASH_PUBLICROOMCASTS",
+              "body": "SAhh_room_ballroom\u0002SA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 384,
+      "name": "SET_HOME_ROOM",
+      "body": "XzC",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": false,
+          "closed": false,
+          "messages": [
+            {
+              "header": 455,
+              "name": "HOME_ROOM",
+              "body": "XzC",
+              "check": "exact",
+              "optional": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 384,
+      "name": "SET_HOME_ROOM",
+      "body": "SA",
+      "note": "a public room: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 384,
+      "name": "SET_HOME_ROOM",
+      "body": "UA",
+      "note": "none",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": false,
+          "closed": false,
+          "messages": [
+            {
+              "header": 455,
+              "name": "HOME_ROOM",
+              "body": "H",
+              "check": "exact",
+              "optional": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 375,
+      "name": "FLASH_GETWARDROBE",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": false,
+          "closed": false,
+          "messages": [
+            {
+              "header": 267,
+              "name": "WARDROBE",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 455,
+              "name": "HOME_ROOM",
+              "body": "XzC",
+              "check": "exact",
+              "optional": true
+            },
+            {
+              "header": 455,
+              "name": "HOME_ROOM",
+              "body": "H",
+              "check": "exact",
+              "optional": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 376,
+      "name": "FLASH_SAVEWARDROBE",
+      "body": "J@phd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61@AM",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 376,
+      "name": "FLASH_SAVEWARDROBE",
+      "body": "J@phd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33@AF",
+      "note": "the same slot again: updated",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 376,
+      "name": "FLASH_SAVEWARDROBE",
+      "body": "RA@Hhd-180-1@AM",
+      "note": "no such slot: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 375,
+      "name": "FLASH_GETWARDROBE",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 267,
+              "name": "WARDROBE",
+              "body": "HIJhd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002F\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

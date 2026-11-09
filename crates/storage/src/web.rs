@@ -411,6 +411,16 @@ record!(
     }
 );
 
+record!(
+    /// `navigator_styles` (Java: `NavigatorManager.getNavigatorStyle`): how the Flash navigator
+    /// shows a public room; keyed by the room id.
+    NavigatorStyle, "navigator_styles" {
+        description: String,
+        thumbnail_url: String,
+        thumbnail_layout: i32,
+    }
+);
+
 record_tables!(
     RoomAd,
     VerifyCode,
@@ -444,6 +454,7 @@ record_tables!(
     RoomEntryBadge,
     RecyclerReward,
     FurnitureVersion,
+    NavigatorStyle,
 );
 
 impl Store {

@@ -13,7 +13,7 @@
 mod beans;
 pub mod cache;
 mod captcha;
-mod controllers;
+pub(crate) mod controllers;
 pub mod data;
 pub mod figure;
 mod forum;
