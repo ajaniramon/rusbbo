@@ -82,9 +82,11 @@ pub fn get_catalogue_page(
     // TODO(collectables): the layout of a collectable page follows the price of its active item.
 
     let items = world.catalogue.page_items(page.id, false, &settings);
-    session.send(outgoing::catalogue::catalogue_page(
-        &page, &items, &settings,
-    ));
+    if let Some(msg) =
+        outgoing::catalogue::catalogue_page(&page, &items, &settings, session.is_flash())
+    {
+        session.send(msg);
+    }
     Ok(())
 }
 

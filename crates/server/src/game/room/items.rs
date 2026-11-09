@@ -219,9 +219,17 @@ impl Item {
         self.position.z + z
     }
 
-    /// Java: `isWalkable(entity, selectedPosition)`; `with_entity` is `entity != null`.
-    /// TODO(flash): Flash clients may not walk onto idol scoreboards and vote chairs.
-    pub fn is_walkable(&self, with_entity: bool, selected: Position) -> bool {
+    /// Java: `isWalkable(entity, selectedPosition)`; `with_entity` is `entity != null`, `flash`
+    /// a player on a Flash client (who may not walk onto idol scoreboards and vote chairs).
+    pub fn is_walkable(&self, with_entity: bool, selected: Position, flash: bool) -> bool {
+        if flash
+            && matches!(
+                self.interaction,
+                Interaction::IdolScoreboard | Interaction::IdolVoteChair
+            )
+        {
+            return false;
+        }
         if !with_entity && self.has(Behaviour::CanNotStackOnTop) {
             return false;
         }
@@ -624,7 +632,7 @@ pub(crate) mod tests {
         assert_eq!(lamp.max_status(), 2);
         assert_eq!(lamp.allowed_rotations(), [0]);
         assert!(lamp.has(Behaviour::Solid));
-        assert!(!lamp.is_walkable(true, Position::new(6, 5)));
+        assert!(!lamp.is_walkable(true, Position::new(6, 5), false));
         lamp.custom_data = "1".into();
         let owned = lamp.to_owned().unwrap();
         assert_eq!(
@@ -636,7 +644,7 @@ pub(crate) mod tests {
         let chair = flat_item(1, chair_plasto(), (7, 3, 4));
         assert_eq!(chair.interaction, Interaction::Chair);
         assert_eq!(chair.total_height(), 1.0);
-        assert!(chair.is_walkable(true, Position::new(7, 3)));
+        assert!(chair.is_walkable(true, Position::new(7, 3), false));
 
         let sofa = flat_item(3, bench_armas(), (8, 8, 2));
         let tiles: Vec<(i32, i32)> = sofa.affected_tiles().iter().map(|p| (p.x, p.y)).collect();

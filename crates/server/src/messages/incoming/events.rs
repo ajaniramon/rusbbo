@@ -1,5 +1,5 @@
-//! Java: `messages/incoming/events`: room events from the navigator's events tab. TODO(flash):
-//! Flash clients also send up to two tags with an event.
+//! Java: `messages/incoming/events`: room events from the navigator's events tab. Flash clients
+//! also send up to two tags with an event.
 
 use std::sync::Arc;
 
@@ -31,13 +31,35 @@ fn event_text(world: &World, text: &[u8]) -> String {
 
 /// Java: `room.send(new ROOMEEVENT_INFO(event))`. Hold no lock.
 fn send_event_info(world: &World, room: &RoomRef, event: Option<&Event>) {
-    let msg: Option<Message> = match event {
-        Some(event) => events::view(world, event).map(|v| out::room_event_info(Some(&v))),
-        None => Some(out::room_event_info(None)),
+    let view = match event {
+        Some(event) => match events::view(world, event) {
+            Some(v) => Some(v),
+            None => return,
+        },
+        None => None,
     };
-    if let Some(msg) = msg {
-        room.lock().send(msg);
+    room.lock()
+        .send_with(|flash| out::room_event_info(view.as_ref(), flash));
+}
+
+/// Java: the tags a Flash client sends with an event (two at most read).
+fn flash_tags(
+    session: &Session,
+    reader: &mut ClientReader,
+) -> Result<Option<Vec<String>>, Malformed> {
+    if !session.is_flash() {
+        return Ok(None);
     }
+    let amount = reader.int().ok_or(Malformed)?;
+    let mut tags = Vec::new();
+    for i in 0..amount {
+        if i > 1 {
+            break;
+        }
+        let tag = crate::web::text::filter_input(&latin1(reader.string().ok_or(Malformed)?), true);
+        tags.push(tag.replace(',', " "));
+    }
+    Ok(Some(tags))
 }
 
 /// Java: `CAN_CREATE_ROOMEVENT`.
@@ -66,6 +88,7 @@ pub fn create_room_event(
     }
     let name = event_text(world, reader.string().ok_or(Malformed)?);
     let description = event_text(world, reader.string().ok_or(Malformed)?);
+    let tags = flash_tags(session, reader)?.unwrap_or_default();
     let Some(user_id) = session.player.lock().user_id() else {
         return Ok(());
     };
@@ -81,7 +104,7 @@ pub fn create_room_event(
             name,
             description,
             expire: 0,
-            tags: vec![String::new()],
+            tags,
         },
     );
     send_event_info(world, &room, Some(&event));
@@ -107,6 +130,9 @@ pub fn edit_room_event(
     event.name = event_text(world, reader.string().ok_or(Malformed)?);
     event.description = event_text(world, reader.string().ok_or(Malformed)?);
     event.category_id = category_id;
+    if let Some(tags) = flash_tags(session, reader)? {
+        event.tags = tags;
+    }
     world.events.update(world, &event);
     send_event_info(world, &room, Some(&event));
     Ok(())

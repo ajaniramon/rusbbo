@@ -233,6 +233,7 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     // Java: the next pixels are an interval away.
     p.last_pixels_time = now() + crate::game::scheduler::pixels_interval(world);
     p.inventory = Inventory::load(&world.store, &world.items, user.id);
+    p.inventory.flash = session.is_flash();
 
     p.statistics = PlayerStatistics::load(&world.store, user.id);
     // For the game lobbies' GAMEPLAYERINFO (see `Session::game_points`).

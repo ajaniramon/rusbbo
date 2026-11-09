@@ -16,7 +16,7 @@ use crate::messages::outgoing::user as out_user;
 use crate::session::Session;
 use crate::world::World;
 
-/// Java: `QUIT`. Shockwave clients get no `HOTEL_VIEW`. TODO(flash): Flash clients do.
+/// Java: `QUIT`. Shockwave clients get no `HOTEL_VIEW`; Flash clients do.
 pub fn quit(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
     {
         let mut p = session.player.lock();
@@ -26,7 +26,7 @@ pub fn quit(world: &World, session: &Arc<Session>, _: &mut ClientReader) -> Resu
         p.authenticate_id = None;
         p.authenticate_teleporter = None;
     }
-    room::leave_current_room(world, session, false);
+    room::leave_current_room(world, session, session.is_flash());
     Ok(())
 }
 
@@ -695,7 +695,7 @@ pub fn use_item(
     e.statuses.remove(StatusType::CarryItem);
     e.statuses.set(StatusType::UseItem, item);
     if !r.entities[idx].is_walking {
-        r.send(out::user_statuses([&r.entities[idx]], &r.model.name));
+        r.send_with(|f| out::user_statuses([&r.entities[idx]], &r.model.name, f));
     }
     let session_id = session.id;
     r.schedule(world, std::time::Duration::from_secs(1), move |_, r| {
@@ -714,8 +714,51 @@ pub fn use_item(
         e.statuses.remove(StatusType::UseItem);
         e.statuses.set(StatusType::CarryItem, item);
         if !r.entities[idx].is_walking {
-            r.send(out::user_statuses([&r.entities[idx]], &r.model.name));
+            r.send_with(|f| out::user_statuses([&r.entities[idx]], &r.model.name, f));
         }
     });
+    Ok(())
+}
+
+/// Java: `CHANGE_LOOKS` (Flash clients only): a new look and sex, checked against the figure
+/// data, saved, and shown (`RoomPlayer.refreshAppearance`).
+pub fn change_looks(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    if current_room(world, session).is_none() || !session.is_flash() {
+        return Ok(());
+    }
+    let gender = crate::web::text::filter_input(&latin1(reader.string().ok_or(Malformed)?), true);
+    let figure = crate::web::text::filter_input(&latin1(reader.string().ok_or(Malformed)?), true);
+    if gender != "M" && gender != "F" {
+        return Ok(());
+    }
+    {
+        let mut p = session.player.lock();
+        let has_club = p.has_club();
+        let valid = world
+            .figures
+            .get()
+            .is_some_and(|f| f.validate(&figure, &gender, has_club));
+        if !valid {
+            return Ok(());
+        }
+        let Some(d) = p.details.as_mut() else {
+            return Ok(());
+        };
+        d.figure = figure.clone();
+        d.sex = gender.clone();
+        let (id, pool_figure) = (d.id, d.pool_figure.clone());
+        if let Err(e) = world.store.update_user(id, |u| {
+            u.figure = figure;
+            u.pool_figure = pool_figure;
+            u.sex = gender;
+        }) {
+            tracing::error!(user = id, "saving the look: {e}");
+        }
+    }
+    crate::rcon::refresh_looks(world, session);
     Ok(())
 }

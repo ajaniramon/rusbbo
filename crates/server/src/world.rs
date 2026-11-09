@@ -63,6 +63,8 @@ pub struct World {
     pub ads: crate::game::ads::AdManager,
     /// Java: `EcotronManager`.
     pub ecotron: crate::game::ecotron::EcotronManager,
+    /// Java: the game server's `FigureManager` (`figuredata.xml`), set at startup.
+    pub figures: OnceLock<crate::web::figure::Figures>,
     /// The games' arenas (Java keeps them out of `RoomManager`), by their keys.
     arenas: Mutex<HashMap<u32, RoomRef>>,
     next_arena_key: std::sync::atomic::AtomicU32,
@@ -120,6 +122,7 @@ impl World {
             chat_log: Default::default(),
             ads: Default::default(),
             ecotron: Default::default(),
+            figures: OnceLock::new(),
             arenas: Mutex::new(HashMap::new()),
             next_arena_key: std::sync::atomic::AtomicU32::new(ARENA_KEY_BASE),
             self_ref: OnceLock::new(),

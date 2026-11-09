@@ -651,6 +651,7 @@ mod tests {
     fn walking_goes_around_solid_furniture() {
         let map = furni_flat(&[]);
         let walker = Walker {
+            flash: false,
             pet_nest: None,
             instance_id: 0,
             position: Position::new(3, 5),
@@ -722,6 +723,7 @@ mod tests {
         map.items = items;
         map.regenerate(&[]);
         let walker = |x, y| Walker {
+            flash: false,
             pet_nest: None,
             instance_id: 0,
             position: Position::new(x, y),

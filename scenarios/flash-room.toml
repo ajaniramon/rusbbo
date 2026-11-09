@@ -1,0 +1,148 @@
+name = "flash-room"
+description = "A Flash client in rooms next to a Shockwave one: entering a public room and a flat (event 390: GETROOMAD and G_HMAP with the room contents, FLASH_ROOMENTRYINFO, FLASH_FLATINFO, FLOOR_MAP), USER_OBJECTS and USERBADGE for each client, rights by user id with FLASH_EDITDATA, favourites with FLASH_FAVOURITE_STATUS, an event with tags, CHANGE_LOOKS, and QUIT to the hotel view"
+
+# f = tracebot1 on the Flash port, s = tracebot2 on Shockwave. Room 1000 is f's flat (the first
+# made after the server start); room 7 is a public room.
+
+[[bots]]
+name = "f"
+ticket = "trace-sso-1"
+flash = true
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "f"
+macro = "login"
+header_only = ["SESSION_PARAMETERS"]
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "f"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "f"
+send = 390
+settle_ms = 1500
+note = "GETROOMAD and G_HMAP: the whole room for a Flash client"
+
+[[steps]]
+bot = "f"
+send = "ADD_FAVORITE_ROOM"
+args = [1, 7]
+
+[[steps]]
+bot = "f"
+send = "DEL_FAVORITE_ROOM"
+args = [1, 7]
+
+[[steps]]
+bot = "f"
+send = "QUIT"
+settle_ms = 600
+note = "a Flash client gets the hotel view"
+
+[[steps]]
+bot = "f"
+send = "CREATEFLAT"
+args = ["Flash Room", "model_a", "open", true]
+
+[[steps]]
+bot = "f"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "f"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "f"
+send = 390
+settle_ms = 1500
+
+[[steps]]
+bot = "s"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "s"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "f"
+send = "ASSIGNRIGHTS"
+args = [2]
+settle_ms = 800
+note = "a Flash client names the user by id"
+
+[[steps]]
+bot = "f"
+send = "REMOVERIGHTS"
+args = [1, 2]
+settle_ms = 800
+note = "a list of ids; FLASH_EDITDATA after"
+
+[[steps]]
+bot = "f"
+send = "SETBADGE"
+args = []
+note = "USERBADGE: the user id as a number for the Flash client, as text for the Shockwave one"
+
+[[steps]]
+bot = "f"
+send = "CREATE_ROOMEVENT"
+args = [1, "Flash party", "Come along", 2, "music", "fun"]
+settle_ms = 800
+
+[[steps]]
+bot = "f"
+send = "CHANGE_LOOKS"
+args = ["F", "hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33"]
+settle_ms = 800
+
+[[steps]]
+bot = "s"
+send = "CHANGE_LOOKS"
+args = ["M", "hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61"]
+note = "Shockwave: nothing"
+
+[[steps]]
+bot = "f"
+send = "QUIT"
+settle_ms = 600

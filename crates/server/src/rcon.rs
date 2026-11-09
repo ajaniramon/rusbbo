@@ -336,7 +336,7 @@ fn handle(world: &World, message: &RconMessage) {
 /// Java: `RoomPlayer.refreshAppearance`: the look, sex and motto read again, `USER_OBJECT` to the
 /// player and `FIGURE_CHANGE` to their room, except during a game that is on. A new motto or
 /// look first progresses `ACH_Motto` or `ACH_AvatarLooks`.
-fn refresh_looks(world: &World, session: &Arc<Session>) {
+pub(crate) fn refresh_looks(world: &World, session: &Arc<Session>) {
     let user = {
         let mut p = session.player.lock();
         let Some(id) = p.details.as_ref().map(|d| d.id) else {
@@ -384,6 +384,15 @@ fn refresh_looks(world: &World, session: &Arc<Session>) {
     let msg =
         outgoing::rooms_user::figure_change(e.instance_id, &user.figure, &user.sex, &user.motto);
     r.send(msg);
+    // Java: a Flash client also gets its own look as instance -1.
+    if session.is_flash() {
+        session.send(outgoing::rooms_user::figure_change(
+            -1,
+            &user.figure,
+            &user.sex,
+            &user.motto,
+        ));
+    }
 }
 
 /// Java: `REFRESH_TAGS`: the ACH_AvatarTags progress and, in a room, `TAG_LIST` to the room

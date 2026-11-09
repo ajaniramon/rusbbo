@@ -220,6 +220,8 @@ pub struct Walker {
     pub has_pool_figure: bool,
     /// A pet's nest item (database id), which it may walk onto (Java: `RoomTile.isValidTile`).
     pub pet_nest: Option<u64>,
+    /// A player on a Flash client (Java's `isFlashConnection` checks while walking).
+    pub flash: bool,
 }
 
 /// Sprites whose tiles skip the height checks (Java: the `*ItemHeightExempt` flags).
@@ -307,7 +309,7 @@ pub fn is_valid_step(
     if current != door && tmp != door {
         if let Some(to_item) = to_item {
             return if is_final_move {
-                to_item.is_walkable(true, tmp)
+                to_item.is_walkable(true, tmp, walker.flash)
                     || to_item.affected_tiles().iter().any(|p| {
                         map.tile(*p)
                             .is_some_and(|t| t.contains_entity(walker.instance_id))
@@ -349,8 +351,14 @@ fn pool_tile_status(
         if !walker.swimming && to.sprite == "poolExit" {
             return false;
         }
-        // TODO(flash): Flash clients may not cut the queue nor use booths and lifts this way.
+        // Java: a Flash client may not cut the queue, nor walk into booths and lifts.
+        if to.sprite.contains("queue_tile2") && walker.flash {
+            return false;
+        }
         if to.sprite == "poolBooth" || to.sprite == "poolLift" {
+            if walker.flash {
+                return false;
+            }
             return to.current_program_value != "close";
         }
     }

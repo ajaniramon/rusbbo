@@ -42,6 +42,8 @@ pub struct BotData {
     pub name: String,
     pub mission: String,
     pub figure: String,
+    /// Java: `BotData.getFigureFlash`, the look Flash clients see.
+    pub figure_flash: String,
     pub start: Position,
     pub walkspace: Vec<Position>,
     pub speeches: Vec<BotSpeech>,
@@ -72,6 +74,7 @@ impl BotData {
                 name: row.name.clone(),
                 mission: row.mission.clone(),
                 figure: row.figure.clone(),
+                figure_flash: row.figure_flash.clone(),
                 start,
                 walkspace,
                 speeches: parse_speech(&row.speech),

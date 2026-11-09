@@ -19,6 +19,8 @@ pub struct Inventory {
     /// Indices into `items` of the items the hand shows, in strip order.
     displayed: Vec<usize>,
     hand_strip_page_index: i32,
+    /// The player is on a Flash client (Java's `getCasts` lists every displayed item for it).
+    pub flash: bool,
 }
 
 /// The ids of the furniture in a loaded room (for `Inventory.reload` and `G_STAT`).
@@ -114,11 +116,23 @@ impl Inventory {
 
     /// Java: `getView`: moves to `view` (`new`, `next`, `prev`, `last`, `current`) and returns what
     /// the client is sent.
-    ///
-    /// TODO(flash): the Flash client gets every displayed item, not only the current page.
+    /// A Flash client gets every displayed item (Java puts them all in the casts first, and the
+    /// page's own slots then replace the same items).
     pub fn get_view(&mut self, store: &Store, view: &str) -> HandView<'_> {
         self.refresh_pagination(store);
         self.change_view(view);
+        if self.flash {
+            let casts = self
+                .displayed
+                .iter()
+                .enumerate()
+                .map(|(i, &index)| (i as i32, &self.items[index]))
+                .collect();
+            return HandView {
+                casts,
+                displayed_count: self.displayed.len(),
+            };
+        }
         let first = self.hand_strip_page_index as usize * MAX_ITEMS_PER_PAGE;
         let casts = self
             .displayed

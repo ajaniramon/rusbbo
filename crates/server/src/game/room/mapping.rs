@@ -433,7 +433,13 @@ pub fn is_valid_tile(map: &RoomMapping, walker: Option<&Walker>, p: Position) ->
         }
         return walker.is_none_or(|w| tile.contains_entity(w.instance_id));
     }
-    let walkable = highest.is_none_or(|i| i.is_walkable(walker.is_some(), tile.position));
+    let walkable = highest.is_none_or(|i| {
+        i.is_walkable(
+            walker.is_some(),
+            tile.position,
+            walker.is_some_and(|w| w.flash),
+        )
+    });
     if !walkable {
         return match walker {
             Some(w) => highest.is_some_and(|i| i.position == w.position),
@@ -453,7 +459,9 @@ pub fn is_valid_diagonal_tile(map: &RoomMapping, walker: Option<&Walker>, p: Pos
     }
     if let Some(i) = tile.highest_item {
         let item = &map.items[i];
-        if item.has(Behaviour::CanSitOnTop) || !item.is_walkable(walker.is_some(), p) {
+        if item.has(Behaviour::CanSitOnTop)
+            || !item.is_walkable(walker.is_some(), p, walker.is_some_and(|w| w.flash))
+        {
             return false;
         }
     }

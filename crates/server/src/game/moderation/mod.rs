@@ -308,7 +308,7 @@ pub fn forward(world: &World, session: &Session, room: &crate::game::room::RoomR
 /// `ROOMFORWARD` to a room by id (the public room offset added for Shockwave).
 pub fn forward_to(session: &Session, is_public: bool, id: u32) {
     let id = id as i32;
-    let id = if is_public {
+    let id = if is_public && !session.is_flash() {
         id + crate::game::navigator::PUBLIC_ROOM_OFFSET
     } else {
         id

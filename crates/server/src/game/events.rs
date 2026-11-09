@@ -238,10 +238,10 @@ pub fn view<'a>(world: &World, event: &'a Event) -> Option<EventView<'a>> {
 
 /// Java: `new ROOMEEVENT_INFO(getEventByRoomId(roomId))`. `None` when the composer would throw
 /// (see [`view`]). Hold no room lock.
-pub fn event_info(world: &World, room_id: u32) -> Option<rusbbo_protocol::Message> {
+pub fn event_info(world: &World, room_id: u32, flash: bool) -> Option<rusbbo_protocol::Message> {
     match world.events.event_by_room(room_id) {
-        Some(event) => view(world, &event).map(|v| out::room_event_info(Some(&v))),
-        None => Some(out::room_event_info(None)),
+        Some(event) => view(world, &event).map(|v| out::room_event_info(Some(&v), flash)),
+        None => Some(out::room_event_info(None, flash)),
     }
 }
 

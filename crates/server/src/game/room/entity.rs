@@ -283,6 +283,9 @@ pub struct RoomEntity {
     pub path: VecDeque<Position>,
     pub statuses: StatusMap,
     pub is_walking: bool,
+    /// Java: `RoomEntity.carryId` and `carryValue`, what `USER_CARRY_OBJECT` shows Flash clients.
+    pub carry_id: i32,
+    pub carry_value: String,
     pub walking_allowed: bool,
     pub being_kicked: bool,
     pub needs_update: bool,
@@ -344,6 +347,8 @@ impl RoomEntity {
             path: VecDeque::new(),
             statuses: StatusMap::default(),
             is_walking: false,
+            carry_id: 0,
+            carry_value: String::new(),
             walking_allowed: true,
             being_kicked: false,
             needs_update: true,

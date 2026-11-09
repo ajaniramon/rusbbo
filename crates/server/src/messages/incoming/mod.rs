@@ -6,7 +6,7 @@ pub mod club;
 mod ecotron;
 pub mod effects;
 pub mod events;
-mod flash;
+pub(crate) mod flash;
 pub mod games;
 pub mod handshake;
 pub mod infobus;
@@ -91,6 +91,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         59 => rooms::goto_flat,
         2 => rooms::room_directory,
         126 => rooms::get_room_ad,
+        390 => rooms::get_room_ad_and_heightmap,
         60 => rooms::g_hmap,
         62 => rooms::g_objs,
         61 => rooms::g_usrs,
@@ -107,6 +108,7 @@ pub fn handler(header: u16) -> Option<Handler> {
         362 => tutorial::wait_for_tutor_invitations,
         363 => tutorial::cancel_wait_for_tutor_invitations,
         371 => rooms_user::respect_user,
+        44 => rooms_user::change_looks,
         89 => rooms_user::use_item,
         127 => user::get_user_credit_log,
         210 => club::scr_gift_approval,

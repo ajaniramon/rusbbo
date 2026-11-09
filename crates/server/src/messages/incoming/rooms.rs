@@ -277,7 +277,7 @@ pub fn goto_flat(
 pub fn get_room_ad(
     world: &World,
     session: &Arc<Session>,
-    _: &mut ClientReader,
+    reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let Some(room) = current_room(world, session) else {
         return Ok(());
@@ -304,8 +304,69 @@ pub fn get_room_ad(
     session.send(out::room_ad(
         ad.as_ref().map(|(i, u)| (i.as_str(), u.as_str())),
     ));
-    // TODO(flash): Flash clients get the room contents here too.
+    if session.is_flash() {
+        flash_room_contents(world, session, &room, reader)?;
+    }
     Ok(())
+}
+
+/// Java: the rest of `GETROOMAD` for a Flash client: the room's furniture, its users (and the
+/// player to them), `FLASH_ROOMENTRYINFO`, a flat's `FLASH_FLATINFO`, then `G_USRS` and
+/// `G_STAT` as if the client had asked.
+fn flash_room_contents(
+    world: &World,
+    session: &Arc<Session>,
+    room: &crate::game::room::RoomRef,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let user_id = session.player.lock().user_id().unwrap_or(0);
+    let (room_id, public) = {
+        let r = room.lock();
+        let items = &r.mapping.items;
+        session.send(out::objects_world(items.iter().filter(|i| {
+            !i.has(Behaviour::Invisible)
+                && !i.has(Behaviour::PrivateFurniture)
+                && i.has(Behaviour::PublicSpaceObject)
+        })));
+        session.send(out::items(
+            items.iter().filter(|i| i.has(Behaviour::WallItem)),
+        ));
+        session.send(out::active_objects(items.iter().filter(|i| {
+            !i.has(Behaviour::PublicSpaceObject) && !i.has(Behaviour::WallItem)
+        })));
+        (r.id(), r.is_public())
+    };
+    crate::game::messenger::manager::send_status_update(world, session);
+    {
+        let r = room.lock();
+        let model = r.model.name.clone();
+        session.send(out_user::user_objects(&r.entities, &model, true));
+        if let Some(idx) = r.entity_index(session.id) {
+            r.send_with(|f| out_user::user_objects([&r.entities[idx]], &model, f));
+        }
+        session.send(crate::messages::outgoing::flash::room_entry_info(
+            public,
+            room_id as i32,
+            &r.data.description,
+            r.is_owner(user_id),
+        ));
+    }
+    if !public {
+        super::flash::send_flat_info(world, session, room_id, false, true, false);
+    }
+    g_usrs(world, session, reader)?;
+    g_stat(world, session, reader)?;
+    Ok(())
+}
+
+/// Java: event 390, `GETROOMAD` and then `G_HMAP` (both registered for it).
+pub fn get_room_ad_and_heightmap(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    get_room_ad(world, session, reader)?;
+    g_hmap(world, session, reader)
 }
 
 /// Java: `G_ITEMS`: the room's wall items.
@@ -346,7 +407,11 @@ pub fn get_floormap(
     if !r.is_public() {
         session.send(out::heightmap_update(&r.mapping.heightmap_update()));
     }
-    session.send(out_user::user_objects([], &r.model.name));
+    session.send(out_user::user_objects(
+        [],
+        &r.model.name,
+        session.is_flash(),
+    ));
     Ok(())
 }
 
@@ -370,6 +435,16 @@ pub fn g_hmap(
     session.send(msg);
     if let Some(status) = world.games.full_game_status_for(world, session) {
         session.send(status);
+        return Ok(());
+    }
+    // Java: a Flash client also gets the floor map, a flat's heights and an empty USER_OBJECTS.
+    if session.is_flash() {
+        let r = room.lock();
+        session.send(out::floor_map(&r.model));
+        if !r.is_public() {
+            session.send(out::heightmap_update(&r.mapping.heightmap_update()));
+        }
+        session.send(out_user::user_objects([], &r.model.name, true));
     }
     Ok(())
 }
@@ -641,13 +716,23 @@ pub fn g_stat(
         session.send(msg);
     }
     let model = r.model.name.clone();
-    session.send(out_user::user_objects(&r.entities, &model));
+    session.send(out_user::user_objects(
+        &r.entities,
+        &model,
+        session.is_flash(),
+    ));
     let own = r.entity_index(session.id);
     if let Some(idx) = own {
-        let msg = out_user::user_objects([&r.entities[idx]], &model);
-        r.send_except(msg, session.id);
+        r.send_except_with(
+            |f| out_user::user_objects([&r.entities[idx]], &model, f),
+            session.id,
+        );
     }
-    session.send(out_user::user_statuses(&r.entities, &model));
+    session.send(out_user::user_statuses(
+        &r.entities,
+        &model,
+        session.is_flash(),
+    ));
     if let Some(idx) = own.filter(|&i| r.entities[i].is_using_effect()) {
         let e = &r.entities[idx];
         r.send(out_effects::user_avatar_effect(e.instance_id, e.effect_id));
@@ -673,6 +758,19 @@ pub fn g_stat(
         }
         if e.is_sleeping {
             session.send(out_user::user_sleep(e.instance_id, true));
+        }
+        if session.is_flash()
+            && (e
+                .statuses
+                .contains(crate::game::room::entity::StatusType::CarryItem)
+                || e.statuses
+                    .contains(crate::game::room::entity::StatusType::CarryDrink))
+        {
+            session.send(out_user::user_carry_object(
+                e.instance_id,
+                e.carry_id,
+                &e.carry_value,
+            ));
         }
     }
     // The pool items' programs, a spinning wheel or a rolling dice.

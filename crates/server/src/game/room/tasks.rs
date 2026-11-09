@@ -98,8 +98,8 @@ enum Updated {
 impl Room {
     /// Java: `EntityTask.run`.
     pub fn entity_tick(&mut self, world: &World) {
-        if let Some(msg) = self.entity_pass(world) {
-            self.send(msg);
+        if let Some(msgs) = self.entity_pass(world) {
+            self.send_pair(msgs);
         }
         // Java: handleMessageQueue, the messages queued for after the loop.
         for msg in std::mem::take(&mut self.queue_after_loop) {
@@ -109,7 +109,7 @@ impl Room {
 
     /// The entity pass of [`Room::entity_tick`]: moves everyone a step and returns the
     /// `USER_STATUSES` of those who changed, without sending it.
-    pub fn entity_pass(&mut self, world: &World) -> Option<Message> {
+    pub fn entity_pass(&mut self, world: &World) -> Option<[Message; 2]> {
         if self.entities.is_empty() {
             return None;
         }
@@ -148,7 +148,10 @@ impl Room {
                 Updated::Left(e) => Some(&**e),
             })
             .collect();
-        Some(out_user::user_statuses(entities, &self.model.name))
+        Some([
+            out_user::user_statuses(entities.iter().copied(), &self.model.name, false),
+            out_user::user_statuses(entities, &self.model.name, true),
+        ])
     }
 
     /// Java: `EntityTask.processEntity`. Returns the entity if it left the room.

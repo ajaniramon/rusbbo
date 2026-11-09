@@ -61,7 +61,7 @@ pub fn messenger_init(
             s.int("messenger.max.friends.club") as i32,
         )
     };
-    let views = resolve_all(world, &friends);
+    let views = resolve_all(world, &friends, session.is_flash());
     session.send(out::messenger_init(
         limit,
         normal,
@@ -515,7 +515,8 @@ pub fn follow_friend(
     };
     let friend_id = friend_id.unwrap_or_default();
     let room = room_of(world, friend_id);
-    let Some(room) = room.filter(|_| can_follow_friend(world, friend_id)) else {
+    let Some(room) = room.filter(|_| can_follow_friend(world, friend_id, session.is_flash()))
+    else {
         session.send(out::follow_error(2));
         return Ok(());
     };

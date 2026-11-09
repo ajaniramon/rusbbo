@@ -18,10 +18,14 @@ pub fn available_badges(badges: &[Badge], equipped: &[&Badge]) -> Message {
 }
 
 /// Java: `USERBADGE` for a Shockwave client: the user id is a string.
-pub fn user_badge(user_id: u32, equipped: &[&Badge]) -> Message {
-    let mut body = ServerBody::new()
-        .text(&user_id.to_string())
-        .int(equipped.len() as i32);
+pub fn user_badge(user_id: u32, equipped: &[&Badge], flash: bool) -> Message {
+    // Java: the user id is a number for a Flash client, text for Shockwave.
+    let body = if flash {
+        ServerBody::new().int(user_id as i32)
+    } else {
+        ServerBody::new().text(&user_id.to_string())
+    };
+    let mut body = body.int(equipped.len() as i32);
     for badge in equipped {
         body = body.int(badge.slot_id).text(&badge.code);
     }
@@ -72,10 +76,10 @@ mod tests {
         );
         let (tb1, tb4) = (badge("TB1", true, 1), badge("TB4", true, 4));
         assert_eq!(
-            user_badge(3, &[&tb1, &tb4]).body,
+            user_badge(3, &[&tb1, &tb4], false).body,
             b"3\x02JITB1\x02PATB4\x02"
         );
-        assert_eq!(user_badge(3, &[]).body, b"3\x02H");
+        assert_eq!(user_badge(3, &[], false).body, b"3\x02H");
         assert_eq!(
             achievement_notification("ACH_TraderPass1", None, 1).body,
             b"HIACH_TraderPass1\x02\x02"

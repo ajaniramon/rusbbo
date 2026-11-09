@@ -345,7 +345,10 @@ pub fn delete_flat(
         return Ok(());
     };
     delete(world, room_id, user_id);
-    // TODO(flash): Flash clients get their room list again (FLASH_USERFLATS).
+    // Java: a Flash client gets its room list again.
+    if session.is_flash() {
+        super::flash::user_flats(world, session, reader)?;
+    }
     Ok(())
 }
 

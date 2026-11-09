@@ -36,6 +36,10 @@ struct Cli {
     /// Address for the Shockwave game port.
     #[arg(long, default_value = "127.0.0.1:12321")]
     bind: SocketAddr,
+    /// The figure data the game validates looks with (Java: `figuredata.xml` in its working
+    /// directory; Havana's `tools/figuredata.xml`).
+    #[arg(long, value_name = "FILE", default_value = "figuredata.xml")]
+    figuredata: PathBuf,
     /// Address for the Flash client's game port (Java: the game port + 2). Defaults to the
     /// Shockwave address with its port + 2.
     #[arg(long, value_name = "ADDR")]
@@ -155,6 +159,9 @@ async fn main() -> Result<()> {
             }
         });
     }
+    let _ = world
+        .figures
+        .set(web::figure::Figures::load(&cli.figuredata));
     let flash_bind = cli.flash_bind.unwrap_or_else(|| {
         let mut addr = cli.bind;
         addr.set_port(addr.port().wrapping_add(2));

@@ -305,8 +305,7 @@ impl Room {
     /// Java: `SWIMSUIT` once the player's details have the new pool figure: the room sees it.
     pub fn set_pool_figure(&mut self, idx: usize, pool_figure: &str) {
         self.entities[idx].details.pool_figure = pool_figure.to_string();
-        let msg = out_user::user_objects([&self.entities[idx]], &self.model.name);
-        self.send(msg);
+        self.send_with(|f| out_user::user_objects([&self.entities[idx]], &self.model.name, f));
     }
 
     /// Java: `SIGN`: a sign held up for 5 seconds; 0-7 also count as the user's vote for the

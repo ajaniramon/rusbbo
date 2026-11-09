@@ -104,6 +104,7 @@ case "${1:-}" in
       for id in 26 27 28 29 30 31 32; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
     fi
     nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" "${WEB_ARGS[@]}" \
+      --figuredata "${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}/tools/figuredata.xml" \
       "${TICKETS[@]}" > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port

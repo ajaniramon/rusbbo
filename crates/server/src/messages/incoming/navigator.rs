@@ -113,10 +113,11 @@ pub fn navigate(
 
 /// The room id of `ADD_FAVORITE_ROOM`/`DEL_FAVORITE_ROOM`: type 1 is a public room, sent as its
 /// id plus the offset.
-fn favourite_room_id(reader: &mut ClientReader) -> Result<i32, Malformed> {
+fn favourite_room_id(session: &Session, reader: &mut ClientReader) -> Result<i32, Malformed> {
     let room_type = reader.int().ok_or(Malformed)?;
     let room_id = reader.int().ok_or(Malformed)?;
-    Ok(if room_type == 1 {
+    // Java: a Flash client sends the room id as it is.
+    Ok(if room_type == 1 && !session.is_flash() {
         room_id.wrapping_sub(PUBLIC_ROOM_OFFSET)
     } else {
         room_id
@@ -149,7 +150,7 @@ pub fn add_favourite_room(
     session: &Arc<Session>,
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    let room_id = favourite_room_id(reader)?;
+    let room_id = favourite_room_id(session, reader)?;
     let Some(viewer) = viewer(session) else {
         return Ok(());
     };
@@ -170,6 +171,12 @@ pub fn add_favourite_room(
             "adding a favourite: {e}"
         );
     }
+    if session.is_flash() {
+        session.send(crate::messages::outgoing::flash::favourite_status(
+            room_id as i32,
+            true,
+        ));
+    }
     Ok(())
 }
 
@@ -179,7 +186,7 @@ pub fn del_favourite_room(
     session: &Arc<Session>,
     reader: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    let room_id = favourite_room_id(reader)?;
+    let room_id = favourite_room_id(session, reader)?;
     let Some(viewer) = viewer(session) else {
         return Ok(());
     };
@@ -191,6 +198,11 @@ pub fn del_favourite_room(
                 "removing a favourite: {e}"
             );
         }
+    }
+    if session.is_flash() {
+        session.send(crate::messages::outgoing::flash::favourite_status(
+            room_id, false,
+        ));
     }
     Ok(())
 }

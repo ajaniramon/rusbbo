@@ -39,8 +39,11 @@ pub fn get_pet_stat(
     let Some(room) = current_room(world, session) else {
         return Ok(());
     };
-    let pet_id = reader.int().ok_or(Malformed)?;
-    // TODO(flash): Flash clients add FLASH_PET_ID_OFFSET.
+    let mut pet_id = reader.int().ok_or(Malformed)?;
+    // Java: a Flash client knows pets by USER_OBJECTS.FLASH_PET_ID_OFFSET + id.
+    if (1_000_000_000..1_500_000_000).contains(&pet_id) {
+        pet_id -= 1_000_000_000;
+    }
     let Ok(pet_id) = u32::try_from(pet_id) else {
         return Ok(());
     };

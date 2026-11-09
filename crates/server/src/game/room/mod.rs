@@ -155,7 +155,7 @@ pub struct Room {
     pub votes: Vec<Vote>,
     /// The statuses the first room tick composed when the room was initialised, sent once the
     /// entry messages are out (see [`Room::try_initialise`]).
-    first_tick: Option<Message>,
+    first_tick: Option<[Message; 2]>,
     /// In entry order (Java: `CopyOnWriteArrayList<Entity>`).
     pub entities: Vec<RoomEntity>,
     /// Java: `isActive`, set by the first `G_STAT`, cleared on dispose.
@@ -395,6 +395,34 @@ impl Room {
         }
     }
 
+    /// `send` of a message Java composes for each player (a `PlayerMessageComposer`): built once
+    /// for the Shockwave clients and once for the Flash ones.
+    pub fn send_with(&self, compose: impl Fn(bool) -> Message) {
+        self.send_except_with(compose, u64::MAX);
+    }
+
+    /// `send` of a message already built for Shockwave (`[0]`) and Flash (`[1]`) clients.
+    pub fn send_pair(&self, msgs: [Message; 2]) {
+        for e in self.entities.iter().filter(|e| e.is_player()) {
+            e.session
+                .send(msgs[usize::from(e.session.is_flash())].clone());
+        }
+    }
+
+    /// [`Room::send_with`] to everyone but `except`.
+    pub fn send_except_with(&self, compose: impl Fn(bool) -> Message, except: u64) {
+        let mut built: [Option<Message>; 2] = [None, None];
+        for e in self
+            .entities
+            .iter()
+            .filter(|e| e.is_player() && e.session.id != except)
+        {
+            let flash = e.session.is_flash();
+            let msg = built[usize::from(flash)].get_or_insert_with(|| compose(flash));
+            e.session.send(msg.clone());
+        }
+    }
+
     /// Java: `Room.send(composer, exclude)`.
     pub fn send_except(&self, msg: Message, except: u64) {
         for e in self
@@ -431,6 +459,7 @@ impl Room {
             position: e.position,
             swimming: e.statuses.contains(StatusType::Swim),
             has_pool_figure: !e.details.pool_figure.is_empty(),
+            flash: e.is_player() && e.session.is_flash(),
         }
     }
 
@@ -1060,8 +1089,7 @@ impl Room {
         }
         self.update_new_height(idx);
         if instant_update {
-            let msg = out_user::user_statuses([&self.entities[idx]], &self.model.name);
-            self.send(msg);
+            self.send_with(|f| out_user::user_statuses([&self.entities[idx]], &self.model.name, f));
         } else {
             self.entities[idx].needs_update = true;
         }
@@ -1507,9 +1535,9 @@ impl Room {
         }
         let model = self.model.name.clone();
         if send_user_object {
-            self.send(out_user::user_objects([&self.entities[idx]], &model));
+            self.send_with(|f| out_user::user_objects([&self.entities[idx]], &model, f));
         }
-        self.send(out_user::user_statuses([&self.entities[idx]], &model));
+        self.send_with(|f| out_user::user_statuses([&self.entities[idx]], &model, f));
         if had_tile {
             self.invoke_item(None, idx, true, Some(old));
         }
@@ -1737,7 +1765,7 @@ fn enter_room_with(
     // Java: `ROOMEEVENT_INFO(getEventByRoomId(...))`, composed before the room's lock is taken
     // (the hoster's name may need a player's lock).
     let event_info = if send_entry {
-        crate::game::events::event_info(world, room.id)
+        crate::game::events::event_info(world, room.id, session.is_flash())
     } else {
         None
     };
@@ -1756,8 +1784,8 @@ fn enter_room_with(
         }
         r.add_entity(world, session, details, destination);
         if from_room_task {
-            if let Some(msg) = r.first_tick.take() {
-                r.send(msg);
+            if let Some(msgs) = r.first_tick.take() {
+                r.send_pair(msgs);
             } else if let Some(idx) = r.entity_index(session.id) {
                 // A room that was already running: Java's old room sets `needsUpdate` after the
                 // walkway (`EntityTask.processEntity` after `stopWalking`) and its loop takes it,
@@ -1803,8 +1831,8 @@ fn enter_room_with(
                 session.send(msg.clone());
             }
         }
-        if let Some(msg) = r.first_tick.take() {
-            r.send(msg);
+        if let Some(msgs) = r.first_tick.take() {
+            r.send_pair(msgs);
         }
         r.take_deferred()
     };
@@ -1918,6 +1946,7 @@ mod tests {
         let mut map = RoomMapping::new(model, true);
         map.regenerate(&[]);
         let walker = Walker {
+            flash: false,
             pet_nest: None,
             instance_id: 0,
             position: Position::new(13, 6),

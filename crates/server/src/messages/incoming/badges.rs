@@ -52,7 +52,11 @@ pub fn get_selected_badges(
         return Ok(());
     };
     let p = other.player.lock();
-    session.send(out::user_badge(user_id as u32, &p.badges.equipped()));
+    session.send(out::user_badge(
+        user_id as u32,
+        &p.badges.equipped(),
+        session.is_flash(),
+    ));
     Ok(())
 }
 
@@ -88,9 +92,12 @@ pub fn set_badge(
     if room_id.is_some() {
         if let Some(room) = current_room(world, session) {
             let p = session.player.lock();
-            let msg = out::user_badge(user_id, &p.badges.equipped());
+            let msgs = [
+                out::user_badge(user_id, &p.badges.equipped(), false),
+                out::user_badge(user_id, &p.badges.equipped(), true),
+            ];
             drop(p);
-            room.lock().send(msg);
+            room.lock().send_pair(msgs);
         }
     }
 

@@ -256,6 +256,7 @@ mod tests {
         map.bus_door = Some(door.clone());
         map.regenerate(&[]);
         let walker = Walker {
+            flash: false,
             pet_nest: None,
             instance_id: 0,
             position: Position::new(27, 5),

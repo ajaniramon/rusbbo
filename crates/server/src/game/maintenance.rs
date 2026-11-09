@@ -61,7 +61,13 @@ pub fn plan(world: &World, minutes: i64) -> Option<()> {
     // Java: `Math.toIntExact` in the composer, which fails to encode a count beyond an int.
     if let Ok(minutes) = i32::try_from(minutes) {
         for session in world.players() {
-            session.send(info_hotel_closing(minutes));
+            if session.is_flash() {
+                session.send(crate::messages::outgoing::alerts::alert(&format!(
+                    "The hotel is currently closing in {minutes} minutes!"
+                )));
+            } else {
+                session.send(info_hotel_closing(minutes));
+            }
         }
     }
     Some(())

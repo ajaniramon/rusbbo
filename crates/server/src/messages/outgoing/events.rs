@@ -16,8 +16,9 @@ pub struct EventView<'a> {
     pub started: i64,
 }
 
-/// Java: `ROOMEEVENT_INFO` (Shockwave: no tags). `None` is the room without an event.
-pub fn room_event_info(event: Option<&EventView>) -> Message {
+/// Java: `ROOMEEVENT_INFO` (a Flash client also gets the tags). `None` is the room without an
+/// event.
+pub fn room_event_info(event: Option<&EventView>, flash: bool) -> Message {
     let Some(view) = event else {
         return Message::new(370, ServerBody::new().string(b"-1").build());
     };
@@ -30,6 +31,13 @@ pub fn room_event_info(event: Option<&EventView>) -> Message {
         .string(&latin1(&e.name))
         .string(&latin1(&e.description))
         .text(&long_date(view.started));
+    let body = if flash {
+        e.tags
+            .iter()
+            .fold(body.int(e.tags.len() as i32), |b, t| b.string(&latin1(t)))
+    } else {
+        body
+    };
     Message::new(370, body.build())
 }
 
@@ -80,7 +88,7 @@ mod tests {
             started: 1_794_162_087,
         };
         let date = long_date(view.started);
-        let info = room_event_info(Some(&view));
+        let info = room_event_info(Some(&view), false);
         assert_eq!(info.header, 370);
         assert_eq!(
             info.body,

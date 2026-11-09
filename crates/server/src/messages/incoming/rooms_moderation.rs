@@ -1,7 +1,7 @@
 //! Java: `messages/incoming/rooms/moderation`: rights, kicking and answering the doorbell.
 //!
 //! Shockwave clients send the target's bare name as the whole body of `ASSIGNRIGHTS`,
-//! `REMOVERIGHTS` and `KICK` (Java: `reader.contents()`). TODO(flash): Flash sends user ids.
+//! `REMOVERIGHTS` and `KICK` (Java: `reader.contents()`); Flash clients send user ids.
 //! `BANUSER` bans a visitor from the room for 6 hours.
 //!
 //! Lock order: the sender's player lock, then the target's, are each taken and released before
@@ -25,6 +25,32 @@ fn sender(world: &World, session: &Session) -> Option<(RoomRef, u32, bool)> {
     let room = current_room(world, session)?;
     let p = session.player.lock();
     Some((room, p.user_id()?, p.has_fuse("fuse_any_room_controller")))
+}
+
+/// The target of `ASSIGNRIGHTS`, `KICK` and `BANUSER`: by name from a Shockwave client, by id
+/// (a VL64) from a Flash one; online and in `room`.
+fn target_from(
+    world: &World,
+    session: &Session,
+    reader: &mut ClientReader,
+    room: &RoomRef,
+) -> Result<Option<(Arc<Session>, u32)>, Malformed> {
+    if !session.is_flash() {
+        let name = latin1(reader.remaining());
+        return Ok(target_in_room(world, &name, room));
+    }
+    let id = reader.int().ok_or(Malformed)?;
+    let Some(target) = u32::try_from(id).ok().and_then(|id| world.player_by_id(id)) else {
+        return Ok(None);
+    };
+    let user_id = {
+        let p = target.player.lock();
+        if p.room_id != Some(room.id) {
+            return Ok(None);
+        }
+        p.user_id()
+    };
+    Ok(user_id.map(|id| (target, id)))
 }
 
 /// The online player called `name` if they are in `room`, with their user id.
@@ -52,8 +78,7 @@ pub fn assign_rights(
     if !room.lock().is_owner(user_id) && !any_controller {
         return Ok(());
     }
-    let name = latin1(reader.remaining());
-    let Some((target, target_id)) = target_in_room(world, &name, &room) else {
+    let Some((target, target_id)) = target_from(world, session, reader, &room)? else {
         return Ok(());
     };
     let mut r = room.lock();
@@ -88,31 +113,50 @@ pub fn remove_rights(
     if !room.lock().is_owner(user_id) && !any_controller {
         return Ok(());
     }
-    // Java: PlayerDao.getId(name): any user, online or not.
-    let name = latin1(reader.remaining());
-    let Some(target_id) = world.store.user_by_name(&name).ok().flatten().map(|u| u.id) else {
-        return Ok(());
+    // Java: PlayerDao.getId(name), any user, online or not; a Flash client sends ids.
+    let targets: Vec<u32> = if session.is_flash() {
+        let count = reader.int().ok_or(Malformed)?;
+        let mut ids = Vec::new();
+        for _ in 0..count {
+            ids.push(reader.int().ok_or(Malformed)? as u32);
+        }
+        ids
+    } else {
+        let name = latin1(reader.remaining());
+        // Java: PlayerDao.getId gives -1 for nobody, which has no rights.
+        world
+            .store
+            .user_by_name(&name)
+            .ok()
+            .flatten()
+            .map(|u| u.id)
+            .into_iter()
+            .collect()
     };
-    if !room.lock().rights.contains(&target_id) {
-        return Ok(());
-    }
-    let target = world.player_by_id(target_id);
-    if let Some(target) = &target {
-        if target.player.lock().room_id != Some(room.id) {
-            return Ok(());
+    for target_id in targets {
+        if !room.lock().rights.contains(&target_id) {
+            continue;
+        }
+        let target = world.player_by_id(target_id);
+        if let Some(target) = &target {
+            if target.player.lock().room_id != Some(room.id) {
+                continue;
+            }
+        }
+        {
+            let mut r = room.lock();
+            if let Some(idx) = target.and_then(|t| r.entity_index(t.id)) {
+                r.refresh_rights(idx, true);
+            }
+            r.rights.retain(|id| *id != target_id);
+        }
+        if let Err(e) = world.store.remove_room_rights(room.id, target_id) {
+            error!(room = room.id, user = target_id, "removing rights: {e}");
         }
     }
-    {
-        let mut r = room.lock();
-        if let Some(idx) = target.and_then(|t| r.entity_index(t.id)) {
-            r.refresh_rights(idx, true);
-        }
-        r.rights.retain(|id| *id != target_id);
+    if session.is_flash() {
+        super::flash::send_edit_data(world, session, room.id);
     }
-    if let Err(e) = world.store.remove_room_rights(room.id, target_id) {
-        error!(room = room.id, user = target_id, "removing rights: {e}");
-    }
-    // TODO(flash): FLASH_EDITDATA.
     Ok(())
 }
 
@@ -146,7 +190,9 @@ pub fn remove_all_rights(
     if let Err(e) = world.store.delete_room_rights(room.id) {
         error!(room = room.id, "removing all rights: {e}");
     }
-    // TODO(flash): FLASH_EDITDATA.
+    if session.is_flash() {
+        super::flash::send_edit_data(world, session, room.id);
+    }
     Ok(())
 }
 
@@ -166,8 +212,7 @@ pub fn kick(
         };
         (id, p.has_fuse("fuse_kick"))
     };
-    let name = latin1(reader.remaining());
-    let Some((target, target_id)) = target_in_room(world, &name, &room) else {
+    let Some((target, target_id)) = target_from(world, session, reader, &room)? else {
         return Ok(());
     };
     if target_id == user_id {
@@ -209,8 +254,7 @@ pub fn ban_user(
         };
         (id, p.has_fuse("fuse_kick"))
     };
-    let name = latin1(reader.remaining());
-    let Some((target, target_id)) = target_in_room(world, &name, &room) else {
+    let Some((target, target_id)) = target_from(world, session, reader, &room)? else {
         return Ok(());
     };
     if target_id == user_id {

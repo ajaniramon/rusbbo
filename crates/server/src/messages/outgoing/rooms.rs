@@ -312,7 +312,7 @@ mod tests {
         );
         assert_eq!(update_votes(-1).body, b"M");
         assert_eq!(
-            crate::messages::outgoing::events::room_event_info(None).body,
+            crate::messages::outgoing::events::room_event_info(None, false).body,
             b"-1\x02"
         );
         assert_eq!(active_objects(std::iter::empty()).body, b"H");

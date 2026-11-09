@@ -34,9 +34,9 @@ impl Room {
     /// Java: `refreshUser`: sends the user to the room again.
     pub fn refresh_user(&mut self, idx: usize) {
         let e = &self.entities[idx];
-        self.send(out_user::user_objects([e], &self.model.name));
+        self.send_with(|f| out_user::user_objects([e], &self.model.name, f));
         if !e.is_walking {
-            self.send(out_user::user_statuses([e], &self.model.name));
+            self.send_with(|f| out_user::user_statuses([e], &self.model.name, f));
         }
         if e.is_dancing() {
             let dance_id = e.dance_id;
@@ -46,7 +46,6 @@ impl Room {
             let e = &self.entities[idx];
             self.send(out_user::user_sleep(e.instance_id, true));
         }
-        // TODO(flash): USER_CARRY_OBJECT is commented out in Java.
     }
 
     /// Java: `stopCarrying`.
@@ -64,6 +63,9 @@ impl Room {
         if refresh {
             self.refresh_user(idx);
         }
+        let e = &mut self.entities[idx];
+        e.carry_id = 0;
+        e.carry_value.clear();
     }
 
     /// Java: `carryItem(carryId, carryName)`.
@@ -83,6 +85,8 @@ impl Room {
         }
         let seconds = world.settings.read().int("carry.timer.seconds") as i32;
         let e = &mut self.entities[idx];
+        e.carry_id = carry_id;
+        e.carry_value = value.clone();
         e.statuses.remove(StatusType::CarryItem);
         e.statuses.remove(StatusType::CarryDrink);
         e.statuses.remove(StatusType::Dance);
@@ -95,7 +99,15 @@ impl Room {
             1,
         );
         e.needs_update = true;
-        // TODO(flash): USER_CARRY_OBJECT goes to Flash clients only.
+        // Java: `room.sendFlashClients(new USER_CARRY_OBJECT(...))`.
+        let msg = out_user::user_carry_object(e.instance_id, carry_id, &e.carry_value);
+        for p in self
+            .entities
+            .iter()
+            .filter(|p| p.is_player() && p.session.is_flash())
+        {
+            p.session.send(msg.clone());
+        }
     }
 
     /// Java: `LOOKTO`, after the checks that need the player: turns towards `(x, y)`.

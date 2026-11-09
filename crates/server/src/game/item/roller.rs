@@ -48,7 +48,7 @@ pub fn items_by_height(room: &Room, tile: &RoomTile) -> Vec<usize> {
 /// Java: `RoomTile.hasWalkableFurni(entity)`.
 fn has_walkable_furni(room: &Room, tile: &RoomTile, with_entity: bool) -> bool {
     tile.highest_item
-        .is_none_or(|i| room.mapping.items[i].is_walkable(with_entity, tile.position))
+        .is_none_or(|i| room.mapping.items[i].is_walkable(with_entity, tile.position, false))
 }
 
 /// Java: `RoomTile.getItemsAbove(item)`.

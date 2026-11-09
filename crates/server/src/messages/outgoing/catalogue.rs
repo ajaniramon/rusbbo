@@ -58,16 +58,30 @@ fn recursive_index_node(
     body
 }
 
-/// Java: `CATALOGUE_PAGE`.
-///
-/// TODO(flash): the Flash client gets a different text list for the `frontpage3` layout.
+/// Java: `CATALOGUE_PAGE`. A Flash client gets the `frontpage3` layout's last six texts
+/// replaced (Java's `subList` throws with fewer: `None`).
 pub fn catalogue_page(
     page: &CataloguePage,
     items: &[CatalogueItem],
     settings: &Settings,
-) -> Message {
+    flash: bool,
+) -> Option<Message> {
     let images = page.images(settings);
-    let texts = page.texts(settings);
+    let mut texts = page.texts(settings);
+    if flash && page.layout.eq_ignore_ascii_case("frontpage3") {
+        let keep = texts.len().checked_sub(6)?;
+        texts.truncate(keep);
+        texts.push(
+            "1. Always ask permission from the bill payer first.\r\n2. Send HABBO in a UK SMS to \
+             78881. You'll get an SMS back with a voucher code and will be charged \u{c2}\u{a3}3 \
+             plus your standard UK SMS rate, normally 10p.\r\n3. Enter the code below to redeem \
+             35 Credits."
+                .into(),
+        );
+        texts.push("Redeem a Habbo Voucher code here:".into());
+        texts.push("#FAF8CC".into());
+        texts.push("#FAF8CC".into());
+    }
     let mut body = ServerBody::new()
         .int(page.id)
         .string(&latin1(&page.layout))
@@ -121,7 +135,7 @@ pub fn catalogue_page(
                 .int(def.rental_time_as_minutes());
         }
     }
-    Message::new(127, body.build())
+    Some(Message::new(127, body.build()))
 }
 
 /// Java: `NO_CREDITS`.
@@ -223,7 +237,7 @@ mod tests {
         .unwrap();
         let settings = Settings::new(Default::default());
         assert_eq!(
-            catalogue_page(&page, &[item], &settings).body,
+            catalogue_page(&page, &[item], &settings, false).unwrap().body,
             b"QMdefault_3x3\x02Ictlg_windows_headline1_en\x02IOoh, new view!\x02IYcBwindow_70s_narrow\x02KHIi\x02YkD\x02IM"
         );
     }

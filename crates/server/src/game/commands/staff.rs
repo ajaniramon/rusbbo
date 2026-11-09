@@ -954,8 +954,7 @@ pub fn head_rotate(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
             r.entities[idx].position.head_rotation =
                 walk_direction(current.x, current.y, current.x + dx, current.y + dy);
             let model = r.model.name.clone();
-            let msg = out::user_statuses([&r.entities[idx]], &model);
-            r.send(msg);
+            r.send_with(|f| out::user_statuses([&r.entities[idx]], &model, f));
             turns -= 1;
             drop(r);
             drop(world);

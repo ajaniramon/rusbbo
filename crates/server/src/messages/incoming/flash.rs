@@ -282,6 +282,37 @@ fn flash_room(world: &World, room_id: u32) -> Option<FlashRoom> {
     flash_rooms(world, entries).into_iter().next()
 }
 
+/// Java: `new FLASH_FLATINFO(player, room, overrideLock, isLoading, checkEntry)` sent to the
+/// player (the owner's name hidden unless shown, the player's or a staff member's).
+pub fn send_flat_info(
+    world: &World,
+    session: &Session,
+    room_id: u32,
+    override_lock: bool,
+    is_loading: bool,
+    check_entry: bool,
+) {
+    let Some(room) = flash_room(world, room_id) else {
+        return;
+    };
+    let (user_id, see_owners) = {
+        let p = session.player.lock();
+        (
+            p.user_id().unwrap_or(0),
+            p.has_fuse("fuse_see_all_roomowners"),
+        )
+    };
+    let owner = room.entry.owner_id == user_id;
+    let owner_name = if owner || room.entry.show_owner_name || see_owners {
+        room.entry.owner_name.clone()
+    } else {
+        "-".to_string()
+    };
+    if let Some(msg) = out::flat_info(&room, &owner_name, override_lock, is_loading, check_entry) {
+        session.send(msg);
+    }
+}
+
 /// Java: `FLASH_ROOM_INFO`: a room's details before entering (`FLASH_FLATINFO`).
 pub fn room_info(
     world: &World,
@@ -413,6 +444,32 @@ pub fn get_public_room_data(
     }
     session.send(out::public_room_casts(answer, &room.entry.ccts));
     Ok(())
+}
+
+/// Java: `new FLASH_EDITDATA(room)` to the player (a room that is not loaded has no rights
+/// list yet).
+pub fn send_edit_data(world: &World, session: &Session, room_id: u32) {
+    let Some(room) = flash_room(world, room_id) else {
+        return;
+    };
+    let rights: Vec<u32> = world
+        .loaded_room(room_id)
+        .map(|r| r.lock().rights.clone())
+        .unwrap_or_default();
+    let named: Vec<(u32, String)> = rights
+        .into_iter()
+        .map(|id| {
+            let name = world
+                .store
+                .user(id)
+                .ok()
+                .flatten()
+                .map(|u| u.username)
+                .unwrap_or_default();
+            (id, name)
+        })
+        .collect();
+    session.send(out::edit_data(&room, &named));
 }
 
 /// Java: `FLASH_ROOMEDITDATA`: the owner's settings window.

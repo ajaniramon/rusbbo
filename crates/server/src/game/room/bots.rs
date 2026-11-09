@@ -72,7 +72,7 @@ impl Room {
                 next_speech: 0,
             }));
             if self.players() > 0 {
-                self.send(out_user::user_objects([&entity], &self.model.name));
+                self.send_with(|f| out_user::user_objects([&entity], &self.model.name, f));
             }
             let ghost = entity.details.name == "Abigail.Ryan";
             self.entities.push(entity);
@@ -276,6 +276,7 @@ impl Room {
                 None => EntityDetails::default(),
             };
             let walker = Walker {
+                flash: false,
                 pet_nest: None,
                 instance_id: -1,
                 position: Position::new(-1, -1),
@@ -295,6 +296,7 @@ impl Room {
                     name,
                     mission: String::new(),
                     figure: String::new(),
+                    figure_flash: String::new(),
                     start: Position::new(0, 0),
                     walkspace: Vec::new(),
                     speeches: Vec::new(),
@@ -307,7 +309,7 @@ impl Room {
                 next_speech: 0,
             }));
             if self.players() > 0 {
-                self.send(out_user::user_objects([&entity], &self.model.name));
+                self.send_with(|f| out_user::user_objects([&entity], &self.model.name, f));
             }
             self.entities.push(entity);
             self.data.visitors_now = self.players();

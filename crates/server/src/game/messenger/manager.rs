@@ -46,16 +46,35 @@ pub fn room_of(world: &World, user_id: u32) -> Option<crate::game::room::RoomRef
 }
 
 /// Java: `MessengerUser.canFollowFriend`: the friend is connected (whatever their online status
-/// setting) and in a room that is not a game arena. TODO(flash): Flash viewers are also refused
-/// public rooms that have no navigator style.
-pub fn can_follow_friend(world: &World, user_id: u32) -> bool {
-    room_of(world, user_id)
-        .is_some_and(|room| !room.model_name.starts_with("bb_") && room.model_name != "snowwar")
+/// setting) and in a room that is not a game arena. A Flash viewer is also refused public rooms
+/// without a navigator style (a room behind a walkway counts as the one it leads from).
+pub fn can_follow_friend(world: &World, user_id: u32, viewer_flash: bool) -> bool {
+    let Some(room) = room_of(world, user_id) else {
+        return false;
+    };
+    if viewer_flash {
+        let mut room_id = room.id;
+        let redirect = crate::game::navigator::flash::follow_redirect(world, room.id);
+        if redirect != 0 {
+            room_id = redirect;
+        }
+        let public = room.lock().is_public();
+        let styled = world
+            .store
+            .record::<rusbbo_storage::NavigatorStyle>(room_id)
+            .ok()
+            .flatten()
+            .is_some();
+        if public && !styled {
+            return false;
+        }
+    }
+    !room.model_name.starts_with("bb_") && room.model_name != "snowwar"
 }
 
 /// Java: `MessengerUser.serialise`: overlays the live data of an online friend and resolves the
 /// online flag (`PlayerManager.isPlayerOnline`, which honours `online_status_visible`).
-pub fn resolve(world: &World, friend: &MessengerUser) -> FriendView {
+pub fn resolve(world: &World, friend: &MessengerUser, viewer_flash: bool) -> FriendView {
     let live = online_details(world, friend.user_id);
     let (figure, last_online, sex, motto) = match &live {
         Some(d) => (
@@ -72,7 +91,7 @@ pub fn resolve(world: &World, friend: &MessengerUser) -> FriendView {
         ),
     };
     let online = live.as_ref().is_some_and(|d| d.online_status_visible);
-    let can_follow = can_follow_friend(world, friend.user_id);
+    let can_follow = can_follow_friend(world, friend.user_id, viewer_flash);
     FriendView {
         user_id: friend.user_id,
         username: friend.username.clone(),
@@ -87,8 +106,15 @@ pub fn resolve(world: &World, friend: &MessengerUser) -> FriendView {
 }
 
 /// Resolves a list of friends. Takes no lock of the caller's.
-pub fn resolve_all(world: &World, friends: &[MessengerUser]) -> Vec<FriendView> {
-    friends.iter().map(|f| resolve(world, f)).collect()
+pub fn resolve_all(
+    world: &World,
+    friends: &[MessengerUser],
+    viewer_flash: bool,
+) -> Vec<FriendView> {
+    friends
+        .iter()
+        .map(|f| resolve(world, f, viewer_flash))
+        .collect()
 }
 
 /// Java: `Messenger.sendStatusUpdate`: tells the online friends that this user came online or went
@@ -145,7 +171,7 @@ pub fn send_friends_update(world: &World, session: &Arc<Session>) {
         };
         (m.categories.clone(), m.drain_friend_updates())
     };
-    let views = resolve_all(world, &updates);
+    let views = resolve_all(world, &updates, session.is_flash());
     session.send(out::friends_update(&categories, &views));
 }
 
@@ -193,7 +219,10 @@ pub fn add_friend(world: &World, session: &Arc<Session>, new_buddy: &MessengerUs
     // The accepting player gets the buddy as the database has it now.
     if let Ok(Some(details)) = world.store.user(new_buddy.user_id) {
         let fresh = MessengerUser::from_user(&details, 0);
-        session.send(out::add_buddy(&categories, &resolve(world, &fresh)));
+        session.send(out::add_buddy(
+            &categories,
+            &resolve(world, &fresh, session.is_flash()),
+        ));
     }
 
     // And the requester, if online, gets the accepting player.
@@ -206,7 +235,10 @@ pub fn add_friend(world: &World, session: &Arc<Session>, new_buddy: &MessengerUs
             })
         };
         if let Some(cats) = friend_categories {
-            friend.send(out::add_buddy(&cats, &resolve(world, &me_as_buddy)));
+            friend.send(out::add_buddy(
+                &cats,
+                &resolve(world, &me_as_buddy, friend.is_flash()),
+            ));
         }
     }
 }

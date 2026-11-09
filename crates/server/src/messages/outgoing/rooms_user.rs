@@ -6,10 +6,13 @@ use rusbbo_protocol::body::ServerBody;
 use crate::game::format_decimal;
 use crate::game::room::entity::{RoomEntity, StatusType};
 
-/// Java: `USER_OBJECTS`. `model_name` is the room's model (pool rooms show the swimwear).
+/// Java: `USER_OBJECTS`. `model_name` is the room's model (pool rooms show the swimwear). A
+/// Flash client (`flash`) sees pets and bots under ids of their own range, and the bots' Flash
+/// figures.
 pub fn user_objects<'a>(
     entities: impl IntoIterator<Item = &'a RoomEntity>,
     model_name: &str,
+    flash: bool,
 ) -> Message {
     let entities: Vec<&RoomEntity> = entities.into_iter().collect();
     let pool = model_name.starts_with("pool_") || model_name == "md_a";
@@ -17,11 +20,22 @@ pub fn user_objects<'a>(
     for e in entities {
         let mut motto = e.details.motto.clone();
         motto.push(' ');
+        // Java: USER_OBJECTS.FLASH_PET_ID_OFFSET and FLASH_BOT_ID_OFFSET.
+        let id = e.details.user_id as i32;
+        let id = match (flash, e.type_id()) {
+            (true, 2) => 1_000_000_000i32.wrapping_add(id),
+            (true, 3) => 1_500_000_000i32.wrapping_add(id),
+            _ => id,
+        };
+        let figure = match (flash, e.bot()) {
+            (true, Some(bot)) => bot.data.figure_flash.as_str(),
+            _ => e.details.figure.as_str(),
+        };
         body = body
-            .int(e.details.user_id as i32)
+            .int(id)
             .text(&e.details.name)
             .text(&motto)
-            .text(&e.details.figure)
+            .text(figure)
             .int(e.instance_id)
             .int(e.position.x)
             .int(e.position.y)
@@ -55,6 +69,7 @@ pub fn user_objects<'a>(
 pub fn user_statuses<'a>(
     entities: impl IntoIterator<Item = &'a RoomEntity>,
     model_name: &str,
+    flash: bool,
 ) -> Message {
     let entities: Vec<&RoomEntity> = entities.into_iter().collect();
     let mut body = ServerBody::new().int(entities.len() as i32);
@@ -76,8 +91,8 @@ pub fn user_statuses<'a>(
                     && e.position.x == 8
                     && e.position.y == 24
                 {
-                    // TODO(flash): Flash clients get 4.0 here.
-                    body = body.text(&format_decimal(7.0));
+                    // Java: a Flash client sits lower on this bench.
+                    body = body.text(&format_decimal(if flash { 4.0 } else { 7.0 }));
                 } else {
                     body = body.raw(&rusbbo_protocol::body::latin1(&status.value));
                 }
@@ -150,6 +165,18 @@ pub fn respect_notification(user_id: u32, points: i32) -> Message {
     Message::new(
         440,
         ServerBody::new().int(user_id as i32).int(points).build(),
+    )
+}
+
+/// Java: `USER_CARRY_OBJECT` (Flash clients).
+pub fn user_carry_object(instance_id: i32, carry_id: i32, name: &str) -> Message {
+    Message::new(
+        482,
+        ServerBody::new()
+            .int(instance_id)
+            .int(carry_id)
+            .text(name)
+            .build(),
     )
 }
 
@@ -242,7 +269,7 @@ mod tests {
             1,
         );
         assert_eq!(
-            user_statuses([&e], "ballroom").body,
+            user_statuses([&e], "ballroom", false).body,
             b"IHPCPB0.0\x02PAPA/carryd 5/\x02"
         );
     }
@@ -251,13 +278,13 @@ mod tests {
     fn statuses_match_public_room_trace() {
         let e = entity(0, 13, 6, 4);
         assert_eq!(
-            user_statuses([&e], "ballroom").body,
+            user_statuses([&e], "ballroom", false).body,
             b"IHQCRA0.0\x02PAPA/\x02"
         );
         let mut e = entity(0, 13, 6, 5);
         e.statuses.set(StatusType::Move, "12,7,0.0");
         assert_eq!(
-            user_statuses([&e], "ballroom").body,
+            user_statuses([&e], "ballroom", false).body,
             b"IHQCRA0.0\x02QAQA/mv 12,7,0.0/\x02"
         );
     }
@@ -268,20 +295,20 @@ mod tests {
         let mut e = entity(0, 3, 5, 2);
         e.statuses.set(StatusType::FlatControl, "useradmin");
         assert_eq!(
-            user_statuses([&e], "model_a").body,
+            user_statuses([&e], "model_a", false).body,
             b"IHKQA0.0\x02JJ/flatctrl useradmin/\x02"
         );
         e.position.set_rotation(3);
         e.statuses.set(StatusType::Move, "4,6,0.0");
         assert_eq!(
-            user_statuses([&e], "model_a").body,
+            user_statuses([&e], "model_a", false).body,
             b"IHKQA0.0\x02KK/flatctrl useradmin/mv 4,6,0.0/\x02"
         );
         // traces/flat-visit.json: rights given to a visitor (empty flatctrl value).
         let mut e = entity(1, 8, 8, 3);
         e.statuses.set(StatusType::FlatControl, "");
         assert_eq!(
-            user_statuses([&e], "model_a").body,
+            user_statuses([&e], "model_a", false).body,
             b"IIPBPB0.0\x02KK/flatctrl/\x02"
         );
     }
@@ -290,7 +317,7 @@ mod tests {
     fn objects_match_public_room_trace() {
         let e = entity(0, 13, 6, 4);
         assert_eq!(
-            user_objects([&e], "ballroom").body,
+            user_objects([&e], "ballroom", false).body,
             b"IItracebot1\x02trace bot one \x02hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\x02HQCRA0.0\x02PAIM\x02MMM\x02"
         );
     }

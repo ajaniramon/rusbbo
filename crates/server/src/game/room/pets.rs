@@ -65,7 +65,7 @@ impl Room {
         entity.needs_update = false;
         entity.kind = EntityKind::Pet(Box::new(PetState::new(pet)));
         if self.players() > 0 {
-            self.send(out_user::user_objects([&entity], &self.model.name));
+            self.send_with(|f| out_user::user_objects([&entity], &self.model.name, f));
         }
         self.entities.push(entity);
         self.data.visitors_now = self.players();
