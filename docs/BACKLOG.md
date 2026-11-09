@@ -16,7 +16,6 @@ oracle first, passing against it twice, then the port.
 | Seasonal catalogue | `seasonal` | With `seasonal.items` on, pages with `seasonal_start`/`seasonal_end` only show in their season | `seasonal.items` = false |
 | Collectables | `collectables` | Collectable pages list only the active collectable, its price and page layout follow it | 3 `catalogue_collectables` rows |
 | Room-hire teleporter | `room-hire` | `TeleportRoomHireInteractor` | no item definition uses it |
-| Alert placeholders | `alerts` | The other placeholders of `StringUtil.replaceAlertMessage` | `maintenance` = false |
 | Photos | `photos` | The camera's photos (`items_photos`), RCON's `clearphoto` and the housekeeping's photo list | not used |
 | Idol songs | `sound`, `idol` | The performer's song disc in `START_PERFORMANCE`, `START_PLAYING_SONG`/`STOP_PLAYING_SONG` and the listeners | not used |
 | Hidden public rooms | `publics` | Hidden public rooms in the navigator and teleporters in public rooms | not used |
@@ -33,7 +32,6 @@ before it is changed.
 | `parity` | A second `GENERATEKEY` on an encrypted connection is ignored (Java answers it); Java's `BigInteger(String)` also accepts a leading `+`/`-` in the Diffie-Hellman key; messenger lists follow Java's `HashMap` order only for small ids; Unicode normalisation with `normalise.input.strings` on (off in Aeyra) |
 | `settings` | `normalise.input.strings` for post-its and room text |
 | `collation` | MariaDB's accent-insensitive search (`e` = `é`) in room search |
-| `trade` | A redeemable gift or placed item from the same IP as its receiver trade-bans the buyer |
 | `transactions` | The "Exchanged ... into ... credits" transaction row when furni is exchanged for credits |
 | `inventory` | Dropping hand items that are placed in the player's current room |
 | `rooms` | Java keeps the spam counters and the `:teleport` flag on the player across rooms |

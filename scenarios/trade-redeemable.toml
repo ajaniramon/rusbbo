@@ -1,0 +1,208 @@
+name = "trade-redeemable"
+description = "Credit furniture between accounts on the same IP (RoomTradeManager.addTradeBan): a CF_1_coin_bronze gift to a user who never logged in (Java throws), to another account on the buyer's IP (trade banned 5 days), again (the ban's alert), to oneself; a coin and a present holding one placed in the room of an account on the same IP"
+
+# Every bot connects from 127.0.0.1, which is logged (users_ip_logs) when it logs in; a user who
+# never logged in has no IP. a = tracebot1, b = tracebot2 (owns flat 1000),
+# c = tracebot3, d = tracebot4. Catalogue item 6 is CF_1_coin_bronze (1 credit).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "c"
+ticket = "trace-sso-3"
+
+[[bots]]
+name = "d"
+ticket = "trace-sso-4"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 6, "", true, "tracebot3", "Coins"]
+note = "tracebot3 never logged in: no IP, Java's equals throws, nothing bought"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 6, "", true, "tracebot2", "Coins"]
+note = "tracebot2 has logged in from the same IP: trade banned for 5 days, nothing bought"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 6, "", true, "tracebot2", "Coins"]
+note = "the trade ban's alert"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 6, "", true, "tracebot1", "Mine"]
+header_only = ["INVENTORY"]
+note = "to oneself: no checks"
+
+[[steps]]
+bot = "b"
+send = "CREATEFLAT"
+args = ["Coin Room", "model_a", "open", true]
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "c"
+macro = "login"
+
+[[steps]]
+bot = "c"
+send = "GRPC"
+args = [0, 6, "", false]
+
+[[steps]]
+bot = "c"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "c"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "c"
+send = "G_HMAP"
+
+[[steps]]
+bot = "c"
+send = "G_USRS"
+
+[[steps]]
+bot = "c"
+send = "G_OBJS"
+
+[[steps]]
+bot = "c"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "c"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "ASSIGNRIGHTS"
+args = [{ raw = "tracebot3" }]
+settle_ms = 1200
+
+[[steps]]
+bot = "c"
+send = "PLACESTUFF"
+args = ["2 6 5 0"]
+settle_ms = 600
+note = "a coin in the room of an account on the same IP: trade banned"
+
+[[steps]]
+bot = "c"
+send = "PLACESTUFF"
+args = ["2 6 5 0"]
+note = "the trade ban's alert"
+
+[[steps]]
+bot = "d"
+macro = "login"
+
+[[steps]]
+bot = "d"
+send = "GRPC"
+args = [0, 6, "", true, "tracebot4", "Mine"]
+header_only = ["INVENTORY"]
+
+[[steps]]
+bot = "d"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "d"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "d"
+send = "G_HMAP"
+
+[[steps]]
+bot = "d"
+send = "G_USRS"
+
+[[steps]]
+bot = "d"
+send = "G_OBJS"
+
+[[steps]]
+bot = "d"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "d"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "ASSIGNRIGHTS"
+args = [{ raw = "tracebot4" }]
+settle_ms = 1200
+
+[[steps]]
+bot = "d"
+send = "PLACESTUFF"
+args = ["3 7 5 0"]
+settle_ms = 600
+note = "a present holding a coin: trade banned too"

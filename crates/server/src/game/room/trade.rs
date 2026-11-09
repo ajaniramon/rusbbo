@@ -40,6 +40,41 @@ pub struct TradeSide {
     pub items: Vec<u64>,
 }
 
+/// Java: `RoomTradeManager.addTradeBan`: five days for giving credit furniture to oneself (an
+/// account on the same IP). Sets the player's details; the caller updates the room's copy, if
+/// any (see [`set_room_copy`]).
+pub fn add_trade_ban(
+    world: &crate::world::World,
+    session: &crate::session::Session,
+    details: &mut rusbbo_storage::User,
+) -> i64 {
+    session.send(crate::messages::outgoing::alerts::alert(
+        "You have been trade banned for 5 days for suspicious activity. Do not give credits to other users.",
+    ));
+    let expiration = now() + 5 * 24 * 60 * 60;
+    details.trade_ban_expiration = expiration;
+    if let Err(e) = world
+        .store
+        .update_user(details.id, |u| u.trade_ban_expiration = expiration)
+    {
+        tracing::error!(user = details.id, "saving a trade ban: {e}");
+    }
+    expiration
+}
+
+/// The room keeps a copy of the details made at entry: the trade ban goes there too.
+pub fn set_room_copy(room: &mut super::Room, session_id: u64, expiration: i64) {
+    if let Some(idx) = room.entity_index(session_id) {
+        room.entities[idx].details.trade_ban_expiration = expiration;
+    }
+}
+
+/// Java: `PlayerDetails.getIpAddress()`: the user's latest logged IP (`PlayerDao.getLatestIp`),
+/// `None` for a user who never logged in.
+pub fn latest_ip(world: &crate::world::World, user_id: u32) -> Option<String> {
+    world.store.latest_ip(user_id).ok().flatten()
+}
+
 /// Java: `RoomTradeManager.showTradeBanAlert`.
 pub fn show_trade_ban_alert(expiration: i64) -> String {
     let uptime = (expiration - now()) * 1000;

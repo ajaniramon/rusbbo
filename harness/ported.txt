@@ -85,6 +85,7 @@ staff-ops
 staff-rank
 text-latin1
 trade
+trade-redeemable
 user-achievements
 user-badges
 user-badges-room

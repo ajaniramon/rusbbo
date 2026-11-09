@@ -302,8 +302,6 @@ struct Gift {
 
 /// The checks of the gift part of Java's `GRPC`: reads the receiver and the note and checks
 /// them. `None` when nothing is bought (the client was told why, if Java tells it).
-///
-/// TODO(trade): a `REDEEMABLE` gift to another user on the same IP trade-bans the buyer.
 fn check_gift(
     world: &World,
     session: &Session,
@@ -356,6 +354,35 @@ fn check_gift(
         .is_some_and(|d| d.has_behaviour(ItemBehaviour::Effect))
     {
         return Ok(None);
+    }
+    // Java: credit furniture to another account on the same IP trade-bans the buyer. The
+    // receiver's IP is `PlayerDao.getLatestIp`: for a user who never logged in it is null and
+    // Java's `equals` throws (nothing is bought).
+    if item
+        .definition
+        .as_ref()
+        .is_some_and(|d| d.has_behaviour(ItemBehaviour::Redeemable))
+        && !p.has_fuse("fuse_mute")
+        && receiver.id != user.id
+    {
+        let Some(receiver_ip) = crate::game::room::trade::latest_ip(world, receiver.id) else {
+            return Ok(None);
+        };
+        let buyer_ip = crate::game::room::trade::latest_ip(world, user.id);
+        if buyer_ip.as_deref() == Some(receiver_ip.as_str()) {
+            let room_id = p.room_id;
+            if let Some(details) = p.details.as_mut() {
+                let expiration = crate::game::room::trade::add_trade_ban(world, session, details);
+                if let Some(room) = room_id.and_then(|id| world.loaded_room(id)) {
+                    crate::game::room::trade::set_room_copy(
+                        &mut room.lock(),
+                        session.id,
+                        expiration,
+                    );
+                }
+            }
+            return Ok(None);
+        }
     }
     let note = reader.string().map(latin1).unwrap_or_default();
     extra_data = extra_data.replace('|', "");

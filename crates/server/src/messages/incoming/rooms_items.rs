@@ -98,8 +98,19 @@ pub fn place_stuff(
             return Ok(());
         }
     }
-    // TODO(trade): a redeemable placed in someone else's room from the owner's IP trade-bans the
-    // placer (RoomTradeManager.addTradeBan).
+    // Java: credit furniture (or a present holding some) placed in the room of an account on the
+    // same IP trade-bans the placer.
+    if !is_mute && !is_owner && is_redeemable(world, &owned) {
+        let placer_ip = crate::game::room::trade::latest_ip(world, user.id);
+        let owner_ip = crate::game::room::trade::latest_ip(world, r.data.owner_id);
+        if placer_ip.is_some() && placer_ip == owner_ip {
+            if let Some(details) = p.details.as_mut() {
+                let expiration = crate::game::room::trade::add_trade_ban(world, session, details);
+                crate::game::room::trade::set_room_copy(&mut r, session.id, expiration);
+            }
+            return Ok(());
+        }
+    }
     if !is_owner {
         let owner = world.store.user(r.data.owner_id).ok().flatten();
         let owner_banned = owner
@@ -1123,4 +1134,29 @@ pub fn convert_furni_to_credits(
     }
     session.send(crate::messages::outgoing::user::credit_balance(credits));
     Ok(())
+}
+
+/// Java: `item.hasBehaviour(REDEEMABLE) || ItemManager.hasPresentBehaviour(item, REDEEMABLE)`: a
+/// present counts by the catalogue item it holds (its custom data starts with the catalogue id).
+fn is_redeemable(world: &World, item: &crate::game::item::Item) -> bool {
+    if item
+        .definition
+        .has_behaviour(crate::game::item::base::ItemBehaviour::Redeemable)
+    {
+        return true;
+    }
+    if !item
+        .definition
+        .has_behaviour(crate::game::item::base::ItemBehaviour::Present)
+    {
+        return false;
+    }
+    item.record
+        .custom_data
+        .split('|')
+        .next()
+        .and_then(|id| id.parse::<i32>().ok())
+        .and_then(|id| world.catalogue.item(id))
+        .and_then(|c| c.definition)
+        .is_some_and(|d| d.has_behaviour(crate::game::item::base::ItemBehaviour::Redeemable))
 }
