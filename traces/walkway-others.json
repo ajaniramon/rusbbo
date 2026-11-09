@@ -1,0 +1,1098 @@
+{
+  "format": 1,
+  "scenario": "walkway-others",
+  "description": "A user taking a walkway while another stays behind: what the room left behind sees (Java's old room still sends the walker's status, as it is in the new room) and what the new room's users see",
+  "runs": 3,
+  "bots": [
+    "a",
+    "b",
+    "c"
+  ],
+  "steps": [
+    {
+      "bot": "c",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "441725639545977415944484\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-3",
+      "settle_ms": 1500,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#8DDEC1473F4845BAA8870204708253DE\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "KIXDNJMIXDNJMJXDNIM",
+              "check": "exact"
+            },
+            {
+              "header": 352,
+              "name": "HELP_ITEMS",
+              "body": "PBIJKPAQARASAPB",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "20",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "IPE",
+      "settle_ms": 600,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "old_skool1\u0002PE",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHISA6.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "x6666666665432100\rx6666666665432100\rx6600000000000x00\rx6600000000000000\rx6600000000000000\rx6600000000000000\rx660000000000x000\r666000000000x1111\rx66000000000xx111\rx66000000000x1111\rx66000000000x1111\rx55000000000x1111\rx44000000000x1111\rx33000000000x1111\rx22000000000xx111\rx11x00000000x1111\rx00000000000x1111\rx00000000000xx111\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "PEH<id>\u0002mobiles_chair2\u0002KPAHJH<id>\u0002mobiles_chair2\u0002KSAHJH<id>\u0002mobiles_chair2\u0002PAJHPAH<id>\u0002mobiles_chair2\u0002PAQBHHH<id>\u0002mobiles_chair2\u0002QARAHPAH<id>\u0002mobiles_chair2\u0002SAKHJH<id>\u0002mobiles_chair2\u0002PBQAHHH<id>\u0002mobiles_chair2\u0002QBJHPAH<id>\u0002mobiles_table5\u0002PAPAHHH<id>\u0002mobiles_table5\u0002PAPBHHH<id>\u0002mobiles_table5\u0002PBPAHHH<id>\u0002mobiles_table6\u0002PAKHHH<id>\u0002mobiles_table6\u0002PASAHHH<id>\u0002mobiles_table6\u0002PBKHHH<id>\u0002mobiles_table7\u0002QAKHHH<id>\u0002mobiles_table7\u0002QASAHHH<id>\u0002mobiles_table7\u0002QBKHHH<id>\u0002mobiles_table8\u0002QAPAHHH<id>\u0002mobiles_table8\u0002QAPBHHH<id>\u0002mobiles_table8\u0002QBPAHH",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "c",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "c": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IKtracebot3\u0002trace bot three \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HISA6.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHISA6.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "714788730801082023039451\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-2",
+      "settle_ms": 1500,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#F75FD134394F47A2BEED040413160523\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISD",
+      "settle_ms": 600,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "old_skool0\u0002SD",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHJI0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xx0xxxxxxxxxxxxxx\r0000000xxx00000xx\r0000000x0000000xx\r0000000xxxxxxxxxx\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r00000000000000000\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "SLH<id>\u0002mobiles_chair1\u0002HSBHJH<id>\u0002mobiles_chair1\u0002HSCHPAH<id>\u0002mobiles_chair1\u0002HQDHJH<id>\u0002mobiles_chair1\u0002HREHJH<id>\u0002mobiles_chair1\u0002IRBHPAH<id>\u0002mobiles_chair1\u0002IQCHHH<id>\u0002mobiles_chair1\u0002IQEHPAH<id>\u0002mobiles_chair1\u0002IPFHHH<id>\u0002mobiles_chair1\u0002RBRBHPAH<id>\u0002mobiles_chair1\u0002SBQCHHH<id>\u0002mobiles_chair1\u0002SBREHJH<id>\u0002mobiles_chair1\u0002PCPCHRAH<id>\u0002mobiles_chair1\u0002PCQEHPAH<id>\u0002mobiles_chair1\u0002QCPFHHH<id>\u0002mobiles_chair1\u0002RCREHRAH<id>\u0002mobiles_chair1\u0002JSDHHH<id>\u0002mobiles_chair1\u0002KSBHRAH<id>\u0002mobiles_chair1\u0002KQDHRAH<id>\u0002mobiles_chair1\u0002KREHRAH<id>\u0002mobiles_chair1\u0002QAREHJH<id>\u0002mobiles_chair1\u0002SAPFHPAH<id>\u0002mobiles_chair1\u0002PBREHRAH<id>\u0002mobiles_chair1\u0002QBPCHJH<id>\u0002mobiles_chair3\u0002RBPAHHH<id>\u0002mobiles_chair3\u0002SBPAHHH<id>\u0002mobiles_chair3\u0002PCPAHHH<id>\u0002mobiles_chair3\u0002QBPAHHH<id>\u0002mobiles_table1\u0002IPCHHH<id>\u0002mobiles_table1\u0002IRDHHH<id>\u0002mobiles_table1\u0002ISEHHH<id>\u0002mobiles_table1\u0002RBPCHHH<id>\u0002mobiles_table1\u0002PCSEHHH<id>\u0002mobiles_table1\u0002RAREHHH<id>\u0002mobiles_table2\u0002ISBHHH<id>\u0002mobiles_table2\u0002IQDHHH<id>\u0002mobiles_table2\u0002IREHHH<id>\u0002mobiles_table2\u0002RBSBHHH<id>\u0002mobiles_table2\u0002PCREHHH<id>\u0002mobiles_table2\u0002RAQEHHH<id>\u0002mobiles_table3\u0002SBSBHHH<id>\u0002mobiles_table3\u0002QCREHHH<id>\u0002mobiles_table3\u0002JSBHHH<id>\u0002mobiles_table3\u0002JQDHHH<id>\u0002mobiles_table3\u0002JREHHH<id>\u0002mobiles_table3\u0002SAQEHHH<id>\u0002mobiles_table4\u0002SBPCHHH<id>\u0002mobiles_table4\u0002QCSEHHH<id>\u0002mobiles_table4\u0002JPCHHH<id>\u0002mobiles_table4\u0002JRDHHH<id>\u0002mobiles_table4\u0002JSEHHH<id>\u0002mobiles_table4\u0002SAREHH",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "b",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IHMaarit\u0002:) \u0002sd=001&sh=001/255,115,41&lg=003/0,0,0&ch=018/0,0,0&lh=001/255,203,1522&rh=001/255,203,152&hd=001/255,203,152&ey=001&fc=001/255,203,152&hr=507/225,204,120&rs=001/255,255,255&ls=001/255,255,255&bd=001/255,255,255\u0002ISBJ0.0\u0002PAK",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HJI0.0\u0002PAIF\u0002MMM\u0002HMaarit\u0002:) \u0002sd=001&sh=001/255,115,41&lg=003/0,0,0&ch=018/0,0,0&lh=001/255,203,1522&rh=001/255,203,152&hd=001/255,203,152&ey=001&fc=001/255,203,152&hr=507/225,204,120&rs=001/255,255,255&ls=001/255,255,255&bd=001/255,255,255\u0002ISBJ0.0\u0002PAK",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHJI0.0\u0002PAPA/\u0002ISBJ0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "039767150480142322674824\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#26EDFB96EEBE45A8B834C2000C885565\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 2,
+      "name": "ROOM_DIRECTORY",
+      "body": "ISD",
+      "settle_ms": 600,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 19,
+              "name": "OPEN_CONNECTION",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 166,
+              "name": "ROOM_URL",
+              "body": "/client/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "old_skool0\u0002SD",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJJI0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJJI0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xx0xxxxxxxxxxxxxx\r0000000xxx00000xx\r0000000x0000000xx\r0000000xxxxxxxxxx\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r00000000000000000\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r0000000000000000x\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "SLH<id>\u0002mobiles_chair1\u0002HSBHJH<id>\u0002mobiles_chair1\u0002HSCHPAH<id>\u0002mobiles_chair1\u0002HQDHJH<id>\u0002mobiles_chair1\u0002HREHJH<id>\u0002mobiles_chair1\u0002IRBHPAH<id>\u0002mobiles_chair1\u0002IQCHHH<id>\u0002mobiles_chair1\u0002IQEHPAH<id>\u0002mobiles_chair1\u0002IPFHHH<id>\u0002mobiles_chair1\u0002RBRBHPAH<id>\u0002mobiles_chair1\u0002SBQCHHH<id>\u0002mobiles_chair1\u0002SBREHJH<id>\u0002mobiles_chair1\u0002PCPCHRAH<id>\u0002mobiles_chair1\u0002PCQEHPAH<id>\u0002mobiles_chair1\u0002QCPFHHH<id>\u0002mobiles_chair1\u0002RCREHRAH<id>\u0002mobiles_chair1\u0002JSDHHH<id>\u0002mobiles_chair1\u0002KSBHRAH<id>\u0002mobiles_chair1\u0002KQDHRAH<id>\u0002mobiles_chair1\u0002KREHRAH<id>\u0002mobiles_chair1\u0002QAREHJH<id>\u0002mobiles_chair1\u0002SAPFHPAH<id>\u0002mobiles_chair1\u0002PBREHRAH<id>\u0002mobiles_chair1\u0002QBPCHJH<id>\u0002mobiles_chair3\u0002RBPAHHH<id>\u0002mobiles_chair3\u0002SBPAHHH<id>\u0002mobiles_chair3\u0002PCPAHHH<id>\u0002mobiles_chair3\u0002QBPAHHH<id>\u0002mobiles_table1\u0002IPCHHH<id>\u0002mobiles_table1\u0002IRDHHH<id>\u0002mobiles_table1\u0002ISEHHH<id>\u0002mobiles_table1\u0002RBPCHHH<id>\u0002mobiles_table1\u0002PCSEHHH<id>\u0002mobiles_table1\u0002RAREHHH<id>\u0002mobiles_table2\u0002ISBHHH<id>\u0002mobiles_table2\u0002IQDHHH<id>\u0002mobiles_table2\u0002IREHHH<id>\u0002mobiles_table2\u0002RBSBHHH<id>\u0002mobiles_table2\u0002PCREHHH<id>\u0002mobiles_table2\u0002RAQEHHH<id>\u0002mobiles_table3\u0002SBSBHHH<id>\u0002mobiles_table3\u0002QCREHHH<id>\u0002mobiles_table3\u0002JSBHHH<id>\u0002mobiles_table3\u0002JQDHHH<id>\u0002mobiles_table3\u0002JREHHH<id>\u0002mobiles_table3\u0002SAQEHHH<id>\u0002mobiles_table4\u0002SBPCHHH<id>\u0002mobiles_table4\u0002QCSEHHH<id>\u0002mobiles_table4\u0002JPCHHH<id>\u0002mobiles_table4\u0002JRDHHH<id>\u0002mobiles_table4\u0002JSEHHH<id>\u0002mobiles_table4\u0002SAREHH",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "KJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HJI0.0\u0002PAIF\u0002MMM\u0002HMaarit\u0002:) \u0002sd=001&sh=001/255,115,41&lg=003/0,0,0&ch=018/0,0,0&lh=001/255,203,1522&rh=001/255,203,152&hd=001/255,203,152&ey=001&fc=001/255,203,152&hr=507/225,204,120&rs=001/255,255,255&ls=001/255,255,255&bd=001/255,255,255\u0002ISBJ0.0\u0002PAKItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JJI0.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "KHJI0.0\u0002PAPA/\u0002ISBJ0.0\u0002PAPA/\u0002JJI0.0\u0002PAPA/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61\u0002JJI0.0\u0002PAIM\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 75,
+      "name": "WALK",
+      "body": "PDRD",
+      "note": "onto the walkway: a leaves for room 20",
+      "settle_ms": 9000,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJJI0.0\u0002KK/mv 3,2,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJKJ0.0\u0002KK/mv 4,3,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPAK0.0\u0002KK/mv 5,4,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQAPA0.0\u0002KK/mv 6,5,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRAQA0.0\u0002KK/mv 7,6,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSARA0.0\u0002KK/mv 8,7,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPBSA0.0\u0002KK/mv 9,8,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQBPB0.0\u0002KK/mv 10,9,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRBQB0.0\u0002KK/mv 11,10,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSBRB0.0\u0002KK/mv 12,11,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPCSB0.0\u0002KK/mv 13,12,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCPC0.0\u0002PAPA/mv 13,13,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCQC0.0\u0002PAPA/mv 13,14,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCRC0.0\u0002PAPA/mv 13,15,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCSC0.0\u0002KK/mv 14,16,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRCPD0.0\u0002KK/mv 15,17,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSCQD0.0\u0002KK/mv 16,18,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "old_skool1\u0002PE",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020.0\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "b": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJJI0.0\u0002KK/mv 3,2,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJKJ0.0\u0002KK/mv 4,3,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPAK0.0\u0002KK/mv 5,4,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQAPA0.0\u0002KK/mv 6,5,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRAQA0.0\u0002KK/mv 7,6,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSARA0.0\u0002KK/mv 8,7,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPBSA0.0\u0002KK/mv 9,8,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQBPB0.0\u0002KK/mv 10,9,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRBQB0.0\u0002KK/mv 11,10,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSBRB0.0\u0002KK/mv 12,11,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJPCSB0.0\u0002KK/mv 13,12,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCPC0.0\u0002PAPA/mv 13,13,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCQC0.0\u0002PAPA/mv 13,14,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCRC0.0\u0002PAPA/mv 13,15,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJQCSC0.0\u0002KK/mv 14,16,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJRCPD0.0\u0002KK/mv 15,17,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IJSCQD0.0\u0002KK/mv 16,18,0.0/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "2\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIISA6.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

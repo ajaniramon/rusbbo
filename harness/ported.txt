@@ -102,6 +102,7 @@ user-club-member
 user-effects
 user-ignore
 user-settings
+walkway-others
 welcome-alert
 wobble-squabble
 wobble-squabble-queue

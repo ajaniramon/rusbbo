@@ -73,6 +73,8 @@ pub enum Deferred {
     Left { session: Arc<Session>, room_id: u32 },
     /// The user stopped on a walkway: move them into the target room.
     Walkway {
+        /// The room the walkway is in.
+        from_room_id: u32,
         session: Arc<Session>,
         target_room_id: u32,
         destination: Option<Position>,
@@ -976,6 +978,7 @@ impl Room {
                 // The user is no longer in this room when the tick sends its statuses.
                 self.entities[idx].leaving_by_walkway = true;
                 self.deferred.push(Deferred::Walkway {
+                    from_room_id: self.id(),
                     session,
                     target_room_id: w.target_room_id,
                     destination: w.destination,
@@ -1636,6 +1639,7 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                 crate::game::messenger::manager::send_status_update(world, &session);
             }
             Deferred::Walkway {
+                from_room_id,
                 session,
                 target_room_id,
                 destination,
@@ -1644,7 +1648,23 @@ pub fn run_deferred(world: &World, deferred: Vec<Deferred>) {
                     .loaded_room(target_room_id)
                     .or_else(|| Room::load(world, target_room_id));
                 if let Some(target) = target {
-                    enter_room_with(world, &session, target, destination, true, true);
+                    enter_room_with(world, &session, target.clone(), destination, true, true);
+                    // Java: the old room's task set `needsUpdate` after the walkway and its loop
+                    // sends the walker's status, as it is in the new room, to the users left
+                    // behind (traces/walkway-others.json); the new room does not.
+                    let msgs = {
+                        let t = target.lock();
+                        t.entity_index(session.id).map(|i| {
+                            let e = &t.entities[i];
+                            [
+                                out_user::user_statuses(std::iter::once(e), &t.model.name, false),
+                                out_user::user_statuses(std::iter::once(e), &t.model.name, true),
+                            ]
+                        })
+                    };
+                    if let (Some(msgs), Some(old)) = (msgs, world.loaded_room(from_room_id)) {
+                        old.lock().send_pair(msgs);
+                    }
                 }
             }
             Deferred::TradeClosed { sides } => trade::run_closed(world, sides),
@@ -1779,8 +1799,8 @@ fn enter_room_with(
             } else if let Some(idx) = r.entity_index(session.id) {
                 // A room that was already running: Java's old room sets `needsUpdate` after the
                 // walkway (`EntityTask.processEntity` after `stopWalking`) and its loop takes it,
-                // so this room never sends the newcomer's status (traces/infobus-door.json).
-                // TODO(walkways): the old room sends it to its own users instead.
+                // so this room never sends the newcomer's status (traces/infobus-door.json): the
+                // old room sends it to its own users instead (`Deferred::Walkway`).
                 r.entities[idx].needs_update = false;
             }
         }

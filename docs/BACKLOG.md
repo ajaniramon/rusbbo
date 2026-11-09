@@ -26,7 +26,6 @@ before it is changed.
 | `collation` | MariaDB's accent-insensitive search (`e` = `é`) in room search |
 | `inventory` | Dropping hand items that are placed in the player's current room |
 | `rooms` | Java keeps the spam counters and the `:teleport` flag on the player across rooms |
-| `walkways` | Which room's users get a user's status when they cross a walkway |
 | `effects` | Effects bought or given by a totem arrive at the next login, as in Java (its `newEffect` bug); give them at once if Java is fixed |
 | `pool` | Java throws and skips the rest of `leaveRoom` when nobody ever sent `G_STAT` in a pool room |
 | `bans` | IP bans are stored but not enforced, as in Java (its check is commented out) |

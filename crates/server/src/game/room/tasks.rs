@@ -186,8 +186,8 @@ impl Room {
                 return Some(left);
             }
             // Java: an entity that took a walkway is already in the other room, so this room's
-            // statuses do not reach it. TODO(walkways): Java sends the others here its status as
-            // it is in the new room.
+            // statuses do not reach it; its status as it is in the new room goes to the others
+            // here once it moved (`Deferred::Walkway`).
             let e = &mut self.entities[idx];
             e.needs_update = !e.leaving_by_walkway;
             return None;
