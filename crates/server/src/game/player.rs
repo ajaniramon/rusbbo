@@ -24,6 +24,9 @@ pub struct Player {
     pub time_connected: i64,
     /// Token sent in `CRYPTO_PARAMETERS`; the key exchange will need it.
     pub crypto_token: Option<String>,
+    /// Java: `Player.getDiffieHellman()`: one key pair per connection, made at the first
+    /// `GENERATEKEY`.
+    pub dh: Option<rusbbo_protocol::crypto::DiffieHellman>,
     /// Machine id from `UNIQUEID`, or a generated one.
     pub client_machine_id: String,
     pub save_machine_id: bool,

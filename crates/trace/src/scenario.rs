@@ -19,6 +19,8 @@
 //! bot = "a"
 //! send = "ROOM_DIRECTORY"    # Java class name or numeric id
 //! args = [true, 1, 0]        # ints/bools -> VL64, strings -> client strings, {raw = ".."} -> bytes
+//!                            # ("$ticket" is the bot's ticket, "$public_key" its fixed
+//!                            # Diffie-Hellman public key)
 //!                            # `$gameid` anywhere in a body is replaced, when sent, by the game
 //!                            # id of the last OPENGAMEBOARD the bot received (game-hall tables
 //!                            # give each game a random id that the client repeats in `IIM`)
@@ -408,6 +410,7 @@ fn encode_args(args: &[Arg], ticket: &str) -> Result<Vec<u8>> {
             Arg::Bool(b) => body.bool(*b),
             Arg::Int(v) => body.int(*v),
             Arg::Str(s) if s == "$ticket" => body.string(ticket.as_bytes()),
+            Arg::Str(s) if s == "$public_key" => body.string(bot_public_key().as_bytes()),
             Arg::Str(s) => body.string(&escape::from_text(s).context("string is not ISO-8859-1")?),
             Arg::Raw { raw } => body.raw(&escape::from_text(raw).context("raw is not ISO-8859-1")?),
         };

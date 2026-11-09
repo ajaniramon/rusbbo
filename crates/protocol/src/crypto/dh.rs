@@ -99,18 +99,44 @@ impl DiffieHellman {
     /// Combines the peer's public key (decimal string, as `GENERATEKEY` carries it) with our private
     /// key and returns the cipher key bytes (Java: `generateSharedKey` + `HugeInt15.getByteArray`).
     ///
-    /// TODO(parity): Java's `new BigInteger(String)` also accepts a leading `+` or `-`; only plain
-    /// digits are accepted here.
+    /// The key is read like Java's `new BigInteger(String)`: digits after an optional `+` or `-`
+    /// (a negative key is taken modulo `p`, as `modPow` does).
     pub fn shared_key(&self, peer_public: &[u8]) -> Result<Vec<u8>, CryptoError> {
-        if peer_public.is_empty() || !peer_public.iter().all(u8::is_ascii_digit) {
+        let (negative, digits) = match peer_public.first() {
+            Some(b'-') => (true, &peer_public[1..]),
+            Some(b'+') => (false, &peer_public[1..]),
+            _ => (false, peer_public),
+        };
+        if digits.is_empty() || !digits.iter().all(u8::is_ascii_digit) {
             return Err(CryptoError::BadPublicKey);
         }
-        let peer = BigUint::parse_bytes(peer_public, 10).ok_or(CryptoError::BadPublicKey)?;
+        let mut peer = BigUint::parse_bytes(digits, 10).ok_or(CryptoError::BadPublicKey)? % &self.p;
+        if negative && peer != BigUint::ZERO {
+            peer = &self.p - peer;
+        }
         let key = key_bytes(&peer.modpow(&self.private, &self.p));
         // Java: a zero secret has no key bytes and `new Cryptography` divides by zero.
         if key.is_empty() {
             return Err(CryptoError::EmptyKey);
         }
         Ok(key)
+    }
+}
+
+#[cfg(test)]
+mod sign_tests {
+    use super::*;
+
+    #[test]
+    fn peer_keys_read_like_java_big_integer() {
+        let dh = DiffieHellman::new(12345).unwrap();
+        let (_, p) = parameters();
+        let minus = dh.shared_key(b"-5").unwrap();
+        let wrapped = (&p - BigUint::from(5u32)).to_string();
+        assert_eq!(minus, dh.shared_key(wrapped.as_bytes()).unwrap());
+        assert_eq!(dh.shared_key(b"+5").unwrap(), dh.shared_key(b"5").unwrap());
+        assert!(dh.shared_key(b"+").is_err());
+        assert!(dh.shared_key(b"12a").is_err());
+        assert!(matches!(dh.shared_key(b"0"), Err(CryptoError::EmptyKey)));
     }
 }

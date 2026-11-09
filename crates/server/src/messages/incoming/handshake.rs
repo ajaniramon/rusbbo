@@ -49,8 +49,10 @@ pub fn init_crypto(
 /// the encoder pipeline before `setDecoder` adds the cipher handlers; confirmed against the oracle).
 /// The session queue keeps that order: `SECRET_KEY` is queued before the `Encrypt` marker.
 ///
-/// TODO(parity): a second `GENERATEKEY` on an encrypted connection is ignored; Java answers it
-/// (encrypted) and then fails with a duplicate handler name.
+/// A second `GENERATEKEY` on an encrypted connection is answered (encrypted, with the same public
+/// key: Java keeps one key pair per player); Java's cipher setup then throws on the duplicate
+/// handler names and the first cipher stays. A shared secret of zero is answered too, before
+/// Java's cipher divides by zero: the connection stays plain.
 pub fn generate_key(
     _: &World,
     session: &Arc<Session>,
@@ -58,41 +60,53 @@ pub fn generate_key(
 ) -> Result<(), Malformed> {
     let token = {
         let p = session.player.lock();
-        if p.logged_in || session.is_encrypted() {
+        if p.logged_in {
             return Ok(());
         }
         // Without INIT_CRYPTO Java's counters stay at their default of 0.
         p.crypto_token.clone().unwrap_or_else(|| "0000".to_string())
     };
     let client_public = reader.string().ok_or(Malformed)?;
-    // Java draws 64 random bits and retries on zero.
-    let mut rng = rand::rng();
-    let dh = loop {
-        if let Some(dh) = DiffieHellman::new(rng.random()) {
-            break dh;
-        }
+    let (public, key) = {
+        let mut p = session.player.lock();
+        let dh = p.dh.get_or_insert_with(|| {
+            // Java draws 64 random bits and retries on zero.
+            let mut rng = rand::rng();
+            loop {
+                if let Some(dh) = DiffieHellman::new(rng.random()) {
+                    break dh;
+                }
+            }
+        });
+        (dh.public_key(), dh.shared_key(client_public))
     };
-    let key = match dh.shared_key(client_public) {
+    let key = match key {
         Ok(key) => key,
+        Err(rusbbo_protocol::crypto::CryptoError::EmptyKey) => {
+            session.send(outgoing::handshake::secret_key(&public));
+            return Ok(());
+        }
         Err(e) => {
-            // Java throws here, sends nothing and stays unencrypted.
+            // Java throws in `new BigInteger`, sends nothing and stays as it is.
             tracing::warn!(conn = session.id, "GENERATEKEY: {e}");
             return Ok(());
         }
     };
     // Java: on the Flash port `registerHandler(RC4)` returns at once: the connection stays plain.
-    if session.is_flash() {
-        session.send(outgoing::handshake::secret_key(&dh.public_key()));
+    // On an encrypted connection the second cipher fails to install.
+    if session.is_flash() || session.is_encrypted() {
+        session.send(outgoing::handshake::secret_key(&public));
         return Ok(());
     }
     let crypto = match Crypto::server(&key, &token) {
         Ok(c) => c,
         Err(e) => {
             tracing::warn!(conn = session.id, "GENERATEKEY: {e}");
+            session.send(outgoing::handshake::secret_key(&public));
             return Ok(());
         }
     };
-    session.send(outgoing::handshake::secret_key(&dh.public_key()));
+    session.send(outgoing::handshake::secret_key(&public));
     session.enable_encryption(crypto);
     Ok(())
 }

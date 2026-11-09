@@ -48,6 +48,7 @@ gamehall-chess-draw
 gamehall-chess-mate
 gamehall-poker
 gamehall-tictactoe
+generatekey-parity
 groups-room
 guides
 idle-timeout
