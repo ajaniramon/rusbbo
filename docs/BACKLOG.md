@@ -12,7 +12,6 @@ oracle first, passing against it twice, then the port.
 
 | Feature | Tag | What is missing | Aeyra today |
 |---|---|---|---|
-| Hidden public rooms | `publics` | Hidden public rooms in the navigator and teleporters in public rooms | not used |
 | E-mail | `email` | Havana-Web's SMTP mails: password recovery, activation codes | SMTP off |
 
 ## Small parity differences

@@ -176,7 +176,7 @@ pub fn on_interact(
         with_room(&rm, |r| set_status(r, virtual_id, TELEPORTER_EFFECTS));
     });
     let (s, rm) = (session.clone(), room.clone());
-    schedule(world, ms(1500), move |_| {
+    schedule(world, ms(1500), move |world| {
         if !is_teleporting(&s) {
             return;
         }
@@ -190,7 +190,7 @@ pub fn on_interact(
             }
         });
         if !same_room {
-            forward(&s, pair.1);
+            forward(world, &s, pair.1);
         }
     });
     if same_room {
@@ -251,7 +251,7 @@ fn stuck_timers(
         });
     });
     let (s, rm) = (session.clone(), room.clone());
-    schedule(world, ms(2000), move |_| {
+    schedule(world, ms(2000), move |world| {
         if !is_teleporting(&s) {
             return;
         }
@@ -260,7 +260,7 @@ fn stuck_timers(
                 warp_to_pair(r, s.id, pair.0);
             });
         } else {
-            forward(&s, pair.1);
+            forward(world, &s, pair.1);
         }
     });
     if !same_room {
@@ -310,14 +310,18 @@ fn warp_to_pair(r: &mut Room, session_id: u64, pair_id: u64) {
 }
 
 /// Java: `roomUser.setAuthenticateId(room)` and `pairedTeleporter.getRoom().forward(player,
-/// false)`: the client follows with `TRYFLAT` and `GOTOFLAT`. TODO(publics): teleporters in
-/// public rooms (the public room id offset and redirections of `Room.forward`).
-fn forward(session: &Session, room_id: i32) {
+/// false)`: the client follows with `TRYFLAT` and `GOTOFLAT`. `Room.forward` adds the public room
+/// offset for Shockwave and sends a hidden public room's visitors to its walkway's room; the
+/// authenticated room stays the teleporter's.
+fn forward(world: &World, session: &Session, room_id: i32) {
     let Ok(id) = u32::try_from(room_id) else {
         return;
     };
     session.player.lock().authenticate_id = Some(id);
-    session.send(out_messenger::room_forward(false, room_id));
+    match world.room_by_id(id) {
+        Some(room) => crate::game::moderation::forward(world, session, &room),
+        None => session.send(out_messenger::room_forward(false, room_id)),
+    }
 }
 
 /// Java: the teleporter arrival in `RoomEntityManager.silentlyEnterRoom`: the user who came

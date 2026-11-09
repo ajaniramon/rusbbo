@@ -41,6 +41,7 @@ flat-trax
 flat-vending
 flat-visit
 flat-votes
+follow-hidden
 gamehall-battleships
 gamehall-chess
 gamehall-chess-draw
@@ -89,6 +90,7 @@ staff-bot
 staff-commands
 staff-ops
 staff-rank
+teleport-public
 text-latin1
 trade
 trade-redeemable
