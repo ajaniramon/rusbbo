@@ -201,30 +201,6 @@ pub fn count_member_days(world: &World, p: &mut Player) {
         .set_long_value(&world.store, stat::CLUB_MEMBER_TIME_UPDATED, now());
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn subscription_choices() {
-        assert_eq!(choice_data(1), (25, 31));
-        assert_eq!(choice_data(2), (60, 93));
-        assert_eq!(choice_data(3), (105, 186));
-        assert_eq!(choice_data(0).1, -1);
-        assert_eq!(choice_data(4).1, -1);
-    }
-
-    #[test]
-    fn expired_users_have_no_club() {
-        let mut user = User::default();
-        assert!(!has_club(&user));
-        user.club_expiration = 1;
-        assert!(!has_club(&user));
-        user.club_expiration = now() + 100;
-        assert!(has_club(&user));
-    }
-}
-
 /// Java: `ClubSubscription.giftOrder` (after the club sofa of the first subscription).
 pub const GIFT_ORDER: [&str; 22] = [
     "hc_tv",
@@ -380,4 +356,28 @@ pub fn try_next_gift(world: &World, session: &Session, p: &mut Player) -> Result
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn subscription_choices() {
+        assert_eq!(choice_data(1), (25, 31));
+        assert_eq!(choice_data(2), (60, 93));
+        assert_eq!(choice_data(3), (105, 186));
+        assert_eq!(choice_data(0).1, -1);
+        assert_eq!(choice_data(4).1, -1);
+    }
+
+    #[test]
+    fn expired_users_have_no_club() {
+        let mut user = User::default();
+        assert!(!has_club(&user));
+        user.club_expiration = 1;
+        assert!(!has_club(&user));
+        user.club_expiration = now() + 100;
+        assert!(has_club(&user));
+    }
 }
