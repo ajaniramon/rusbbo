@@ -3,8 +3,9 @@ description = "The staff chat commands: :help for an administrator, alerts (:ha,
 
 # Room 7 (ballroom, no NPCs). s = tracestaff (ADMINISTRATOR, instance 0), a = tracebot1
 # (instance 1), m = tracemod (MODERATOR, instance 2). tracebot2 stays offline (offline targets).
-# Commands are never chat: nobody looks, so no look timer. The only plain chat that is heard is
-# m's, near the end, which waits 8 s for the look timer.
+# Commands are never chat: nobody looks, so no look timer. A command above the user's rank is
+# plain chat (and waits for the look timer): chat-commands covers it, here it would take s's part
+# past 60 s.
 # Left out: :giftroom (random gift wrapping), :headrotate (a 200 ms timer), :copyroom;
 # :uptime, :usersonline, :shutdown and :reload catalogue/games are in staff-ops, :bot in
 # staff-bot.
@@ -363,13 +364,6 @@ args = [":resetpw tracebot2"]
 bot = "m"
 send = "CHAT"
 args = [":dc tracestaff"]
-
-[[steps]]
-bot = "m"
-send = "CHAT"
-args = [":givecredits tracebot1 5"]
-settle_ms = 9500
-note = "Above a moderator's rank: plain chat, heard (and looked at) by the others"
 
 # --- Disconnect and bans ---
 

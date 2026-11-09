@@ -131,20 +131,23 @@ pub fn me(conn: &mut Conn) -> WebResult {
         .map(model::alert)
         .collect();
     tpl.set("alerts", Value::list(shown_alerts));
-    let groups_value = |staff: bool| {
+    let groups_value = |list: &[rusbbo_storage::Group]| {
         Value::list(
-            data::recommended_groups(&world, staff)
-                .iter()
+            list.iter()
                 .map(|g| model::group(&world, g))
                 .collect::<Vec<_>>(),
         )
     };
-    tpl.set("recommendedGroups", groups_value(false));
-    tpl.set("staffPickGroups", groups_value(true));
+    tpl.set(
+        "recommendedGroups",
+        groups_value(&snapshot.recommended_groups),
+    );
+    tpl.set("staffPickGroups", groups_value(&snapshot.staff_pick_groups));
     tpl.set(
         "staffPickRooms",
         Value::list(
-            data::recommended_rooms(&world, true)
+            snapshot
+                .staff_pick_rooms
                 .iter()
                 .map(|r| model::room(&world, r))
                 .collect::<Vec<_>>(),

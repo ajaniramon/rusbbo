@@ -95,7 +95,8 @@ pub fn get_catalogue_page(
 /// While the hotel is closing (`:shutdown`) nothing is bought: `INFO_HOTEL_CLOSING`.
 /// TODO(collectables): collectable prices and page rules.
 /// The badges the sale code rewards (`catalogue_sale_badges`) come last, gifts included.
-/// TODO(flash,rooms): `getView("new")` after buying, for Flash clients and players in a room.
+/// A Flash client, or a player in a room, is shown the hand after buying (not for film or an
+/// effect).
 pub fn grpc(
     world: &World,
     session: &Arc<Session>,
@@ -225,6 +226,11 @@ pub fn grpc(
         }
     };
     bought.apply(&world.items, session, p);
+    // Java: `showItemDelivered`.
+    if !is_film && (session.is_flash() || p.room_id.is_some()) {
+        let hand = p.inventory.get_view(&world.store, "new");
+        session.send(outgoing::inventory::inventory(&hand));
+    }
     if let Some(details) = p.details.as_mut() {
         send_charge(session, details, charge);
     }

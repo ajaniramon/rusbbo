@@ -180,9 +180,10 @@ pub fn place_stuff(
     }
     r.add_flat_item(world, item);
     p.inventory.take_item(item_id);
-    // Java: `getView("new")` for a Flash client, whose result is dropped.
+    // Java: `getView("new")` (the hand) for a Flash client.
     if session.is_flash() {
-        let _ = p.inventory.get_view(&world.store, "new");
+        let hand = p.inventory.get_view(&world.store, "new");
+        session.send(out_inventory::inventory(&hand));
     }
     if let Some(idx) = r.entity_index(session.id) {
         r.reset_room_timer(world, idx);
@@ -442,15 +443,13 @@ pub fn remove_item(
             error!(item = flat.record.id, "deleting an item: {e}");
         }
     }
-    // Java: `getView("new")` for a Flash client, whose result is dropped.
+    // Java: `getView("new")` (the hand) for a Flash client.
     if session.is_flash() {
         let session = session.clone();
         r.defer(move |world| {
-            let _ = session
-                .player
-                .lock()
-                .inventory
-                .get_view(&world.store, "new");
+            let mut p = session.player.lock();
+            let hand = p.inventory.get_view(&world.store, "new");
+            session.send(out_inventory::inventory(&hand));
         });
     }
     if let Some(e) = r.entity_index(session.id) {

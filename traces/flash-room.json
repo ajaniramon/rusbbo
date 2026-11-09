@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#CAB028F77F464AF4A36D2846EB49BEB3\u0002",
+              "body": "#CD8EA2981C24444EB498C9F7F1A77175\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -153,7 +153,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "737868343408690896867794\u0002I",
+              "body": "925042752009561175101857\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -185,7 +185,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#DF607D5F13A54873A0FC61ADAE281BF5\u0002",
+              "body": "#7D4766785E2D49BA8106ED507613C8A6\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -889,6 +889,170 @@
     {
       "bot": "f",
       "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HZAB@@H",
+      "note": "chair_plasto: a Flash client is shown the hand after buying",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IIHS\u0002I[\\AI0\u0002IIIM\u0002MI",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1117",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HZAB@@H",
+      "note": "so is a Shockwave client in a room",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IJHS\u0002J[\\AI0\u0002IIIM\u0002MI",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1117",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 90,
+      "name": "PLACESTUFF",
+      "body": "@G1 6 5 0",
+      "note": "the hand again for a Flash client",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 219,
+              "name": "HEIGHTMAP_UPDATE",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 93,
+              "name": "PLACE_FLOORITEM",
+              "body": "I[\\ARAQAH0.0\u0002H0\u0002M",
+              "check": "exact"
+            },
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 219,
+              "name": "HEIGHTMAP_UPDATE",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 93,
+              "name": "PLACE_FLOORITEM",
+              "body": "I[\\ARAQAH0.0\u0002H0\u0002M",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 85,
+      "name": "REMOVEITEM",
+      "body": "I",
+      "note": "and after deleting an item",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 219,
+              "name": "HEIGHTMAP_UPDATE",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 94,
+              "name": "REMOVE_FLOORITEM",
+              "body": "1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 219,
+              "name": "HEIGHTMAP_UPDATE",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 94,
+              "name": "REMOVE_FLOORITEM",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
       "header": 96,
       "name": "ASSIGNRIGHTS",
       "body": "J",
@@ -1030,7 +1194,7 @@
             {
               "header": 370,
               "name": "ROOMEEVENT_INFO",
-              "body": "1\u0002tracebot1\u00021000\u0002IFlash party\u0002Come along\u000209-11-2026 03:20:50\u0002Jmusic\u0002fun\u0002",
+              "body": "1\u0002tracebot1\u00021000\u0002IFlash party\u0002Come along\u000209-11-2026 03:38:01\u0002Jmusic\u0002fun\u0002",
               "check": "mask",
               "mask": ".........................................??????????.????????............"
             }
@@ -1043,7 +1207,7 @@
             {
               "header": 370,
               "name": "ROOMEEVENT_INFO",
-              "body": "1\u0002tracebot1\u00021000\u0002IFlash party\u0002Come along\u000209-11-2026 03:20:50\u0002",
+              "body": "1\u0002tracebot1\u00021000\u0002IFlash party\u0002Come along\u000209-11-2026 03:38:01\u0002",
               "check": "mask",
               "mask": ".........................................??????????.????????."
             }
@@ -1110,6 +1274,529 @@
     {
       "bot": "f",
       "action": "send",
+      "header": 348,
+      "name": "EDIT_ROOMEVENT",
+      "body": "K@MFlash party 2@HStill onI@Edance",
+      "settle_ms": 800,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "1\u0002tracebot1\u00021000\u0002KFlash party 2\u0002Still on\u000209-11-2026 03:38:01\u0002Idance\u0002",
+              "check": "mask",
+              "mask": ".........................................??????????.????????........"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "1\u0002tracebot1\u00021000\u0002KFlash party 2\u0002Still on\u000209-11-2026 03:38:01\u0002",
+              "check": "mask",
+              "mask": ".........................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JShock Room@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "YzCShock Room\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 57,
+      "name": "TRYFLAT",
+      "body": "YzC@@",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 41,
+              "name": "FLAT_LETIN",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 59,
+      "name": "GOTOFLAT",
+      "body": "YzC",
+      "settle_ms": 600,
+      "ignore_status": [
+        "flatctrl"
+      ],
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 29,
+              "name": "LOGOUT",
+              "body": "1\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "model_a\u0002YzC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 47,
+              "name": "YOUAROWNER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 42,
+              "name": "YOUARECONTROLLER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "-1\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 60,
+      "name": "G_HMAP",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 61,
+      "name": "G_USRS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 62,
+      "name": "G_OBJS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 309,
+              "name": "GROUP_BADGES",
+              "body": "HH",
+              "check": "exact"
+            },
+            {
+              "header": 297,
+              "name": "ALIAS_TOGGLE",
+              "body": "HH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 63,
+      "name": "G_ITEMS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 45,
+              "name": "ITEMS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 64,
+      "name": "G_STAT",
+      "body": "",
+      "settle_ms": 1200,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IHKQA0.0\u0002JJ/flatctrl useradmin/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "s",
+      "action": "send",
+      "header": 346,
+      "name": "CREATE_ROOMEVENT",
+      "body": "I@KShock party@EHello",
+      "note": "a Shockwave event has one empty tag",
+      "settle_ms": 800,
+      "received": {
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "2\u0002tracebot2\u00021001\u0002IShock party\u0002Hello\u000209-11-2026 03:38:08\u0002",
+              "check": "mask",
+              "mask": "....................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 57,
+      "name": "TRYFLAT",
+      "body": "YzC@@",
+      "settle_ms": 300,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 41,
+              "name": "FLAT_LETIN",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 59,
+      "name": "GOTOFLAT",
+      "body": "YzC",
+      "settle_ms": 600,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 69,
+              "name": "ROOM_READY",
+              "body": "model_a\u0002YzC",
+              "check": "exact"
+            },
+            {
+              "header": 46,
+              "name": "FLATPROPERTY",
+              "body": "landscape\u00020\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 43,
+              "name": "YOUNOTCONTROLLER",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 345,
+              "name": "UPDATE_VOTES",
+              "body": "M",
+              "check": "exact"
+            },
+            {
+              "header": 370,
+              "name": "ROOMEEVENT_INFO",
+              "body": "2\u0002tracebot2\u00021001\u0002IShock party\u0002Hello\u000209-11-2026 03:38:08\u0002I\u0002",
+              "check": "mask",
+              "mask": "....................................??????????.????????..."
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "IIKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
+      "header": 390,
+      "name": "GETROOMAD/G_HMAP",
+      "body": "",
+      "note": "the Flash client sees the Shockwave event's empty tag",
+      "settle_ms": 1500,
+      "received": {
+        "f": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 208,
+              "name": "ROOMAD/ROOM_AD",
+              "body": "\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 45,
+              "name": "ITEMS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HKQA0.0\u0002JIF\u0002MMM\u0002Itracebot1\u0002trace bot one \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 471,
+              "name": "FLASH_ROOMENTRYINFO",
+              "body": "IYzCH",
+              "check": "exact"
+            },
+            {
+              "header": 454,
+              "name": "FLASH_FLATINFO",
+              "body": "IYzCHShock Room\u0002tracebot2\u0002HJQF\u0002IHHJ\u0002HHHHI",
+              "check": "exact"
+            },
+            {
+              "header": 30,
+              "name": "OBJECTS_WORLD",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 32,
+              "name": "ACTIVE_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "JJtracebot2\u0002trace bot two \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002HKQA0.0\u0002JIF\u0002MMM\u0002Itracebot1\u0002trace bot one \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 34,
+              "name": "USER_STATUSES",
+              "body": "JHKQA0.0\u0002JJ/flatctrl useradmin/\u0002IKQA0.0\u0002JJ/\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 31,
+              "name": "HEIGHTMAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            },
+            {
+              "header": 470,
+              "name": "FLOOR_MAP",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxx000000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r",
+              "check": "exact"
+            },
+            {
+              "header": 219,
+              "name": "HEIGHTMAP_UPDATE",
+              "body": "xxxxxxxxxxxx\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxx00000000\rxxxxxxxxxxxx\rxxxxxxxxxxxx\r\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "H",
+              "check": "exact"
+            }
+          ]
+        },
+        "s": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 28,
+              "name": "USER_OBJECTS",
+              "body": "IItracebot1\u0002trace bot one \u0002hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33\u0002IKQA0.0\u0002JIF\u0002MMM\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "f",
+      "action": "send",
       "header": 53,
       "name": "QUIT",
       "body": "",
@@ -1134,7 +1821,7 @@
             {
               "header": 29,
               "name": "LOGOUT",
-              "body": "0\u0002",
+              "body": "1\u0002",
               "check": "exact"
             }
           ]

@@ -3,7 +3,6 @@
 
 use std::sync::Arc;
 
-use rusbbo_protocol::Message;
 use rusbbo_protocol::body::ClientReader;
 
 use super::latin1;
@@ -88,7 +87,9 @@ pub fn create_room_event(
     }
     let name = event_text(world, reader.string().ok_or(Malformed)?);
     let description = event_text(world, reader.string().ok_or(Malformed)?);
-    let tags = flash_tags(session, reader)?.unwrap_or_default();
+    // Java: `new Event(.., String.join(",", tags))` splits them again, so a Shockwave event
+    // (no tags) has one empty tag.
+    let tags = events::java_split(&flash_tags(session, reader)?.unwrap_or_default().join(","));
     let Some(user_id) = session.player.lock().user_id() else {
         return Ok(());
     };

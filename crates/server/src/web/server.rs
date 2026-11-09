@@ -150,7 +150,6 @@ pub fn dispatch(
         ip: client_ip(&headers, peer),
         headers,
         cookies_in,
-        session_id: session_id.clone(),
         session: session.clone(),
         cookies_out: Vec::new(),
         response: None,
@@ -345,21 +344,4 @@ fn static_file(web: &Web, conn: &Conn, uri: &str) -> StaticResult {
     r.headers
         .push(("last-modified".into(), http_date(modified)));
     StaticResult::Served(r)
-}
-
-/// For tests: a request without a socket.
-#[cfg(test)]
-pub fn dispatch_test(web: &Web, method: &str, uri: &str, cookie: Option<&str>, body: &str) -> Resp {
-    let mut headers = Vec::new();
-    if let Some(c) = cookie {
-        headers.push(("cookie".to_string(), c.to_string()));
-    }
-    dispatch(
-        web,
-        method,
-        uri,
-        headers,
-        body.as_bytes(),
-        "127.0.0.1:1".parse().unwrap(),
-    )
 }

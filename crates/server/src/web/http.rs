@@ -72,10 +72,6 @@ impl Query {
         self.values.is_empty()
     }
 
-    pub fn set(&mut self, key: &str, value: &str) {
-        self.values.insert(key.to_string(), vec![value.to_string()]);
-    }
-
     pub fn keys(&self) -> impl Iterator<Item = &String> {
         self.values.keys()
     }

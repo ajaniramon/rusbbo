@@ -12,6 +12,10 @@ catalogue-trophy
 chat-commands
 chat-filter
 client-flow
+club-gifts
+flash-login
+flash-navigator
+flash-room
 flat-bed
 flat-create
 flat-decor
@@ -41,6 +45,8 @@ gamehall-chess-draw
 gamehall-chess-mate
 gamehall-poker
 gamehall-tictactoe
+groups-room
+guides
 idle-timeout
 infobus-door
 infobus-poll
@@ -62,6 +68,7 @@ pool-tickets
 public-room
 rcon-trade
 rcon-users
+recycler
 rooftop-camera
 room-bots
 room-two-bots

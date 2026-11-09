@@ -30,8 +30,6 @@ const DAYS: [&str; 7] = [
 pub const LONG_DATE: &str = "dd-MM-yyyy HH:mm:ss";
 /// Java: `DateUtil.SHORT_DATE`.
 pub const SHORT_DATE: &str = "dd-MM-yyyy";
-/// Java: `DateUtil.SHORT_DATE_TIME`.
-pub const SHORT_DATE_TIME: &str = "dd-MM-yyyy hh:mm a";
 
 /// Java: `DateUtil.getDate(seconds, format)`.
 pub fn format(seconds: i64, pattern: &str) -> String {

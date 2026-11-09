@@ -1,8 +1,8 @@
 # rusbbo
 
 A Rust rewrite of [Havana](https://github.com/Quackster/Havana), the Habbo Hotel v31 (Shockwave)
-server, formerly `havana-rs`. One binary with an embedded key-value store (redb) instead of
-MariaDB, small enough to run on a Raspberry Pi.
+and r39 (Flash) server and its website (Havana-Web), formerly `havana-rs`. One binary with an
+embedded key-value store (redb) instead of MariaDB, small enough to run on a Raspberry Pi.
 
 The Java server is the reference. Anything the Rust server does is judged by one question: **does
 it answer the clients exactly like the Java server does?** The trace harness in this repository
@@ -13,12 +13,14 @@ must give the same bytes back.
 
 - **Coverage**: logging in (plain and encrypted), the navigator, public and private rooms,
   furniture and the item interactors, the catalogue and purchases, the messenger, trading,
-  NPCs and pets, the room dimmer and the jukebox, moderation and bans, the website's ticket API,
-  the Habbo Lido, the public room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop
-  Rumble), the game hall tables, and BattleBall and SnowStorm. Details below; what is left is under
-  [Known gaps](#known-gaps).
-- **Conformance**: the 88 traces in `traces/` pass against the Java server and against
-  `rusbbo-server` (`harness/ported.txt`). The real v31 client (HabboLauncher) has been played
+  NPCs and pets, the room dimmer and the jukebox, moderation and bans, the Habbo Lido, the public
+  room triggers (Wobble Squabble, Infobus, Space Cafe, Rooftop Rumble), the game hall tables,
+  BattleBall and SnowStorm, groups, guides, user tags, room ads, the Ecotron recycler and club
+  gifts; the Flash client on its own port ([docs/FLASH.md](docs/FLASH.md)); and the whole website,
+  housekeeping and imager included ([docs/WEB.md](docs/WEB.md)). Details below; what is left is
+  under [Known gaps](#known-gaps) and in [docs/BACKLOG.md](docs/BACKLOG.md).
+- **Conformance**: the 95 game traces in `traces/` (`harness/ported.txt`) and the 16 web traces
+  in `traces/web/` pass against the Java server and against `rusbbo-server`. The real v31 client (HabboLauncher) has been played
   against it on a copy of a real hotel's database, including the Lido, the game hall, BattleBall
   and SnowStorm.
 - **Performance**: same data and machine (12 cores, WSL), 500 bots logging in, entering public
@@ -38,8 +40,12 @@ must give the same bytes back.
 cargo build --release
 # Copy a Java Havana database into a redb file (once; the server never talks to MariaDB).
 target/release/rusbbo-import --mysql mysql://user:pass@host:3306/havana --out rusbbo.redb
-# Serve the Shockwave port and the website's ticket API for the launcher.
-target/release/rusbbo-server --db rusbbo.redb --bind 0.0.0.0:12321 --http 0.0.0.0:8095
+# Serve the Shockwave port, the Flash port and the website (templates and files from Havana's
+# tools/ directory, see docs/WEB.md).
+target/release/rusbbo-server --db rusbbo.redb --bind 0.0.0.0:12321 --flash-bind 0.0.0.0:12323 \
+  --figuredata havana/tools/figuredata.xml \
+  --web 0.0.0.0:80 --web-templates havana/tools/www-tpl --web-site havana/tools/www \
+  --web-figuredata havana/tools/figuredata.xml --web-imaging imaging/
 ```
 
 The trace harness, the load test and the id generators also need a checkout of the Java Havana
@@ -52,6 +58,8 @@ oracle, so they run locally (see [Trace harness](#trace-harness)).
 | Path | What it is |
 |---|---|
 | `docs/DESIGN.md` | Architecture decisions: crates, concurrency model, redb data model, import, handshake |
+| `docs/WEB.md`, `docs/FLASH.md` | The website port and the Flash client |
+| `docs/BACKLOG.md` | Java features not ported yet |
 | `crates/protocol` | FUSE wire protocol: Base64/VL64 encodings, framing, body builders, message id tables |
 | `crates/storage` | redb storage: typed tables with their secondary indexes, schema version |
 | `crates/server` | `rusbbo-server`: the game server (tokio). Mirrors the Java packages: `messages/incoming`, `messages/outgoing`, `game` |
@@ -80,6 +88,11 @@ Argon2 hashes the Java web wrote (`users.password`). Each client IP may make
 at a time (each needs 64 MiB). Behind a reverse proxy every request has the proxy's IP, so the
 limit is shared. A bad login is a `404` with an empty body (Java sends its 404 page).
 `--dev-ticket` stays for the trace harness.
+
+The website itself (`--web`, [docs/WEB.md](docs/WEB.md)) serves the same ticket routes and every
+Havana-Web page from the game server's process, on the same store. The Flash client connects to
+`--flash-bind` ([docs/FLASH.md](docs/FLASH.md)); `--figuredata` is the figure data its
+`CHANGE_LOOKS` is checked against.
 
 To check it against the corpus (needs the oracle's MariaDB container for the fixture):
 
@@ -400,6 +413,13 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
 | `infobus-door` | the Infobus's door in the park: `BUS_DOOR`, `TRYBUS` and the door tile while closed, opening and closing it over RCON, walking into the bus and back out with `CHANGEWORLD` |
 | `rcon-users` | RCON: hotel, user and room alerts, refreshing credits, looks, club, hand and tags, friend requests, messenger categories, group permissions (no group), the catalogue, the manager reloads, a bad number, an unknown header, `disconnect` |
 | `rcon-trade` | RCON's `refreshtrade` in a Trade floor flat: on (`ACH_TraderPass`, the room entered again where the player stands, the trade sees it), off (in the room too), a missing value, an offline user |
+| `groups-room` | groups in rooms: the favourite group in `USER_OBJECTS`, `GROUP_MEMBERSHIP_UPDATE` and `GROUP_BADGES`, `GET_GROUP_BADGES`, `GET_GROUP_INFO`, `GET_USER_TAGS`, the room entry badge, RCON's group and tag refreshes |
+| `guides` | Habbo guides: asking for a guide, the invite task, accepting and following, `INVITING_COMPLETED`, the GLK badge, respect, `RESET_TUTORIAL` |
+| `recycler` | the Ecotron: its status and prize table, `RECYCLE_ITEMS` (too few, repeated, five items), the box and `ITEM_DELIVERED` |
+| `club-gifts` | `SCR_GIFT_APPROVAL` with gifts due, `GET_ALIAS_LIST`, `GET_FURNI_VERSIONS`, `GETUSERCREDITLOG`, `PURCHASE_AND_WEAR` |
+| `flash-login` | a Flash client on the Flash port: no `HELLO`, `SESSION_PARAMETERS`, `HOME_ROOM`, `FLASH_FAVOURITES`, `FLASH_MODTOOL`, the Flash `AVATAR_EFFECTS` |
+| `flash-navigator` | the Flash navigator: public and guest rooms, room info, icon and settings, search by name, owner and tag, popular tags, events, the home room, the wardrobe |
+| `flash-room` | a Flash and a Shockwave client in the same rooms: event 390, each kind's `USER_OBJECTS`, `USERBADGE` and `ROOMEEVENT_INFO`, rights by id, favourites, the hand after buying, placing and deleting, event tags, `CHANGE_LOOKS`, `QUIT` |
 | `infobus-poll` | an Infobus poll over RCON: `POLL_QUESTION`, `VOTE` (out of range, twice), `VOTE_RESULTS` 30 s later and on a new vote, a poll that does not exist, the end of the event (everyone walks out into the park and hears it again there) |
 
 ## Known gaps
@@ -410,11 +430,9 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   the server did not answer then: moodlight presets (`MSG_ROOMDIMMER_GET_PRESETS`) and the jukebox
   (`GET_PLAY_LIST`, `GET_JUKEBOX_DISCS`), ported since (`flat-moodlight`, `flat-trax`,
   `flat-jukebox`); ids 288, 301, 302, 315 and 321 have no handler in Java either.
-- The website itself is not ported; real users get their tickets from the ticket API
-  (`--http`, see above).
 
 - Only `login-encrypted` uses the RC4 layer (`encrypt = true` on a bot); every other scenario runs
-  unencrypted. The Flash port (12323) is not covered.
+  unencrypted.
 - The chess traces need an oracle jar built with `chesslib` (jitpack.io, see
   [Start the reference server](#1-start-the-reference-server)); a jar built with the stub fails
   them. Promotion, castling and en passant are checked by unit tests only.
@@ -424,6 +442,6 @@ The bots are `tracebot1`-`tracebot6` in `oracle/seed.sql`; its comments say what
   game was created with, Java's `getAndIncrement`), stopping a lobby walk on the first BattleBall
   start, or a Wobble Squabble player who left for another room when the game ends; they follow
   the Java source.
-- RCON's `clearphoto` and the group and tag refreshes do what Java does without photos, groups
-  or tags (`TODO(photos)`, `TODO(groups)`, `TODO(tags)`); the room-hire interactor and the idol's
-  songs are `TODO(...)` markers.
+- RCON's `clearphoto` does what Java does without photos (`TODO(photos)`); the room-hire
+  interactor and the idol's songs are `TODO(...)` markers. The rest is in
+  [docs/BACKLOG.md](docs/BACKLOG.md).

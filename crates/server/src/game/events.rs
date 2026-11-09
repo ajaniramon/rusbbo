@@ -59,7 +59,7 @@ impl Event {
 }
 
 /// Java's `String.split(",")`: trailing empty strings go, but `""` is `[""]`.
-fn java_split(s: &str) -> Vec<String> {
+pub(crate) fn java_split(s: &str) -> Vec<String> {
     let mut parts: Vec<String> = s.split(',').map(str::to_string).collect();
     while parts.len() > 1 && parts.last().is_some_and(String::is_empty) {
         parts.pop();

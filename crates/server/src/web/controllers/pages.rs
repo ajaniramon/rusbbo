@@ -8,7 +8,7 @@ use rusbbo_pebble::{Map, Value};
 use rusbbo_storage::Article;
 
 use super::xss_clear;
-use crate::web::{Conn, WebResult, beans, data, model};
+use crate::web::{Conn, WebResult, beans, model};
 use crate::world::World;
 
 /// `/community`.
@@ -25,16 +25,18 @@ pub fn community(conn: &mut Conn) -> WebResult {
         tpl.set(&format!("article{}", i + 1), model::article(&world, a));
     }
     conn.session().set("page", "community");
-    let rooms = |offset: usize| {
+    let rooms = |list: &[rusbbo_storage::Room]| {
         Value::list(
-            data::popular_rooms(&world, 5, offset)
-                .iter()
+            list.iter()
                 .map(|r| model::room(&world, r))
                 .collect::<Vec<_>>(),
         )
     };
-    tpl.set("recommendedRooms", rooms(0));
-    tpl.set("hiddenRecommendedRooms", rooms(5));
+    tpl.set("recommendedRooms", rooms(&snapshot.recommended_rooms));
+    tpl.set(
+        "hiddenRecommendedRooms",
+        rooms(&snapshot.hidden_recommended_rooms),
+    );
     tpl.set(
         "randomHabbos",
         Value::list(
@@ -407,6 +409,22 @@ fn highscores(world: &World, game_id: i32, page: i64, monthly: bool) -> Vec<(Str
         .collect()
 }
 
+/// Java: `WebCache.highscores` (60 seconds).
+fn cached_highscores(
+    conn: &Conn,
+    game_id: i32,
+    page: i64,
+    monthly: bool,
+) -> Vec<(String, i64, i64)> {
+    conn.web
+        .watchdog
+        .caches
+        .highscores
+        .get((game_id, page, monthly), || {
+            highscores(conn.world(), game_id, page, monthly)
+        })
+}
+
 fn append_highscores(
     conn: &Conn,
     tpl: &mut crate::web::tpl::Tpl,
@@ -414,7 +432,7 @@ fn append_highscores(
     page: i64,
     monthly: bool,
 ) {
-    let entries = highscores(conn.world(), game_id, page, monthly);
+    let entries = cached_highscores(conn, game_id, page, monthly);
     tpl.set(
         "scoreEntries",
         Value::list(
@@ -436,7 +454,7 @@ fn append_highscores(
     tpl.set("viewMonthlyScores", monthly);
     tpl.set(
         "hasNextPage",
-        !highscores(conn.world(), game_id, page + 1, monthly).is_empty(),
+        !cached_highscores(conn, game_id, page + 1, monthly).is_empty(),
     );
 }
 

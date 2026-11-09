@@ -423,17 +423,6 @@ impl Room {
         }
     }
 
-    /// Java: `Room.send(composer, exclude)`.
-    pub fn send_except(&self, msg: Message, except: u64) {
-        for e in self
-            .entities
-            .iter()
-            .filter(|e| e.is_player() && e.session.id != except)
-        {
-            e.session.send(msg.clone());
-        }
-    }
-
     pub fn entity_index(&self, session_id: u64) -> Option<usize> {
         self.entities
             .iter()

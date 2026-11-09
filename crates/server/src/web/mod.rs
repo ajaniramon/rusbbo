@@ -7,9 +7,6 @@
 //! `BaseController` pass, the route (`routes_table.rs`, matched like `RouteManager`), static files
 //! from the site directory, and Havana-Web's error and 404 pages. See `docs/WEB.md`.
 
-// TODO(web): drop once every controller is ported and uses its helpers.
-#![allow(dead_code)]
-
 mod beans;
 pub mod cache;
 mod captcha;
@@ -240,7 +237,6 @@ pub struct Conn<'w> {
     pub headers: Vec<(String, String)>,
     cookies_in: Vec<(String, String)>,
     pub ip: String,
-    session_id: String,
     session: Arc<Mutex<Session>>,
     cookies_out: Vec<Cookie>,
     pub response: Option<Resp>,

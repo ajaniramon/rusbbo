@@ -43,7 +43,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "069007639703544680701271\u0002I",
+              "body": "047651692962815290688884\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -75,7 +75,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#494F9C99710049D49DC310E74462EA8D\u0002",
+              "body": "#1A2653F8816F46A49765F10AC8DF3D89\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -305,7 +305,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "722769052884359836888610\u0002I",
+              "body": "107099248838699358292171\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -337,7 +337,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#9C5A7D283AE84E27ABF1658D2AB9908A\u0002",
+              "body": "#D91A826A65F74F1EBB6D3BA95DF922A4\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -649,7 +649,7 @@
             {
               "header": 277,
               "name": "CRYPTO_PARAMETERS",
-              "body": "828440293346564042758509\u0002I",
+              "body": "721213766423842331805193\u0002I",
               "check": "mask",
               "mask": "????????????????????????.."
             }
@@ -681,7 +681,7 @@
             {
               "header": 439,
               "name": "UniqueIDMessageEvent",
-              "body": "#AAAFECDDC03B432DAE504FE0CD175B5B\u0002",
+              "body": "#C92E4A2A39BB43C4B23441CB298A03ED\u0002",
               "check": "mask",
               "mask": ".????????????????????????????????."
             },
@@ -1344,7 +1344,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot1) mute expiration date set to: 08-11-2026 20:32:43\u0002",
+              "body": "Player (tracebot1) mute expiration date set to: 09-11-2026 04:27:52\u0002",
               "check": "mask",
               "mask": "................................................??????????.????????."
             }
@@ -1784,7 +1784,7 @@
             {
               "header": 139,
               "name": "ALERT",
-              "body": "Player (tracebot2) trade ban time set to: 08-11-2026 21:22:48\u0002",
+              "body": "Player (tracebot2) trade ban time set to: 09-11-2026 05:17:58\u0002",
               "check": "mask",
               "mask": "..........................................??????????.????????."
             }
@@ -2199,107 +2199,6 @@
               "header": 139,
               "name": "ALERT",
               "body": "Insufficient perms to ban user\u0002",
-              "check": "exact"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "bot": "m",
-      "action": "send",
-      "header": 52,
-      "name": "CHAT",
-      "body": "@X:givecredits tracebot1 5",
-      "note": "Above a moderator's rank: plain chat, heard (and looked at) by the others",
-      "settle_ms": 9500,
-      "received": {
-        "a": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 361,
-              "name": "TYPING_STATUS",
-              "body": "JH",
-              "check": "exact"
-            },
-            {
-              "header": 24,
-              "name": "CHAT_MESSAGE.CHAT",
-              "body": "J:givecredits tracebot1 5\u0002H",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
-              "check": "exact"
-            }
-          ]
-        },
-        "m": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 361,
-              "name": "TYPING_STATUS",
-              "body": "JH",
-              "check": "exact"
-            },
-            {
-              "header": 24,
-              "name": "CHAT_MESSAGE.CHAT",
-              "body": "J:givecredits tracebot1 5\u0002H",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
-              "check": "exact"
-            }
-          ]
-        },
-        "s": {
-          "ordered": true,
-          "closed": false,
-          "messages": [
-            {
-              "header": 361,
-              "name": "TYPING_STATUS",
-              "body": "JH",
-              "check": "exact"
-            },
-            {
-              "header": 24,
-              "name": "CHAT_MESSAGE.CHAT",
-              "body": "J:givecredits tracebot1 5\u0002H",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
-              "check": "exact"
-            },
-            {
-              "header": 34,
-              "name": "USER_STATUSES",
-              "body": "JHRCRB0.0\u0002HH/\u0002IPCPB0.0\u0002PAPA/\u0002",
               "check": "exact"
             }
           ]
