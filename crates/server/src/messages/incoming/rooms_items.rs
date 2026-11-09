@@ -454,17 +454,18 @@ pub fn remove_item(
             error!(item = flat.record.id, "deleting an item: {e}");
         }
     }
-    // Java: `getView("new")` (the hand) for a Flash client.
-    if session.is_flash() {
-        let session = session.clone();
-        r.defer(move |world| {
-            let mut p = session.player.lock();
-            let hand = p.inventory.get_view(&world.store, "new");
-            session.send(out_inventory::inventory(&hand));
-        });
-    }
     if let Some(e) = r.entity_index(session.id) {
         r.reset_room_timer(world, e);
+    }
+    let deferred = r.take_deferred();
+    drop(r);
+    crate::game::room::run_deferred(world, deferred);
+    // Java: `getView("new")` (the hand) for a Flash client, at once (the player is locked after
+    // the room is released).
+    if session.is_flash() {
+        let mut p = session.player.lock();
+        let hand = p.inventory.get_view(&world.store, "new");
+        session.send(out_inventory::inventory(&hand));
     }
     Ok(())
 }
