@@ -375,6 +375,107 @@ pub fn g_objs(
     Ok(())
 }
 
+/// Java: `GET_USER_TAGS`: the tags of an online user.
+pub fn get_user_tags(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    if current_room(world, session).is_none() {
+        return Ok(());
+    }
+    let id = reader.int().ok_or(Malformed)?;
+    let Some(user_id) = u32::try_from(id)
+        .ok()
+        .and_then(|id| world.player_by_id(id))
+        .and_then(|s| s.player.lock().user_id())
+    else {
+        return Ok(());
+    };
+    let tags = crate::game::groups::user_tags(world, user_id);
+    let tags: Vec<&str> = tags.iter().map(String::as_str).collect();
+    session.send(out_user::tag_list(user_id, &tags));
+    Ok(())
+}
+
+/// Java: `MessageHandler`'s event 230 (`GET_GROUP_BADGES`): the badges of the favourite groups
+/// of the players in the room, as far as the asking player has joined those groups too (Java
+/// looks them up in the asker's own groups).
+pub fn get_group_badges(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let favourites: Vec<i32> = room
+        .lock()
+        .entities
+        .iter()
+        .filter(|e| e.is_player())
+        .map(|e| e.details.favourite_group)
+        .collect();
+    let mut badges: Vec<(i32, String)> = Vec::new();
+    {
+        let p = session.player.lock();
+        for favourite in favourites {
+            if favourite <= 0 || badges.iter().any(|b| b.0 == favourite) {
+                continue;
+            }
+            if let Some(g) = crate::game::groups::joined_group(&p, favourite) {
+                badges.push((g.id as i32, crate::game::groups::badge(g)));
+            }
+        }
+    }
+    session.send(out::group_badges(&badges));
+    Ok(())
+}
+
+/// Java: `MessageHandler`'s event 231 (`GET_GROUP_INFO`): the group, from the first player in
+/// the room who has joined it.
+pub fn get_group_info(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    if current_room(world, session).is_none() {
+        return Ok(());
+    }
+    let group_id = reader.int().ok_or(Malformed)?;
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let users: Vec<u32> = room
+        .lock()
+        .entities
+        .iter()
+        .filter(|e| e.is_player())
+        .map(|e| e.details.user_id)
+        .collect();
+    for user in users {
+        let Some(other) = world.player_by_id(user) else {
+            continue;
+        };
+        let group = crate::game::groups::joined_group(&other.player.lock(), group_id).cloned();
+        let Some(g) = group else {
+            continue;
+        };
+        let room_name = (g.room_id > 0)
+            .then(|| world.room_by_id(g.room_id))
+            .flatten()
+            .map(|r| r.lock().data.name.clone());
+        session.send(out::group_info(
+            g.id as i32,
+            &crate::web::text::filter_sentence(world, &g.name),
+            &crate::web::text::filter_sentence(world, &g.description),
+            room_name.as_deref().map(|n| (g.room_id as i32, n)),
+        ));
+        break;
+    }
+    Ok(())
+}
+
 /// Java: `G_STAT`: who is in the room, and the user's own arrival for the others.
 pub fn g_stat(
     world: &World,
@@ -404,6 +505,30 @@ pub fn g_stat(
     } else {
         Vec::new()
     };
+    // Java: the favourite group's badge and membership, sent to the room at the end (looked up
+    // before the room's lock; `Err` is the NullPointerException that ends G_STAT there).
+    let own_group = {
+        let mut p = session.player.lock();
+        let favourite = p.details.as_ref().map_or(0, |d| d.favourite_group);
+        if favourite > 0 {
+            match crate::game::groups::group_member(world, &mut p) {
+                None => Err(()),
+                Some(m) => match (
+                    crate::game::groups::joined_group(&p, favourite),
+                    crate::game::groups::client_rank(m.member_rank),
+                ) {
+                    (Some(g), Some(rank)) => Ok(Some((
+                        m.group_id as i32,
+                        crate::game::groups::badge(g),
+                        rank,
+                    ))),
+                    _ => Err(()),
+                },
+            }
+        } else {
+            Ok(None)
+        }
+    };
     let mut r = room.lock();
     r.try_room_entry(world, session.id);
     for msg in queued {
@@ -421,8 +546,19 @@ pub fn g_stat(
         let e = &r.entities[idx];
         r.send(out_effects::user_avatar_effect(e.instance_id, e.effect_id));
     }
-    // TODO(groups): memberships.
+    let own_user = own.map(|i| r.entities[i].details.user_id);
     for e in &r.entities {
+        if e.is_player() && e.details.favourite_group > 0 && Some(e.details.user_id) != own_user {
+            // Java: a favourite group without a membership throws here, ending G_STAT.
+            let Some((group, Some(rank))) = e.details.group else {
+                return Ok(());
+            };
+            session.send(out_user::group_membership_update(
+                e.instance_id,
+                group,
+                rank,
+            ));
+        }
         if e.is_using_effect() {
             session.send(out_effects::user_avatar_effect(e.instance_id, e.effect_id));
         }
@@ -437,7 +573,31 @@ pub fn g_stat(
     for msg in r.busy_item_updates() {
         session.send(msg);
     }
-    // TODO(groups): GROUP_BADGES of the user's favourite group. TODO(badges): rooms_entry_badges.
+    let Ok(own_group) = own_group else {
+        return Ok(());
+    };
+    if let (Some((group, badge, rank)), Some(idx)) = (own_group, own) {
+        r.send(out::group_badges(&[(group, badge)]));
+        r.send(out_user::group_membership_update(
+            r.entities[idx].instance_id,
+            group,
+            rank,
+        ));
+    }
+    let room_id = r.id();
+    drop(r);
+    // Java: `RoomManager.getRoomEntryBadges` (rooms_entry_badges, in table order).
+    let badges = world
+        .store
+        .records_where::<rusbbo_storage::RoomEntryBadge>(|b| b.room_id == room_id)
+        .unwrap_or_default();
+    if !badges.is_empty() {
+        let mut p = session.player.lock();
+        for b in badges {
+            p.badges
+                .try_add_badge(&world.store, session, &b.badge, None, 0);
+        }
+    }
     // TODO(inventory): drop hand items that are in the room.
     Ok(())
 }

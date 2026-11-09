@@ -313,7 +313,9 @@ impl World {
 /// The player registry: sessions by connection id, and which session each user is logged in on.
 #[derive(Default)]
 struct Players {
-    sessions: HashMap<u64, Arc<Session>>,
+    /// By session id, so in connection order (Java: `PlayerManager.players`, a list each new
+    /// connection is added to).
+    sessions: std::collections::BTreeMap<u64, Arc<Session>>,
     by_user: HashMap<u32, u64>,
 }
 

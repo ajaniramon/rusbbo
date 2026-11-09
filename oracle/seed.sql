@@ -110,3 +110,39 @@ VALUES
 INSERT INTO infobus_polls (id, initiated_by, poll_data, created_at)
 VALUES (1, 21, '{"question":"Which public room do you like best?","answers":["The Park","Rooftop Rumble","The Space Cafe"]}',
         '2026-01-01 00:00:00');
+
+-- Groups for the groups-room scenario (users 26-29, groups 50-52; oracle/web-seed.sql removes
+-- them again, so the web traces do not see them). Room 4 (TV Studio, no NPCs) gives the ENT badge
+-- on entry.
+--   gowner:   owns group 50 (home room 4), favourite 50, two tags.
+--   gmember:  administrator of group 50, favourite 50.
+--   gpending: a pending member of group 51, favourite 51: not one of its joined groups, so the
+--             favourite is reset to none.
+--   gleft:    favourite 52 without being a member (reset the same way).
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning, favourite_group)
+VALUES
+  (26, 'gowner', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'group owner',
+   'gowner@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-26', 1, 0, 50),
+  (27, 'gmember', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'group member',
+   'gmember@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-27', 1, 0, 50),
+  (28, 'gpending', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'group pending',
+   'gpending@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-28', 1, 0, 51),
+  (29, 'gleft', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'group left',
+   'gleft@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-29', 1, 0, 52);
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable)
+VALUES (26, 0, 0), (27, 0, 0), (28, 0, 0), (29, 0, 0);
+
+INSERT INTO groups_details (id, name, description, owner_id, room_id, badge, created_at) VALUES
+  (50, 'Room Club', 'The [b]room[/b] club', 26, 4, 'b0503Xs09114s05013s05015', '2026-01-01 00:00:00'),
+  (51, 'Waiting Room', 'Members wait here', 21, 0, 'b0101X', '2026-01-01 00:00:00'),
+  (52, 'Left Group', 'Nobody stays', 21, 0, 'b0202X', '2026-01-01 00:00:00');
+
+INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending, created_at) VALUES
+  (27, 50, '2', 0, '2026-01-01 00:00:00'),
+  (28, 51, '1', 1, '2026-01-01 00:00:00');
+
+INSERT INTO users_tags (user_id, tag, room_id, group_id) VALUES (26, 'owner', '0', '0'), (26, 'cafe', '0', '0');
+
+INSERT INTO rooms_entry_badges (room_id, badge) VALUES (4, 'ENT');

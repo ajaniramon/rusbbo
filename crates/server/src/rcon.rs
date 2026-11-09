@@ -205,13 +205,43 @@ fn handle(world: &World, message: &RconMessage) {
         }
         "refreshgroupperms" => {
             if let Some(session) = online("userId") {
-                // TODO(groups): the joined groups, the favourite group's badge and member rank;
-                // without groups the favourite group is none: -1 and -1 to the room.
-                refresh_group_membership(world, &session);
+                refresh_group_perms(world, &session);
             }
         }
-        // TODO(groups): no player has groups, so no favourite group to clear or refresh.
-        "groupdeleted" | "refreshgroup" => {}
+        "groupdeleted" => {
+            let Some(group_id) = int("groupId") else {
+                return;
+            };
+            for session in world.players() {
+                let deleted = {
+                    let mut p = session.player.lock();
+                    match p.details.as_mut() {
+                        Some(d) if d.favourite_group == group_id => {
+                            d.favourite_group = 0;
+                            true
+                        }
+                        _ => false,
+                    }
+                };
+                if !deleted {
+                    continue;
+                }
+                set_room_membership(world, &session, 0, None, Some((-1, -1)));
+                crate::game::groups::refresh_joined_groups(world, &mut session.player.lock());
+            }
+        }
+        "refreshgroup" => {
+            let Some(group_id) = int("groupId") else {
+                return;
+            };
+            for session in world.players() {
+                let mut p = session.player.lock();
+                if crate::game::groups::joined_group(&p, group_id).is_some() {
+                    crate::game::groups::refresh_joined_groups(world, &mut p);
+                }
+            }
+        }
+        "refreshroombadges" => give_room_badges(world),
         "refreshwordfilter" => match world.store.wordfilter() {
             Ok(words) => world.wordfilter.reload(words),
             Err(e) => error!("reloading the word filter: {e}"),
@@ -221,7 +251,6 @@ fn handle(world: &World, message: &RconMessage) {
         | "refreshnavigator"
         | "refreshroommodels"
         | "refreshecotron"
-        | "refreshroombadges"
         | "refreshstats" => {}
         "infobusdoorstatus" => {
             // Java: `get("doorStatus").equals("1")` throws without the value.
@@ -327,8 +356,10 @@ fn refresh_tags(world: &World, session: &Arc<Session>) {
     let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
         return;
     };
+    let tags = crate::game::groups::user_tags(world, user_id);
+    let tags: Vec<&str> = tags.iter().map(String::as_str).collect();
     room.lock()
-        .send(outgoing::rooms_user::tag_list(user_id, &[]));
+        .send(outgoing::rooms_user::tag_list(user_id, &tags));
 }
 
 /// Java: `REFRESH_CLUB`: the credits and the club read again (and the currency saved), then
@@ -465,19 +496,135 @@ fn refresh_trade(world: &World, session: &Arc<Session>, value: Option<&str>) {
 
 /// Java: `REFRESH_GROUP_PERMS` without groups: `GROUP_MEMBERSHIP_UPDATE` with no group (-1, -1)
 /// to the player's room.
-fn refresh_group_membership(world: &World, session: &Arc<Session>) {
+/// Java: `REFRESH_GROUP_PERMS`: the joined groups and favourite group again, and the favourite
+/// group's badge and membership to the room. The membership is the one `getGroupMember` keeps,
+/// so after a change of favourite it can still be the old group's.
+fn refresh_group_perms(world: &World, session: &Arc<Session>) {
+    let (favourite, member, badge) = {
+        let mut p = session.player.lock();
+        crate::game::groups::refresh_joined_groups(world, &mut p);
+        let Some(id) = p.details.as_ref().map(|d| d.id) else {
+            return;
+        };
+        let favourite = match world.store.user(id) {
+            Ok(Some(u)) => u.favourite_group,
+            _ => return,
+        };
+        if let Some(d) = p.details.as_mut() {
+            d.favourite_group = favourite;
+        }
+        let member = if favourite > 0 {
+            crate::game::groups::group_member(world, &mut p)
+        } else {
+            None
+        };
+        // Java: `getJoinedGroup(newGroup).getBadge()` throws when the new favourite is not one
+        // of the joined groups.
+        let badge = member.as_ref().map(|_| {
+            crate::game::groups::joined_group(&p, favourite).map(crate::game::groups::badge)
+        });
+        let favourite = p.details.as_ref().map_or(0, |d| d.favourite_group);
+        (favourite, member, badge)
+    };
+    let shown = member.as_ref().map(|m| {
+        (
+            m.group_id as i32,
+            crate::game::groups::client_rank(m.member_rank),
+        )
+    });
+    let update = match &member {
+        None => Some((-1, -1)),
+        Some(m) => crate::game::groups::client_rank(m.member_rank).map(|r| (m.group_id as i32, r)),
+    };
+    match badge {
+        Some(None) => {
+            // The NullPointerException: nothing is sent.
+            set_room_membership(world, session, favourite, shown, None);
+        }
+        Some(Some(badge)) => {
+            if let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) {
+                room.lock().send(outgoing::rooms::group_badges(&[(
+                    favourite_group_id(session),
+                    badge,
+                )]));
+            }
+            set_room_membership(world, session, favourite, shown, update);
+        }
+        None => set_room_membership(world, session, favourite, shown, update),
+    }
+}
+
+/// The favourite group id as stored (Java's `newGroup`).
+fn favourite_group_id(session: &Arc<Session>) -> i32 {
+    session
+        .player
+        .lock()
+        .details
+        .as_ref()
+        .map_or(0, |d| d.favourite_group)
+}
+
+/// Updates what the player's room shows of their group (the entity's copy of the details) and,
+/// with `update`, sends `GROUP_MEMBERSHIP_UPDATE` to the room.
+fn set_room_membership(
+    world: &World,
+    session: &Arc<Session>,
+    favourite: i32,
+    shown: Option<(i32, Option<i32>)>,
+    update: Option<(i32, i32)>,
+) {
     let Some(room) = session.room_key().and_then(|key| world.loaded_room(key)) else {
         return;
     };
-    let r = room.lock();
+    let mut r = room.lock();
     let Some(idx) = r.entity_index(session.id) else {
         return;
     };
-    r.send(outgoing::rooms_user::group_membership_update(
-        r.entities[idx].instance_id,
-        -1,
-        -1,
-    ));
+    r.entities[idx].details.favourite_group = favourite;
+    r.entities[idx].details.group = if favourite > 0 { shown } else { None };
+    if let Some((group, rank)) = update {
+        let instance = r.entities[idx].instance_id;
+        r.send(outgoing::rooms_user::group_membership_update(
+            instance, group, rank,
+        ));
+    }
+}
+
+/// Java: `REFRESH_ROOM_BADGES`: `RoomManager.reloadBadges` (the table is read as it is) and
+/// `giveBadges`: everyone in a loaded room with entry badges gets them.
+fn give_room_badges(world: &World) {
+    let badges = world
+        .store
+        .records::<rusbbo_storage::RoomEntryBadge>()
+        .unwrap_or_default();
+    for room in world.loaded_rooms() {
+        let room_id = room.lock().id();
+        let codes: Vec<&str> = badges
+            .iter()
+            .filter(|b| b.room_id == room_id)
+            .map(|b| b.badge.as_str())
+            .collect();
+        if codes.is_empty() {
+            continue;
+        }
+        let users: Vec<u32> = room
+            .lock()
+            .entities
+            .iter()
+            .filter(|e| e.is_player())
+            .map(|e| e.details.user_id)
+            .collect();
+        for code in codes {
+            for user in &users {
+                if let Some(s) = world.player_by_id(*user) {
+                    s.player
+                        .lock()
+                        .badges
+                        .try_add_badge(&world.store, &s, code, None, 0);
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]

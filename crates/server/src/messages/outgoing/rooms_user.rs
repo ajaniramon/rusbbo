@@ -39,9 +39,8 @@ pub fn user_objects<'a>(
             } else {
                 e.details.xp_month
             })
-            // TODO(groups): favourite group id and member rank.
-            .int(-1)
-            .int(-1);
+            .int(e.details.group.map_or(-1, |g| g.0))
+            .int(e.details.group.and_then(|g| g.1).unwrap_or(-1));
         let pool_figure = if pool && !e.details.pool_figure.is_empty() {
             e.details.pool_figure.as_str()
         } else {

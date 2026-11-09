@@ -216,6 +216,28 @@ pub fn flat_not_allowed_to_enter() -> Message {
     Message::new(131, Vec::new())
 }
 
+/// Java: `GROUP_BADGES` (a `HashMap<Integer, String>`, in its order).
+pub fn group_badges(badges: &[(i32, String)]) -> Message {
+    let order = crate::web::data::java_int_map_order(badges.iter().map(|b| b.0).collect());
+    let mut w = ServerBody::new().int(badges.len() as i32);
+    for id in order {
+        if let Some((_, badge)) = badges.iter().find(|b| b.0 == id) {
+            w = w.int(id).text(badge);
+        }
+    }
+    Message::new(309, w.build())
+}
+
+/// Java: `GROUP_INFO`: a group's name and description, and its room when it is loaded.
+pub fn group_info(id: i32, name: &str, description: &str, room: Option<(i32, &str)>) -> Message {
+    let mut w = ServerBody::new().int(id).text(name).text(description);
+    w = match room {
+        Some((room_id, room_name)) => w.int(room_id).text(room_name),
+        None => w.int(-1).text(""),
+    };
+    Message::new(311, w.build())
+}
+
 /// The literal `DuHH` Java's `G_OBJS` sends (`GROUP_BADGES` with no badges).
 pub fn group_badges_empty() -> Message {
     Message::new(309, b"HH".to_vec())

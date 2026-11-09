@@ -244,6 +244,11 @@ pub struct EntityDetails {
     /// The `xp_earned_month` statistic `USER_OBJECTS` shows (Java reads it when composing; here
     /// it is the value at entry).
     pub xp_month: i32,
+    /// Java: `PlayerDetails.getFavouriteGroupId`.
+    pub favourite_group: i32,
+    /// The favourite group's id and client rank `USER_OBJECTS` shows (Java:
+    /// `EntityState.getGroupMember`), looked up at entry.
+    pub group: Option<(i32, Option<i32>)>,
 }
 
 impl EntityDetails {

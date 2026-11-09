@@ -194,8 +194,13 @@ fn progression(
 ) -> Option<i32> {
     let details = p.details.as_ref()?;
     match ty {
-        // TODO(tags): users_tags. With no tags the progress never reaches the 5 required.
-        AchievementType::Tags => None,
+        AchievementType::Tags => {
+            let mut progress = crate::game::groups::user_tags(world, details.id).len() as i32;
+            if progress >= 5 {
+                progress = info.progress_needed;
+            }
+            (progress >= info.progress_needed).then_some(progress)
+        }
         // TODO(referred): users_referred; nobody is referred, so the progress is 0.
         AchievementType::Mgm => (p.achievements[index].progress != 0).then_some(0),
         // TODO(guides): the guide manager. Java sets the progress to PLAYERS_GUIDED.

@@ -66,6 +66,10 @@ pub struct Player {
     /// Java: `RoomEntity.packetQueueAfterRoomLeave`: what the Infobus's end sends again when the
     /// player is back in the park (`InfobusParkTrigger`).
     pub packet_queue_after_room_leave: Vec<rusbbo_protocol::Message>,
+    /// Java: `Player.joinedGroups` (owned and joined groups), loaded at login.
+    pub joined_groups: Vec<rusbbo_storage::Group>,
+    /// Java: `PlayerDetails.groupMember`, the favourite group's membership once looked up.
+    pub group_member: Option<rusbbo_storage::GroupMember>,
 }
 
 impl Player {
@@ -232,7 +236,8 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     );
     p.badges = BadgeManager::load(&world.store, user.id);
     p.achievements = world.store.user_achievements(user.id).unwrap_or_default();
-    // TODO(groups): the joined groups are loaded here in Java.
+    // Java: `refreshJoinedGroups` (the details are not on the player yet).
+    p.joined_groups = crate::web::data::joined_groups(world, user.id);
 
     if let Err(e) = world.store.update_user(user.id, |stored| {
         if save_last_online {

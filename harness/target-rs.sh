@@ -96,8 +96,15 @@ case "${1:-}" in
     stop_server
     build_fixture
     cp "$FIXTURE" "$RUN_DIR/rusbbo.redb"
-    nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" "${WEB_ARGS[@]}"\
-      --dev-ticket 1=trace-sso-1 --dev-ticket 2=trace-sso-2 --dev-ticket 3=trace-sso-3 --dev-ticket 4=trace-sso-4 --dev-ticket 5=trace-sso-5 --dev-ticket 6=trace-sso-6 --dev-ticket 21=trace-sso-21 --dev-ticket 22=trace-sso-22 --dev-ticket 23=trace-sso-23 --dev-ticket 24=trace-sso-24 > "$RUN_DIR/server.log" 2>&1 < /dev/null &
+    # The tickets oracle/tickets.sql gives back after Java's startup reset (the group users 26-29
+    # are not in the web traces' data).
+    TICKETS=()
+    for id in 1 2 3 4 5 6 21 22 23 24; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
+    if [[ -z "${TARGET_WEB_PORT:-}" ]]; then
+      for id in 26 27 28 29; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
+    fi
+    nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" "${WEB_ARGS[@]}" \
+      "${TICKETS[@]}" > "$RUN_DIR/server.log" 2>&1 < /dev/null &
     echo $! > "$PID_FILE"
     wait_port
     if [[ -n "${TARGET_WEB_PORT:-}" ]]; then PORT=$TARGET_WEB_PORT wait_port; fi

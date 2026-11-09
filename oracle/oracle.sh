@@ -3,6 +3,8 @@
 #
 #   oracle.sh setup   build the jar, start MariaDB, load schema + migrations + seed, take snapshot
 #   oracle.sh build   only build the jar into run/ (the database snapshot is kept)
+#   oracle.sh snapshot  load schema + migrations + seed again and retake the snapshot (after
+#                     changing seed.sql; the jar is kept)
 #   oracle.sh start   start the Java server (if not running) and wait for the game port
 #   oracle.sh stop    stop the Java server
 #   oracle.sh reset   stop server, restore the database snapshot, start server again
@@ -178,6 +180,11 @@ case "${1:-}" in
     log "setup done; run '$0 start'"
     ;;
   build) build_jar ;;
+  snapshot)
+    stop_server
+    start_db
+    load_schema
+    ;;
   start) start_db; start_server ;;
   stop) stop_server ;;
   reset)

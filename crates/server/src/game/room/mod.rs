@@ -1692,7 +1692,11 @@ fn enter_room_with(
     leave_current_room(world, session, false);
     let details = {
         let mut p = session.player.lock();
-        let Some(user) = p.details.as_ref().filter(|_| p.logged_in) else {
+        if !p.logged_in || p.details.is_none() {
+            return;
+        }
+        let group = crate::game::groups::shown_membership(world, &mut p);
+        let Some(user) = p.details.as_ref() else {
             return;
         };
         let details = EntityDetails {
@@ -1713,6 +1717,8 @@ fn enter_room_with(
             xp_month: p
                 .statistics
                 .int_value(crate::game::statistics::stat::XP_EARNED_MONTH),
+            favourite_group: user.favourite_group,
+            group,
         };
         p.room_id = Some(room.id);
         p.authenticate_id = None;

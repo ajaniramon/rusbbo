@@ -19,6 +19,8 @@ HERE = Path(__file__).resolve().parents[1]
 ROOT = Path(os.environ.get("HAVANA_DIR", HERE.parent / "aeyra-havana"))
 MESSAGES = ROOT / "Havana-Server/src/main/java/org/alexdev/havana/messages"
 OUT = HERE / "crates/protocol/src/ids.rs"
+# Names for the handlers MessageHandler registers as lambdas (after what they do).
+LAMBDAS = {230: "GET_GROUP_BADGES", 231: "GET_GROUP_INFO"}
 
 
 def client_ids():
@@ -31,7 +33,7 @@ def client_ids():
             continue
         m = re.search(r"registerEvent\((\d+),\s*\(", code)
         if m:
-            ids[int(m.group(1))].append("<lambda>")
+            ids[int(m.group(1))].append(LAMBDAS.get(int(m.group(1)), "<lambda>"))
     return ids
 
 

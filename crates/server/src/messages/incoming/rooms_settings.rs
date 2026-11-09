@@ -378,7 +378,29 @@ pub fn delete(world: &World, room_id: i32, user_id: u32) {
         r.take_deferred()
     };
     run_deferred(world, deferred);
-    // TODO(tags): TagDao.removeTags. TODO(groups): GroupDao.deleteHomeRoom.
+    // Java: `TagDao.removeTags(0, roomId, 0)` and `GroupDao.deleteHomeRoom(roomId)`.
+    let cleanup = || -> rusbbo_storage::Result<()> {
+        let tags = world.store.records_where::<rusbbo_storage::Tag>(|t| {
+            t.user_id == 0 && t.room_id == room.id && t.group_id == 0
+        })?;
+        for t in tags {
+            world.store.delete_record::<rusbbo_storage::Tag>(t.id)?;
+        }
+        let groups = world
+            .store
+            .records_where::<rusbbo_storage::Group>(|g| g.room_id == room.id)?;
+        for mut g in groups {
+            g.room_id = 0;
+            world.store.put_record(&g)?;
+        }
+        Ok(())
+    };
+    if let Err(e) = cleanup() {
+        error!(
+            room = room.id,
+            "deleting the room's tags and group home rooms: {e}"
+        );
+    }
     if let Err(e) = world.store.delete_room(room.id) {
         error!(room = room.id, "deleting room: {e}");
     }
