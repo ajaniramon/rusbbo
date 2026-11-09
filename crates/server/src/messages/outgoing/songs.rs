@@ -1,6 +1,6 @@
 //! Java: `messages/outgoing/songs` (the sound machine's song editor and playlists).
 //!
-//! TODO(idol): `START_PLAYING_SONG` and `STOP_PLAYING_SONG` belong to the idol performances.
+//! `START_PLAYING_SONG` and `STOP_PLAYING_SONG` belong to the idol performances.
 
 use std::collections::BTreeMap;
 
@@ -86,6 +86,16 @@ pub fn user_sound_packages(sound_sets: &[i32]) -> Message {
         body = body.int(set);
     }
     Message::new(302, body.build())
+}
+
+/// Java: `START_PLAYING_SONG`: the idol performance's song.
+pub fn start_playing_song(id: u32) -> Message {
+    Message::new(493, ServerBody::new().int(id as i32).build())
+}
+
+/// Java: `STOP_PLAYING_SONG` (Java writes no id).
+pub fn stop_playing_song(_id: u32) -> Message {
+    Message::new(494, ServerBody::new().build())
 }
 
 #[cfg(test)]

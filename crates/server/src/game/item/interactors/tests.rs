@@ -485,7 +485,7 @@ fn idol_performer_and_judges() {
 
     frames(&mut jrx);
     let performer_session = r.entities[performer].session.id;
-    r.start_performance(performer_session);
+    r.start_performance(performer_session, None);
     let jf = frames(&mut jrx);
     assert_eq!(jf[0], encode_server(&out::judge_gui_status(2, 1)));
     assert_eq!(r.mapping.items[0].custom_data, "0");

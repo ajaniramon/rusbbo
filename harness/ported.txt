@@ -50,6 +50,7 @@ gamehall-tictactoe
 groups-room
 guides
 idle-timeout
+idol-song
 infobus-door
 infobus-poll
 login

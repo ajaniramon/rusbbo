@@ -3,9 +3,9 @@
 //! the vote chairs judge them (`JUDGE_GUI_STATUS`, `VOTE_PERFORMANCE`) and the hotspot shows the
 //! score.
 //!
-//! TODO(sound): the performer picks one of their song discs (`START_PERFORMANCE`), which the
-//! room's sound machine plays (`START_PLAYING_SONG`/`STOP_PLAYING_SONG`, the machine's state);
-//! songs are not ported, so a performance has no song.
+//! The performer picks one of their song discs (`START_PERFORMANCE`), whose song the room's sound
+//! machine plays while the performance lasts (`START_PLAYING_SONG`/`STOP_PLAYING_SONG`, the
+//! machine's state 1 and 0).
 
 use std::sync::Arc;
 
@@ -21,6 +21,8 @@ pub struct IdolState {
     pub performer: Option<(u64, u32)>,
     /// Sessions of the judges who voted (Java: `voted`).
     pub voted: Vec<u64>,
+    /// The id of the song being performed (Java: `song`).
+    pub song: Option<u32>,
 }
 
 /// Java: `OPEN_PERFORMER_GUI`'s disc name: the sixth line of a song disc's custom data. `None`
@@ -116,7 +118,7 @@ impl Room {
                 self.save_item(&world, scoreboard);
             }
         }
-        // TODO(sound): stopListening.
+        self.idol_stop_listening();
         self.idol.voted.clear();
     }
 
@@ -220,9 +222,39 @@ impl Room {
         self.idol_force_stop();
     }
 
-    /// Java: `START_PERFORMANCE` from the performer (the disc is TODO(sound), see the module
-    /// docs): the judges get the performer's id and the hotspot shows 0.
-    pub fn start_performance(&mut self, session_id: u64) {
+    /// Java: `RoomIdolManager.startListening`: the room's sound machine (not a jukebox) plays the
+    /// song.
+    fn idol_start_listening(&mut self) {
+        let Some(song) = self.idol.song else {
+            return;
+        };
+        if let Some(machine) = self
+            .sound_machine()
+            .filter(|&m| self.mapping.items[m].has(Behaviour::SoundMachine))
+        {
+            self.send(crate::messages::outgoing::songs::start_playing_song(song));
+            self.set_item_status(machine, "1");
+        }
+    }
+
+    /// Java: `RoomIdolManager.stopListening`: the song stops and is forgotten.
+    fn idol_stop_listening(&mut self) {
+        let Some(song) = self.idol.song else {
+            return;
+        };
+        if let Some(machine) = self
+            .sound_machine()
+            .filter(|&m| self.mapping.items[m].has(Behaviour::SoundMachine))
+        {
+            self.send(crate::messages::outgoing::songs::stop_playing_song(song));
+            self.set_item_status(machine, "0");
+        }
+        self.idol.song = None;
+    }
+
+    /// Java: `START_PERFORMANCE` from the performer with the song of the disc they chose (if
+    /// any): the judges get the performer's id, the song plays and the hotspot shows 0.
+    pub fn start_performance(&mut self, session_id: u64, song: Option<u32>) {
         let Some((performer, user_id)) = self.idol.performer else {
             return;
         };
@@ -232,12 +264,13 @@ impl Room {
         let Some(scoreboard) = self.idol_scoreboard() else {
             return;
         };
+        self.idol.song = song;
         for chair in self.vote_chairs() {
             for session in self.players_on(chair, false) {
                 session.send(out::judge_gui_status(2, user_id as i32));
             }
         }
-        // TODO(sound): startListening.
+        self.idol_start_listening();
         self.set_item_status(scoreboard, "0");
         if let Some(world) = self.world() {
             self.save_item(&world, scoreboard);

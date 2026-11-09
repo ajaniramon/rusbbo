@@ -1,0 +1,217 @@
+name = "idol-song"
+description = "An American Idol performance with a song: the performer's song disc (START_PERFORMANCE), the room's sound machine playing it (START_PLAYING_SONG, the machine on) and stopping (STOP_PLAYING_SONG, the machine off) when the judges voted or the performer steps off; a disc that is not in the hand plays nothing"
+
+# Flat 1000 belongs to tracebot1 (a, the performer); tracebot2 (b) judges. Items: 1 sound_machine
+# at (10,8), 2 sound_set_2 and 3 sound_set_4 (into the machine), 4 ads_idol_hotspot at (6,5),
+# 5 ads_idol_voting_ch at (8,8), 6 the disc of song 1. model_a: door at (3,5).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1332, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_machine: item 1"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 75, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_2: item 2"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 76, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "sound_set_4: item 3"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1379, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "ads_idol_hotspot: item 4"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 1378, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "ads_idol_voting_ch: item 5"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Idol Stage", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["1 10 8 0"]
+note = "the sound machine"
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [2]
+
+[[steps]]
+bot = "a"
+send = "INSERT_SOUND_PACKAGE"
+args = [4]
+
+[[steps]]
+bot = "a"
+send = "SAVE_SONG_NEW"
+args = ["Idol Song", "1:1,4;2,4:2:3,2:3:0,1:4:0,1:"]
+note = "song 1"
+
+[[steps]]
+bot = "a"
+send = "BURN_SONG"
+args = [1]
+wait_for = ["CREDIT_BALANCE"]
+note = "its disc: item 6"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["4 6 5 2"]
+note = "the hotspot"
+
+[[steps]]
+bot = "a"
+send = "PLACESTUFF"
+args = ["5 8 8 2"]
+note = "the vote chair"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "b"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "b"
+send = "G_HMAP"
+
+[[steps]]
+bot = "b"
+send = "G_USRS"
+
+[[steps]]
+bot = "b"
+send = "G_OBJS"
+
+[[steps]]
+bot = "b"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "b"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "b"
+send = "WALK"
+args = [8, 8]
+settle_ms = 3500
+note = "b sits on the vote chair"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [6, 5]
+settle_ms = 2500
+note = "a steps onto the hotspot: OPEN_PERFORMER_GUI with the disc"
+
+[[steps]]
+bot = "a"
+send = "START_PERFORMANCE"
+args = [6]
+settle_ms = 800
+note = "the disc: START_PLAYING_SONG 1 to the room, the machine on"
+
+[[steps]]
+bot = "b"
+send = "VOTE_PERFORMANCE"
+args = [true]
+settle_ms = 1200
+note = "the only judge voted: it stops, STOP_PLAYING_SONG, the machine off"
+
+[[steps]]
+bot = "a"
+send = "START_PERFORMANCE"
+args = [99]
+settle_ms = 800
+note = "a disc that is not in the hand: no song"
+
+[[steps]]
+bot = "a"
+send = "START_PERFORMANCE"
+args = [6]
+settle_ms = 800
+note = "the song again"
+
+[[steps]]
+bot = "a"
+send = "WALK"
+args = [9, 9]
+settle_ms = 2500
+note = "off the hotspot: the performance and the song stop"

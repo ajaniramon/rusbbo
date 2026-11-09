@@ -452,7 +452,7 @@ fn purchase_one(
     if custom_data.is_empty() {
         custom_data = "0".into();
     }
-    reset_extra_data(def, &mut custom_data);
+    let rotation = reset_extra_data(def, &mut custom_data);
 
     // Java: a pet nest comes with its pet, from `name\nrace\ncolour`; anything invalid (or no
     // extra data) buys nothing. The name is checked against the owner's: the buyer's, or for a
@@ -468,6 +468,9 @@ fn purchase_one(
 
     let mut draft =
         rusbbo_storage::Item::with_defaults(owner.id, def.record.id, custom_data.clone(), now);
+    if let Some(rotation) = rotation {
+        draft.rotation = rotation;
+    }
     if def.record.rental_time > 0 {
         draft.expire_time = now + i64::from(def.record.rental_time);
     }
@@ -506,11 +509,18 @@ fn purchase_one(
     Ok(())
 }
 
-/// The custom data part of Java's `RoomMapping.resetExtraData`: the value a freshly created item
-/// starts with. Rules are tried in Java's order; the first one whose value differs from the
+/// Java's `RoomMapping.resetExtraData` on a freshly created item (rotation 0): a floor item that may
+/// not face 0 turns to its first allowed rotation, which ends the check (returned); otherwise the
+/// custom data rules are tried in Java's order, and the first one whose value differs from the
 /// current one rewrites it and ends the check.
-fn reset_extra_data(def: &ItemDefinition, custom_data: &mut String) {
+fn reset_extra_data(def: &ItemDefinition, custom_data: &mut String) -> Option<i32> {
     use InteractionType::*;
+    if !def.has_behaviour(ItemBehaviour::WallItem) {
+        let allowed = &def.allowed_rotations;
+        if !allowed.is_empty() && !allowed.contains(&0) {
+            return Some(allowed[0]);
+        }
+    }
     let rules: [(bool, &str); 8] = [
         (def.interaction_type == Lert, "0"),
         (def.interaction_type == IdolVoteChair, "0"),
@@ -524,9 +534,10 @@ fn reset_extra_data(def: &ItemDefinition, custom_data: &mut String) {
     for (applies, value) in rules {
         if applies && custom_data != value {
             *custom_data = value.to_string();
-            return;
+            return None;
         }
     }
+    None
 }
 
 /// Java: the `PET_NEST` part of `CatalogueManager.purchase`: `name\nrace\ncolour`, with a name
