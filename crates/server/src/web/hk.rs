@@ -507,7 +507,13 @@ pub fn audit_log(
     // Newest first within a second too (the sort below is by second and stable): each log
     // reversed, the panel's before the game's.
     rows.reverse();
-    for o in world.store.audit_log().unwrap_or_default().into_iter().rev() {
+    for o in world
+        .store
+        .audit_log()
+        .unwrap_or_default()
+        .into_iter()
+        .rev()
+    {
         rows.push(AuditRow {
             created_at: o.created_at,
             staff_id: o.user_id as i64,
