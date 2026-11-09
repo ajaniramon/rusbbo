@@ -212,6 +212,8 @@ pub fn is_post(conn: &Conn) -> bool {
 
 /// Java: `Hk.flash`.
 pub fn flash(conn: &Conn, colour: &str, message: &str) {
+    // The messages are written in Spanish; `web::i18n` translates them for an English panel.
+    let message = super::i18n::tr(conn.hk_lang().0, message);
     let mut s = conn.session();
     s.set("alertColour", colour);
     s.set("alertMessage", message);
@@ -409,7 +411,16 @@ pub struct AuditRow {
 }
 
 impl AuditRow {
+    /// [`AuditRow::value`] with the details (texts the port writes in Spanish) in `lang`.
+    pub fn value_in(&self, lang: super::i18n::Lang) -> Value {
+        self.map(&super::i18n::tr(lang, &self.details))
+    }
+
     pub fn value(&self) -> Value {
+        self.map(&self.details)
+    }
+
+    fn map(&self, details: &str) -> Value {
         Map::new()
             .with("created_at", row_date(self.created_at))
             .with("staff_id", self.staff_id)
@@ -417,7 +428,7 @@ impl AuditRow {
             .with("target_type", self.target_type.as_str())
             .with("target_id", self.target_id)
             .with("target_name", self.target_name.as_str())
-            .with("details", self.details.as_str())
+            .with("details", details)
             .with("staff_name", self.staff_name.as_str())
             .into()
     }
@@ -493,7 +504,10 @@ pub fn audit_log(
             staff_name: String::new(),
         })
         .collect();
-    for o in world.store.audit_log().unwrap_or_default() {
+    // Newest first within a second too (the sort below is by second and stable): each log
+    // reversed, the panel's before the game's.
+    rows.reverse();
+    for o in world.store.audit_log().unwrap_or_default().into_iter().rev() {
         rows.push(AuditRow {
             created_at: o.created_at,
             staff_id: o.user_id as i64,
@@ -645,9 +659,10 @@ pub fn binder(conn: &mut Conn, tpl: &mut Tpl) {
         None
     };
     let base = path("");
+    let lang = conn.hk_lang().0;
     let rank_name = staff
         .as_ref()
-        .map(|s| rank_label(&Value::Int(s.rank as i64)))
+        .map(|s| super::i18n::tr(lang, &rank_label(&Value::Int(s.rank as i64))))
         .unwrap_or_default();
     let staff_for_can = staff.clone();
     let on_route = route.clone();
@@ -683,13 +698,17 @@ pub fn binder(conn: &mut Conn, tpl: &mut Tpl) {
             .with("serverOnline", true)
             .with("usersOnline", users_online)
             .with("rankName", rank_name)
-            .with_fn("actionLabel", |a| {
-                Ok(Value::from(action_label(
-                    &a.first().map(Value::render).unwrap_or_default(),
+            .with_fn("actionLabel", move |a| {
+                Ok(Value::from(super::i18n::tr(
+                    lang,
+                    &action_label(&a.first().map(Value::render).unwrap_or_default()),
                 )))
             })
-            .with_fn("rankLabel", |a| {
-                Ok(Value::from(rank_label(a.first().unwrap_or(&Value::Null))))
+            .with_fn("rankLabel", move |a| {
+                Ok(Value::from(super::i18n::tr(
+                    lang,
+                    &rank_label(a.first().unwrap_or(&Value::Null)),
+                )))
             }),
     );
 }

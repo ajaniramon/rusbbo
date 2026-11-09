@@ -75,7 +75,20 @@ impl Conn<'_> {
         );
         tpl.set("site", beans::site(self.web));
         tpl.set("gameConfig", beans::game_config(self.world()));
-        tpl.set("locale", Value::Map(self.web.locale()));
+        if tpl.view.starts_with("housekeeping/") {
+            let (lang, selector) = self.hk_lang();
+            tpl.set("locale", Value::Map(self.web.hk_locale(lang)));
+            tpl.set("hkLang", lang.code());
+            tpl.set("hkLangSelector", selector);
+            tpl.set(
+                "hkLangUrls",
+                Map::new()
+                    .with("es", self.hk_lang_url("es"))
+                    .with("en", self.hk_lang_url("en")),
+            );
+        } else {
+            tpl.set("locale", Value::Map(self.web.locale()));
+        }
         let has_alert = alert_message.is_some();
         tpl.set(
             "alert",

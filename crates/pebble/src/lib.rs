@@ -32,6 +32,8 @@ pub enum Error {
 /// parsed form.
 pub struct Engine {
     root: PathBuf,
+    /// Templates held in memory (ISO-8859-1 bytes by name), found before the directory's.
+    overlay: HashMap<String, &'static [u8]>,
     cache: RwLock<HashMap<String, Arc<Vec<Node>>>>,
     /// Re-read templates on every render (for template development).
     reload: bool,
@@ -41,9 +43,18 @@ impl Engine {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            overlay: HashMap::new(),
             cache: RwLock::new(HashMap::new()),
             reload: false,
         }
+    }
+
+    /// Templates that replace the directory's files of the same name (and add new ones).
+    pub fn with_overlay(mut self, files: &[(&str, &'static [u8])]) -> Self {
+        for (name, bytes) in files {
+            self.overlay.insert((*name).to_string(), bytes);
+        }
+        self
     }
 
     pub fn with_reload(mut self, reload: bool) -> Self {
@@ -57,7 +68,7 @@ impl Engine {
 
     /// Whether `name` (e.g. `"index.tpl"`) exists.
     pub fn exists(&self, name: &str) -> bool {
-        self.root.join(name).is_file()
+        self.overlay.contains_key(name) || self.root.join(name).is_file()
     }
 
     pub(crate) fn load(&self, name: &str) -> Result<Arc<Vec<Node>>, String> {
@@ -71,10 +82,15 @@ impl Engine {
                 "template path {name} leaves the template directory"
             ));
         }
-        let path = self.root.join(name);
         // Havana-Web's loader reads templates as ISO-8859-1 (`StringUtil.getCharset()`).
-        let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-        let src = latin1(&bytes);
+        let src = match self.overlay.get(name) {
+            Some(bytes) => latin1(bytes),
+            None => {
+                let path = self.root.join(name);
+                let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+                latin1(&bytes)
+            }
+        };
         let nodes = Arc::new(syntax::parse(&src).map_err(|e| format!("{name}: {e}"))?);
         self.cache.write().insert(name.to_string(), nodes.clone());
         Ok(nodes)

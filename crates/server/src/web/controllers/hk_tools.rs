@@ -98,7 +98,10 @@ pub fn hotel_alert(conn: &mut Conn) -> WebResult {
                 .map(|h| {
                     row(vec![
                         ("created_at", v(row_date(h.created_at))),
-                        ("details", v(h.details.as_str())),
+                        (
+                            "details",
+                            v(super::super::i18n::tr(conn.hk_lang().0, &h.details)),
+                        ),
                         (
                             "staff_name",
                             v(name_of(&world, h.staff_id).unwrap_or_default()),
@@ -272,7 +275,14 @@ pub fn audit(conn: &mut Conn) -> WebResult {
     let mut tpl = hk::template(conn, "housekeeping/audit");
     tpl.set(
         "entries",
-        Value::list(pager.slice(&entries.iter().map(hk::AuditRow::value).collect::<Vec<_>>())),
+        Value::list(
+            pager.slice(
+                &entries
+                    .iter()
+                    .map(|r| r.value_in(conn.hk_lang().0))
+                    .collect::<Vec<_>>(),
+            ),
+        ),
     );
     tpl.set("pager", pager.value());
     tpl.set("q", q);
@@ -524,7 +534,7 @@ pub fn room_view(conn: &mut Conn) -> WebResult {
             hk::audit_log(&world, Some(("room", rid as i64)), None)
                 .iter()
                 .take(15)
-                .map(hk::AuditRow::value)
+                .map(|r| r.value_in(conn.hk_lang().0))
                 .collect::<Vec<_>>(),
         ),
     );

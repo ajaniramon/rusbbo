@@ -18,6 +18,7 @@ mod forum;
 mod hk;
 mod homes;
 pub mod http;
+pub(crate) mod i18n;
 mod imager;
 mod jdate;
 mod mime;
@@ -67,6 +68,8 @@ pub struct Web {
     pub imager: imager::Imager,
     pub watchdog: cache::Watchdog,
     locale: RwLock<Option<(std::time::SystemTime, Arc<rusbbo_pebble::Map>)>>,
+    /// `locale` with the housekeeping's strings, per language, for the `locale` it was made from.
+    hk_locale: RwLock<Vec<(usize, i18n::Lang, Arc<rusbbo_pebble::Map>)>>,
     pub api_limiter: crate::ticket_api::RateLimiter,
 }
 
@@ -75,7 +78,8 @@ impl Web {
         let figures = figure::Figures::load(&config.figuredata);
         let imager = imager::Imager::load(&config.imaging);
         let engine = Engine::new(config.template_dir.join(&config.template_name))
-            .with_reload(config.reload_templates);
+            .with_reload(config.reload_templates)
+            .with_overlay(i18n::HK_TEMPLATES);
         Self {
             world,
             config,
@@ -85,8 +89,32 @@ impl Web {
             imager,
             watchdog: cache::Watchdog::default(),
             locale: RwLock::new(None),
+            hk_locale: RwLock::new(Vec::new()),
             api_limiter: crate::ticket_api::RateLimiter::new(api_rate_limit),
         }
+    }
+
+    /// [`Web::locale`] with the housekeeping's texts in `lang` (`web::i18n`).
+    pub fn hk_locale(&self, lang: i18n::Lang) -> Arc<rusbbo_pebble::Map> {
+        let base = self.locale();
+        let id = Arc::as_ptr(&base) as usize;
+        if let Some((_, _, m)) = self
+            .hk_locale
+            .read()
+            .iter()
+            .find(|(b, l, _)| *b == id && *l == lang)
+        {
+            return m.clone();
+        }
+        let mut map = (*base).clone();
+        for (k, v) in i18n::strings(lang) {
+            map.insert(k.clone(), v.clone());
+        }
+        let map = Arc::new(map);
+        let mut cache = self.hk_locale.write();
+        cache.retain(|(b, _, _)| *b == id);
+        cache.push((id, lang, map.clone()));
+        map
     }
 
     /// `locale-en.ini` as a map (Java: `LocaleManager`, reloaded when the file changes).
@@ -252,6 +280,40 @@ pub struct Conn<'w> {
 impl Conn<'_> {
     pub fn session(&self) -> MutexGuard<'_, Session> {
         self.session.lock()
+    }
+
+    /// The housekeeping's language (`web::i18n`), and whether the panel shows its selector (not
+    /// for a request without `Accept-Language`, which gets Havana's Spanish). `?hk_lang=es|en`
+    /// picks one for the session.
+    pub fn hk_lang(&self) -> (i18n::Lang, bool) {
+        if self.get.contains("hk_lang")
+            && let Some(lang) = i18n::Lang::from_code(&self.get.string("hk_lang"))
+        {
+            self.session().set("hk.lang", lang.code());
+        }
+        if let Some(lang) = self
+            .session()
+            .string("hk.lang")
+            .and_then(|c| i18n::Lang::from_code(&c))
+        {
+            return (lang, true);
+        }
+        match self.header("accept-language") {
+            Some(h) if !h.trim().is_empty() => (i18n::from_accept_language(h), true),
+            _ => (i18n::Lang::Es, false),
+        }
+    }
+
+    /// This page in another housekeeping language: its URL with `hk_lang` set to `code`.
+    pub fn hk_lang_url(&self, code: &str) -> String {
+        let (path, query) = self.uri.split_once('?').unwrap_or((&self.uri, ""));
+        let mut parts: Vec<&str> = query
+            .split('&')
+            .filter(|p| !p.is_empty() && !p.starts_with("hk_lang="))
+            .collect();
+        let lang = format!("hk_lang={code}");
+        parts.push(&lang);
+        format!("{path}?{}", parts.join("&"))
     }
 
     pub fn header(&self, name: &str) -> Option<&str> {

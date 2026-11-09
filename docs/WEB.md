@@ -107,3 +107,13 @@ Pages show what Java shows, so these Havana-Web bugs are reproduced on purpose:
   MariaDB driver connects as `utf8mb4_general_ci`, the tables are `utf8mb4_uca1400_ai_ci`), so
   the Java panel finds nobody; `oracle/web.sh reset` sets `character_set_collations` so the
   oracle connects in the tables' collation.
+- The housekeeping speaks English as well as Spanish (`web/i18n.rs`). rusbbo has its own copy
+  of the panel's templates (`crates/server/templates/housekeeping`, embedded in the binary) with
+  the texts as `locale.hk_*` keys: `templates/hk-locale/es.json` is Havana's Spanish, byte for
+  byte, and `en.json` the English; the messages the Rust side writes (alerts, labels, audit
+  details) are translated with `messages-en.json`. The language is the browser's
+  (`Accept-Language`) or the one picked with the EN/ES selector in the panel's header
+  (`?hk_lang=`, kept in the session). A request without `Accept-Language`, as the traces send,
+  gets Havana's Spanish page and no selector, so the traces still compare it with Java.
+- Audit entries made in the same second are listed newest first (Java leaves their order to
+  MariaDB).

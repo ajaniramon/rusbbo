@@ -301,7 +301,7 @@ pub fn dashboard(conn: &mut Conn) -> WebResult {
             hk::audit_log(&world, None, None)
                 .iter()
                 .take(8)
-                .map(hk::AuditRow::value)
+                .map(|r| r.value_in(conn.hk_lang().0))
                 .collect::<Vec<_>>(),
         ),
     );
@@ -735,7 +735,7 @@ pub fn configurations(conn: &mut Conn) -> WebResult {
                 value.eq_ignore_ascii_case("true") || value.eq_ignore_ascii_case("false"),
             )
             .with("long", value.encode_utf16().count() > 70)
-            .with("help", help)
+            .with("help", crate::web::i18n::tr(conn.hk_lang().0, help))
             .with(
                 "important",
                 !help.is_empty() || IMPORTANT.iter().any(|(k, _)| k == key),
