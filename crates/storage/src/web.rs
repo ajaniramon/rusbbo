@@ -324,6 +324,17 @@ record!(
 );
 
 record!(
+    /// The e-mail columns of `users_statistics` (Java: `PlayerStatistic.ACTIVATION_CODE`,
+    /// `FORGOT_PASSWORD_CODE` and `FORGOT_RECOVERY_REQUESTED_TIME`), keyed by user id. No row is
+    /// all three empty.
+    EmailCodes, "users_email_codes" {
+        activation_code: Option<String>,
+        forgot_password_code: Option<String>,
+        forgot_recovery_requested_time: Option<i64>,
+    }
+);
+
+record!(
     /// `users_club_gifts`; ids are synthetic.
     ClubGift, "users_club_gifts" {
         user_id: u32,
@@ -447,6 +458,7 @@ record_tables!(
     Voucher,
     VoucherUse,
     Referral,
+    EmailCodes,
     ClubGift,
     RoomVisit,
     Collectable,

@@ -247,7 +247,7 @@ pub fn ban_user(
         );
         criteria.machine_id = Some(target.machine_id.clone());
     }
-    // TODO(bans): Java's IP ban here is commented out; `banIp` is read and ignored.
+    // Java's IP ban here is commented out: `banIp` is read and ignored, so it is here too.
     if let Some(session) = world.player_by_id(target.id) {
         session.close();
     }

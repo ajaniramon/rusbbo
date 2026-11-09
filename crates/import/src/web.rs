@@ -36,6 +36,11 @@ fn u(row: &Row, name: &str) -> Result<u32> {
     Ok(col::<Option<i64>>(row, name)?.unwrap_or(0).max(0) as u32)
 }
 
+/// A `bigint` column of Unix seconds, as stored (no DATETIME correction).
+fn raw(row: &Row, name: &str) -> Result<i64> {
+    Ok(col::<Option<i64>>(row, name)?.unwrap_or(0))
+}
+
 fn t(row: &Row, name: &str) -> Result<i64> {
     Ok(crate::far_future_local(
         col::<Option<i64>>(row, name)?.unwrap_or(0),
@@ -224,7 +229,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
             id: synthetic(),
             user_id: u(&r, "user_id")?,
             group_id: u(&r, "group_id")?,
-            expire: t(&r, "expire")?,
+            expire: raw(&r, "expire")?,
         })?;
         n += 1;
     }
@@ -360,7 +365,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
     for r in rows(conn, "SELECT user_id, expire FROM homes_edit_sessions")? {
         w.put_record(&HomeEditSession {
             id: u(&r, "user_id")?,
-            expire: t(&r, "expire")?,
+            expire: raw(&r, "expire")?,
         })?;
         n += 1;
     }
@@ -537,13 +542,32 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
     }
     for r in rows(
         conn,
+        "SELECT user_id, activation_code, forgot_password_code, forgot_recovery_requested_time \
+         FROM users_statistics",
+    )? {
+        let codes = EmailCodes {
+            id: u(&r, "user_id")?,
+            activation_code: col(&r, "activation_code")?,
+            forgot_password_code: col(&r, "forgot_password_code")?,
+            forgot_recovery_requested_time: col(&r, "forgot_recovery_requested_time")?,
+        };
+        if codes.activation_code.is_some()
+            || codes.forgot_password_code.is_some()
+            || codes.forgot_recovery_requested_time.is_some()
+        {
+            w.put_record(&codes)?;
+            n += 1;
+        }
+    }
+    for r in rows(
+        conn,
         "SELECT store_page, admin_page, expiry, lifetime, current_position, class_names FROM catalogue_collectables",
     )? {
         w.put_record(&Collectable {
             id: u(&r, "store_page")?,
             admin_page: i(&r, "admin_page")?,
-            expiry: t(&r, "expiry")?,
-            lifetime: t(&r, "lifetime")?,
+            expiry: raw(&r, "expiry")?,
+            lifetime: raw(&r, "lifetime")?,
             current_position: i(&r, "current_position")?,
             class_names: s(&r, "class_names")?,
         })?;

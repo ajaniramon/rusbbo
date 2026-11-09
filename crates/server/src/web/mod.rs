@@ -12,6 +12,7 @@ pub mod cache;
 mod captcha;
 pub(crate) mod controllers;
 pub mod data;
+pub(crate) mod email;
 pub mod figure;
 mod forum;
 mod hk;

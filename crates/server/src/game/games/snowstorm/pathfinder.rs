@@ -112,6 +112,6 @@ impl SnowStormGame {
         }
     }
 
-    // TODO(snowstorm): Java's `getOppositionPlayer` is not ported: nothing calls it (its only
-    // use in `SnowballMovementTask` is commented out).
+    // Java's `getOppositionPlayer` is dead code (its only use in `SnowballMovementTask` is
+    // commented out), so it has no counterpart here.
 }

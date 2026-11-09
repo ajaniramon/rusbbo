@@ -724,7 +724,7 @@ mod tests {
 /// with a diacritic is its base letter (`é` = `e`, `ñ` = `n`, `ø` = `o`, `ł` = `l`), while letters
 /// of their own and ligatures stay (`ß` is not `ss`, `æ` not `ae`: `LIKE` goes character by
 /// character; traces/search-accents.json). Covers Latin-1 and Latin Extended-A.
-pub(crate) fn collation_fold(c: char) -> char {
+pub fn collation_fold(c: char) -> char {
     const TABLE: [(&str, char); 19] = [
         ("àáâãäåāăą", 'a'),
         ("çćĉċč", 'c'),

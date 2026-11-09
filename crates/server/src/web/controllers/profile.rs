@@ -55,7 +55,7 @@ pub fn profile(conn: &mut Conn) -> WebResult {
             t.set(
                 "canUseTrade",
                 !data::cfg_bool(conn.world(), "trade.email.verification")
-                    || data::is_activated(conn.world()),
+                    || data::is_activated(conn.world(), conn.user_id()),
             );
             t
         }
@@ -75,7 +75,10 @@ pub fn profile(conn: &mut Conn) -> WebResult {
         }
     };
     tpl.set("settingsSavedAlert", false);
-    tpl.set("accountActivated", data::is_activated(conn.world()));
+    tpl.set(
+        "accountActivated",
+        data::is_activated(conn.world(), conn.user_id()),
+    );
     if conn.session().contains("settings.saved.successfully") {
         tpl.set("settingsSavedAlert", true);
     }
@@ -294,8 +297,48 @@ pub fn email_update(conn: &mut Conn) -> WebResult {
             );
         } else {
             alert(conn, "Your email has been changed successfully.", "green");
-            // TODO(email): with SMTP on, Java mails an activation code and only then saves the
-            // address (and turns trading off with trade.email.verification).
+            if user.email != email {
+                let code = uuid::Uuid::new_v4().to_string();
+                if data::cfg_bool(conn.world(), "email.smtp.enable") {
+                    let html = crate::web::email::render_activate(
+                        conn.web,
+                        user.id,
+                        &user.username,
+                        &email,
+                        &code,
+                    )?;
+                    // Java: the code, the trade switched off and the address only once the mail
+                    // is on its way (`EmailUtil.send` may refuse within its cooldown).
+                    if crate::web::email::send(
+                        conn,
+                        &email,
+                        "Activate your account at Classic Habbo",
+                        html,
+                    ) {
+                        let world = conn.web.world.clone();
+                        let mut codes = crate::web::email::codes(&world, user.id);
+                        codes.activation_code = Some(code);
+                        crate::web::email::put_codes(&world, &codes)?;
+                        if data::cfg_bool(&world, "trade.email.verification") && user.trade_enabled
+                        {
+                            world
+                                .store
+                                .update_user(user.id, |u| u.trade_enabled = false)?;
+                            crate::rcon::send(
+                                &world,
+                                "refreshtrade",
+                                &[
+                                    ("userId", user.id.to_string()),
+                                    ("tradeEnabled", "0".to_string()),
+                                ],
+                            );
+                        }
+                        world
+                            .store
+                            .update_user(user.id, |u| u.email = email.clone())?;
+                    }
+                }
+            }
         }
     }
     conn.redirect("/profile?tab=3");
@@ -405,7 +448,7 @@ pub fn security_update(conn: &mut Conn) -> WebResult {
     } else if !password_ok(conn, &user.username, &password) {
         alert(conn, "Your current password is invalid", "red");
     } else if data::cfg_bool(conn.world(), "trade.email.verification")
-        && !data::is_activated(conn.world())
+        && !data::is_activated(conn.world(), conn.user_id())
     {
         alert(
             conn,
@@ -499,7 +542,10 @@ pub fn verify(conn: &mut Conn) -> WebResult {
     }
     conn.session().set("page", "me");
     let mut tpl = conn.template("profile/verify_email");
-    tpl.set("accountActivated", data::is_activated(conn.world()));
+    tpl.set(
+        "accountActivated",
+        data::is_activated(conn.world(), conn.user_id()),
+    );
     conn.render(tpl)?;
     let mut s = conn.session();
     s.delete("alertMessage");
@@ -513,12 +559,40 @@ pub fn send_email(conn: &mut Conn) -> WebResult {
         conn.redirect("/");
         return Ok(());
     }
-    if data::is_activated(conn.world()) {
+    if data::is_activated(conn.world(), conn.user_id()) {
         alert(conn, "Your email is already activated", "red");
         conn.redirect("/profile/verify");
         return Ok(());
     }
-    // TODO(email): a new activation code and its mail.
+    // Java: a new activation code (saved at once), and its mail with SMTP on.
+    let world = conn.web.world.clone();
+    let Some(user) = world.store.user(conn.user_id())? else {
+        return Ok(());
+    };
+    let code = uuid::Uuid::new_v4().to_string();
+    let mut codes = crate::web::email::codes(&world, user.id);
+    codes.activation_code = Some(code.clone());
+    crate::web::email::put_codes(&world, &codes)?;
+    if data::cfg_bool(&world, "email.smtp.enable") {
+        alert(
+            conn,
+            "A verification email has been sent to your email address",
+            "green",
+        );
+        let html = crate::web::email::render_activate(
+            conn.web,
+            user.id,
+            &user.username,
+            &user.email,
+            &code,
+        )?;
+        crate::web::email::send(
+            conn,
+            &user.email,
+            "Activate your account at Classic Habbo",
+            html,
+        );
+    }
     conn.redirect("/profile/verify");
     Ok(())
 }

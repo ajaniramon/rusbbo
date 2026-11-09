@@ -578,11 +578,10 @@ pub fn recently_active(world: &World) -> Vec<rusbbo_storage::User> {
     users
 }
 
-/// Java: `AchievementTraderPass.isActivated(activation_code)`: always true with SMTP off (a code
-/// only exists once a mail was sent). TODO(email): the activation codes.
-pub fn is_activated(world: &World) -> bool {
-    let _ = cfg_bool(world, "email.smtp.enable");
-    true
+/// Java: `AchievementTraderPass.isActivated` of the user's activation code (see
+/// [`super::email::is_activated`]).
+pub fn is_activated(world: &World, user_id: u32) -> bool {
+    super::email::is_activated(world, user_id)
 }
 
 /// Java: `EmailDao.hasUserTradePass`: the first other account with this e-mail (by id) is
@@ -597,7 +596,7 @@ pub fn has_trade_pass(world: &World, user_id: u32, email: &str) -> bool {
                 && u.id != user_id
                 && world.store.statistics(u.id).ok().flatten().is_some()
         })
-        .is_some_and(|u| is_activated(world) && u.trade_enabled)
+        .is_some_and(|u| is_activated(world, u.id) && u.trade_enabled)
 }
 
 /// Java: `RoomDao.getHighestRatedRooms(limit, offset)`: user rooms by rating (ties by id, the scan

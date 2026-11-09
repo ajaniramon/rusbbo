@@ -255,6 +255,9 @@ pub async fn run(web: Arc<super::Web>) {
             if c % 300 == 0 {
                 w.watchdog.publish_future_articles(&w.world);
             }
+            if c % 3600 == 0 {
+                super::email::clean_recovery_codes(&w.world);
+            }
             if c % 30 == 0 {
                 w.watchdog.refresh(&w.world);
             }

@@ -118,3 +118,11 @@ INSERT INTO users_transactions (user_id, item_id, catalogue_id, amount, descript
   (25, '6,7', '13', 2, 'Purchased two lamps', 6, 10, CURDATE() - INTERVAL 2 DAY);
 INSERT INTO room_visits (room_id, user_id, visited_at) VALUES
   (1, 25, CURDATE() + INTERVAL 1 HOUR), (2, 25, CURDATE() - INTERVAL 3 DAY), (1, 1, CURDATE() + INTERVAL 2 HOUR);
+
+-- The e-mail scenario (only with SMTP on, which it switches on): tracebot1 and tracebot2 have
+-- activation codes still to use, tracebot3 a password recovery code (requested "in 2100", so the
+-- Watchdog's daily clean-up leaves it).
+UPDATE users_statistics SET activation_code = 'seed-activation-one' WHERE user_id = 1;
+UPDATE users_statistics SET activation_code = 'Seed-Activation-Code' WHERE user_id = 2;
+UPDATE users_statistics SET forgot_password_code = 'seed-recovery-code',
+  forgot_recovery_requested_time = 4102444800 WHERE user_id = 3;

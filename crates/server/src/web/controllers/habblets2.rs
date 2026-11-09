@@ -395,8 +395,9 @@ fn hot_groups(conn: &Conn, limit: usize, offset: usize) -> Value {
             (g, n)
         })
         .collect();
-    // TODO(groups): Java sorts a HashMap keyed by Group (identity hashes): ties come out in no
-    // fixed order; here they keep id order.
+    // Java sorts a HashMap keyed by Group, whose hash is the object's identity: ties come out in
+    // an order that changes from run to run, which nothing can reproduce; here they keep id
+    // order (the web traces' seed has no ties).
     groups.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
     Value::list(
         groups

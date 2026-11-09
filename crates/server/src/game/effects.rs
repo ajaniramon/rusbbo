@@ -121,7 +121,7 @@ pub fn wear(world: &World, session: &Session, p: &Player, effect_id: i32) {
 /// Java then gives it (`AVATAR_EFFECT_ADDED`, `AVATAR_EFFECTS`, activated and worn) and starts
 /// the day until the next one, but `newEffect` returns `null` (see the module docs), so it stops
 /// right after storing the row: each use of the totem stores one more, and the player gets them
-/// at the next login. TODO(effects): give it at once if Java's `newEffect` is ever fixed.
+/// at the next login, as in Java.
 pub fn totem_effect(world: &World, session: &Session, effect_id: i32) {
     let p = session.player.lock();
     let Some(user) = p.details.as_ref() else {

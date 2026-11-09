@@ -51,7 +51,7 @@
 //! | `SnowStormMapsManager` | [`maps`] (+ [`heightmaps`]) |
 //! | `SnowStormTurn` | `tasks::TurnTask::turns` |
 //! | `mapping/SnowStormItem`, `SnowStormTile`, `SnowStormMap` | [`mapping`] |
-//! | `mapping/SnowStormPathfinder` | [`pathfinder`] (`getOppositionPlayer`: unused in Java, `TODO(snowstorm)`) |
+//! | `mapping/SnowStormPathfinder` | [`pathfinder`] (not `getOppositionPlayer`, dead code in Java) |
 //! | `objects/SnowStormAvatarObject`, `SnowStormMachineObject`, `SnowballObject` | [`objects`] |
 //! | `events/*` | [`events::TurnEvent`] |
 //! | `tasks/SnowStormGameTask`, `SnowballMovementTask` | [`tasks`] (+ [`timers`]) |

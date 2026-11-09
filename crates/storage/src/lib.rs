@@ -53,7 +53,7 @@ pub use pets::Pet;
 pub use photos::Photo;
 pub use records::User;
 pub use room_rights::RoomVote;
-pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway};
+pub use rooms::{PublicItem, Room, RoomCategory, RoomModel, Walkway, collation_fold};
 pub use soundmachine::{PlaylistEntry, Song, SongDisk, SoundMachineTrack};
 pub use transactions::Transaction;
 pub use user::{Achievement, Badge, Effect, STATISTIC_COLUMNS, UserAchievement, UserStatistics};

@@ -21,7 +21,7 @@ mod minimail;
 mod pages;
 mod profile;
 mod recovery;
-mod register;
+pub(crate) mod register;
 mod shop;
 mod site;
 pub(crate) mod tags;

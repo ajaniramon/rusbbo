@@ -1,0 +1,163 @@
+description = "The website with SMTP on (switched on in the housekeeping, to a mail server that is not there: Java sends in the background and the pages never learn): password recovery (the forms' errors, a request, the two-minute cooldown), the recovery page with a bad code, activation links, and a logged-in user's verification mail and email change"
+mask = ['name="hk_token" value="[0-9a-f]{48}"', '\?\d{6,}"', '<span class="when">\d{4}-\d\d-\d\d \d\d:\d\d</span>']
+
+# Client a is tracestaff in the housekeeping; client b a visitor; client c tracebot1 logged in
+# (activation code still to use, oracle/web-seed.sql); tracebot2's activation code and
+# tracebot3's recovery code are used from b's links; d logs in with tracebot3's new password, e as
+# the activated tracebot2.
+
+[[step]]
+post = "/allseeingeye/hk/login"
+form = { hkusername = "tracestaff", hkpassword = "tracepass123" }
+
+[[step]]
+get = "/allseeingeye/hk/configurations?q=email"
+capture = { token = 'name="hk_token" value="([0-9a-f]+)"' }
+
+[[step]]
+post = "/allseeingeye/hk/configurations"
+form = { hk_token = "{{token}}", "cfg:email.smtp.enable" = "true", "cfg:email.smtp.host" = "127.0.0.1", "cfg:email.smtp.port" = "1", "cfg:email.smtp.from.email" = "noreply@trace.local", "cfg:email.smtp.from.name" = "Trace Hotel", q = "email" }
+
+[[step]]
+client = "b"
+get = "/account/password/forgot"
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionList = "1", ownerEmailAddress = "not-an-address" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionList = "1", ownerEmailAddress = "nobody@trace.local" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionList = "1", ownerEmailAddress = "BOT1@trace.local" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionForgot = "1", "forgottenpw-username" = "", "forgottenpw-email" = "bot1@trace.local" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionForgot = "1", "forgottenpw-username" = "tracebot1", "forgottenpw-email" = "bot2@trace.local" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionForgot = "1", "forgottenpw-username" = "tracebot1", "forgottenpw-email" = "bot1@trace.local" }
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { actionForgot = "1", "forgottenpw-username" = "tracebot1", "forgottenpw-email" = "bot1@trace.local" }
+
+[[step]]
+client = "b"
+get = "/account/password/forgot"
+
+[[step]]
+client = "b"
+post = "/account/password/forgot"
+form = { other = "1" }
+
+[[step]]
+client = "b"
+get = "/account/password/recovery?id=1&code=wrong"
+
+[[step]]
+client = "b"
+get = "/account/password/recovery"
+
+[[step]]
+client = "b"
+post = "/account/password/recovery"
+form = { user_id = "1", recovery_code = "wrong", password = "newpass1", confirmpassword = "newpass1" }
+
+[[step]]
+client = "b"
+get = "/account/activate?id=1&code=wrong"
+
+[[step]]
+client = "b"
+get = "/account/activate?id=x"
+
+[[step]]
+client = "c"
+post = "/account/submit"
+form = { username = "tracebot1", password = "tracepass123" }
+
+[[step]]
+client = "c"
+get = "/profile/verify"
+
+[[step]]
+client = "c"
+get = "/profile/send_email"
+
+[[step]]
+client = "c"
+get = "/profile/verify"
+
+[[step]]
+client = "c"
+get = "/profile/send_email"
+
+[[step]]
+client = "c"
+get = "/profile/verify"
+
+[[step]]
+client = "b"
+get = "/account/activate?id=2&code=seed-activation-code"
+# tracebot3's code (the column compares without case)
+
+[[step]]
+client = "b"
+get = "/account/activate?id=2&code=seed-activation-code"
+# used up
+
+[[step]]
+client = "b"
+get = "/account/password/recovery?id=3&code=seed-recovery-code"
+
+[[step]]
+client = "b"
+post = "/account/password/recovery"
+form = { user_id = "3", recovery_code = "seed-recovery-code", password = "abc", confirmpassword = "abd" }
+
+[[step]]
+client = "b"
+post = "/account/password/recovery"
+form = { user_id = "3", recovery_code = "seed-recovery-code", password = "abc", confirmpassword = "abc" }
+
+[[step]]
+client = "b"
+post = "/account/password/recovery"
+form = { user_id = "3", recovery_code = "seed-recovery-code", password = "newpass9", confirmpassword = "newpass9" }
+
+[[step]]
+client = "b"
+post = "/account/password/recovery"
+form = { user_id = "3", recovery_code = "seed-recovery-code", password = "newpass9", confirmpassword = "newpass9" }
+# the code is gone
+
+[[step]]
+client = "d"
+post = "/account/submit"
+form = { username = "tracebot3", password = "newpass9" }
+# the new password works
+
+[[step]]
+client = "e"
+post = "/account/submit"
+form = { username = "tracebot2", password = "tracepass123" }
+
+[[step]]
+client = "e"
+get = "/profile/verify"

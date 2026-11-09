@@ -219,6 +219,27 @@ pub fn register(conn: &mut Conn) -> WebResult {
         world
             .store
             .put_statistics(user_id, &rusbbo_storage::UserStatistics::new_row())?;
+        // Java: `PlayerStatisticsDao.newStatistics(userId, activationCode)`, with SMTP on or off,
+        // and the mail with SMTP on.
+        let activation_code = uuid::Uuid::new_v4().to_string();
+        crate::web::email::put_codes(
+            &world,
+            &rusbbo_storage::EmailCodes {
+                id: user_id,
+                activation_code: Some(activation_code.clone()),
+                ..Default::default()
+            },
+        )?;
+        if crate::web::data::cfg_bool(&world, "email.smtp.enable") {
+            let html = crate::web::email::render_registered(
+                conn.web,
+                user_id,
+                &name,
+                &email,
+                &activation_code,
+            )?;
+            crate::web::email::send(conn, &email, "Activate your account at Classic Habbo", html);
+        }
         if world.store.latest_ip(user_id)?.as_deref() != Some(ip.as_str()) {
             world.store.log_ip(user_id, &ip, beans::now())?;
         }
