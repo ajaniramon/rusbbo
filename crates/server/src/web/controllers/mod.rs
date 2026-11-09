@@ -15,6 +15,7 @@ mod hk_gamedata;
 mod hk_tools;
 mod hk_users;
 mod homes;
+mod imager;
 mod me;
 mod minimail;
 mod pages;
@@ -170,6 +171,9 @@ pub fn handle(conn: &mut Conn, handler: &str) -> Result<bool, super::WebError> {
         "RegisterController::register" => register::register(conn)?,
         "RegisterController::registerCancelled" => register::cancelled(conn)?,
         "RegisterController::captcha" => register::captcha_image(conn)?,
+        "ImagerController::avatarimage" => imager::avatarimage(conn)?,
+        "ImagerController::badge" => imager::badge(conn, false)?,
+        "ImagerController::badgefill" => imager::badge(conn, true)?,
         "RecoveryController::forgot" => recovery::forgot(conn)?,
         "RecoveryController::recovery" => recovery::recovery(conn)?,
         "RecoveryController::activate" => recovery::activate(conn)?,

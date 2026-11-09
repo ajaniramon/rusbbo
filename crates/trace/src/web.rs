@@ -14,7 +14,7 @@
 //! [[step]]
 //! get = "/me"
 //! client = "b"        # another browser (cookie jar); "a" by default
-//! body = "ignore"     # or "hash" (binary bodies); "text" by default
+//! body = "ignore"     # or "hash" (binary bodies), "image" (PNG/GIF pixels); "text" by default
 //! headers = { "X-Requested-With" = "XMLHttpRequest" }
 //! capture = { token = 'name="hk_token" value="([0-9a-f]+)"' }  # from this response's body
 //!
@@ -112,6 +112,9 @@ pub struct WebResponse {
     pub status: u16,
     pub headers: Vec<(String, String)>,
     pub body: String,
+    /// The body's bytes, until `normalise` has used them.
+    #[serde(skip)]
+    pub raw: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -217,12 +220,14 @@ fn normalise(mut r: WebResponse, step: &WebStep, masks: &Masks) -> WebResponse {
             r.body.len(),
             fnv(r.body.as_bytes())
         ),
+        Some("image") => super::image::describe(&r.raw),
         _ => masks.apply(&r.body),
     };
+    r.raw.clear();
     r
 }
 
-fn fnv(b: &[u8]) -> u64 {
+pub(crate) fn fnv(b: &[u8]) -> u64 {
     b.iter().fold(0xcbf29ce484222325u64, |h, &x| {
         (h ^ x as u64).wrapping_mul(0x100000001b3)
     })
@@ -351,6 +356,7 @@ fn request(
             }
         }
     }
+    let raw = body.clone();
     let body = match String::from_utf8(body) {
         Ok(s) => s,
         Err(e) => format!(
@@ -363,6 +369,7 @@ fn request(
         status,
         headers,
         body,
+        raw,
     })
 }
 

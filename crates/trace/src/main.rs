@@ -2,6 +2,7 @@
 //! another server (the Rust rewrite) against those recordings.
 
 mod check;
+mod image;
 mod load;
 mod runner;
 mod scenario;

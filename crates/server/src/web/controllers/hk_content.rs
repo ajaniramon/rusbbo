@@ -270,27 +270,12 @@ fn ads_by_room(world: &World) -> Vec<RoomAd> {
             rooms.push((a.room_id.to_string(), a.room_id));
         }
     }
-    let order = java_int_map_order(rooms.iter().map(|(_, r)| *r).collect());
+    let order = super::super::data::java_int_map_order(rooms.iter().map(|(_, r)| *r).collect());
     let mut out = Vec::new();
     for room in order {
         out.extend(ads.iter().filter(|a| a.room_id == room).cloned());
     }
     out
-}
-
-/// The order a Java `HashMap<Integer, _>` lists its keys in.
-fn java_int_map_order(mut keys: Vec<i32>) -> Vec<i32> {
-    let mut capacity = 16usize;
-    while keys.len() as f64 > capacity as f64 * 0.75 {
-        capacity *= 2;
-    }
-    let bucket = |k: i32| {
-        let h = k as u32;
-        ((h ^ (h >> 16)) as usize) & (capacity - 1)
-    };
-    // Within a bucket, keys keep their insertion order.
-    keys.sort_by_key(|k| bucket(*k));
-    keys
 }
 
 fn refresh_ads(world: &World) {
@@ -417,7 +402,7 @@ fn entry_badges_value(world: &World) -> Value {
         }
     }
     let mut m = Map::new();
-    for room in java_int_map_order(rooms) {
+    for room in super::super::data::java_int_map_order(rooms) {
         let list: Vec<Value> = badges
             .iter()
             .filter(|b| b.room_id as i32 == room)
@@ -495,7 +480,8 @@ pub fn room_badges(conn: &mut Conn) -> WebResult {
             for b in world.store.records::<RoomEntryBadge>()? {
                 w.delete_record::<RoomEntryBadge>(b.id)?;
             }
-            let order = java_int_map_order(rooms.iter().map(|(r, _)| *r).collect());
+            let order =
+                super::super::data::java_int_map_order(rooms.iter().map(|(r, _)| *r).collect());
             for room in order {
                 for badge in rooms
                     .iter()

@@ -40,7 +40,14 @@ if [[ -n "${TARGET_WEB_PORT:-}" ]]; then
     GOLDEN="$WEB_GOLDEN"
   fi
   HAVANA="${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}"
-  WEB_ARGS=(--web "127.0.0.1:$TARGET_WEB_PORT" --web-templates "$HAVANA/tools/www-tpl" --web-site "$HAVANA/tools/www" --web-figuredata "$HAVANA/tools/figuredata.xml")
+  # The imager's resources, from the Java web's jar (oracle/web.sh build).
+  IMAGING="$RUN_DIR/imaging"
+  WEB_JAR="$WS_DIR/oracle/run/web/Havana-Web.jar"
+  if [[ -f "$WEB_JAR" && ( ! -d "$IMAGING" || "$WEB_JAR" -nt "$IMAGING" ) ]]; then
+    rm -rf "$IMAGING" && mkdir -p "$IMAGING"
+    unzip -q -o "$WEB_JAR" 'figuredata/*' 'badges/*' -d "$IMAGING"
+  fi
+  WEB_ARGS=(--web "127.0.0.1:$TARGET_WEB_PORT" --web-templates "$HAVANA/tools/www-tpl" --web-site "$HAVANA/tools/www" --web-figuredata "$HAVANA/tools/figuredata.xml" --web-imaging "$IMAGING")
 fi
 
 # One fixture per source dump, so web checks (golden_web.sql) and game checks (golden.sql) never

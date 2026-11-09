@@ -31,7 +31,7 @@ TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.
   cookies, sessions), `router.rs` + `routes_table.rs` (generated from `Routes.java` by
   `tools/gen_web_routes.py`), `tpl.rs` (templates and their binders), `beans.rs` (what Java
   objects look like to templates), `data.rs` (the DAOs), `controllers/` (one module per Java
-  controller group).
+  controller group), `imager.rs` (avatara4j).
 - `homes.rs` (`Widget`, the sticker catalogue, guestbooks, ratings, edit sessions) and
   `forum.rs` (`GroupDiscussionDao`, topics and replies).
 - `crates/storage/src/web.rs`: the website's tables, as generic `Record` tables.
@@ -44,8 +44,18 @@ TARGET_WEB_PORT=12380 rusbbo-trace web-check traces/web/x.json --target 127.0.0.
 | 2. Site | `ProfileController`, `CreditsController`, `ClubController`, `CollectablesController`, `CommunityController`, `NewsController`, `GamesController`, `TagController`, `FaqController`, `SiteController`, the habblets (`habblet/*`), `FriendManagementController`, `MinimailController`, `QuickmenuController`, `TagController`, `VoucherController`, `CollectablesController` | done |
 | 3. Homes | `HomesController`, `StoreController`, `NoteEditorController`, `WidgetController`, `GuestbookController`, `RateController`, `BadgesController`, `TraxController`, the friends/members widgets | done |
 | 4. Groups | `GroupController`, `GroupHabbletController`, `GroupMemberController`, `GroupFavouriteController`, `GroupTagController`, `GroupDiscussionsController`, `DiscussionController`, `DiscussionActionsController`, `DiscussionPreviewController` | done (creating topics and replies needs the captcha, so the traces only cover its errors) |
-| 5. Housekeeping | `controllers/housekeeping/*` | |
-| 6. Imager | `ImagerController` (`/habbo-imaging/*`: avatars and badges, Avatara4j) | |
+| 5. Housekeeping | `controllers/housekeeping/*` | done |
+| 6. Imager | `ImagerController` (`/habbo-imaging/*`: avatars and badges, Avatara4j) | done (same pixels; the PNG/GIF files are encoded differently) |
+
+## The imager
+
+`web/imager.rs` ports avatara4j, the library Havana-Web draws avatars and badges with. It reads
+the library's resources from `--web-imaging <DIR>`: the `figuredata/` and `badges/` folders of
+Havana-Web's jar, extracted (`unzip Havana-Web.jar 'figuredata/*' 'badges/*' -d <DIR>`;
+`harness/target-rs.sh` does it). The images are drawn with Java2D's own `SrcOver` arithmetic
+(its 8-bit multiply and divide tables), so every pixel is Java's; the encoders are not ImageIO's,
+so web traces compare these bodies decoded (`body = "image"`). GIFs follow ImageIO's
+`PaletteBuilder`: pixels that are not opaque become transparent.
 
 ## Data the traces need
 

@@ -20,6 +20,7 @@ mod forum;
 mod hk;
 mod homes;
 pub mod http;
+mod imager;
 mod jdate;
 mod mime;
 mod model;
@@ -54,6 +55,8 @@ pub struct WebConfig {
     pub reload_templates: bool,
     /// `figuredata.xml` (Java reads it from its working directory).
     pub figuredata: PathBuf,
+    /// avatara4j's resources (the `figuredata/` and `badges/` folders of its jar).
+    pub imaging: PathBuf,
 }
 
 /// The web server's shared state.
@@ -63,6 +66,7 @@ pub struct Web {
     pub engine: Engine,
     pub sessions: Sessions,
     pub figures: figure::Figures,
+    pub imager: imager::Imager,
     pub watchdog: cache::Watchdog,
     locale: RwLock<Option<(std::time::SystemTime, Arc<rusbbo_pebble::Map>)>>,
     pub api_limiter: crate::ticket_api::RateLimiter,
@@ -71,6 +75,7 @@ pub struct Web {
 impl Web {
     pub fn new(world: Arc<World>, config: WebConfig, api_rate_limit: u32) -> Self {
         let figures = figure::Figures::load(&config.figuredata);
+        let imager = imager::Imager::load(&config.imaging);
         let engine = Engine::new(config.template_dir.join(&config.template_name))
             .with_reload(config.reload_templates);
         Self {
@@ -79,6 +84,7 @@ impl Web {
             engine,
             sessions: Sessions::default(),
             figures,
+            imager,
             watchdog: cache::Watchdog::default(),
             locale: RwLock::new(None),
             api_limiter: crate::ticket_api::RateLimiter::new(api_rate_limit),

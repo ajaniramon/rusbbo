@@ -64,6 +64,21 @@ pub fn java_hashmap_order<T>(items: Vec<(String, T)>) -> Vec<(String, T)> {
     indexed.into_iter().map(|(_, _, kv)| kv).collect()
 }
 
+/// The order a Java `HashMap<Integer, _>` lists its keys in.
+pub fn java_int_map_order(mut keys: Vec<i32>) -> Vec<i32> {
+    let mut capacity = 16usize;
+    while keys.len() as f64 > capacity as f64 * 0.75 {
+        capacity *= 2;
+    }
+    let bucket = |k: i32| {
+        let h = k as u32;
+        ((h ^ (h >> 16)) as usize) & (capacity - 1)
+    };
+    // Within a bucket, keys keep their insertion order.
+    keys.sort_by_key(|k| bucket(*k));
+    keys
+}
+
 /// Java: `TagDao.getPopularTags(n)`: the `n` most used tags with their font size (10, 12, 14 or
 /// 20 px), shuffled.
 pub fn popular_tags(world: &World, n: usize) -> Vec<(String, i64)> {

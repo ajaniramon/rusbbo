@@ -655,8 +655,8 @@ pub fn edit_group(conn: &mut Conn) -> WebResult {
                         .as_deref()
                         .is_some_and(|a| a.eq_ignore_ascii_case(&alias))
             })?
-            .first()
-            .is_some();
+            .is_empty();
+        let conflict = !conflict;
         let error = if name.trim().is_empty() {
             Some("El grupo necesita un nombre")
         } else if u32::try_from(owner)

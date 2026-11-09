@@ -70,6 +70,10 @@ struct Cli {
     /// The figure data the website validates looks with (Havana's `tools/figuredata.xml`).
     #[arg(long, value_name = "FILE", default_value = "tools/figuredata.xml")]
     web_figuredata: PathBuf,
+    /// The imager's resources: the `figuredata/` and `badges/` folders of Havana-Web's avatara4j
+    /// jar, extracted.
+    #[arg(long, value_name = "DIR", default_value = "tools/imaging")]
+    web_imaging: PathBuf,
 }
 
 #[tokio::main]
@@ -129,6 +133,7 @@ async fn main() -> Result<()> {
                 site_dir: cli.web_site.clone(),
                 reload_templates: cli.web_reload_templates,
                 figuredata: cli.web_figuredata.clone(),
+                imaging: cli.web_imaging.clone(),
             },
             cli.http_rate_limit,
         ));
