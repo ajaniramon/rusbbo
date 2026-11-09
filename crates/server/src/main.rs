@@ -1,6 +1,8 @@
 //! Havana game server (Rust rewrite). See `docs/DESIGN.md`.
 
+mod admin;
 mod game;
+mod launcher;
 mod messages;
 mod mus;
 mod net;
@@ -32,7 +34,7 @@ use world::World;
 #[command(
     version,
     about = "A Habbo Hotel v31 (Shockwave) and r39 (Flash) server with its website, a Rust rewrite of Havana",
-    after_help = "Logging: set RUST_LOG (default `info`, e.g. RUST_LOG=debug or RUST_LOG=rusbbo_server=debug).
+    after_help = "Logging: set RUST_LOG (default `info`, e.g. RUST_LOG=debug or RUST_LOG=rusbbo_server=debug).\n\
                   Create the database with `rusbbo-import`. See the README for a complete setup."
 )]
 struct Cli {
@@ -132,8 +134,25 @@ struct Cli {
     dev_tickets: Vec<String>,
     /// Set a user's rank at startup, e.g. `--set-rank alice=8`, then serve as usual. Repeatable.
     /// Rank 5 opens the housekeeping (`/allseeingeye/hk`), 8 (Administrator) gives all of it.
+    /// (When no user has rank 8, the server creates an `admin` at startup and prints its
+    /// password.)
     #[arg(long, value_name = "USERNAME=RANK", help_heading = "Administration")]
     set_rank: Vec<String>,
+    /// Build the Windows launcher for this hotel into DIR and exit: downloads its source, compiles
+    /// it with the hotel's URL and name, and leaves `<name> Launcher.exe` to hand out to players.
+    /// Needs curl, tar and the .NET 9 SDK.
+    #[arg(long, value_name = "DIR", help_heading = "Launcher")]
+    build_launcher: Option<PathBuf>,
+    /// The website address the launcher logs in to, as players reach it, e.g.
+    /// http://hotel.example.com [default: the `site.path` setting].
+    #[arg(long, value_name = "URL", help_heading = "Launcher")]
+    launcher_url: Option<String>,
+    /// The hotel name the launcher shows [default: the `site.name` setting].
+    #[arg(long, value_name = "NAME", help_heading = "Launcher")]
+    launcher_name: Option<String>,
+    /// The launcher's source: a GitHub repository or a local checkout.
+    #[arg(long, value_name = "URL|DIR", default_value = launcher::DEFAULT_SOURCE, help_heading = "Launcher")]
+    launcher_source: String,
 }
 
 #[tokio::main]
@@ -144,6 +163,9 @@ async fn main() -> Result<()> {
         )
         .init();
     let cli = Cli::parse();
+    if let Some(out) = &cli.build_launcher {
+        return build_launcher(&cli, out);
+    }
 
     let store = Store::open(&cli.db).with_context(|| format!("opening {}", cli.db.display()))?;
     // Like Havana.java: tickets, online flags, visitor counts and trade states from before a
@@ -174,6 +196,15 @@ async fn main() -> Result<()> {
             .with_context(|| format!("--set-rank: no user {name}"))?;
         store.update_user(user.id, |u| u.rank = rank)?;
         info!(user = %user.username, rank, "rank set");
+    }
+    if let Some(created) = admin::ensure_admin(&store, &cli.figuredata)? {
+        let site = store
+            .settings()?
+            .get("site.path")
+            .cloned()
+            .unwrap_or_else(|| "http://localhost".into());
+        tracing::warn!(user = %created.username, "no administrator: created one");
+        println!("{}", admin::banner(&created, &site));
     }
     info!(
         users = store.user_count()?,
@@ -268,6 +299,45 @@ async fn main() -> Result<()> {
             Ok(())
         }
     }
+}
+
+/// `--build-launcher`: the URL and name default to the website's settings in the database.
+fn build_launcher(cli: &Cli, out: &std::path::Path) -> Result<()> {
+    let settings = if cli.launcher_url.is_some() && cli.launcher_name.is_some() {
+        Default::default()
+    } else {
+        Store::open(&cli.db)
+            .with_context(|| {
+                format!(
+                    "opening {} for the site.path and site.name settings (if the server is running, pass --launcher-url and --launcher-name instead)",
+                    cli.db.display()
+                )
+            })?
+            .settings()?
+    };
+    let url = cli
+        .launcher_url
+        .clone()
+        .or_else(|| settings.get("site.path").cloned())
+        .unwrap_or_else(|| "http://localhost".into());
+    let name = cli
+        .launcher_name
+        .clone()
+        .or_else(|| settings.get("site.name").cloned())
+        .unwrap_or_else(|| "Hotel".into());
+    if url.contains("://localhost") || url.contains("://127.") {
+        tracing::warn!(
+            "the launcher will log in at {url}, which only works on this computer: pass --launcher-url with the address players use"
+        );
+    }
+    let exe = launcher::build(&launcher::Options {
+        out,
+        url: url.trim_end_matches('/'),
+        name: &name,
+        source: &cli.launcher_source,
+    })?;
+    println!("Launcher ready: {}", exe.display());
+    Ok(())
 }
 
 /// Ctrl-C, or SIGTERM on Unix (`systemctl stop`, `docker stop`).

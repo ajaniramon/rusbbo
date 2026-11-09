@@ -128,7 +128,9 @@ Flash-only messages and per-client message variants. See [docs/FLASH.md](docs/FL
   Infobus polls, chat logs, the transaction lookup, hotel and room alerts, the settings, and an
   audit log of everything staff did. **In English or Spanish**: it follows the browser's
   language, with an EN/ES switch in its header.
-- The launcher's ticket API (`/api/ticket`, `/api/login`), rate limited per IP.
+- The launcher's ticket API (`/api/ticket`, `/api/login`), rate limited per IP, and
+  `--build-launcher`, which compiles the Windows launcher for your hotel.
+- A first administrator created on the first start, with its password printed to the console.
 
 What Havana does that looks odd but is kept on purpose is listed in
 [docs/BACKLOG.md](docs/BACKLOG.md).
@@ -184,14 +186,38 @@ rusbbo-server --db rusbbo.redb \
 | 12323 | Flash game port | `--flash-bind` (default: game port + 2) |
 | 80 | Website, housekeeping, imager and ticket API | `--web` |
 
-Open the website, register, and make yourself an administrator (restart with):
+On the first start, when no user has rank 8, the server creates an administrator and prints its
+credentials:
 
-```sh
-rusbbo-server --db rusbbo.redb --set-rank yourname=8 ...
+```text
+========================================================================
+  No administrator yet, so one was created:
+
+    username  admin
+    password  yw28eQHywykNym
+  ...
 ```
 
-Then log in to the housekeeping at `/allseeingeye/hk`. Set the hotel's addresses for the
-launcher in its **Configuration** page (`site.path`, `loader.game.ip`, `loader.game.port`...).
+Log in with it to the housekeeping at `/allseeingeye/hk` (and change the password in the
+website's settings). Set the hotel's public addresses in its **Configuration** page
+(`site.path`, `site.name`, `loader.game.ip`, `loader.game.port`...). To make another user an
+administrator, restart with `--set-rank theirname=8`.
+
+### 5. Build the launcher for your players
+
+Players log in with a small Windows launcher
+([rusbbo-launcher](https://github.com/ajaniramon/rusbbo-launcher)) that starts the Shockwave or
+Flash client. Its hotel address is compiled in, so rusbbo builds it for you (it needs `curl`,
+`tar` and the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0), and works on
+Linux, macOS and Windows):
+
+```sh
+rusbbo-server --build-launcher dist --launcher-url http://hotel.example.com --launcher-name "My Hotel"
+# dist/My Hotel Launcher.exe: one self-contained .exe to hand out
+```
+
+Without `--launcher-url` and `--launcher-name` it uses the `site.path` and `site.name`
+settings from `--db` (stop the server first, or pass both).
 
 ### Command line
 
