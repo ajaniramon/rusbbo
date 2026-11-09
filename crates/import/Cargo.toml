@@ -1,15 +1,31 @@
 [package]
 name = "rusbbo-import"
 version = "0.1.0"
-description = "Copies a Havana MariaDB database into a rusbbo database file"
+description = "Copies a Havana database (MariaDB, or a .sql dump) into a rusbbo database file"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[lib]
+name = "rusbbo_import"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rusbbo-import"
+path = "src/main.rs"
+required-features = ["mysql", "cli"]
+
+[features]
+default = ["mysql", "cli"]
+mysql = ["dep:mysql", "mysql/minimal-rust"]
+cli = ["dep:clap"]
+
 [dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 anyhow = "1.0.104"
-clap = { version = "4.6.7", features = ["derive"] }
+clap = { version = "4.6.7", features = ["derive"], optional = true }
 rusbbo-storage = { version = "0.1.0", path = "../storage" }
-mysql = { version = "28.0.4", default-features = false, features = ["minimal-rust"] }
+mysql = { version = "28.0.4", default-features = false, optional = true }
+mysql_common = { version = "0.37", default-features = false }
+rusqlite = { version = "0.37", features = ["bundled", "functions"] }
 serde_json = "1.0.154"

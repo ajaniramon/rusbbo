@@ -148,46 +148,25 @@ cargo build --release
 # target/release/rusbbo-server and target/release/rusbbo-import
 ```
 
-### 2. Get Havana's data
+### 2. Run it
 
-rusbbo uses Havana's own game data and website files; it ships none of its own. From a checkout
-or release of [Havana](https://github.com/Quackster/Havana) you need:
-
-- `tools/havana.sql`: the database (catalogue, rooms, furniture definitions, settings...);
-- `tools/www-tpl` and `tools/www`: the website's templates and static files;
-- `tools/figuredata.xml`: the figure data looks are checked against;
-- for the imager, the `figuredata/` and `badges/` folders of Havana-Web's jar:
-  `unzip Havana-Web.jar 'figuredata/*' 'badges/*' -d imaging`.
-
-### 3. Import the database (once)
-
-Load `havana.sql` into a MariaDB or MySQL server (or use an existing Havana hotel's database),
-then copy it into a rusbbo database file. After this step MariaDB is no longer needed.
+In an empty folder:
 
 ```sh
-rusbbo-import --mysql mysql://havana:password@127.0.0.1:3306/havana --out rusbbo.redb
+rusbbo-server --bind 0.0.0.0:12321 --web 0.0.0.0:80
 ```
 
-### 4. Run the hotel
+That is all. On the first start (no `rusbbo.redb` yet) the server sets up a new hotel by itself,
+in about ten seconds:
 
-```sh
-rusbbo-server --db rusbbo.redb \
-  --bind 0.0.0.0:12321 \
-  --figuredata havana/tools/figuredata.xml \
-  --web 0.0.0.0:80 \
-  --web-templates havana/tools/www-tpl --web-site havana/tools/www \
-  --web-imaging imaging
-```
-
-| Port | What | Flag |
-|---|---|---|
-| 12321 | Shockwave game port | `--bind` |
-| 12322 | MUS, the Shockwave camera | `--mus` (default: game port + 1) |
-| 12323 | Flash game port | `--flash-bind` (default: game port + 2) |
-| 80 | Website, housekeeping, imager and ticket API | `--web` |
-
-On the first start, when no user has rank 8, the server creates an administrator and prints its
-credentials:
+1. It downloads [Havana](https://github.com/Quackster/Havana) v1.5.4's own data (rusbbo ships
+   none): `havana.sql` and its migrations, the website's templates and files, the figure data and
+   the avatar imager's resources. The SQL files and the release are checked against their
+   SHA-256.
+2. It writes the files to `tools/` (`tools/www-tpl`, `tools/www`, `tools/figuredata.xml`,
+   `tools/imaging`), the paths the server uses by default.
+3. It imports `havana.sql` into `rusbbo.redb`. No MariaDB is involved: the dump is read directly.
+4. It creates an administrator and prints its credentials:
 
 ```text
 ========================================================================
@@ -198,12 +177,29 @@ credentials:
   ...
 ```
 
-Log in with it to the housekeeping at `/allseeingeye/hk` (and change the password in the
+Later starts just open `rusbbo.redb`. To start over, stop the server and delete it.
+
+| Port | What | Flag |
+|---|---|---|
+| 12321 | Shockwave game port | `--bind` |
+| 12322 | MUS, the Shockwave camera | `--mus` (default: game port + 1) |
+| 12323 | Flash game port | `--flash-bind` (default: game port + 2) |
+| 80 | Website, housekeeping, imager and ticket API | `--web` |
+
+Log in with the admin to the housekeeping at `/allseeingeye/hk` (and change the password in the
 website's settings). Set the hotel's public addresses in its **Configuration** page
 (`site.path`, `site.name`, `loader.game.ip`, `loader.game.port`...). To make another user an
-administrator, restart with `--set-rank theirname=8`.
+administrator, restart with `--set-rank theirname=8`. (The admin is also created on any start
+where no user has rank 8.)
 
-### 5. Build the launcher for your players
+### 3. Add the client files
+
+Neither Havana nor rusbbo includes the game clients or the website's images, which are Sulake's.
+Havana's README links to an archive of them (`havana_www_*.7z`). Extract it into `tools/www`.
+That folder is where the clients (`dcr/v31`, `flash`...) and images (`web-gallery`,
+`c_images`...) are served from.
+
+### 4. Build the launcher for your players
 
 Players log in with a small Windows launcher
 ([rusbbo-launcher](https://github.com/ajaniramon/rusbbo-launcher)) that starts the Shockwave or
@@ -218,6 +214,19 @@ rusbbo-server --build-launcher dist --launcher-url http://hotel.example.com --la
 
 Without `--launcher-url` and `--launcher-name` it uses the `site.path` and `site.name`
 settings from `--db` (stop the server first, or pass both).
+
+### Moving an existing Havana hotel
+
+`rusbbo-import` copies a Havana database, users and all, into a rusbbo database file. It reads
+either a MariaDB/MySQL server or a `.sql` dump of one:
+
+```sh
+rusbbo-import --sql backup.sql --out rusbbo.redb
+rusbbo-import --mysql mysql://havana:password@127.0.0.1:3306/havana --out rusbbo.redb
+```
+
+Then point the server at your Havana's files with `--figuredata`, `--web-templates`,
+`--web-site` and `--web-imaging`, or copy them into `tools/`.
 
 ### Command line
 
@@ -287,7 +296,7 @@ here, and its `load` command is the load test above.
 | `crates/server` | `rusbbo-server`: the game server, the Flash port, the MUS, RCON and the website (`src/web`) |
 | `crates/protocol` | The FUSE wire protocol: Base64/VL64 encodings, framing, encryption, message ids |
 | `crates/storage` | The redb storage: typed tables, indexes, transactions, schema version |
-| `crates/import` | `rusbbo-import`: Havana's MariaDB database to a redb file |
+| `crates/import` | `rusbbo-import`: a Havana database (MariaDB, or a `.sql` dump read through SQLite) to a redb file; also the server's first-start import |
 | `crates/pebble` | The Pebble template engine for Havana-Web's templates |
 | `crates/trace` | `rusbbo-trace`: scripted bots to record, check and load test a server |
 | `docs/` | [Design](docs/DESIGN.md), [website](docs/WEB.md), [Flash](docs/FLASH.md), [kept quirks](docs/BACKLOG.md) |

@@ -1,9 +1,9 @@
 //! Room dimmer presets and the sound machine tables (Java: `MoodlightDao`, `SongMachineDao`,
 //! `JukeboxDao`): one function per table.
 
+use crate::source::{Source, SourceExt};
 use anyhow::{Context, Result};
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::{
     MoodlightPresets, PlaylistEntry, Song, SongDisk, SoundMachineTrack, Store, Writer,
 };
@@ -11,7 +11,7 @@ use rusbbo_storage::{
 use crate::{auto_increment, col};
 
 /// Returns the number of rows copied.
-pub fn import_sound(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_sound(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     let mut w = store.write()?;
     let count = import_moodlight_presets(conn, &mut w)?
         + import_songs(conn, &mut w)?
@@ -23,7 +23,7 @@ pub fn import_sound(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize
 }
 
 /// `items_moodlight_presets`.
-fn import_moodlight_presets(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
+fn import_moodlight_presets(conn: &mut dyn Source, w: &mut Writer) -> Result<usize> {
     let rows: Vec<Row> = conn.query("SELECT * FROM items_moodlight_presets")?;
     for row in &rows {
         w.put_moodlight_presets(&MoodlightPresets {
@@ -40,7 +40,7 @@ fn import_moodlight_presets(conn: &mut mysql::PooledConn, w: &mut Writer) -> Res
 }
 
 /// `soundmachine_songs`, with its `AUTO_INCREMENT`.
-fn import_songs(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
+fn import_songs(conn: &mut dyn Source, w: &mut Writer) -> Result<usize> {
     let rows: Vec<Row> = conn.query("SELECT * FROM soundmachine_songs ORDER BY id")?;
     for row in &rows {
         w.put_song(&Song {
@@ -63,7 +63,7 @@ fn import_songs(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
 // order, which is the order they keep here.
 
 /// `soundmachine_tracks`.
-fn import_tracks(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
+fn import_tracks(conn: &mut dyn Source, w: &mut Writer) -> Result<usize> {
     let rows: Vec<Row> = conn.query("SELECT * FROM soundmachine_tracks")?;
     for row in &rows {
         w.push_track(&SoundMachineTrack {
@@ -76,7 +76,7 @@ fn import_tracks(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> 
 }
 
 /// `soundmachine_playlists`.
-fn import_playlists(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
+fn import_playlists(conn: &mut dyn Source, w: &mut Writer) -> Result<usize> {
     let rows: Vec<Row> = conn.query("SELECT * FROM soundmachine_playlists")?;
     for row in &rows {
         w.push_playlist_entry(&PlaylistEntry {
@@ -89,7 +89,7 @@ fn import_playlists(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usiz
 }
 
 /// `soundmachine_disks`.
-fn import_disks(conn: &mut mysql::PooledConn, w: &mut Writer) -> Result<usize> {
+fn import_disks(conn: &mut dyn Source, w: &mut Writer) -> Result<usize> {
     let rows: Vec<Row> = conn.query("SELECT * FROM soundmachine_disks")?;
     for row in &rows {
         w.push_disk(&SongDisk {

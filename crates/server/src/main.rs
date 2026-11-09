@@ -10,6 +10,7 @@ mod rcon;
 mod session;
 mod settings;
 mod settings_defaults;
+mod setup;
 #[cfg(test)]
 mod social_tests;
 #[cfg(test)]
@@ -38,7 +39,9 @@ use world::World;
                   Create the database with `rusbbo-import`. See the README for a complete setup."
 )]
 struct Cli {
-    /// The database file, created with `rusbbo-import`.
+    /// The database file. When it does not exist, the server creates a new hotel: it downloads
+    /// Havana's data (database, website files, figure data, imager resources) into `tools/` and
+    /// imports it (or create it from your own Havana database with `rusbbo-import`).
     #[arg(
         long,
         value_name = "FILE",
@@ -65,7 +68,7 @@ struct Cli {
     #[arg(
         long,
         value_name = "FILE",
-        default_value = "figuredata.xml",
+        default_value = "tools/figuredata.xml",
         help_heading = "Game"
     )]
     figuredata: PathBuf,
@@ -167,6 +170,19 @@ async fn main() -> Result<()> {
         return build_launcher(&cli, out);
     }
 
+    if !cli.db.exists() {
+        setup::first_start(
+            &setup::Paths {
+                db: &cli.db,
+                figuredata: &cli.figuredata,
+                templates: &cli.web_templates,
+                site: &cli.web_site,
+                imaging: &cli.web_imaging,
+            },
+            cli.web,
+        )
+        .context("setting up a new hotel")?;
+    }
     let store = Store::open(&cli.db).with_context(|| format!("opening {}", cli.db.display()))?;
     // Like Havana.java: tickets, online flags, visitor counts and trade states from before a
     // restart are never valid.

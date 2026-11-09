@@ -3,9 +3,9 @@
 
 use std::collections::BTreeMap;
 
+use crate::source::{Source, SourceExt};
 use anyhow::Result;
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::{
     Achievement, Badge, Effect, STATISTIC_COLUMNS, Store, UserAchievement, UserStatistics,
 };
@@ -13,7 +13,7 @@ use rusbbo_storage::{
 use crate::col;
 
 /// Returns the number of rows copied.
-pub fn import_user_data(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_user_data(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     let mut count = 0;
 
     // Rows keep the order the table returns them in, which is the order the protocol shows.

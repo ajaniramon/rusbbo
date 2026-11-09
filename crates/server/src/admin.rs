@@ -52,6 +52,8 @@ pub fn ensure_admin(store: &Store, figuredata: &Path) -> Result<Option<Created>>
     };
     w.put_user(&user)?;
     w.commit()?;
+    // As the website's registration does.
+    store.put_statistics(user.id, &rusbbo_storage::UserStatistics::new_row())?;
     Ok(Some(Created { username, password }))
 }
 

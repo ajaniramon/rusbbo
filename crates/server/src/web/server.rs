@@ -299,6 +299,16 @@ fn static_file(web: &Web, conn: &Conn, uri: &str) -> StaticResult {
             Some(p) => p,
             None => return StaticResult::NotFoundDirect,
         }
+    } else if path == "/housekeeping/hk/hk.css" {
+        // The housekeeping's stylesheet, built in for sites without it (Havana's own `www`).
+        let mut r = Resp::typed(
+            200,
+            "text/css",
+            include_bytes!("../../static/hk.css").to_vec(),
+        );
+        r.headers
+            .push(("date".into(), http_date(chrono::Utc::now())));
+        return StaticResult::Served(r);
     } else {
         return StaticResult::Missing;
     };

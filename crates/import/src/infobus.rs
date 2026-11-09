@@ -1,14 +1,14 @@
 //! `infobus_polls` and `infobus_polls_answers` (Java: `InfobusDao`).
 
+use crate::source::{Source, SourceExt};
 use anyhow::{Context, Result};
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::{InfobusPoll, Store};
 
 use crate::col;
 
 /// Returns the number of rows copied.
-pub fn import_infobus(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_infobus(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     let polls: Vec<Row> = conn.query(
         "SELECT id, initiated_by, poll_data, \
          CAST(UNIX_TIMESTAMP(created_at) AS SIGNED) AS created_ts FROM infobus_polls ORDER BY id",

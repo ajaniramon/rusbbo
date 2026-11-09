@@ -1,14 +1,14 @@
 //! `games_maps`, `games_player_spawns`, `games_ranks` and `games_played_history` (Java: `GameDao`).
 
+use crate::source::{Source, SourceExt};
 use anyhow::Result;
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::{GameMap, GameRank, GameSpawn, PlayedGame, Store};
 
 use crate::col;
 
 /// Returns the number of rows copied.
-pub fn import_games(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_games(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     // `map_id` is an ENUM of digits: read it as text.
     let maps: Vec<Row> = conn.query(
         "SELECT id, game_type, CAST(map_id AS CHAR) AS map_id, heightmap, tile_map \

@@ -2,9 +2,9 @@
 
 use std::collections::BTreeMap;
 
+use crate::source::Source;
 use anyhow::Result;
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::*;
 
 use crate::col;
@@ -16,8 +16,8 @@ fn ts(c: &str) -> String {
     )
 }
 
-fn rows(conn: &mut mysql::PooledConn, sql: &str) -> Result<Vec<Row>> {
-    Ok(conn.query(sql)?)
+fn rows(conn: &mut dyn Source, sql: &str) -> Result<Vec<Row>> {
+    conn.rows(sql)
 }
 
 fn s(row: &Row, name: &str) -> Result<String> {
@@ -48,7 +48,7 @@ fn t(row: &Row, name: &str) -> Result<i64> {
 }
 
 /// Copies every website table; returns the number of rows.
-pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_web(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     let mut w = store.write()?;
     let mut n = 0;
 
@@ -517,8 +517,7 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         n += 1;
     }
     // The panel creates this table on first use: it may not exist yet.
-    let has_hk_log: Option<String> = conn.query_first("SHOW TABLES LIKE 'hk_audit_log'")?;
-    if has_hk_log.is_some() {
+    if conn.has_table("hk_audit_log")? {
         for r in rows(
             conn,
             &format!(

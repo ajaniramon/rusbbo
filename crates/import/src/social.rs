@@ -1,9 +1,9 @@
 //! `users_room_favourites`, `rooms_events` and `room_chatlogs` (Java: `RoomFavouritesDao`,
 //! `EventsDao`, `RoomDao.saveChatLog`).
 
+use crate::source::{Source, SourceExt};
 use anyhow::Result;
-use mysql::Row;
-use mysql::prelude::Queryable;
+use mysql_common::row::Row;
 use rusbbo_storage::{ChatLog, RoomEvent, Store};
 
 use crate::col;
@@ -12,7 +12,7 @@ use crate::col;
 const CHATLOG_BATCH: usize = 20_000;
 
 /// Returns the number of rows copied.
-pub fn import_social(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> {
+pub fn import_social(conn: &mut dyn Source, store: &Store) -> Result<usize> {
     let mut w = store.write()?;
     let favourites: Vec<(u32, u32)> =
         conn.query("SELECT user_id, room_id FROM users_room_favourites")?;
@@ -35,11 +35,10 @@ pub fn import_social(conn: &mut mysql::PooledConn, store: &Store) -> Result<usiz
 
     let mut chatlogs = 0;
     let mut w = store.write()?;
-    let rows = conn.query_iter(
+    let rows = conn.rows(
         "SELECT id, user_id, room_id, timestamp, chat_type, message FROM room_chatlogs ORDER BY id",
     )?;
     for row in rows {
-        let row = row?;
         w.put_chat_log(&ChatLog {
             id: col(&row, "id")?,
             user_id: col(&row, "user_id")?,
