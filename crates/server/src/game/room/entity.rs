@@ -312,10 +312,10 @@ pub struct RoomEntity {
     pub walk_history: Vec<Position>,
     /// Java: `RoomPlayer`'s trade fields.
     pub trade: TradeState,
-    /// Java: `RoomEntity.isTeleporting` (`:teleport`). TODO(rooms): Java keeps it on the player
-    /// across rooms.
+    /// Java: `RoomEntity.isTeleporting` (`:teleport`), kept from room to room
+    /// (`Session::carried`).
     pub is_teleporting: bool,
-    /// Java: `RoomEntity.hasItemDebug` (`:itemdebug`), same TODO as `is_teleporting`.
+    /// Java: `RoomEntity.hasItemDebug` (`:itemdebug`), kept like `is_teleporting`.
     pub has_item_debug: bool,
     /// Java: `RoomPlayer.isDiving`: on Lido B's lift, until the splash.
     pub is_diving: bool,
@@ -360,7 +360,8 @@ impl RoomEntity {
             is_typing: false,
             last_item_interaction: None,
             chat_messages: Vec::new(),
-            // TODO(rooms): Java keeps the spam counters on the player across rooms.
+            // Java keeps the spam counters on the player from room to room: the room sets them from
+            // `Session::carried` when the player enters.
             chat_spam_count: 0,
             chat_spam_ticks: 16,
             mute_time: 0,

@@ -481,8 +481,17 @@ impl Room {
         self.counter += 1;
         let mut entity = RoomEntity::new(session.clone(), details, instance_id);
         entity.position = destination.unwrap_or_else(|| self.model.door_location());
-        // Java keeps the effect on the player's `RoomEntity` from room to room.
+        // Java keeps the effect on the player's `RoomEntity` from room to room, and the rest of
+        // what its `reset` leaves.
         entity.effect_id = session.effect_id();
+        if entity.is_player() {
+            let carried = *session.carried.lock();
+            entity.chat_spam_count = carried.chat_spam_count;
+            entity.chat_spam_ticks = carried.chat_spam_ticks;
+            entity.mute_time = carried.mute_time;
+            entity.is_teleporting = carried.is_teleporting;
+            entity.has_item_debug = carried.has_item_debug;
+        }
         {
             let settings = world.settings.read();
             entity.reset_timers(
@@ -675,6 +684,15 @@ impl Room {
     ) -> Option<RoomEntity> {
         let idx = self.entity_index(session_id)?;
         let mut e = self.entities.remove(idx);
+        if e.is_player() {
+            *e.session.carried.lock() = crate::session::CarriedRoomState {
+                chat_spam_count: e.chat_spam_count,
+                chat_spam_ticks: e.chat_spam_ticks,
+                mute_time: e.mute_time,
+                is_teleporting: e.is_teleporting,
+                has_item_debug: e.has_item_debug,
+            };
+        }
         // Java: the current item's onEntityLeave trigger, then the model's onRoomLeave.
         let current = self.mapping.tile(e.position).and_then(|t| t.highest_item);
         if let Some(item) = current {

@@ -81,6 +81,7 @@ rooftop-camera
 room-bots
 room-hire
 room-two-bots
+rooms-carry
 search-accents
 seasonal-catalogue
 snowstorm-game

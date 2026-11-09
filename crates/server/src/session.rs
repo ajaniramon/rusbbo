@@ -68,6 +68,10 @@ pub struct Session {
     /// Java: `RoomEntity.effectId` of the player's room user, which Java keeps from room to
     /// room (its `reset` leaves it). A leaf value, so a room can change it under its own lock.
     effect_id: AtomicI32,
+    /// What Java's room user keeps from room to room (its `reset` leaves it): the chat spam
+    /// counters, the flood mute, `:teleport` and `:itemdebug`. The room saves it when the player
+    /// leaves and the next one starts from it. A leaf lock.
+    pub carried: Mutex<CarriedRoomState>,
     /// Java: `RoomPlayer.currentGameId`: the game-hall game (`game::gamehall`) the player sits
     /// at. Java keeps it on the player from room to room (its `reset` leaves it). A leaf lock.
     pub current_game_id: Mutex<Option<String>>,
@@ -80,6 +84,29 @@ pub struct Session {
     /// `battleball_score_all_time` and `snowstorm_score_all_time` of the player's statistics,
     /// for the game lobbies' `GAMEPLAYERINFO`, which a room sends under its lock. A leaf value.
     game_points: [AtomicI32; 2],
+}
+
+/// See [`Session::carried`].
+#[derive(Clone, Copy, Debug)]
+pub struct CarriedRoomState {
+    pub chat_spam_count: i32,
+    pub chat_spam_ticks: i32,
+    pub mute_time: i64,
+    pub is_teleporting: bool,
+    pub has_item_debug: bool,
+}
+
+impl Default for CarriedRoomState {
+    fn default() -> Self {
+        // Java: `RoomPlayer.chatSpamCount = 0`, `chatSpamTicks = 16`.
+        Self {
+            chat_spam_count: 0,
+            chat_spam_ticks: 16,
+            mute_time: 0,
+            is_teleporting: false,
+            has_item_debug: false,
+        }
+    }
 }
 
 impl Session {
@@ -95,6 +122,7 @@ impl Session {
             flash: AtomicBool::new(false),
             ping_ok: AtomicBool::new(true),
             effect_id: AtomicI32::new(0),
+            carried: Mutex::new(CarriedRoomState::default()),
             current_game_id: Mutex::new(None),
             instance_id: AtomicI32::new(-1),
             room_key: AtomicU32::new(0),

@@ -331,16 +331,10 @@ pub fn g_idata(
 /// The post-it colours `SETITEMDATA` accepts.
 const POST_IT_COLOURS: [&str; 5] = ["FFFFFF", "FFFF33", "FF9CFF", "9CFF9C", "9CCEFF"];
 
-/// Java: `StringUtil.filterInput(input, false)`: like [`crate::game::room::filter_input`] but
-/// keeping carriage returns. TODO(settings): `normalise.input.strings`.
+/// Java: `StringUtil.filterInput(input, false)`: keeps carriage returns, normalises with
+/// `normalise.input.strings` (the website's filter is the same Java method).
 fn filter_input_keep_newlines(input: &str) -> String {
-    input
-        .chars()
-        .map(|c| match c {
-            '\u{1}' | '\u{2}' | '\t' | '\n' | '\u{c}' => ' ',
-            c => c,
-        })
-        .collect()
+    crate::web::text::filter_input(input, false)
 }
 
 /// Java: `SETITEMDATA`: writes a post-it, `"<colour> <text>"`. Without rights the text may only

@@ -1,0 +1,191 @@
+name = "rooms-carry"
+description = "What Java's room user keeps from room to room (RoomEntity.reset leaves it): :teleport and :itemdebug, and the chat flood mute"
+
+# s = tracestaff turns on :teleport and :itemdebug in room 7 and walks in room 2 (Theatredome);
+# a = tracebot1 floods the chat in room 7 until muted (six lines), then chats in room 2.
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":teleport"]
+note = "teleport mode on"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":itemdebug"]
+note = "item debug on"
+
+[[steps]]
+bot = "s"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 2]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "s"
+send = "WALK"
+args = [10, 10]
+settle_ms = 1500
+note = "still teleporting in the next room: a warp, not a walk"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 0"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 1"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 2"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 3"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 4"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 5"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["flood 6"]
+settle_ms = 100
+
+[[steps]]
+bot = "a"
+send = "QUIT"
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 2]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["still muted?"]
+settle_ms = 800
+note = "the flood mute follows the user into the next room"
