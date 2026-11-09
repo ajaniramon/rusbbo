@@ -12,9 +12,7 @@ oracle first, passing against it twice, then the port.
 
 | Feature | Tag | What is missing | Aeyra today |
 |---|---|---|---|
-| Room-hire teleporter | `room-hire` | `TeleportRoomHireInteractor` | no item definition uses it |
 | Hidden public rooms | `publics` | Hidden public rooms in the navigator and teleporters in public rooms | not used |
-| Custom rooms | `custom-rooms` | Custom rooms keeping their item states and getting game tasks like arenas | not used |
 | E-mail | `email` | Havana-Web's SMTP mails: password recovery, activation codes | SMTP off |
 
 ## Small parity differences

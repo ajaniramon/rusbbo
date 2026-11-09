@@ -97,7 +97,8 @@ impl Room {
 
     /// Java: `RoomItemManager.resetItemStates`.
     pub(super) fn reset_item_states(&mut self, world: &World) {
-        // Java: game arenas keep their states. TODO(custom-rooms): custom rooms too.
+        // Java: game arenas keep their states (and custom rooms, which nobody can enter: see
+        // `teleport::room_hire_interact`).
         if self.is_game_arena() {
             return;
         }

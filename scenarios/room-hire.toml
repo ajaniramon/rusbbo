@@ -1,0 +1,132 @@
+name = "room-hire"
+description = "The Hire-A-Room teleporter (TeleportRoomHireInteractor, interaction room_hire): walking to its front, stepping in (open, effects), LOGOUT to the room and ROOMFORWARD to the temporary room 0, which TRYFLAT cannot find; walking stays disabled"
+
+# oracle/seed.sql makes ads_1800tele (definition 1519, catalogue item 1674 on page 109, rank 6) a
+# room_hire item. s = tracestaff (ADMINISTRATOR) owns flat 1000; a = tracebot1 watches.
+# model_a: door at (3,5).
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "GRPC"
+args = [0, 1674, "", false]
+wait_for = ["CREDIT_BALANCE"]
+note = "ads_1800tele: items 1 and 2 (a teleporter pair)"
+
+[[steps]]
+bot = "s"
+send = "CREATEFLAT"
+args = ["Hire Room Test", "model_a", "open", true]
+
+[[steps]]
+bot = "s"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "s"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "a"
+send = "GOTOFLAT"
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "s"
+send = "PLACESTUFF"
+args = ["1 5 7 2"]
+note = "at (5,7), its front (6,7)"
+
+[[steps]]
+bot = "s"
+send = "USEFURNITURE"
+args = [1, 0]
+settle_ms = 2500
+note = "not in front: s walks there"
+
+[[steps]]
+bot = "s"
+send = "USEFURNITURE"
+args = [1, 0]
+settle_ms = 3000
+note = "open, in, the effects, LOGOUT, closed, ROOMFORWARD to room 0"
+
+[[steps]]
+bot = "s"
+send = "TRYFLAT"
+args = [0, ""]
+note = "room 0 does not exist: nothing"
+
+[[steps]]
+bot = "s"
+send = "WALK"
+args = [8, 8]
+settle_ms = 1500
+note = "walking stays disabled"

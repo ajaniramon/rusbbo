@@ -416,7 +416,7 @@ pub fn get_floormap(
 }
 
 /// Java: `G_HMAP`: the heightmap, and in a game's arena the game's full status (a SnowStorm
-/// arena: its map's heightmap, the full status and the map's items). TODO(flash): FLOOR_MAP.
+/// arena: its map's heightmap, the full status and the map's items; a Flash client's FLOOR_MAP).
 pub fn g_hmap(
     world: &World,
     session: &Arc<Session>,

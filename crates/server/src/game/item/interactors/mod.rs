@@ -11,8 +11,7 @@
 //! nothing. (Java keeps the object, so a dice picked up mid-roll would still get its value saved;
 //! nothing on the wire depends on it.)
 //!
-//! Not ported: `TeleportRoomHireInteractor` (`ROOM_HIRE`), which builds a temporary room that is
-//! not in the database (TODO(room-hire); no definition in the golden snapshot uses it), the pool
+//! `TeleportRoomHireInteractor` (`ROOM_HIRE`) is `teleport::room_hire_interact`; the pool
 //! interactors live with the pool handler (`game::room::pool`), and the game-hall tables' triggers
 //! with the games (`game::gamehall`).
 
@@ -52,7 +51,6 @@ impl Room {
             Interaction::TotemHead => self.totem_head_interact(world, idx),
             Interaction::TotemLeg => self.totem_leg_interact(world, idx),
             Interaction::TotemPlanet => self.totem_planet_interact(world, entity, idx),
-            // TODO(room-hire): TeleportRoomHireInteractor (see the module docs).
             _ => self.interact(world, idx),
         }
     }

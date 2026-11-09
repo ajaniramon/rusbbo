@@ -71,6 +71,40 @@ fn walk_out(r: &mut Room, session_id: u64, item: Option<usize>) {
 
 /// Java: `TeleportInteractor.onInteract`. `teleporting` is whether the player is already on the
 /// way somewhere. Returns the teleporter (database id, room id) the player now travels to, for
+/// Java: `TeleportRoomHireInteractor.onInteract` (`ROOM_HIRE`): like a teleporter, the user walks
+/// in (open, then the effects a second later) and half a second after that leaves (`LOGOUT` to the
+/// room, closed) for the Hire-A-Room room. That room is built in memory with id 0 and never
+/// registered (Java: `item.setTemporaryRoom`), so the `ROOMFORWARD` to room 0 leads nowhere: the
+/// client's `TRYFLAT 0` finds no room, and the user stays where they were, unable to walk (as in
+/// Java). Nothing of the temporary room is observable, so it is not built here.
+pub fn room_hire_interact(world: &World, session: &Arc<Session>, r: &mut Room, idx: usize) {
+    let Some(e) = r.entity_index(session.id) else {
+        return;
+    };
+    let item = &r.mapping.items[idx];
+    let (item_position, virtual_id) = (item.position, item.virtual_id);
+    let front = item_position.square_in_front();
+    let user_position = r.entities[e].position;
+    if front != user_position && item_position != user_position {
+        r.walk_to(e, front.x, front.y);
+        return;
+    }
+    r.set_item_status(idx, TELEPORTER_OPEN);
+    r.walk_to(e, item_position.x, item_position.y);
+    r.entities[e].walking_allowed = false;
+    r.schedule(world, ms(1000), move |_, r| {
+        set_status(r, virtual_id, TELEPORTER_EFFECTS)
+    });
+    let s = session.clone();
+    r.schedule(world, ms(1500), move |_, r| {
+        if let Some(e) = r.entity_index(s.id) {
+            r.send(out_user::logout(r.entities[e].instance_id));
+        }
+        set_status(r, virtual_id, TELEPORTER_CLOSE);
+        s.send(crate::messages::outgoing::messenger::room_forward(false, 0));
+    });
+}
+
 /// the caller to set on the player once the room's lock is released.
 pub fn on_interact(
     world: &World,

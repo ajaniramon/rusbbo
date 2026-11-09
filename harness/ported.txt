@@ -75,6 +75,7 @@ recycler
 referrals
 rooftop-camera
 room-bots
+room-hire
 room-two-bots
 seasonal-catalogue
 snowstorm-game

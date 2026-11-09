@@ -530,8 +530,9 @@ impl Room {
         }
         if self.is_game_arena() {
             // Java: an arena keeps its (no) items and runs its game's task instead of the room's
-            // (started once, `RoomTaskManager.loadGameTasks`). TODO(custom-rooms): custom rooms
-            // keep their items too.
+            // (started once, `RoomTaskManager.loadGameTasks`). Java's custom rooms (the
+            // Hire-A-Room room) would keep their items too, but nobody can enter one (see
+            // `teleport::room_hire_interact`).
             self.regenerate_map();
             self.start_arena_task(world);
             return;

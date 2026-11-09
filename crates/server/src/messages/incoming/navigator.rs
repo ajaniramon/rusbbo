@@ -1,4 +1,4 @@
-//! Java: `messages/incoming/navigator`. TODO(flash): the Flash-only navigator messages.
+//! Java: `messages/incoming/navigator` (the Flash navigator is `flash.rs`).
 
 use std::sync::Arc;
 

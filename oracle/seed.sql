@@ -200,3 +200,7 @@ UPDATE catalogue_pages SET seasonal_start = 'EASTER' WHERE id = 79;
 -- The collectables cycles of store pages 51 and 93 stay on their current furni until 2100, so the
 -- collectables trace does not depend on the day it runs.
 UPDATE catalogue_collectables SET expiry = 4102444800 WHERE store_page IN (51, 93);
+
+-- The room-hire scenario: ads_1800tele (definition 1519, which no trace buys otherwise) as the
+-- Hire-A-Room teleporter, whose interaction no shipped definition uses.
+UPDATE items_definitions SET interactor = 'room_hire' WHERE id = 1519;

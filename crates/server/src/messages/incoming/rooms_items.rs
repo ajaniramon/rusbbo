@@ -904,6 +904,16 @@ fn use_item(
     status: i32,
     teleporting: bool,
 ) {
+    if r.mapping.items[idx].interaction == Interaction::RoomHire {
+        // Java: nothing while a teleporter is taking the user somewhere.
+        if !teleporting {
+            teleport::room_hire_interact(world, session, &mut r, idx);
+        }
+        let deferred = r.take_deferred();
+        drop(r);
+        crate::game::room::run_deferred(world, deferred);
+        return;
+    }
     if r.mapping.items[idx].interaction == Interaction::Teleport {
         let travel = teleport::on_interact(world, session, &mut r, idx, teleporting);
         drop(r);
