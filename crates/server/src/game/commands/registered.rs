@@ -312,10 +312,16 @@ fn in_room<R>(
 
 /// Java: `HelpCommand`.
 fn help(_: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
-    let rank = session.player.lock().details.as_ref().map_or(0, |d| d.rank);
+    let (rank, joined) = {
+        let p = session.player.lock();
+        (
+            p.details.as_ref().map_or(0, |d| d.rank),
+            super::joined_group_ids(&p),
+        )
+    };
     let mut available: Vec<&Command> = super::commands()
         .iter()
-        .filter(|c| super::has_permission(rank, c))
+        .filter(|c| super::has_permission(rank, c, &joined))
         .collect();
     let is_numeric = |s: &[u8]| !s.is_empty() && s.iter().all(u8::is_ascii_digit);
     let first = args.first().map_or(&b"1"[..], Vec::as_slice);

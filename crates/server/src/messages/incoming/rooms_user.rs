@@ -125,6 +125,8 @@ struct Speaker {
     created_at: i64,
     filter: bool,
     name: String,
+    /// The joined groups' ids, for the commands' group permissions.
+    groups: Vec<i32>,
 }
 
 fn speaker(session: &Session) -> Option<Speaker> {
@@ -135,6 +137,7 @@ fn speaker(session: &Session) -> Option<Speaker> {
         created_at: d.created_at,
         filter: d.wordfilter_enabled,
         name: d.username.clone(),
+        groups: commands::joined_group_ids(&p),
     })
 }
 
@@ -191,7 +194,7 @@ fn talk(
     if banned_for(world, session, &speaker, original) {
         return Ok(());
     }
-    if commands::has_command(speaker.rank, original) {
+    if commands::has_command(speaker.rank, &speaker.groups, original) {
         commands::invoke_command(world, session, original);
         return Ok(());
     }

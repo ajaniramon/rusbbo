@@ -207,7 +207,9 @@ pub fn redeem_voucher(
                 let Some(user_id) = p.user_id() else {
                     return Ok(());
                 };
-                p.inventory.reload(&world.store, &world.items, user_id);
+                let in_room_items = crate::game::inventory::room_item_ids(world, p.room_id);
+                p.inventory
+                    .reload(&world.store, &world.items, user_id, &in_room_items);
                 if in_room {
                     // Java calls getView("new") and drops the result: nothing is sent.
                     let _ = p.inventory.get_view(&world.store, "new");

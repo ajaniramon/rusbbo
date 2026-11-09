@@ -704,7 +704,23 @@ pub fn g_stat(
                 .try_add_badge(&world.store, session, &b.badge, None, 0);
         }
     }
-    // TODO(inventory): drop hand items that are in the room.
+    // Java: hand items that are in the room too leave the hand.
+    let in_room_items = crate::game::inventory::room_item_ids(world, Some(room_id));
+    let mut p = session.player.lock();
+    let stale: Vec<u64> = p
+        .inventory
+        .items()
+        .iter()
+        .map(|i| i.record.id)
+        .filter(|id| in_room_items.contains(id))
+        .collect();
+    if !stale.is_empty() {
+        for id in stale {
+            p.inventory.take_record(id);
+        }
+        // Java calls getView("new") and drops the result: nothing is sent.
+        let _ = p.inventory.get_view(&world.store, "new");
+    }
     Ok(())
 }
 

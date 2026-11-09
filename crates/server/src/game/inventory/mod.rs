@@ -21,20 +21,37 @@ pub struct Inventory {
     hand_strip_page_index: i32,
 }
 
+/// The ids of the furniture in a loaded room (for `Inventory.reload` and `G_STAT`).
+pub fn room_item_ids(world: &crate::world::World, room_id: Option<u32>) -> Vec<u64> {
+    room_id
+        .and_then(|id| world.loaded_room(id))
+        .map(|room| {
+            room.lock()
+                .mapping
+                .items
+                .iter()
+                .filter_map(|i| i.flat.as_ref().map(|f| f.record.id))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 impl Inventory {
     /// Java: `new Inventory(player)`, i.e. `reload`.
     pub fn load(store: &Store, manager: &ItemManager, user_id: u32) -> Self {
         let mut inventory = Self::default();
-        inventory.reload(store, manager, user_id);
+        inventory.reload(store, manager, user_id, &[]);
         inventory
     }
 
-    /// Java: `Inventory.reload`.
-    pub fn reload(&mut self, store: &Store, manager: &ItemManager, user_id: u32) {
+    /// Java: `Inventory.reload`: the hand read again, without the items that are in the player's
+    /// room (`in_room`, their ids).
+    pub fn reload(&mut self, store: &Store, manager: &ItemManager, user_id: u32, in_room: &[u64]) {
         self.hand_strip_page_index = 0;
         self.items = match store.inventory_items(user_id) {
             Ok(rows) => rows
                 .into_iter()
+                .filter(|r| !in_room.contains(&r.id))
                 .filter_map(|r| manager.make_item(r))
                 .collect(),
             Err(e) => {
@@ -42,7 +59,6 @@ impl Inventory {
                 Vec::new()
             }
         };
-        // TODO(rooms): drop the items that are currently placed in the player's room.
         self.refresh_pagination(store);
     }
 

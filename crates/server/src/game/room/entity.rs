@@ -249,6 +249,8 @@ pub struct EntityDetails {
     /// The favourite group's id and client rank `USER_OBJECTS` shows (Java:
     /// `EntityState.getGroupMember`), looked up at entry.
     pub group: Option<(i32, Option<i32>)>,
+    /// The ids of the joined groups at entry, for the commands' group permissions.
+    pub groups: Vec<i32>,
 }
 
 impl EntityDetails {

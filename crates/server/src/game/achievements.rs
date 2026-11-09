@@ -244,7 +244,6 @@ fn progression(
         }
         // TODO(referred): users_referred; nobody is referred, so the progress is 0.
         AchievementType::Mgm => (p.achievements[index].progress != 0).then_some(0),
-        // TODO(guides): the guide manager. Java sets the progress to PLAYERS_GUIDED.
         AchievementType::Guide => {
             let guided = p.statistics.int_value(stat::PLAYERS_GUIDED);
             (guided >= p.achievements[index].progress).then_some(guided)

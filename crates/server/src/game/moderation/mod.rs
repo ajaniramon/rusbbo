@@ -218,7 +218,8 @@ pub fn ban_user(
     if active_ban(world, target.id, &target.machine_id).is_some() {
         return "User is already banned!".to_string();
     }
-    if crate::game::commands::has_permission_for(target.rank, "ban") {
+    let joined = crate::game::commands::online_group_ids(world, target.id);
+    if crate::game::commands::has_permission_for(target.rank, "ban", &joined) {
         return "Cannot ban a user who has permission to ban".to_string();
     }
     let until = now() + ban_seconds;

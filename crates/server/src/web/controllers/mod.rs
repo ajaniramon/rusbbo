@@ -152,7 +152,7 @@ pub fn remove_html_tags(s: &str) -> String {
     out
 }
 
-/// Java: `HousekeepingBinder`. TODO(web): housekeeping (phase 5).
+/// Java: `HousekeepingBinder`.
 pub fn housekeeping_binder(conn: &mut Conn, tpl: &mut Tpl) {
     super::hk::binder(conn, tpl);
 }

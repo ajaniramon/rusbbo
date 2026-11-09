@@ -9,7 +9,7 @@
 //!
 //! Private rooms ("flats") keep their rights list and votes here too (Java: `Room.rights`,
 //! `Room.votes`), loaded when the room is initialised together with their furniture (see
-//! [`furniture`]). TODO(bots): `rooms_bots` NPCs; rooms that have them simply show none.
+//! [`furniture`]).
 
 pub mod actions;
 mod bots;
@@ -1199,6 +1199,7 @@ impl Room {
             && !crate::game::commands::has_permission_for(
                 self.entities[idx].details.rank,
                 "roommute",
+                &self.entities[idx].details.groups,
             )
         {
             let e = &self.entities[idx];
@@ -1719,6 +1720,7 @@ fn enter_room_with(
                 .int_value(crate::game::statistics::stat::XP_EARNED_MONTH),
             favourite_group: user.favourite_group,
             group,
+            groups: crate::game::commands::joined_group_ids(&p),
         };
         p.room_id = Some(room.id);
         // Java: `RoomEntity.reset` sets the pixel tries for the room visit.

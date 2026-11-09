@@ -240,7 +240,8 @@ pub fn trade_ban(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
         session.send(alert(&format!("Could not find user: {name}")));
         return;
     };
-    if has_permission_for(target.rank, "ban") {
+    let joined = super::online_group_ids(world, target.id);
+    if has_permission_for(target.rank, "ban", &joined) {
         session.send(alert("Cannot ban a user who has permission to trade ban"));
         return;
     }
@@ -307,7 +308,8 @@ pub fn mute(world: &World, session: &Arc<Session>, args: &[Vec<u8>]) {
         session.send(alert(&format!("Could not find user: {name}")));
         return;
     };
-    if has_permission_for(target.rank, "mute") {
+    let joined = super::online_group_ids(world, target.id);
+    if has_permission_for(target.rank, "mute", &joined) {
         session.send(alert("Cannot mute a user who has permission to mute"));
         return;
     }

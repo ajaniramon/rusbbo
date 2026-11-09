@@ -89,6 +89,7 @@ fn load_room_categories(store: &Store) -> Result<HashMap<u32, RoomCategory>> {
 impl World {
     pub fn new(store: Store) -> Result<Self> {
         let settings = Settings::new(load_settings(&store)?);
+        crate::game::commands::init_group_permissions(&settings);
         let room_models = RwLock::new(Arc::new(load_room_models(&store)?));
         let room_categories = RwLock::new(Arc::new(load_room_categories(&store)?));
         let walkways = walkways::parse(&store.walkways()?);

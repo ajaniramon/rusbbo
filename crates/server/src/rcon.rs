@@ -164,7 +164,9 @@ fn handle(world: &World, message: &RconMessage) {
                 let Some(user_id) = p.user_id() else {
                     return;
                 };
-                p.inventory.reload(&world.store, &world.items, user_id);
+                let in_room_items = crate::game::inventory::room_item_ids(world, p.room_id);
+                p.inventory
+                    .reload(&world.store, &world.items, user_id, &in_room_items);
                 if in_room {
                     let hand = p.inventory.get_view(&world.store, "new");
                     session.send(outgoing::inventory::inventory(&hand));
@@ -385,7 +387,7 @@ fn refresh_looks(world: &World, session: &Arc<Session>) {
 }
 
 /// Java: `REFRESH_TAGS`: the ACH_AvatarTags progress and, in a room, `TAG_LIST` to the room
-/// (`RoomPlayer.refreshTags`). TODO(tags): `users_tags` is not ported, so the list is empty.
+/// (`RoomPlayer.refreshTags`).
 fn refresh_tags(world: &World, session: &Arc<Session>) {
     let user_id = {
         let mut p = session.player.lock();
