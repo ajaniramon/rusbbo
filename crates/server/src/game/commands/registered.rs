@@ -501,14 +501,28 @@ fn guide_status(world: &World, session: &Arc<Session>, _: &[Vec<u8>]) {
     if current_room(world, session).is_none() {
         return;
     }
-    // TODO(guides): GuideDao.getGuidedBy; nobody is guided yet, so the table has no rows.
-    let guiding = 0;
+    let Some(user_id) = session.player.lock().user_id() else {
+        return;
+    };
+    let mut guiding = crate::game::guides::guided_by(world, user_id);
+    guiding.sort_by_key(|g| std::cmp::Reverse(g.last_online));
     let days = world.settings.read().int("guide.completion.minutes") / 1440;
-    let text = format!(
-        "You are guiding {guiding} users. Remember a user needs an online time for at least \
+    let mut text = format!(
+        "You are guiding {} users. Remember a user needs an online time for at least \
          {days} days to be guided.<br><br>{:<20}{:<58}{:<15}<br>",
-        "Username", "Time Online", "Last Online"
+        guiding.len(),
+        "Username",
+        "Time Online",
+        "Last Online"
     );
+    for g in &guiding {
+        text += &format!(
+            "{:<20}{:<58}{:<15}<br>",
+            g.username,
+            readable_seconds(g.time_online),
+            crate::game::format_local(g.last_online, "%d-%m-%Y")
+        );
+    }
     session.send(alert(&text));
 }
 

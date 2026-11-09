@@ -17,6 +17,7 @@ pub mod fuserights;
 pub mod gamehall;
 pub mod games;
 pub mod groups;
+pub mod guides;
 pub mod infobus;
 pub mod inventory;
 pub mod item;

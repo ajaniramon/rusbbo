@@ -145,6 +145,14 @@ pub fn hotel_view() -> Message {
     Message::new(18, vec![])
 }
 
+/// Java: `RESPECT_NOTIFICATION`.
+pub fn respect_notification(user_id: u32, points: i32) -> Message {
+    Message::new(
+        440,
+        ServerBody::new().int(user_id as i32).int(points).build(),
+    )
+}
+
 /// Java: `TAG_LIST`: a user's tags.
 pub fn tag_list(user_id: u32, tags: &[&str]) -> Message {
     let body = tags.iter().fold(

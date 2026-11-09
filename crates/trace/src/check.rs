@@ -38,7 +38,8 @@ pub fn compare(trace: &Trace, outputs: &[StepOutput]) -> Vec<Mismatch> {
                     ));
                 }
             }
-            let messages = crate::trace::normalize(&actual.messages, &step.ignore_status);
+            let messages =
+                crate::trace::normalize(&actual.messages, &step.ignore_status, &step.dedupe);
             for d in compare_messages(expected, &messages) {
                 push(d);
             }

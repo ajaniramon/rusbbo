@@ -585,3 +585,84 @@ pub fn cancel_typing(
     r.send(msg);
     Ok(())
 }
+
+/// Java: `RESPECT_USER`: one of the day's respect points to another user in the same room
+/// (`ACH_RespectGiven` for the giver, `ACH_RespectEarned` for the target, `RESPECT_NOTIFICATION`
+/// to the room).
+pub fn respect_user(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    use crate::game::achievements::{self, AchievementType};
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let (own_id, points) = {
+        let p = session.player.lock();
+        let Some(d) = p.details.as_ref() else {
+            return Ok(());
+        };
+        (d.id, d.daily_respect_points)
+    };
+    if points <= 0 {
+        return Ok(());
+    }
+    let user_id = reader.int().ok_or(Malformed)?;
+    let Some(target) = u32::try_from(user_id)
+        .ok()
+        .and_then(|id| world.player_by_id(id))
+    else {
+        return Ok(());
+    };
+    let (target_id, target_room) = {
+        let p = target.player.lock();
+        (p.user_id(), p.room_id)
+    };
+    let Some(target_id) = target_id else {
+        return Ok(());
+    };
+    if target_id == own_id || target_room != Some(room.id) {
+        return Ok(());
+    }
+    {
+        let mut p = session.player.lock();
+        if let Some(d) = p.details.as_mut() {
+            d.respect_given += 1;
+        }
+        achievements::try_progress(world, session, &mut p, AchievementType::RespectGiven);
+    }
+    room.lock().send(out::respect_notification(target_id, 1));
+    let save = |p: &crate::game::player::Player| {
+        let Some(d) = p.details.as_ref() else {
+            return;
+        };
+        let (daily, points, day, given) = (
+            d.daily_respect_points,
+            d.respect_points,
+            d.respect_day.clone(),
+            d.respect_given,
+        );
+        if let Err(e) = world.store.update_user(d.id, |u| {
+            u.daily_respect_points = daily;
+            u.respect_points = points;
+            u.respect_day = day;
+            u.respect_given = given;
+        }) {
+            tracing::error!(user = d.id, "saving respect: {e}");
+        }
+    };
+    {
+        let mut p = target.player.lock();
+        achievements::try_progress(world, &target, &mut p, AchievementType::RespectEarned);
+    }
+    {
+        let mut p = session.player.lock();
+        if let Some(d) = p.details.as_mut() {
+            d.daily_respect_points -= 1;
+        }
+    }
+    save(&target.player.lock());
+    save(&session.player.lock());
+    Ok(())
+}

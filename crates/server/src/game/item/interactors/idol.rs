@@ -280,11 +280,58 @@ impl Room {
         if !waiting {
             self.idol_force_stop();
         }
-        // TODO(achievements): ACH_AIPerformanceVote for the performer when the voter's IP differs
-        // from the performer's and from the voter's recent ones (`Store::ip_addresses`).
+        // Java: ACH_AIPerformanceVote for the performer when the voter's IP differs from the
+        // performer's and from the voter's recent ones (done once the room's lock is released).
+        if let Some((_, performer_id)) = self.idol.performer {
+            let voter = self.entities[entity].session.clone();
+            self.defer(move |world| performance_vote_achievement(world, &voter, performer_id));
+        }
         let session_id = self.entities[entity].session.id;
         self.idol.voted.push(session_id);
     }
+}
+
+/// Java: the end of `RoomIdolManager.vote`: the performer's `ACH_AIPerformanceVote`, while it is
+/// one of their possible achievements, unless the voter shares the performer's IP address now or
+/// in their recent history.
+fn performance_vote_achievement(
+    world: &crate::world::World,
+    voter: &std::sync::Arc<crate::session::Session>,
+    performer_id: u32,
+) {
+    use crate::game::achievements::{self, AchievementType};
+    let Some(performer) = world.player_by_id(performer_id) else {
+        return;
+    };
+    let (voter_id, first_ip) = {
+        let p = voter.player.lock();
+        (p.user_id(), p.ip_address.clone())
+    };
+    let Some(voter_id) = voter_id else {
+        return;
+    };
+    let history = world
+        .store
+        // Java: RoomTradeManager.TRADE_BAN_IP_HISTORY_LIMIT.
+        .ip_addresses(voter_id, 20)
+        .unwrap_or_default();
+    let mut p = performer.player.lock();
+    if !achievements::possible_achievements(world, &p)
+        .iter()
+        .any(|a| a.name == "ACH_AIPerformanceVote")
+    {
+        return;
+    }
+    let second_ip = p.ip_address.clone();
+    if first_ip == second_ip || history.contains(&second_ip) {
+        return;
+    }
+    achievements::try_progress(
+        world,
+        &performer,
+        &mut p,
+        AchievementType::AiPerformanceVote,
+    );
 }
 
 /// The song discs in a hand, for `OPEN_PERFORMER_GUI`; `None` when one has no name line (Java

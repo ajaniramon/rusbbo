@@ -29,6 +29,8 @@
 //!                            # recorded and checked, for a known Java thread race (an owner's
 //!                            # first status in a freshly loaded flat may or may not carry
 //!                            # `flatctrl`); everything else in the status is still compared
+//! dedupe = ["INVITATION"]    # optional: server messages that a Java thread race can send
+//!                            # several times: repeats of the same message count once
 //!
 //! [[steps]]
 //! bot = "a"                  # whose `wait_for` the step waits for; every bot's messages count
@@ -110,6 +112,9 @@ pub struct StepDef {
     /// Java server's thread races (see the module docs).
     #[serde(default)]
     pub ignore_status: Vec<String>,
+    /// Server messages whose repeats count once (see the module docs).
+    #[serde(default)]
+    pub dedupe: Vec<MsgRef>,
     #[serde(default)]
     pub note: Option<String>,
 }
@@ -141,6 +146,8 @@ pub struct Step {
     pub header_only: Vec<u16>,
     /// `USER_STATUSES` actions ignored in this step.
     pub ignore_status: Vec<String>,
+    /// Server message ids whose repeats count once.
+    pub dedupe: Vec<u16>,
     pub note: Option<String>,
 }
 
@@ -189,6 +196,11 @@ impl Scenario {
                 .iter()
                 .map(server_id)
                 .collect::<Result<Vec<_>>>()?;
+            let dedupe = def
+                .dedupe
+                .iter()
+                .map(server_id)
+                .collect::<Result<Vec<_>>>()?;
             let step = |action| Step {
                 bot,
                 action,
@@ -196,6 +208,7 @@ impl Scenario {
                 settle_ms,
                 header_only: header_only.clone(),
                 ignore_status: def.ignore_status.clone(),
+                dedupe: dedupe.clone(),
                 note: def.note.clone(),
             };
 

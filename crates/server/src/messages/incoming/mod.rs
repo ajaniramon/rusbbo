@@ -26,6 +26,7 @@ pub mod rooms_settings;
 pub mod rooms_user;
 pub mod songs;
 pub mod trade;
+mod tutorial;
 pub mod user;
 pub mod wobble_squabble;
 
@@ -95,6 +96,16 @@ pub fn handler(header: u16) -> Option<Handler> {
         64 => rooms::g_stat,
         230 => rooms::get_group_badges,
         263 => rooms::get_user_tags,
+        249 => tutorial::reset_tutorial,
+        313 => tutorial::remove_account_help_text,
+        355 => tutorial::get_tutors_available,
+        356 => tutorial::invite_tutors,
+        357 => tutorial::accept_tutor_invitation,
+        358 => tutorial::reject_tutor_invitation,
+        359 => tutorial::cancel_tutor_invitations,
+        362 => tutorial::wait_for_tutor_invitations,
+        363 => tutorial::cancel_wait_for_tutor_invitations,
+        371 => rooms_user::respect_user,
         412 => ecotron::get_recycler_prizes,
         413 => ecotron::get_recycler_status,
         414 => ecotron::recycle_items,

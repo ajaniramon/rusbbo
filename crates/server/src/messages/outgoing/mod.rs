@@ -7,6 +7,7 @@ pub mod ecotron;
 pub mod effects;
 pub mod events;
 pub mod games;
+pub mod guides;
 pub mod handshake;
 pub mod infobus;
 pub mod inventory;

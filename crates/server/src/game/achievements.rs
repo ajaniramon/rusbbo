@@ -61,6 +61,14 @@ pub enum AchievementType {
     EmailVerification,
     /// Java: `ACHIEVEMENT_GAME_PLAYED` (BattleBall and SnowStorm games won).
     GamePlayed,
+    Looks,
+    Motto,
+    RespectGiven,
+    RespectEarned,
+    Graduate,
+    RoomEntry,
+    AiPerformanceVote,
+    Student,
 }
 
 impl AchievementType {
@@ -77,6 +85,14 @@ impl AchievementType {
             Self::Guide => "GL",
             Self::EmailVerification => "ACH_EmailVerification",
             Self::GamePlayed => "ACH_GamePlayed",
+            Self::Looks => "ACH_AvatarLooks",
+            Self::Motto => "ACH_Motto",
+            Self::RespectGiven => "ACH_RespectGiven",
+            Self::RespectEarned => "ACH_RespectEarned",
+            Self::Graduate => "ACH_Graduate",
+            Self::RoomEntry => "ACH_RoomEntry",
+            Self::AiPerformanceVote => "ACH_AIPerformanceVote",
+            Self::Student => "ACH_Student",
         }
     }
 
@@ -155,7 +171,12 @@ pub fn try_progress(world: &World, session: &Session, p: &mut Player, ty: Achiev
         return;
     }
 
-    let badge_code = format!("{}{}", info.name, info.level);
+    // Java: the guide badges are lettered (GLA, GLB...).
+    let badge_code = if info.name == "GL" {
+        format!("{}{}", info.name, to_alphabetic(info.level))
+    } else {
+        format!("{}{}", info.name, info.level)
+    };
     if p.badges.has_badge(&badge_code) {
         return;
     }
@@ -184,6 +205,26 @@ pub fn try_progress(world: &World, session: &Session, p: &mut Player, ty: Achiev
     }
 }
 
+/// Java: `StringUtil.toAlphabetic` (1 is A, 26 is Z). From 27 on Java recurses on `quot - 1`
+/// and never ends at 27 (a stack overflow); here that recursion stops.
+pub fn to_alphabetic(i: i32) -> String {
+    let i = i - 1;
+    if i < 0 {
+        return if i == -1 {
+            String::new()
+        } else {
+            format!("-{}", to_alphabetic(-i - 1))
+        };
+    }
+    let letter = char::from(b'A' + (i % 26) as u8);
+    let quot = i / 26;
+    if quot == 0 {
+        letter.to_string()
+    } else {
+        format!("{}{letter}", to_alphabetic(quot - 1))
+    }
+}
+
 /// The `AchievementProgress.tryProgress` of each type: the new progress, when the row changed.
 fn progression(
     world: &World,
@@ -209,6 +250,30 @@ fn progression(
             (guided >= p.achievements[index].progress).then_some(guided)
         }
         AchievementType::EmailVerification => None,
+        AchievementType::Looks | AchievementType::Motto | AchievementType::Student => {
+            Some(info.progress_needed)
+        }
+        AchievementType::RespectGiven => Some(p.achievements[index].progress + 1),
+        AchievementType::RespectEarned => {
+            let progress = (p.achievements[index].progress + 1).min(info.progress_needed);
+            (progress != p.achievements[index].progress).then_some(progress)
+        }
+        AchievementType::AiPerformanceVote => {
+            Some((p.achievements[index].progress + 1).min(info.progress_needed))
+        }
+        AchievementType::Graduate => world
+            .settings
+            .read()
+            .bool("tutorial.enabled")
+            .then_some(info.progress_needed),
+        AchievementType::RoomEntry => {
+            let visits = world
+                .store
+                .records_where::<rusbbo_storage::RoomVisit>(|v| v.user_id == details.id)
+                .map_or(0, |v| v.len()) as i32;
+            let progress = visits.min(info.progress_needed);
+            (progress != p.achievements[index].progress).then_some(progress)
+        }
         AchievementType::HappyHour => happy_hour(world).then_some(info.progress_needed),
         AchievementType::TraderPass => details.trade_enabled.then_some(info.progress_needed),
         AchievementType::Hc => {
@@ -310,11 +375,48 @@ pub fn process_achievements(world: &World, session: &Session, p: &mut Player, is
         try_progress(world, session, p, ty);
     }
 
-    // TODO(guides): GuideManager.tryProgress/checkGuidingFriends and the GLK badge.
-    // TODO(groups): the XXX (habbo.experts.group.id) and UK176 (childline.group.id) badges need
-    // the joined groups; both settings are 0 by default.
+    crate::game::guides::try_progress(world, session, p);
+    crate::game::guides::check_guiding_friends(world, p);
 
     club::check_badges(world, session, p);
+
+    // Java: the guide admins' GLK badge, and the eXperts' and ChildLine's group badges.
+    let Some(user_id) = p.user_id() else {
+        return;
+    };
+    let (guides_group, experts_group, childline_group) = {
+        let s = world.settings.read();
+        (
+            s.int("guides.group.id") as i32,
+            s.int("habbo.experts.group.id") as i32,
+            s.int("childline.group.id") as i32,
+        )
+    };
+    let member_of = |p: &Player, group_id: i32| {
+        crate::game::groups::joined_group(p, group_id)
+            .map(|g| crate::web::data::group_member(world, g.id, g.owner_id, i64::from(user_id)))
+    };
+    if p.guides.is_guide && !p.badges.has_badge("GLK") {
+        // Java: `getJoinedGroup(guides).getMember(...)` throws when the group is gone.
+        let Some(member) = member_of(p, guides_group) else {
+            return;
+        };
+        if member.is_some_and(|m| m.member_rank == 2 || m.member_rank == 3) {
+            p.badges
+                .try_add_badge(&world.store, session, "GLK", None, 0);
+        } else {
+            p.guides.is_guide = crate::game::guides::is_guide(world, p);
+        }
+    }
+    for (group_id, badge) in [(experts_group, "XXX"), (childline_group, "UK176")] {
+        if group_id > 0
+            && !p.badges.has_badge(badge)
+            && let Some(Some(_)) = member_of(p, group_id)
+        {
+            p.badges
+                .try_add_badge(&world.store, session, badge, None, 0);
+        }
+    }
 
     // Dated badges (Java: hard-coded 2019 campaigns).
     let join_date = p.details.as_ref().map_or(0, |d| d.created_at);

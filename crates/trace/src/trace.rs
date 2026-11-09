@@ -47,6 +47,9 @@ pub struct TraceStep {
     /// `USER_STATUSES` actions left out of this step's comparison (`ignore_status` in the scenario).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ignore_status: Vec<String>,
+    /// Server messages whose repeats count once (`dedupe` in the scenario).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dedupe: Vec<u16>,
     /// Per bot; bots that received nothing (and were not disconnected) are left out.
     #[serde(default)]
     pub received: BTreeMap<String, BotTrace>,
@@ -159,9 +162,22 @@ pub const PUBLIC_ITEM_ID: &[u8] = b"<id>";
 pub fn normalize(
     messages: &[rusbbo_protocol::Message],
     actions: &[String],
+    dedupe: &[u16],
 ) -> Vec<rusbbo_protocol::Message> {
+    let mut seen: Vec<(u16, Vec<u8>)> = Vec::new();
     strip_status_actions(messages, actions)
         .into_iter()
+        .filter(|m| {
+            if !dedupe.contains(&m.header) {
+                return true;
+            }
+            let key = (m.header, m.body.clone());
+            if seen.contains(&key) {
+                return false;
+            }
+            seen.push(key);
+            true
+        })
         .map(|mut m| {
             if m.header == OBJECTS_WORLD {
                 if let Some(body) = mask_public_item_ids(&m.body) {
@@ -265,7 +281,7 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 };
                 let normalized: Vec<Vec<rusbbo_protocol::Message>> = outputs
                     .iter()
-                    .map(|o| normalize(&o.messages, &step.ignore_status))
+                    .map(|o| normalize(&o.messages, &step.ignore_status, &step.dedupe))
                     .collect();
                 let seqs: Vec<&[rusbbo_protocol::Message]> =
                     normalized.iter().map(Vec::as_slice).collect();
@@ -289,6 +305,7 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
                 settle_ms: step.settle_ms,
                 header_only: step.header_only.clone(),
                 ignore_status: step.ignore_status.clone(),
+                dedupe: step.dedupe.clone(),
                 received,
             }
         })
@@ -492,6 +509,7 @@ impl Trace {
                     settle_ms: s.settle_ms,
                     header_only: s.header_only.clone(),
                     ignore_status: s.ignore_status.clone(),
+                    dedupe: s.dedupe.clone(),
                     note: s.note.clone(),
                 })
             })
@@ -613,7 +631,7 @@ mod tests {
         let msg = |b: &[u8]| rusbbo_protocol::Message::new(30, b.to_vec());
         let other =
             b"KHq5\x02broom_bench1\x02PAHPAPAHn998\x02broom_bench2\x02QAHPAPAIz0\x02floor\x02HHHJK";
-        assert_eq!(normalize(&[msg(other)], &[])[0].body, masked);
+        assert_eq!(normalize(&[msg(other)], &[], &[])[0].body, masked);
         // Not random ids: a letter outside the alphabet, a leading zero, four digits, a UUID
         // prefix; and bodies that do not parse are left alone.
         for id in [&b"k12"[..], b"a012", b"a1000", b"66a59862"] {
@@ -625,7 +643,7 @@ mod tests {
         assert_eq!(mask_public_item_ids(b"IHr697\x02broom"), None);
         assert_eq!(mask_public_item_ids(b"Hx"), None);
         let flat = rusbbo_protocol::Message::new(31, b"IHr697\x02a\x02HHHH".to_vec());
-        assert_eq!(normalize(std::slice::from_ref(&flat), &[])[0], flat);
+        assert_eq!(normalize(std::slice::from_ref(&flat), &[], &[])[0], flat);
     }
 
     #[test]

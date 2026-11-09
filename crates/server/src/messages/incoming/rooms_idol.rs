@@ -51,5 +51,8 @@ pub fn vote_performance(
     }
     let positive = reader.bool().ok_or(Malformed)?;
     r.vote_performance(e, positive);
+    let deferred = r.take_deferred();
+    drop(r);
+    crate::game::room::run_deferred(world, deferred);
     Ok(())
 }

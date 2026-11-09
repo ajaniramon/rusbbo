@@ -63,11 +63,18 @@ pub fn get_possible_achievements(
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
     let p = session.player.lock();
-    // Java drops "GL" (guides) unless the player is a guide; nobody is one yet.
+    // Java drops "GL" (guides) unless the player is a guide.
     let rows: Vec<(u32, i32, String)> = achievements::possible_achievements(world, &p)
         .into_iter()
-        .filter(|a| a.name != "GL")
-        .map(|a| (a.id, a.level, format!("{}{}", a.name, a.level)))
+        .filter(|a| p.guides.is_guide || a.name != "GL")
+        .map(|a| {
+            let code = if a.name == "GL" {
+                format!("GL{}", achievements::to_alphabetic(a.level))
+            } else {
+                format!("{}{}", a.name, a.level)
+            };
+            (a.id, a.level, code)
+        })
         .collect();
     session.send(outgoing::user::possible_achievements(&rows));
     Ok(())

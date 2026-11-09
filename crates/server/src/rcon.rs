@@ -332,21 +332,37 @@ fn handle(world: &World, message: &RconMessage) {
 }
 
 /// Java: `RoomPlayer.refreshAppearance`: the look, sex and motto read again, `USER_OBJECT` to the
-/// player and `FIGURE_CHANGE` to their room, except during a game that is on. (Java also
-/// progresses `ACH_Motto` and `ACH_AvatarLooks` when they changed, which they cannot here: the
-/// stored user is the one in memory.)
+/// player and `FIGURE_CHANGE` to their room, except during a game that is on. A new motto or
+/// look first progresses `ACH_Motto` or `ACH_AvatarLooks`.
 fn refresh_looks(world: &World, session: &Arc<Session>) {
     let user = {
         let mut p = session.player.lock();
-        let Some(details) = p.details.as_mut() else {
+        let Some(id) = p.details.as_ref().map(|d| d.id) else {
             return;
         };
-        if let Ok(Some(stored)) = world.store.user(details.id) {
-            details.figure = stored.figure;
-            details.sex = stored.sex;
-            details.motto = stored.motto;
+        if let Ok(Some(stored)) = world.store.user(id) {
+            let (motto, looks) = p.details.as_ref().map_or((false, false), |d| {
+                (
+                    d.motto.to_lowercase() != stored.motto.to_lowercase(),
+                    d.figure != stored.figure,
+                )
+            });
+            if motto {
+                achievements::try_progress(world, session, &mut p, AchievementType::Motto);
+            }
+            if looks {
+                achievements::try_progress(world, session, &mut p, AchievementType::Looks);
+            }
+            if let Some(details) = p.details.as_mut() {
+                details.figure = stored.figure;
+                details.sex = stored.sex;
+                details.motto = stored.motto;
+            }
         }
-        details.clone()
+        let Some(details) = p.details.clone() else {
+            return;
+        };
+        details
     };
     if world.games.in_started_game(session.id) {
         return;

@@ -146,3 +146,23 @@ INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending, crea
 INSERT INTO users_tags (user_id, tag, room_id, group_id) VALUES (26, 'owner', '0', '0'), (26, 'cafe', '0', '0');
 
 INSERT INTO rooms_entry_badges (room_id, badge) VALUES (4, 'ENT');
+
+-- The guides scenario (users 30-31, group 53; oracle/web-seed.sql removes them). guides.group.id
+-- is group 53, whose administrator gguide is a guide: they joined in 2000 (30 days or more
+-- ago, and every registration-duration level long done). gnewb starts with the tutorial.
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning)
+VALUES
+  (30, 'gguide', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'a guide',
+   'gguide@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2000-01-01 00:00:00', 'trace-sso-30', 1, 0),
+  (31, 'gnewb', '', 'hd-600-1.ch-630-62.lg-695-62.sh-725-68.hr-515-33', 'F', 'a beginner',
+   'gnewb@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-31', 1, 0);
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable) VALUES (30, 0, 0), (31, 1, 1);
+
+INSERT INTO groups_details (id, name, description, owner_id, room_id, badge, created_at) VALUES
+  (53, 'Guides', 'The hotel guides', 21, 0, 'b0101X', '2026-01-01 00:00:00');
+INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending, created_at) VALUES
+  (30, 53, '2', 0, '2026-01-01 00:00:00');
+
+REPLACE INTO settings (setting, value) VALUES ('guides.group.id', '53');

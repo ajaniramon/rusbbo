@@ -517,6 +517,62 @@ pub fn get_group_info(
     Ok(())
 }
 
+/// Java: `FlatTrigger.onRoomEntry`: the visit (`RoomVisitsDao.addVisit`, a `REPLACE` on room
+/// and user), `ACH_RoomEntry`, and a guide arriving in the room of the beginner who invited them.
+fn flat_room_entry(
+    world: &World,
+    session: &Arc<Session>,
+    room: &crate::game::room::RoomRef,
+    owner_id: u32,
+    room_id: u32,
+) {
+    use crate::game::achievements::{self, AchievementType};
+    let Some(user_id) = session.player.lock().user_id() else {
+        return;
+    };
+    let visit = || -> rusbbo_storage::Result<()> {
+        let old = world
+            .store
+            .records_where::<rusbbo_storage::RoomVisit>(|v| {
+                v.room_id == room_id && v.user_id == user_id
+            })?;
+        for v in old {
+            world
+                .store
+                .delete_record::<rusbbo_storage::RoomVisit>(v.id)?;
+        }
+        let mut v = rusbbo_storage::RoomVisit {
+            room_id,
+            user_id,
+            visited_at: crate::game::now(),
+            ..Default::default()
+        };
+        world.store.insert_record(&mut v)?;
+        Ok(())
+    };
+    if let Err(e) = visit() {
+        error!(room = room_id, "saving a room visit: {e}");
+    }
+    let (is_guide, invited_by) = {
+        let mut p = session.player.lock();
+        achievements::try_progress(world, session, &mut p, AchievementType::RoomEntry);
+        (p.guides.is_guide, p.guides.invited_by)
+    };
+    if !is_guide || invited_by == 0 || owner_id != invited_by {
+        return;
+    }
+    let newb = room
+        .lock()
+        .entities
+        .iter()
+        .find(|e| e.is_player() && e.details.user_id == invited_by)
+        .map(|e| e.session.clone());
+    if let Some(newb) = newb {
+        crate::game::guides::tutor_enter_room(world, session, &newb);
+    }
+    session.player.lock().guides.invited_by = 0;
+}
+
 /// Java: `G_STAT`: who is in the room, and the user's own arrival for the others.
 pub fn g_stat(
     world: &World,
@@ -570,6 +626,15 @@ pub fn g_stat(
             Ok(None)
         }
     };
+    // Java: FlatTrigger.onRoomEntry, the first part of tryRoomEntry (players only, outside the
+    // room's lock since it locks other players).
+    let (is_flat, owner_id, room_id) = {
+        let r = room.lock();
+        (r.model.trigger == "flat_trigger", r.data.owner_id, r.id())
+    };
+    if is_flat {
+        flat_room_entry(world, session, &room, owner_id, room_id);
+    }
     let mut r = room.lock();
     r.try_room_entry(world, session.id);
     for msg in queued {

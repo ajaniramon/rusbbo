@@ -26,7 +26,9 @@ pub fn get_available_badges(
         achievements::process_achievements(world, session, &mut p, true);
         p.process_login_steps = false;
     }
-    // TODO(guides): INIT_TUTOR_SERVICE_STATUS for guides.
+    if p.guides.is_guide {
+        session.send(crate::messages::outgoing::guides::init_tutor_service_status(1));
+    }
     Ok(())
 }
 

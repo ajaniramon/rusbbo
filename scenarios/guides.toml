@@ -1,0 +1,176 @@
+name = "guides"
+description = "Habbo guides: a beginner in their own room asks for a guide (the tutorial's help text, MSG_GET_TUTORS_AVAILABLE, MSG_INVITE_TUTORS), a guide waits for invitations (INIT_TUTOR_SERVICE_STATUS, the GLK badge), the invite task offers them the beginner, the guide accepts, follows and arrives (INVITING_COMPLETED, both made friends), respect from the beginner, RESET_TUTORIAL for both, and the guide stops waiting"
+
+# n = gnewb (31, has the tutorial and may be guided), g = gguide (30, administrator of the
+# guides' group 53). n's room is 1000 (the first flat made after the server start). The invite
+# task runs every ten seconds from the first login, so the step where the guide starts waiting
+# lasts eleven.
+
+[[bots]]
+name = "n"
+ticket = "trace-sso-31"
+
+[[bots]]
+name = "g"
+ticket = "trace-sso-30"
+
+[[steps]]
+bot = "n"
+macro = "login"
+
+[[steps]]
+bot = "n"
+send = "CREATEFLAT"
+args = ["Newb Flat", "model_a", "open", true]
+
+[[steps]]
+bot = "n"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "n"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "n"
+send = "G_HMAP"
+
+[[steps]]
+bot = "n"
+send = "G_USRS"
+
+[[steps]]
+bot = "n"
+send = "G_OBJS"
+
+[[steps]]
+bot = "n"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "n"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "n"
+send = "MSG_REMOVE_ACCOUNT_HELP_TEXT"
+args = [1]
+note = "the tutorial may be used now"
+
+[[steps]]
+bot = "n"
+send = "MSG_GET_TUTORS_AVAILABLE"
+note = "TUTORS_AVAILABLE, ACH_Graduate"
+
+[[steps]]
+bot = "n"
+send = "MSG_INVITE_TUTORS"
+
+[[steps]]
+bot = "n"
+send = "MSG_INVITE_TUTORS"
+note = "already waiting: nothing"
+
+[[steps]]
+bot = "g"
+macro = "login"
+
+[[steps]]
+bot = "g"
+send = "GETAVAILABLEBADGES"
+settle_ms = 800
+note = "the achievements (GLK for a guide administrator) and INIT_TUTOR_SERVICE_STATUS"
+
+[[steps]]
+bot = "g"
+send = "GET_POSSIBLE_ACHIEVEMENTS"
+note = "GL is listed for a guide"
+
+[[steps]]
+bot = "g"
+send = "MSG_WAIT_FOR_TUTOR_INVITATIONS"
+settle_ms = 11000
+dedupe = ["INVITATION", "GUIDE_FOUND"]
+note = "the next run of the invite task: GUIDE_FOUND to n, INVITATION to g (Java runs several invite tasks at once: the first GuideManager.getInstance() races with the task it schedules, which calls getInstance() too)"
+
+[[steps]]
+bot = "g"
+send = "MSG_ACCEPT_TUTOR_INVITATION"
+args = ["999"]
+note = "no such invitation: nothing"
+
+[[steps]]
+bot = "g"
+send = "MSG_ACCEPT_TUTOR_INVITATION"
+args = ["31"]
+note = "ROOMFORWARD to n's room"
+
+[[steps]]
+bot = "g"
+send = "TRYFLAT"
+args = [1000, ""]
+
+[[steps]]
+bot = "g"
+send = "GOTOFLAT"
+ignore_status = ["flatctrl"]
+args = [1000]
+settle_ms = 600
+
+[[steps]]
+bot = "g"
+send = "G_HMAP"
+
+[[steps]]
+bot = "g"
+send = "G_USRS"
+
+[[steps]]
+bot = "g"
+send = "G_OBJS"
+
+[[steps]]
+bot = "g"
+send = "G_ITEMS"
+
+[[steps]]
+bot = "g"
+send = "G_STAT"
+settle_ms = 1500
+note = "the guide arrives: INVITING_COMPLETED to n, both become friends"
+
+[[steps]]
+bot = "n"
+send = "RESPECT_USER"
+args = [30]
+settle_ms = 600
+
+[[steps]]
+bot = "n"
+send = "RESPECT_USER"
+args = [31]
+note = "oneself: nothing"
+
+[[steps]]
+bot = "g"
+send = "RESET_TUTORIAL"
+note = "a guide may not"
+
+[[steps]]
+bot = "n"
+send = "MSG_CANCEL_TUTOR_INVITATIONS"
+note = "no longer waiting: nothing"
+
+[[steps]]
+bot = "n"
+send = "RESET_TUTORIAL"
+note = "the tutorial and guidable flags again (for the next login)"
+
+[[steps]]
+bot = "g"
+send = "MSG_CANCEL_WAIT_FOR_TUTOR_INVITATIONS"

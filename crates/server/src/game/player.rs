@@ -70,6 +70,8 @@ pub struct Player {
     pub joined_groups: Vec<rusbbo_storage::Group>,
     /// Java: `PlayerDetails.groupMember`, the favourite group's membership once looked up.
     pub group_member: Option<rusbbo_storage::GroupMember>,
+    /// Java: `Player.guideManager`.
+    pub guides: crate::game::guides::PlayerGuides,
 }
 
 impl Player {
@@ -277,9 +279,36 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     crate::game::maintenance::tell_closing(session);
     // TODO(alerts): the other placeholders of StringUtil.replaceAlertMessage.
 
-    // TODO(guides): a guide has no tutorial and starts guiding; nobody is a guide yet.
-    if settings.bool("tutorial.enabled") && p.statistics.int_value(stat::HAS_TUTORIAL) == 1 {
-        session.send(outgoing::user::help_items(&[1, 2, 3, 4, 5, 6, 7, 8]));
+    // Java: the guide checks (the first `GuideManager.getInstance()` starts its invite task).
+    crate::game::guides::start(world);
+    p.guides.is_guide = crate::game::guides::is_guide_user(world, &p.joined_groups, &user);
+    if settings.bool("tutorial.enabled") {
+        if p.guides.is_guide {
+            p.guides.has_tutorial = false;
+            p.guides.guiding = crate::game::guides::guided_by(world, user.id);
+        } else {
+            p.guides.has_tutorial = p.statistics.int_value(stat::HAS_TUTORIAL) == 1;
+        }
+        if p.guides.has_tutorial {
+            session.send(outgoing::user::help_items(&[1, 2, 3, 4, 5, 6, 7, 8]));
+        }
+    }
+    // Java: the guide admins' GLK and the eXperts' XXX badges go when the membership did.
+    let membership = |p: &Player, setting: &str| {
+        let group_id = settings.int(setting) as i32;
+        crate::game::groups::joined_group(p, group_id)
+            .map(|g| crate::web::data::group_member(world, g.id, g.owner_id, i64::from(user.id)))
+    };
+    if p.badges.has_badge("GLK")
+        && let Some(member) = membership(&p, "guides.group.id")
+        && !member.is_some_and(|m| m.member_rank == 2 || m.member_rank == 3)
+    {
+        p.badges.remove_badge(&world.store, "GLK");
+    }
+    if p.badges.has_badge("XXX")
+        && let Some(None) = membership(&p, "habbo.experts.group.id")
+    {
+        p.badges.remove_badge(&world.store, "XXX");
     }
 
     info!(user = user.id, name = %user.username, "logged in");
@@ -306,6 +335,12 @@ pub fn dispose(world: &World, session: &Arc<Session>) {
     }
     p.logged_in = false;
     world.remove_player(session);
+    club::count_member_days(world, &mut p);
+    let logged_in = (now() - p.time_connected) as i32;
+    p.statistics
+        .increment_value(&world.store, stat::ONLINE_TIME, logged_in);
+    crate::game::guides::try_progress(world, session, &mut p);
+    crate::game::guides::check_guiding_friends(world, &p);
     let Some(user) = p.details.as_mut() else {
         return;
     };
