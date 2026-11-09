@@ -11,6 +11,8 @@ pub mod stat {
     pub const HAS_TUTORIAL: &str = "has_tutorial";
     pub const PLAYERS_GUIDED: &str = "players_guided";
     pub const GIFTS_DUE: &str = "gifts_due";
+    /// A datetime column, kept as Unix seconds (absent while it is `NULL`).
+    pub const CLUB_GIFT_DUE: &str = "club_gift_due";
     pub const CLUB_MEMBER_TIME: &str = "club_member_time";
     pub const CLUB_MEMBER_TIME_UPDATED: &str = "club_member_time_updated";
     pub const MUTE_EXPIRES_AT: &str = "mute_expires_at";

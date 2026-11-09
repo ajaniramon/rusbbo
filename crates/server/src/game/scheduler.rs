@@ -36,6 +36,111 @@ pub fn startup_time() -> i64 {
 /// (the daily credits, and a game's rewards: `GameFinishTask`).
 static CREDITS_QUEUE: Mutex<Vec<(Arc<Session>, i32)>> = Mutex::new(Vec::new());
 
+/// Java: `GameScheduler.pixelsHandoutQueue`.
+static PIXELS_QUEUE: Mutex<Vec<(Arc<Session>, i32)>> = Mutex::new(Vec::new());
+
+/// Java: `TimeUnit.valueOf(unit).toSeconds(amount)` for the time units the settings use.
+pub fn time_unit_seconds(unit: &str, amount: i64) -> i64 {
+    amount
+        * match unit {
+            "SECONDS" => 1,
+            "MINUTES" => 60,
+            "HOURS" => 3600,
+            "DAYS" => 86_400,
+            _ => 0,
+        }
+}
+
+/// The seconds between two pixel handouts (`pixels.received.*`).
+pub fn pixels_interval(world: &World) -> i64 {
+    let settings = world.settings.read();
+    time_unit_seconds(
+        settings.string("pixels.received.timeunit"),
+        settings.int("pixels.received.interval"),
+    )
+}
+
+/// Java: `GameScheduler`'s pixels for one player in a room: 15 when the interval passed (and
+/// the room visit has tries left), queued once.
+fn pixels_handout(session: &Arc<Session>, interval: i64) {
+    let mut p = session.player.lock();
+    if !p.logged_in || now() <= p.last_pixels_time || p.room_id.is_none() {
+        return;
+    }
+    let tries = p.pixel_tries;
+    p.pixel_tries -= 1;
+    if tries <= 0 {
+        return;
+    }
+    let mut queue = PIXELS_QUEUE.lock();
+    if queue.iter().any(|(s, _)| s.id == session.id) {
+        return;
+    }
+    queue.push((session.clone(), 15));
+    p.last_pixels_time = now() + interval;
+}
+
+/// Java: the pixels part of the handout (`CurrencyDao.increasePixels`, then
+/// `ActivityPointNotification` with `PIXELS_RECEIVED`).
+fn hand_out_pixels(world: &World) {
+    let queued = std::mem::take(&mut *PIXELS_QUEUE.lock());
+    for (session, pixels) in queued {
+        let mut p = session.player.lock();
+        let Some(user) = p.details.as_mut() else {
+            continue;
+        };
+        crate::game::currency::increase_pixels(&world.store, user, pixels);
+        session.send(outgoing::user::activity_points(
+            user.pixels,
+            outgoing::user::PointAlert::Received,
+        ));
+    }
+}
+
+/// Java: `ItemManager.checkExpiredRentals`: rented items past their time leave the room or the
+/// hand and are deleted (each one takes a virtual id, as Java makes an `Item` for it).
+fn check_expired_rentals(world: &World) {
+    let t = now();
+    let expired: Vec<rusbbo_storage::Item> = match world.store.all_items() {
+        Ok(items) => items
+            .into_iter()
+            .filter(|i| i.expire_time != -1 && i.expire_time < t)
+            .collect(),
+        Err(e) => {
+            error!("listing rentals: {e}");
+            return;
+        }
+    };
+    for item in &expired {
+        world.items.next_virtual_id();
+        if item.room_id > 0 {
+            if let Some(room) = world.loaded_room(item.room_id as u32) {
+                let deferred = {
+                    let mut r = room.lock();
+                    if let Some(idx) = r
+                        .mapping
+                        .items
+                        .iter()
+                        .position(|i| i.flat.as_ref().is_some_and(|f| f.record.id == item.id))
+                    {
+                        r.remove_flat_item(world, idx);
+                    }
+                    r.take_deferred()
+                };
+                crate::game::room::run_deferred(world, deferred);
+            }
+        } else if let Some(owner) = item.user_id.and_then(|id| world.player_by_id(id)) {
+            owner.player.lock().inventory.take_record(item.id);
+        }
+    }
+    if !expired.is_empty() {
+        let ids: Vec<u64> = expired.iter().map(|i| i.id).collect();
+        if let Err(e) = world.store.delete_items(&ids) {
+            error!("deleting rentals: {e}");
+        }
+    }
+}
+
 /// Java: `GameScheduler.queuePlayerCredits`.
 pub fn queue_credits(session: &Arc<Session>, credits: i32) {
     CREDITS_QUEUE.lock().push((session.clone(), credits));
@@ -57,16 +162,36 @@ fn tick(world: &World) {
     }
 
     let daily_credits = world.settings.read().int("daily.credits.amount") as i32;
-    // TODO(afk, pixels, catalogue index refresh, ...): the other per-tick jobs in GameScheduler.
+    let interval = pixels_interval(world);
     for session in world.players() {
         daily_handout(&session, daily_credits);
+        pixels_handout(&session, interval);
         crate::game::effects::expire(world, &session);
     }
+    // Java: "Resend the catalogue index every 15 minutes to clear page cache".
+    if tick_rate % 900 == 0 {
+        for session in world.players() {
+            crate::messages::incoming::catalogue::send_catalog_index(world, &session);
+        }
+    }
     hand_out_credits(world);
+    hand_out_pixels(world);
+    // Java: the club gifts that came due, every minute.
+    if tick_rate % 60 == 0
+        && let Err(e) = world
+            .store
+            .increment_club_gifts(now(), crate::game::club::club_gift_seconds(world))
+    {
+        error!("club gifts: {e}");
+    }
 
     // Java: "Purge expired rows" once a day (the first tick included).
     if tick_rate % 86_400 == 0 {
         world.events.remove_expired(&world.store);
+    }
+    // Java: "Check expired rentals every 60 seconds".
+    if tick_rate % 60 == 0 {
+        check_expired_rentals(world);
     }
     // Delete expired CFH's every 60 seconds (after the handouts, as in Java).
     if tick_rate % 60 == 0 {

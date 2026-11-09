@@ -37,3 +37,25 @@ pub fn subscribe_club(
     }
     Ok(())
 }
+
+/// Java: `SCR_GIFT_APPROVAL`: the club gifts due, one after the other.
+pub fn scr_gift_approval(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let mut p = session.player.lock();
+    if !club::is_gift_due(&p) {
+        return Ok(());
+    }
+    while p
+        .statistics
+        .int_value(crate::game::statistics::stat::GIFTS_DUE)
+        > 0
+    {
+        if club::try_next_gift(world, session, &mut p).is_err() {
+            break;
+        }
+    }
+    Ok(())
+}

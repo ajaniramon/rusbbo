@@ -402,6 +402,15 @@ record!(
     }
 );
 
+record!(
+    /// `furniture_versions` (Java: `ItemVersionManager`): the Shockwave furni cast versions;
+    /// ids are synthetic.
+    FurnitureVersion, "furniture_versions" {
+        asset_name: String,
+        version_id: i32,
+    }
+);
+
 record_tables!(
     RoomAd,
     VerifyCode,
@@ -434,6 +443,7 @@ record_tables!(
     HkAudit,
     RoomEntryBadge,
     RecyclerReward,
+    FurnitureVersion,
 );
 
 impl Store {

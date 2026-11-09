@@ -1721,6 +1721,11 @@ fn enter_room_with(
             group,
         };
         p.room_id = Some(room.id);
+        // Java: `RoomEntity.reset` sets the pixel tries for the room visit.
+        p.pixel_tries = world
+            .settings
+            .read()
+            .int("pixels.max.tries.single.room.instance");
         p.authenticate_id = None;
         // Java resets both teleporter authentications after the arrival.
         let teleporter = p.authenticate_teleporter.take();

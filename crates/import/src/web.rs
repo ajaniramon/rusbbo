@@ -480,6 +480,17 @@ pub fn import_web(conn: &mut mysql::PooledConn, store: &Store) -> Result<usize> 
         })?;
         n += 1;
     }
+    for r in rows(
+        conn,
+        "SELECT asset_name, version_id FROM furniture_versions",
+    )? {
+        w.put_record(&FurnitureVersion {
+            id: synthetic(),
+            asset_name: s(&r, "asset_name")?,
+            version_id: i(&r, "version_id")?,
+        })?;
+        n += 1;
+    }
     for r in rows(conn, "SELECT room_id, badge FROM rooms_entry_badges")? {
         w.put_record(&RoomEntryBadge {
             id: synthetic(),

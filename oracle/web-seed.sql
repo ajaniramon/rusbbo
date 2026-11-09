@@ -2,14 +2,14 @@
 -- fixture for web checks is built from golden.sql + this file). Dates are fixed times of the
 -- current day, so the Java recording and a Rust check on the same day see the same values.
 
--- The game traces' group and guide fixtures (oracle/seed.sql: users 26-31, groups 50-53, room
+-- The game traces' group, guide and club fixtures (oracle/seed.sql: users 26-32, groups 50-53, room
 -- 4's entry badge, guides.group.id) are not part of the web traces' data; the counters go back
 -- to where they were.
 DELETE FROM groups_memberships WHERE group_id >= 50;
 DELETE FROM groups_details WHERE id >= 50;
-DELETE FROM users_tags WHERE user_id BETWEEN 26 AND 31;
-DELETE FROM users_statistics WHERE user_id BETWEEN 26 AND 31;
-DELETE FROM users WHERE id BETWEEN 26 AND 31;
+DELETE FROM users_tags WHERE user_id BETWEEN 26 AND 32;
+DELETE FROM users_statistics WHERE user_id BETWEEN 26 AND 32;
+DELETE FROM users WHERE id BETWEEN 26 AND 32;
 DELETE FROM settings WHERE setting = 'guides.group.id';
 DELETE FROM rooms_entry_badges WHERE room_id = 4 AND badge = 'ENT';
 ALTER TABLE groups_details AUTO_INCREMENT = 1;

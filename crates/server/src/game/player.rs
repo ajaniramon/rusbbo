@@ -72,6 +72,12 @@ pub struct Player {
     pub group_member: Option<rusbbo_storage::GroupMember>,
     /// Java: `Player.guideManager`.
     pub guides: crate::game::guides::PlayerGuides,
+    /// Java: `Player.lastGift`, the last club gift given this session.
+    pub last_gift: Option<String>,
+    /// Java: `PlayerDetails.lastPixelsTime`: no pixels before then.
+    pub last_pixels_time: i64,
+    /// Java: `RoomEntity.pixelAvailableTick`, reset at each room entry.
+    pub pixel_tries: i64,
 }
 
 impl Player {
@@ -224,6 +230,8 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
         now() + unit * settings.int("credits.scheduler.interval")
     };
 
+    // Java: the next pixels are an interval away.
+    p.last_pixels_time = now() + crate::game::scheduler::pixels_interval(world);
     p.inventory = Inventory::load(&world.store, &world.items, user.id);
 
     p.statistics = PlayerStatistics::load(&world.store, user.id);

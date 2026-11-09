@@ -169,3 +169,33 @@ pub fn sso(
     }
     Ok(())
 }
+
+/// Java: `GET_FURNI_VERSIONS` (Shockwave only): `furniture_versions` as a `HashMap`, in its
+/// order.
+pub fn get_furni_versions(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let versions: Vec<(String, i32)> = world
+        .store
+        .records::<rusbbo_storage::FurnitureVersion>()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|v| (v.asset_name, v.version_id))
+        .collect();
+    let mut unique: Vec<(String, i32)> = Vec::new();
+    for (name, version) in versions {
+        match unique.iter_mut().find(|(n, _)| *n == name) {
+            Some(entry) => entry.1 = version,
+            None => unique.push((name, version)),
+        }
+    }
+    let ordered = crate::web::data::java_hashmap_order(unique);
+    let mut body = rusbbo_protocol::body::ServerBody::new().int(ordered.len() as i32);
+    for (name, version) in &ordered {
+        body = body.text(name).int(*version);
+    }
+    session.send(rusbbo_protocol::Message::new(495, body.build()));
+    Ok(())
+}

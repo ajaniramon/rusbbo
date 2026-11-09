@@ -217,3 +217,12 @@ pub fn redeem_voucher(
     }
     Ok(())
 }
+
+/// Java: `GETUSERCREDITLOG`: nothing.
+pub fn get_user_credit_log(
+    _: &World,
+    _: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    Ok(())
+}

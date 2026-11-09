@@ -666,3 +666,53 @@ pub fn respect_user(
     save(&session.player.lock());
     Ok(())
 }
+
+/// Java: `USEITEM`: the carried item is used (`usei`), and a second later carried again
+/// (`CameraTask`).
+pub fn use_item(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let Some(room) = current_room(world, session) else {
+        return Ok(());
+    };
+    let mut r = room.lock();
+    let Some(idx) = r.entity_index(session.id) else {
+        return Ok(());
+    };
+    let Some(item) = r.entities[idx]
+        .statuses
+        .value(StatusType::CarryItem)
+        .map(str::to_string)
+    else {
+        return Ok(());
+    };
+    let e = &mut r.entities[idx];
+    e.statuses.remove(StatusType::CarryItem);
+    e.statuses.set(StatusType::UseItem, item);
+    if !r.entities[idx].is_walking {
+        r.send(out::user_statuses([&r.entities[idx]], &r.model.name));
+    }
+    let session_id = session.id;
+    r.schedule(world, std::time::Duration::from_secs(1), move |_, r| {
+        let Some(idx) = r.entity_index(session_id) else {
+            return;
+        };
+        // Java: `getStatus(USE_ITEM).getValue()` throws when the status went away.
+        let Some(item) = r.entities[idx]
+            .statuses
+            .value(StatusType::UseItem)
+            .map(str::to_string)
+        else {
+            return;
+        };
+        let e = &mut r.entities[idx];
+        e.statuses.remove(StatusType::UseItem);
+        e.statuses.set(StatusType::CarryItem, item);
+        if !r.entities[idx].is_walking {
+            r.send(out::user_statuses([&r.entities[idx]], &r.model.name));
+        }
+    });
+    Ok(())
+}

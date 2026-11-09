@@ -166,3 +166,15 @@ INSERT INTO groups_memberships (user_id, group_id, member_rank, is_pending, crea
   (30, 53, '2', 0, '2026-01-01 00:00:00');
 
 REPLACE INTO settings (setting, value) VALUES ('guides.group.id', '53');
+
+-- The club-gifts scenario (user 32; oracle/web-seed.sql removes it): a club member until 2100
+-- who never had a gift (club_subscribed 0) and has two due.
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning,
+                   club_expiration, club_subscribed)
+VALUES
+  (32, 'gclub', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'a club member',
+   'gclub@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-32', 1, 0,
+   4102444800, 0);
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable, gifts_due) VALUES (32, 0, 0, 2);

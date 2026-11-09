@@ -454,3 +454,80 @@ fn buy_gift(
     }
     Some(present)
 }
+
+/// Java: `GET_ALIAS_LIST`: an empty `SPRITE_LIST` and `ALIAS_TOGGLE`.
+pub fn get_alias_list(
+    _: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    session.send(rusbbo_protocol::Message::new(
+        295,
+        rusbbo_protocol::body::ServerBody::new().int(0).build(),
+    ));
+    // Java: ALIAS_TOGGLE writes one false (G_OBJS sends its own literal).
+    session.send(rusbbo_protocol::Message::new(297, b"H".to_vec()));
+    Ok(())
+}
+
+/// Java: `PURCHASE_AND_WEAR`: buys an effect and wears it at once.
+pub fn purchase_and_wear(
+    world: &World,
+    session: &Arc<Session>,
+    reader: &mut ClientReader,
+) -> Result<(), Malformed> {
+    reader.int().ok_or(Malformed)?;
+    let id = reader.int().ok_or(Malformed)?;
+    let Some(item) = world.catalogue.item(id) else {
+        return Ok(());
+    };
+    // Java: a package (no definition) throws here.
+    let Some(definition) = item.definition.clone() else {
+        return Ok(());
+    };
+    if item.hidden || !definition.has_behaviour(ItemBehaviour::Effect) {
+        return Ok(());
+    }
+    let mut guard = session.player.lock();
+    let p = &mut *guard;
+    let Some(details) = p.details.clone() else {
+        return Ok(());
+    };
+    if item.price_coins > details.credits {
+        session.send(outgoing::catalogue::no_credits(true, false));
+        return Ok(());
+    }
+    if item.price_pixels > details.pixels {
+        session.send(outgoing::catalogue::no_credits(false, true));
+        return Ok(());
+    }
+    // Java: `Integer.parseInt(item.getItemSpecialId())`, after the purchase.
+    let effect_id = item.item_special_id.parse::<i32>().ok();
+    let t = now();
+    let written = (|| -> anyhow::Result<(Purchase, Charge)> {
+        let mut w = world.store.write()?;
+        let bought = world
+            .catalogue
+            .purchase_in(&mut w, &details, &item, "", t, None)?;
+        let charge = charge_in(&mut w, &details, item.price_coins, item.price_pixels)?;
+        w.commit()?;
+        Ok((bought, charge))
+    })();
+    let (bought, charge) = match written {
+        Ok(written) => written,
+        Err(e) => {
+            error!(user = details.id, "purchase and wear of {}: {e}", item.id);
+            return Ok(());
+        }
+    };
+    bought.apply(&world.items, session, p);
+    if let Some(details) = p.details.as_mut() {
+        send_charge(session, details, charge);
+    }
+    let Some(effect_id) = effect_id else {
+        return Ok(());
+    };
+    crate::game::effects::activate(world, session, p, effect_id);
+    crate::game::effects::wear(world, session, p, effect_id);
+    Ok(())
+}

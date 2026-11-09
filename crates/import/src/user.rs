@@ -64,12 +64,19 @@ pub fn import_user_data(conn: &mut mysql::PooledConn, store: &Store) -> Result<u
     store.put_effect_durations(&durations.iter().copied().collect())?;
     count += durations.len();
 
-    let rows: Vec<Row> = conn.query("SELECT * FROM users_statistics")?;
+    let rows: Vec<Row> = conn.query(
+        "SELECT *, UNIX_TIMESTAMP(club_gift_due) AS club_gift_due_ts FROM users_statistics",
+    )?;
     for row in &rows {
         let mut stats = UserStatistics::default();
         for column in STATISTIC_COLUMNS {
             let value: Option<i64> = col(row, column)?;
             stats.values.insert(column.to_string(), value.unwrap_or(0));
+        }
+        // A datetime: Unix seconds, absent while NULL.
+        let due: Option<i64> = col(row, "club_gift_due_ts")?;
+        if let Some(due) = due {
+            stats.values.insert("club_gift_due".into(), due);
         }
         store.put_statistics(col(row, "user_id")?, &stats)?;
     }

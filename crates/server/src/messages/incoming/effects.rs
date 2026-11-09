@@ -1,5 +1,5 @@
-//! Java: `messages/incoming/effects` (the work is in `game::effects`). Java's `PURCHASE_AND_WEAR`
-//! is never registered, so it is not ported.
+//! Java: `messages/incoming/effects` (the work is in `game::effects`; `PURCHASE_AND_WEAR` is
+//! with the catalogue's purchases).
 
 use std::sync::Arc;
 

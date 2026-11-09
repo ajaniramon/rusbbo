@@ -227,6 +227,37 @@ impl Store {
         w.commit()
     }
 
+    /// Java: `ClubGiftDao.incrementGiftData`: every row whose `club_gift_due` has passed gets a
+    /// gift more and its next date `interval` seconds from now. Returns the rows changed.
+    pub fn increment_club_gifts(&self, now: i64, interval: i64) -> Result<usize> {
+        let w = self.write()?;
+        let mut changed = 0;
+        {
+            let mut table = w.tx.open_table(STATISTICS)?;
+            let mut rows: Vec<(u32, UserStatistics)> = Vec::new();
+            for entry in table.iter()? {
+                let (k, v) = entry?;
+                let stats: UserStatistics = decode(v.value())?;
+                if stats
+                    .values
+                    .get("club_gift_due")
+                    .is_some_and(|due| now > *due)
+                {
+                    rows.push((k.value(), stats));
+                }
+            }
+            for (user_id, mut stats) in rows {
+                *stats.values.entry("gifts_due".into()).or_insert(0) += 1;
+                stats.values.insert("club_gift_due".into(), now + interval);
+                let bytes = encode(&stats)?;
+                table.insert(user_id, bytes.as_slice())?;
+                changed += 1;
+            }
+        }
+        w.commit()?;
+        Ok(changed)
+    }
+
     /// Java: `GameDao.resetMonthlyXp`: the month's game scores and xp go back to 0 for everyone
     /// who has any. Returns the number of rows changed.
     pub fn reset_monthly_scores(&self) -> Result<usize> {
