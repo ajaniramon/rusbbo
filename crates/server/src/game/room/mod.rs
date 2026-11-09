@@ -202,6 +202,9 @@ pub struct Room {
     pub deleted: bool,
     /// Set for a game's arena (Java: `isGameArena`, see `game::games`).
     pub arena: Option<Arena>,
+    /// The last `remove_entity` stopped where Java's `leaveRoom` throws (`pool_room_leave`):
+    /// the caller keeps the player's room.
+    pub leave_threw: bool,
 }
 
 /// What an arena room knows of its game (Java: `RoomData.game`, `getGameLobby`).
@@ -255,6 +258,7 @@ impl Room {
                 rainbow_task: None,
                 bot_party_task: None,
                 dispose_generation: 0,
+                leave_threw: false,
                 bots_active: false,
                 is_room_muted: false,
                 last_bot_speech: None,
@@ -313,6 +317,7 @@ impl Room {
                 rainbow_task: None,
                 bot_party_task: None,
                 dispose_generation: 0,
+                leave_threw: false,
                 bots_active: false,
                 is_room_muted: false,
                 last_bot_speech: None,
@@ -709,7 +714,12 @@ impl Room {
         if e.is_player() {
             // Only the cameras' triggers (Lido B, Rooftop Rumble) and the game lobbies' do
             // something; the flat, Habbo Lido, Infobus and Space Cafe ones do nothing.
-            self.pool_room_leave(e.session.id);
+            if self.pool_room_leave(e.session.id) {
+                // Java's NullPointerException: no LOGOUT, no hotel view, no reset (the room user
+                // keeps the room), and the entity stays on its tile.
+                self.leave_threw = true;
+                return None;
+            }
             if crate::game::games::GameType::of_lobby_trigger(&self.model.trigger).is_some() {
                 self.game_lobby_leave(world, e.session.id);
             }
@@ -1742,12 +1752,17 @@ pub fn leave_current_room(world: &World, session: &Arc<Session>, hotel_view: boo
     let Some(room) = room_id.and_then(|id| world.loaded_room(id)) else {
         return;
     };
-    let deferred = {
+    let (deferred, threw) = {
         let mut r = room.lock();
         r.remove_entity(world, session.id, hotel_view);
-        r.take_deferred()
+        (r.take_deferred(), std::mem::take(&mut r.leave_threw))
     };
     run_deferred(world, deferred);
+    if threw {
+        // Java's room user was never reset: it still names the room.
+        session.player.lock().room_id = Some(room.id);
+        return;
+    }
     // Java: the end of `RoomEntityManager.leaveRoom`: friends' consoles stop showing the room.
     crate::game::messenger::manager::send_status_update(world, session);
 }
@@ -1931,6 +1946,7 @@ impl Room {
             rainbow_task: None,
             bot_party_task: None,
             dispose_generation: 0,
+            leave_threw: false,
             bots_active: false,
             is_room_muted: false,
             last_bot_speech: None,

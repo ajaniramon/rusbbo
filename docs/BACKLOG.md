@@ -24,6 +24,5 @@ before it is changed.
 | `parity` | A second `GENERATEKEY` on an encrypted connection is ignored (Java answers it); Java's `BigInteger(String)` also accepts a leading `+`/`-` in the Diffie-Hellman key; messenger lists follow Java's `HashMap` order only for small ids; Unicode normalisation with `normalise.input.strings` on (off in Aeyra) |
 | `inventory` | Dropping hand items that are placed in the player's current room |
 | `effects` | Effects bought or given by a totem arrive at the next login, as in Java (its `newEffect` bug); give them at once if Java is fixed |
-| `pool` | Java throws and skips the rest of `leaveRoom` when nobody ever sent `G_STAT` in a pool room |
 | `bans` | IP bans are stored but not enforced, as in Java (its check is commented out) |
 | `groups` | The website's most active groups: Java sorts a `HashMap` keyed by identity hashes, so ties come out in no fixed order; the port keeps id order |

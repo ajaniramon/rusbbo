@@ -71,6 +71,7 @@ pool-booth
 pool-camera
 pool-diving
 pool-ladders
+pool-no-stat
 pool-tickets
 public-room
 rcon-trade

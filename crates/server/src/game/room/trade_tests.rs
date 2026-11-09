@@ -49,6 +49,7 @@ fn room() -> Room {
         rainbow_task: None,
         bot_party_task: None,
         dispose_generation: 0,
+        leave_threw: false,
         bots_active: false,
         is_room_muted: false,
         last_bot_speech: None,

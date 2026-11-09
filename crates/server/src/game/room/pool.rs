@@ -440,20 +440,24 @@ impl Room {
     }
 
     /// Java: `DivingDeckTrigger.onRoomLeave` and `RooftopRumbleTrigger.onRoomLeave`, once
-    /// `session_id` left: the camera finds someone else to watch.
-    pub(super) fn pool_room_leave(&mut self, session_id: u64) {
+    /// `session_id` left: the camera finds someone else to watch. Returns whether Java throws: with
+    /// players still in the room but no camera task (nobody ever sent `G_STAT`), `task.getPlayer()`
+    /// is a `NullPointerException` and the rest of `leaveRoom` never runs.
+    pub(super) fn pool_room_leave(&mut self, session_id: u64) -> bool {
         let trigger = self.model.trigger.as_str();
         if trigger != "diving_deck_trigger" && trigger != "rooftop_rumble_trigger" {
-            return;
+            return false;
         }
         if self.players() == 0 {
-            return;
+            return false;
         }
-        // TODO(pool): Java throws (and the rest of leaveRoom is skipped) when nobody ever sent
-        // G_STAT, so the camera task does not exist; here the leave simply goes on.
-        if self.camera.as_ref().and_then(|c| c.player) == Some(session_id) {
+        let Some(camera) = self.camera.as_ref() else {
+            return true;
+        };
+        if camera.player == Some(session_id) {
             self.spectate_new_player();
         }
+        false
     }
 
     /// Java: `scheduleTask("DivingCamera", new PoolCamera(room), 3, 10, SECONDS)`.
