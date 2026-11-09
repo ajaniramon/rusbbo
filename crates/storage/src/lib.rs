@@ -109,9 +109,14 @@ fn decode<T: DeserializeOwned>(bytes: &[u8]) -> Result<T> {
     Ok(postcard::from_bytes(bytes)?)
 }
 
-/// Usernames are unique case-insensitively, like the MariaDB collation the Java server relies on.
-fn name_key(name: &str) -> String {
-    name.to_lowercase()
+/// Usernames are unique, and looked up, ignoring case and accents, like the MariaDB collation the
+/// Java server relies on (`utf8mb4_uca1400_ai_ci`). Stored names are ASCII (the website's and the
+/// housekeeping's rules), so only a looked-up name with accents folds differently.
+pub(crate) fn name_key(name: &str) -> String {
+    name.chars()
+        .flat_map(char::to_lowercase)
+        .map(rooms::collation_fold)
+        .collect()
 }
 
 pub struct Store {

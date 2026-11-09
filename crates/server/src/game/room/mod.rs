@@ -1596,19 +1596,55 @@ fn chat_gesture(message: &[u8]) -> i32 {
     }
 }
 
-/// Java: `StringUtil.filterInput(input, true)` on ISO-8859-1 bytes. TODO(settings):
-/// `normalise.input.strings` (NFD normalisation) is not applied.
+/// Java: `StringUtil.filterInput(input, true)` on ISO-8859-1 bytes. With
+/// `normalise.input.strings` on, Java's NFD splits an accented letter into its base letter and a
+/// combining mark, which ISO-8859-1 cannot carry: the client gets `?` for it (`é` is `e?`).
 pub fn filter_input(input: &[u8]) -> Vec<u8> {
-    input
-        .iter()
-        .map(|&c| {
-            if matches!(c, 1 | 2 | 9 | 10 | 12 | 13) {
-                b' '
-            } else {
-                c
+    let filtered = input.iter().map(|&c| {
+        if matches!(c, 1 | 2 | 9 | 10 | 12 | 13) {
+            b' '
+        } else {
+            c
+        }
+    });
+    if !crate::settings::normalise_input() {
+        return filtered.collect();
+    }
+    let mut out = Vec::with_capacity(input.len());
+    for c in filtered {
+        match nfd_base(c) {
+            Some(base) => {
+                out.push(base);
+                out.push(b'?');
             }
-        })
-        .collect()
+            None => out.push(c),
+        }
+    }
+    out
+}
+
+/// The base letter of an ISO-8859-1 letter that NFD decomposes (its canonical decomposition is
+/// that letter and one combining mark).
+fn nfd_base(c: u8) -> Option<u8> {
+    Some(match c {
+        0xC0..=0xC5 => b'A',
+        0xC7 => b'C',
+        0xC8..=0xCB => b'E',
+        0xCC..=0xCF => b'I',
+        0xD1 => b'N',
+        0xD2..=0xD6 => b'O',
+        0xD9..=0xDC => b'U',
+        0xDD => b'Y',
+        0xE0..=0xE5 => b'a',
+        0xE7 => b'c',
+        0xE8..=0xEB => b'e',
+        0xEC..=0xEF => b'i',
+        0xF1 => b'n',
+        0xF2..=0xF6 => b'o',
+        0xF9..=0xFC => b'u',
+        0xFD | 0xFF => b'y',
+        _ => return None,
+    })
 }
 
 /// Java: `String.isBlank` (only whitespace) on ISO-8859-1 bytes.

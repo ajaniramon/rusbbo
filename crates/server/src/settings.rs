@@ -1,5 +1,15 @@
 //! The `settings` table, cached in memory (Java: `GameConfiguration`).
 
+/// Java: `normalise.input.strings`, read by `StringUtil.filterInput` on every call; kept here
+/// for the filters that have no settings at hand (set whenever the settings are loaded).
+pub static NORMALISE_INPUT: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// Whether `StringUtil.filterInput` normalises (NFD) at the moment.
+pub fn normalise_input() -> bool {
+    NORMALISE_INPUT.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 use std::collections::BTreeMap;
 
 pub struct Settings {

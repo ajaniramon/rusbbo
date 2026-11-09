@@ -203,9 +203,10 @@ pub fn bbcode_normalise(message: &str) -> String {
         .replace('\n', "[br]")
 }
 
-/// Java: `StringUtil.filterInput(input, filterNewline)`. TODO(settings): the Unicode
-/// normalisation of `normalise.input.strings` (off in Aeyra).
+/// Java: `StringUtil.filterInput(input, filterNewline)`, with the NFD normalisation of
+/// `normalise.input.strings`.
 pub fn filter_input(input: &str, filter_newline: bool) -> String {
+    use unicode_normalization::UnicodeNormalization;
     let mut s: String = input
         .chars()
         .map(|c| match c {
@@ -214,6 +215,9 @@ pub fn filter_input(input: &str, filter_newline: bool) -> String {
             c => c,
         })
         .collect();
+    if crate::settings::normalise_input() {
+        s = s.nfd().collect();
+    }
     let odd = ['\u{2202}', '\u{222b}', '\u{e5}', '\u{e6}'];
     if odd.iter().all(|c| s.contains(*c)) {
         s = s.replace(odd, "");

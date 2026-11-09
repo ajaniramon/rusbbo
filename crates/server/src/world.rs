@@ -91,6 +91,10 @@ fn load_room_categories(store: &Store) -> Result<HashMap<u32, RoomCategory>> {
 impl World {
     pub fn new(store: Store) -> Result<Self> {
         let settings = Settings::new(load_settings(&store)?);
+        crate::settings::NORMALISE_INPUT.store(
+            settings.bool("normalise.input.strings"),
+            std::sync::atomic::Ordering::Relaxed,
+        );
         crate::game::commands::init_group_permissions(&settings);
         let room_models = RwLock::new(Arc::new(load_room_models(&store)?));
         let room_categories = RwLock::new(Arc::new(load_room_categories(&store)?));
@@ -345,7 +349,14 @@ impl World {
     /// Java: `GameConfiguration.reset`: reads the settings again (`:setconfig`, `:reload`).
     pub fn reload_settings(&self) {
         match load_settings(&self.store) {
-            Ok(values) => *self.settings.write() = Settings::new(values),
+            Ok(values) => {
+                let settings = Settings::new(values);
+                crate::settings::NORMALISE_INPUT.store(
+                    settings.bool("normalise.input.strings"),
+                    std::sync::atomic::Ordering::Relaxed,
+                );
+                *self.settings.write() = settings;
+            }
             Err(e) => tracing::error!("reloading settings: {e}"),
         }
     }

@@ -490,8 +490,8 @@ impl Writer {
 }
 
 /// SQL `LIKE` as MariaDB evaluates it with the `utf8mb4_uca1400_ai_ci` collation of the Java
-/// schema: `%` and `_` are wildcards, `\` escapes the next character, and the comparison ignores
-/// case. TODO(collation): accent insensitivity (`e` = `é`) is not reproduced.
+/// schema: `%` and `_` are wildcards, `\` escapes the next character, and characters compare
+/// one by one ignoring case and accents (see [`collation_fold`]).
 pub(crate) fn like(pattern: &str, text: &str) -> bool {
     enum Tok {
         Any,
@@ -499,7 +499,10 @@ pub(crate) fn like(pattern: &str, text: &str) -> bool {
         Lit(char),
     }
     fn fold(s: &str) -> Vec<char> {
-        s.chars().flat_map(char::to_lowercase).collect()
+        s.chars()
+            .flat_map(char::to_lowercase)
+            .map(collation_fold)
+            .collect()
     }
     let mut toks = Vec::new();
     let mut chars = fold(pattern).into_iter();
@@ -714,5 +717,56 @@ mod tests {
         assert!(!like("a%b%c", "a-b-b"));
         assert!(like("100\\%", "100%"));
         assert!(!like("100\\%", "1000"));
+    }
+}
+
+/// One character as `utf8mb4_uca1400_ai_ci` compares it in `LIKE` (lower case already): a letter
+/// with a diacritic is its base letter (`é` = `e`, `ñ` = `n`, `ø` = `o`, `ł` = `l`), while letters
+/// of their own and ligatures stay (`ß` is not `ss`, `æ` not `ae`: `LIKE` goes character by
+/// character; traces/search-accents.json). Covers Latin-1 and Latin Extended-A.
+pub(crate) fn collation_fold(c: char) -> char {
+    const TABLE: [(&str, char); 19] = [
+        ("àáâãäåāăą", 'a'),
+        ("çćĉċč", 'c'),
+        ("ďđ", 'd'),
+        ("èéêëēĕėęě", 'e'),
+        ("ĝğġģ", 'g'),
+        ("ĥħ", 'h'),
+        ("ìíîïĩīĭįı", 'i'),
+        ("ĵ", 'j'),
+        ("ķ", 'k'),
+        ("ĺļľŀł", 'l'),
+        ("ñńņňŉ", 'n'),
+        ("òóôõöøōŏő", 'o'),
+        ("ŕŗř", 'r'),
+        ("śŝşšſ", 's'),
+        ("ţťŧ", 't'),
+        ("ùúûüũūŭůűų", 'u'),
+        ("ŵ", 'w'),
+        ("ýÿŷ", 'y'),
+        ("źżž", 'z'),
+    ];
+    if c.is_ascii() {
+        return c;
+    }
+    TABLE
+        .iter()
+        .find(|(from, _)| from.contains(c))
+        .map_or(c, |&(_, to)| to)
+}
+
+#[cfg(test)]
+mod collation_tests {
+    use super::like;
+
+    #[test]
+    fn like_ignores_accents_as_mariadb_does() {
+        assert!(like("%cafe ole%", "Café Olé"));
+        assert!(like("%CAFÉ%", "café"));
+        assert!(like("%ol stue%", "Øl Stue"));
+        assert!(like("%nandu%", "Ñandú Nest"));
+        assert!(like("%é%", "Straße Bar"));
+        assert!(!like("%strasse%", "Straße Bar"));
+        assert!(!like("%aeble%", "Æble Hus"));
     }
 }

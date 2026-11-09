@@ -1,0 +1,123 @@
+name = "search-accents"
+description = "Room search (SRCHF) as MariaDB's utf8mb4_uca1400_ai_ci collation compares: accents and case ignored, and what the ligatures and special letters (ß, Æ, Ø) match"
+
+# a = tracebot1 makes seven flats (1000-1006) with accented names and searches for them.
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Café Olé", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Straße Bar", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Æble Hus", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Øl Stue", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Crème Brûlée", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Ñandú Nest", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Plain Room", "model_a", "open", true]
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["cafe ole"]
+note = "é = e"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["CAFÉ"]
+note = "and case"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["strasse"]
+note = "ß = ss?"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["aeble"]
+note = "Æ = ae?"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["ol stue"]
+note = "Ø = o?"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["creme brulee"]
+note = "è, û"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["nandu"]
+note = "ñ, ú"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["ole"]
+note = "inside the name"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["é"]
+note = "an accent alone"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["room"]
+note = "no accents"
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "a"
+send = "FINDUSER"
+args = ["trâcebot2"]
+note = "the messenger's search ignores accents too"
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["TRÄCEBOT2"]
+note = "and so does looking a user up by name"

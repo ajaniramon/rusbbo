@@ -1,0 +1,97 @@
+name = "normalise-input"
+description = "normalise.input.strings (StringUtil.filterInput's NFD normalisation): off, chat goes out as typed; on, every accented letter is its base letter and a combining mark, which ISO-8859-1 sends as ?"
+
+# s = tracestaff turns the setting on; a = tracebot1 chats in room 7 and makes flat 1000.
+
+[[bots]]
+name = "s"
+ticket = "trace-sso-21"
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "s"
+macro = "login"
+
+[[steps]]
+bot = "s"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "s"
+send = "G_HMAP"
+
+[[steps]]
+bot = "s"
+send = "G_USRS"
+
+[[steps]]
+bot = "s"
+send = "G_OBJS"
+
+[[steps]]
+bot = "s"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "ROOM_DIRECTORY"
+args = [true, 7]
+settle_ms = 600
+
+[[steps]]
+bot = "a"
+send = "G_HMAP"
+
+[[steps]]
+bot = "a"
+send = "G_USRS"
+
+[[steps]]
+bot = "a"
+send = "G_OBJS"
+
+[[steps]]
+bot = "a"
+send = "G_STAT"
+settle_ms = 1200
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["Café olé, ça va?"]
+settle_ms = 800
+note = "normalise.input.strings off: as typed"
+
+[[steps]]
+bot = "s"
+send = "CHAT"
+args = [":setconfig normalise.input.strings true"]
+
+[[steps]]
+bot = "a"
+send = "CHAT"
+args = ["Café olé, ça va?"]
+settle_ms = 800
+note = "NFD: each accent becomes ? on the wire"
+
+[[steps]]
+bot = "a"
+send = "CREATEFLAT"
+args = ["Crème Brûlée", "model_a", "open", true]
+note = "a flat name is filtered too"
+
+[[steps]]
+bot = "a"
+send = "SRCHF"
+args = ["cr"]
+note = "its name as it was saved"

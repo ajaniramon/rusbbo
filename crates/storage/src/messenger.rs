@@ -247,7 +247,7 @@ impl Store {
     /// wildcards, as they do in the Java query. Results come in name order, which is what
     /// MariaDB's range scan over the `username` index gives.
     pub fn messenger_search(&self, query: &str) -> Result<Vec<u32>> {
-        let pattern: Vec<char> = format!("{}%", query.to_lowercase()).chars().collect();
+        let pattern: Vec<char> = format!("{}%", crate::name_key(query)).chars().collect();
         // Literal prefix before the first wildcard: bounds the range scan.
         let prefix: String = pattern
             .iter()

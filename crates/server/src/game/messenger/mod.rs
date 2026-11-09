@@ -14,18 +14,10 @@ use tracing::error;
 use crate::game::now;
 use crate::settings::Settings;
 
-/// Java: `StringUtil.filterInput(input, filterNewline)` without the `normalise.input.strings`
-/// setting (off by default) and the "∂∫åæ" special case.
-/// TODO(parity): Unicode normalisation when `normalise.input.strings` is on.
+/// Java: `StringUtil.filterInput(input, filterNewline)` on the messenger's text: the website's
+/// filter (the NFD normalisation of `normalise.input.strings` and the "∂∫åæ" case).
 pub fn filter_input(input: &str, filter_newline: bool) -> String {
-    input
-        .chars()
-        .map(|c| match c {
-            '\u{1}' | '\u{2}' | '\t' | '\n' | '\u{c}' => ' ',
-            '\r' if filter_newline => ' ',
-            c => c,
-        })
-        .collect()
+    crate::web::text::filter_input(input, filter_newline)
 }
 
 /// Java: `MessengerUser`, the snapshot of a user that sits in a friends list or request list.

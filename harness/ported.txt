@@ -66,6 +66,7 @@ moderation-login
 moderation-tool
 navigator
 navigator-favourites
+normalise-input
 pool-booth
 pool-camera
 pool-diving
@@ -80,6 +81,7 @@ rooftop-camera
 room-bots
 room-hire
 room-two-bots
+search-accents
 seasonal-catalogue
 snowstorm-game
 snowstorm-leave

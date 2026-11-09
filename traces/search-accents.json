@@ -1,0 +1,549 @@
+{
+  "format": 1,
+  "scenario": "search-accents",
+  "description": "Room search (SRCHF) as MariaDB's utf8mb4_uca1400_ai_ci collation compares: accents and case ignored, and what the ligatures and special letters (ß, Æ, Ø) match",
+  "runs": 3,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "906870277488678306313838\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#11C167AB1383498597876AEF3BDCA990\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@HCafé Olé@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "XzCCafé Olé\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JStraße Bar@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "YzCStraße Bar\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@HÆble Hus@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "ZzCÆble Hus\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@GØl Stue@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "[zCØl Stue\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@LCrème Brûlée@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "X{CCrème Brûlée\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JÑandú Nest@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "Y{CÑandú Nest\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 29,
+      "name": "CREATEFLAT",
+      "body": "@JPlain Room@Gmodel_a@DopenI",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 59,
+              "name": "GOTO_FLAT",
+              "body": "Z{CPlain Room\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Hcafe ole",
+      "note": "é = e",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IXzCCafé Olé\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@DCAFÉ",
+      "note": "and case",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IXzCCafé Olé\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Gstrasse",
+      "note": "ß = ss?",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 58,
+              "name": "NOFLATS",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Eaeble",
+      "note": "Æ = ae?",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 58,
+              "name": "NOFLATS",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Gol stue",
+      "note": "Ø = o?",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "I[zCØl Stue\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Lcreme brulee",
+      "note": "è, û",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IX{CCrème Brûlée\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Enandu",
+      "note": "ñ, ú",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IY{CÑandú Nest\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Cole",
+      "note": "inside the name",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IXzCCafé Olé\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Aé",
+      "note": "an accent alone",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "SAXzCCafé Olé\u0002tracebot1\u0002open\u0002HQF\u0002YzCStraße Bar\u0002tracebot1\u0002open\u0002HQF\u0002ZzCÆble Hus\u0002tracebot1\u0002open\u0002HQF\u0002[zCØl Stue\u0002tracebot1\u0002open\u0002HQF\u0002X{CCrème Brûlée\u0002tracebot1\u0002open\u0002HQF\u0002Y{CÑandú Nest\u0002tracebot1\u0002open\u0002HQF\u0002Z{CPlain Room\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 17,
+      "name": "SRCHF",
+      "body": "@Droom",
+      "note": "no accents",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 55,
+              "name": "SEARCH_FLAT_RESULTS",
+              "body": "IZ{CPlain Room\u0002tracebot1\u0002open\u0002HQF\u0002",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 12,
+      "name": "MESSENGERINIT",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 12,
+              "name": "MESSENGER_INIT",
+              "body": "PYPYXVBHHHH",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 41,
+      "name": "FINDUSER",
+      "body": "@Itrâcebot2",
+      "note": "the messenger's search ignores accents too",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 435,
+              "name": "MESSENGER_SEARCH",
+              "body": "HIJtracebot2\u0002trace bot two\u0002HH\u0002H\u000201-01-2026 00:00:00\u0002",
+              "check": "mask",
+              "mask": "................................??????????.????????."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 39,
+      "name": "MESSENGER_REQUESTBUDDY",
+      "body": "@ITRÄCEBOT2",
+      "note": "and so does looking a user up by name",
+      "settle_ms": 300,
+      "received": {}
+    }
+  ]
+}
