@@ -449,3 +449,38 @@ fn racing_logins_of_one_user_leave_one_session() {
         crate::game::player::dispose(&f.world, live[0]);
     }
 }
+
+#[test]
+fn exchanging_credit_furni_writes_its_transaction() {
+    // Java: CONVERT_FURNI_TO_CREDITS redeems the item, then
+    // TransactionDao.createTransaction(user, itemId, "", 1, "Exchanged <name> into <n> credits",
+    // n, 0, false).
+    let f = Fixture::new();
+    let alice = f.client(ALICE);
+    let coin = f.add_item(ALICE, COIN_DEFINITION, "", ROOM);
+    let room_ref = f.world.room_by_id(ROOM).unwrap();
+    room::enter_room(&f.world, &alice.session, room_ref.clone(), None, true);
+    let virtual_id = room_ref
+        .lock()
+        .mapping
+        .items
+        .iter()
+        .find(|i| i.flat.as_ref().is_some_and(|fl| fl.record.id == coin.id))
+        .unwrap()
+        .virtual_id;
+    alice.send(
+        &f.world,
+        rooms_items::convert_furni_to_credits,
+        ClientBody::new().int(virtual_id),
+    );
+    assert!(f.store().item(coin.id).unwrap().is_none());
+    assert_eq!(alice.credits(), 105);
+    let rows = f.store().transactions(ALICE).unwrap();
+    assert_eq!(rows.len(), 1);
+    let row = &rows[0];
+    assert_eq!(row.description, "Exchanged Silver Coin into 5 credits");
+    assert_eq!(row.item_id, coin.id.to_string());
+    assert_eq!(row.catalogue_id, "");
+    assert_eq!((row.amount, row.credit_cost, row.pixel_cost), (1, 5, 0));
+    assert!(!row.is_visible);
+}

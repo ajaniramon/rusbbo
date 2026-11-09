@@ -32,7 +32,6 @@ before it is changed.
 | `parity` | A second `GENERATEKEY` on an encrypted connection is ignored (Java answers it); Java's `BigInteger(String)` also accepts a leading `+`/`-` in the Diffie-Hellman key; messenger lists follow Java's `HashMap` order only for small ids; Unicode normalisation with `normalise.input.strings` on (off in Aeyra) |
 | `settings` | `normalise.input.strings` for post-its and room text |
 | `collation` | MariaDB's accent-insensitive search (`e` = `é`) in room search |
-| `transactions` | The "Exchanged ... into ... credits" transaction row when furni is exchanged for credits |
 | `inventory` | Dropping hand items that are placed in the player's current room |
 | `rooms` | Java keeps the spam counters and the `:teleport` flag on the player across rooms |
 | `walkways` | Which room's users get a user's status when they cross a walkway |

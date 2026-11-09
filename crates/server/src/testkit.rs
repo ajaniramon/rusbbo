@@ -24,6 +24,8 @@ pub const CHAIR: i32 = 100;
 pub const TELEPORTER: i32 = 101;
 pub const DOG: i32 = 102;
 pub const DOG_DEFINITION: u32 = 12;
+/// A credit furni worth 5 credits.
+pub const COIN_DEFINITION: u32 = 13;
 
 pub struct Fixture {
     _dir: tempfile::TempDir,
@@ -81,6 +83,13 @@ impl Fixture {
             definition(10, "chair_plasto", "Chair", "chair", "CAN_SIT_ON_TOP"),
             definition(11, "door", "Teleport Door", "teleport", "TELEPORTER"),
             definition(DOG_DEFINITION, "pets0", "Dog", "pet_nest", ""),
+            definition(
+                COIN_DEFINITION,
+                "CF_5_coin_silver",
+                "Silver Coin",
+                "default",
+                "REDEEMABLE",
+            ),
         ] {
             w.put_item_definition(&def).unwrap();
         }

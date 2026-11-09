@@ -1061,8 +1061,7 @@ pub fn spin_wheel_of_fortune(
 }
 
 /// Java: `CONVERT_FURNI_TO_CREDITS` (VL64 item id): the owner exchanges a credit furni in the
-/// room (`CF_<amount>_<name>`) for its credits.
-/// TODO(transactions): the "Exchanged ... into ... credits" transaction.
+/// room (`CF_<amount>_<name>`) for its credits, with an "Exchanged" transaction row (hidden).
 pub fn convert_furni_to_credits(
     world: &World,
     session: &Arc<Session>,
@@ -1088,7 +1087,11 @@ pub fn convert_furni_to_credits(
         return Ok(());
     };
     let item = &r.mapping.items[idx];
-    let Some(database_id) = item.flat.as_ref().map(|f| f.record.id) else {
+    let Some((database_id, name)) = item
+        .flat
+        .as_ref()
+        .map(|f| (f.record.id, f.definition.record.name.clone()))
+    else {
         return Ok(());
     };
     if !item.has(Behaviour::Redeemable) {
@@ -1112,6 +1115,19 @@ pub fn convert_furni_to_credits(
         w.delete_item(database_id)?;
         user.credits += amount;
         w.put_user(&user)?;
+        // Java: TransactionDao.createTransaction(.., "Exchanged <name> into <amount> credits",
+        // amount, 0, false), after the redemption (in the same transaction here).
+        w.insert_transaction(&rusbbo_storage::Transaction {
+            user_id,
+            item_id: database_id.to_string(),
+            catalogue_id: String::new(),
+            amount: 1,
+            description: format!("Exchanged {name} into {amount} credits"),
+            credit_cost: amount,
+            pixel_cost: 0,
+            created_at: now(),
+            is_visible: false,
+        })?;
         w.commit()?;
         Ok(Some(user.credits))
     })();

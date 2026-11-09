@@ -294,7 +294,7 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
 
     if settings.bool("welcome.message.enabled") {
         let text = replace_alert_message(
-            &settings.string("welcome.message.content"),
+            settings.string("welcome.message.content"),
             &user.username,
             session.is_flash(),
         );
@@ -407,8 +407,7 @@ pub fn dispose(world: &World, session: &Arc<Session>) {
 pub fn replace_alert_message(message: &str, username: &str, flash: bool) -> String {
     let mut text = message
         .replace("\r\n", "<br>")
-        .replace('\r', "<br>")
-        .replace('\n', "<br>");
+        .replace(['\r', '\n'], "<br>");
     if flash {
         text = text.replace("<br>", "\r");
     }
