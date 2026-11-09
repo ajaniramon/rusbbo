@@ -5,9 +5,8 @@
 //! Java runs on `MessengerManager.getMessengerData` build a transient one from the store.
 //! Cross-player work is in [`manager`], which never holds two player locks at once.
 
+pub mod java_map;
 pub mod manager;
-
-use std::collections::BTreeMap;
 
 use rusbbo_storage::{MessengerCategory, Store, User};
 use tracing::error;
@@ -127,8 +126,9 @@ impl MessengerError {
 pub struct Messenger {
     /// This user as the others see them (Java: `Messenger.user`).
     pub user: MessengerUser,
-    pub friends: BTreeMap<u32, MessengerUser>,
-    pub requests: BTreeMap<u32, MessengerUser>,
+    /// Java: `HashMap<Integer, MessengerUser>`s, iterated in Java's order.
+    pub friends: java_map::JavaIntMap<MessengerUser>,
+    pub requests: java_map::JavaIntMap<MessengerUser>,
     pub categories: Vec<MessengerCategory>,
     /// Friends whose status changed, drained into the next `FRIENDS_UPDATE`.
     friends_update: Vec<MessengerUser>,
@@ -140,8 +140,8 @@ impl Messenger {
     /// Java: `new Messenger(PlayerDetails)`. Friends and requests are joined with `users` like the
     /// DAO's `INNER JOIN`, so rows of deleted users disappear.
     ///
-    /// TODO(parity): Java keeps `HashMap`s, whose order for small ids is ascending by id, as
-    /// here; with ids beyond the table size it differs.
+    /// Java keeps `HashMap`s, filled in the rows' order: [`java_map::JavaIntMap`] iterates them
+    /// as Java does.
     pub fn load(store: &Store, settings: &Settings, user: &User) -> Self {
         let friends = match store.messenger_friends(user.id) {
             Ok(rows) => rows
@@ -153,7 +153,7 @@ impl Messenger {
                 .collect(),
             Err(e) => {
                 error!(user = user.id, "loading friends: {e}");
-                BTreeMap::new()
+                java_map::JavaIntMap::default()
             }
         };
         let requests = match store.messenger_requests(user.id) {
@@ -166,7 +166,7 @@ impl Messenger {
                 .collect(),
             Err(e) => {
                 error!(user = user.id, "loading friend requests: {e}");
-                BTreeMap::new()
+                java_map::JavaIntMap::default()
             }
         };
         let categories = store.messenger_categories(user.id).unwrap_or_else(|e| {

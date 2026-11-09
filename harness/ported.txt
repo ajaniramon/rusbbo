@@ -59,6 +59,7 @@ login
 login-encrypted
 messenger
 messenger-follow
+messenger-order
 messenger-search
 moderation-autoban
 moderation-login

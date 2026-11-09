@@ -1,0 +1,65 @@
+name = "messenger-order"
+description = "The messenger's friends in Java's HashMap order: user 32 hashes to bucket 0 of the 16, so it comes before user 2 in MESSENGERINIT although it was added later"
+
+# a = tracebot1 befriends b = tracebot2 (user 2) and then g = gclub (user 32).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[bots]]
+name = "b"
+ticket = "trace-sso-2"
+
+[[bots]]
+name = "g"
+ticket = "trace-sso-32"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "b"
+macro = "login"
+
+[[steps]]
+bot = "b"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "g"
+macro = "login"
+
+[[steps]]
+bot = "g"
+send = "MESSENGERINIT"
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["tracebot2"]
+
+[[steps]]
+bot = "b"
+send = "MESSENGER_ACCEPTBUDDY"
+args = [1, 1]
+
+[[steps]]
+bot = "a"
+send = "MESSENGER_REQUESTBUDDY"
+args = ["gclub"]
+
+[[steps]]
+bot = "g"
+send = "MESSENGER_ACCEPTBUDDY"
+args = [1, 1]
+
+[[steps]]
+bot = "a"
+send = "MESSENGERINIT"
+note = "friends: gclub (32) before tracebot2 (2)"
