@@ -91,6 +91,11 @@ impl Decoder {
         ))
     }
 
+    /// The first buffered byte, if any.
+    pub fn first_byte(&self) -> Option<u8> {
+        self.buf.first().copied()
+    }
+
     pub fn buffered(&self) -> usize {
         self.buf.len()
     }

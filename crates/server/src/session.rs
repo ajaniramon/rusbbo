@@ -23,6 +23,32 @@ pub enum Outgoing {
     Close,
 }
 
+/// Java: `NetworkEncoder`'s changes for a Flash client: an `ALERT`'s `<br>` become `\r`, and in
+/// chat and messenger messages the Shockwave bullet (char 149) becomes the Unicode one (8226),
+/// which ISO-8859-1 writes as `?`.
+fn flash_text(mut msg: Message) -> Message {
+    fn replace(body: &[u8], from: &[u8], to: &[u8]) -> Vec<u8> {
+        let mut out = Vec::with_capacity(body.len());
+        let mut i = 0;
+        while i < body.len() {
+            if body[i..].starts_with(from) {
+                out.extend_from_slice(to);
+                i += from.len();
+            } else {
+                out.push(body[i]);
+                i += 1;
+            }
+        }
+        out
+    }
+    match msg.header {
+        139 => msg.body = replace(&msg.body, b"<br>", b"\r"),
+        24 | 25 | 26 | 134 => msg.body = replace(&msg.body, &[149], b"?"),
+        _ => {}
+    }
+    msg
+}
+
 pub struct Session {
     pub id: u64,
     out: UnboundedSender<Outgoing>,
@@ -35,6 +61,8 @@ pub struct Session {
     /// Receiving half of a cipher installed by `GENERATEKEY`, until the reader task picks it up.
     opener: Mutex<Option<Opener>>,
     encrypted: AtomicBool,
+    /// Java: `NettyPlayerNetwork.isFlashConnection`: the connection came in on the Flash port.
+    flash: AtomicBool,
     /// Java: `Player.pingOK`: true until a `PING` goes unanswered (see `net::IDLE_TIMEOUT`).
     ping_ok: AtomicBool,
     /// Java: `RoomEntity.effectId` of the player's room user, which Java keeps from room to
@@ -64,6 +92,7 @@ impl Session {
             ignored: Mutex::new(JavaStringSet::default()),
             opener: Mutex::new(None),
             encrypted: AtomicBool::new(false),
+            flash: AtomicBool::new(false),
             ping_ok: AtomicBool::new(true),
             effect_id: AtomicI32::new(0),
             current_game_id: Mutex::new(None),
@@ -121,12 +150,27 @@ impl Session {
         Arc::new(session)
     }
 
+    /// Java: `isFlashConnection`.
+    pub fn is_flash(&self) -> bool {
+        self.flash.load(Ordering::Relaxed)
+    }
+
+    /// Marks a connection of the Flash port.
+    pub fn set_flash(&self) {
+        self.flash.store(true, Ordering::Relaxed);
+    }
+
     /// Queues a message; never blocks. Messages after [`Session::close`] are dropped.
     pub fn send(&self, msg: Message) {
         if self.closing.load(Ordering::Relaxed) {
             return;
         }
         debug!(conn = self.id, header = msg.header, "send");
+        let msg = if self.is_flash() {
+            flash_text(msg)
+        } else {
+            msg
+        };
         let _ = self.out.send(Outgoing::Frame(encode_server(&msg)));
     }
 

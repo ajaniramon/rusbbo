@@ -26,30 +26,44 @@ const IDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
 use crate::session::{Outgoing, Session};
 use crate::world::World;
 
-pub async fn serve(world: Arc<World>, bind: SocketAddr) -> Result<()> {
+/// Connection ids, shared by the Shockwave and Flash ports (Java: one `connectionIds` counter).
+static IDS: AtomicU64 = AtomicU64::new(0);
+
+/// Java: `NetworkDecoder`'s answer on the Flash port to anything that does not start like a
+/// message (the Flash player's `<policy-file-request/>`).
+const FLASH_POLICY: &[u8] = b"<?xml version=\"1.0\"?>\r\n<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">\r\n<cross-domain-policy>\r\n<allow-access-from domain=\"*\" to-ports=\"1-31111\" />\r\n</cross-domain-policy>\0";
+
+/// Serves the game port, or (`flash`) the Flash client's port (Java: the server port + 2).
+pub async fn serve(world: Arc<World>, bind: SocketAddr, flash: bool) -> Result<()> {
     let listener = TcpListener::bind(bind)
         .await
         .with_context(|| format!("binding {bind}"))?;
-    info!("Shockwave game server is listening on {bind}");
-    let ids = AtomicU64::new(0);
+    if flash {
+        info!("Flash game server is listening on {bind}");
+    } else {
+        info!("Shockwave game server is listening on {bind}");
+    }
     loop {
         let (stream, peer) = listener.accept().await?;
-        let id = ids.fetch_add(1, Ordering::Relaxed);
+        let id = IDS.fetch_add(1, Ordering::Relaxed);
         let world = world.clone();
         tokio::spawn(async move {
-            if let Err(e) = connection(world, stream, id).await {
+            if let Err(e) = connection(world, stream, id, flash).await {
                 debug!(conn = id, %peer, "connection ended: {e:#}");
             }
         });
     }
 }
 
-async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()> {
+async fn connection(world: Arc<World>, stream: TcpStream, id: u64, flash: bool) -> Result<()> {
     stream.set_nodelay(true)?;
     let stream_peer = stream.peer_addr();
     let (mut reader, mut writer) = stream.into_split();
     let (tx, mut rx) = mpsc::unbounded_channel();
     let session = Arc::new(Session::new(id, tx));
+    if flash {
+        session.set_flash();
+    }
     if let Ok(peer) = stream_peer {
         session.player.lock().ip_address = peer.ip().to_string();
     }
@@ -87,7 +101,10 @@ async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()>
         let _ = writer.shutdown().await;
     });
 
-    session.send(outgoing::handshake::hello());
+    // Java: Flash clients get no HELLO.
+    if !flash {
+        session.send(outgoing::handshake::hello());
+    }
 
     let mut decoder = Decoder::default();
     let mut opener: Option<Opener> = None;
@@ -103,7 +120,14 @@ async fn connection(world: Arc<World>, stream: TcpStream, id: u64) -> Result<()>
                     Err(e) => break Err(e.into()),
                 };
                 match opener.as_mut() {
-                    None => decoder.push(&buf[..n]),
+                    None => {
+                        decoder.push(&buf[..n]);
+                        // Java: on the Flash port a buffer that does not start with `@` gets the
+                        // policy (and stays where it is).
+                        if flash && decoder.first_byte().is_some_and(|b| b != b'@') {
+                            session.send_raw(FLASH_POLICY.to_vec());
+                        }
+                    }
                     Some(o) => match o.decrypt(&buf[..n]) {
                         Ok(plain) => decoder.push(&plain),
                         // Java throws inside the decoder and keeps the connection; the stream is

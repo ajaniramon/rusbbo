@@ -6,6 +6,7 @@ pub mod club;
 pub mod ecotron;
 pub mod effects;
 pub mod events;
+pub mod flash;
 pub mod games;
 pub mod guides;
 pub mod handshake;

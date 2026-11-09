@@ -268,10 +268,11 @@ fn execute(
     rcon: &str,
     reset: Option<&str>,
     encrypted: &[bool],
+    flash: &[bool],
     steps: &[Step],
 ) -> Result<Vec<StepOutput>> {
     reset_server(reset)?;
-    Runner::new(target, rcon, encrypted).run(steps)
+    Runner::new(target, rcon, encrypted, flash).run(steps)
 }
 
 fn record(
@@ -285,10 +286,11 @@ fn record(
     let scenario = Scenario::load(path)?;
     let steps = scenario.compile()?;
     let encrypted: Vec<bool> = scenario.bots.iter().map(|b| b.encrypt).collect();
+    let flash: Vec<bool> = scenario.bots.iter().map(|b| b.flash).collect();
     let mut outputs = Vec::new();
     for run in 1..=runs {
         eprintln!("[record] {} run {run}/{runs}", scenario.name);
-        let out = execute(target, rcon, reset, &encrypted, &steps)?;
+        let out = execute(target, rcon, reset, &encrypted, &flash, &steps)?;
         for (i, s) in out.iter().enumerate() {
             if !s.missing.is_empty() {
                 eprintln!(
@@ -336,7 +338,14 @@ fn load_trace(path: &Path) -> Result<Trace> {
 fn check_trace(path: &Path, target: &str, rcon: &str, reset: Option<&str>) -> Result<bool> {
     let trace = load_trace(path)?;
     let steps = trace.steps()?;
-    let outputs = execute(target, rcon, reset, &trace.encrypted_flags(), &steps)?;
+    let outputs = execute(
+        target,
+        rcon,
+        reset,
+        &trace.encrypted_flags(),
+        &trace.flash_flags(),
+        &steps,
+    )?;
     let mismatches = check::compare(&trace, &outputs);
     let failed_steps: std::collections::BTreeSet<usize> =
         mismatches.iter().map(|m| m.step).collect();

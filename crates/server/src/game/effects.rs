@@ -39,9 +39,9 @@ pub fn duration(world: &World, effect_id: i32) -> i32 {
         .unwrap_or(DEFAULT_DURATION)
 }
 
-/// Java: `AVATAR_EFFECTS` (Shockwave).
-pub fn avatar_effects(world: &World, effects: &[Effect]) -> Message {
-    outgoing::user::avatar_effects(effects, |id| duration(world, id), now())
+/// Java: `AVATAR_EFFECTS` (for a Flash client with `flash`).
+pub fn avatar_effects(world: &World, effects: &[Effect], flash: bool) -> Message {
+    outgoing::user::avatar_effects(effects, |id| duration(world, id), now(), flash)
 }
 
 /// A new, not yet activated effect for the stored `effects` (Java: `EffectDao.newEffect(user,
@@ -84,7 +84,7 @@ pub fn activate(world: &World, session: &Session, p: &mut Player, effect_id: i32
     effect.activated = true;
     effect.expiry_date = now() + i64::from(length);
     let saved = effect.clone();
-    session.send(avatar_effects(world, &p.effects));
+    session.send(avatar_effects(world, &p.effects, session.is_flash()));
     // Java: EffectDao.saveEffect.
     if let Some(user_id) = p.user_id() {
         update_stored(world, user_id, |stored| {

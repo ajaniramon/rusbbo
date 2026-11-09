@@ -39,7 +39,10 @@ def client_ids():
 
 def server_ids():
     ids, dynamic = defaultdict(list), []
-    for path in sorted((MESSAGES / "outgoing").rglob("*.java")):
+    paths = sorted((MESSAGES / "outgoing").rglob("*.java")) + sorted(
+        (MESSAGES / "flash" / "outgoing").rglob("*.java")
+    )
+    for path in paths:
         src = path.read_text(encoding="utf-8")
         m = re.search(r"getHeader\(\)\s*\{\s*return\s+(?:\(short\)\s*)?(\d+)\s*;", src)
         if m:
@@ -114,7 +117,7 @@ mod tests {
     )
     if shutil.which("rustfmt"):
         subprocess.run(["rustfmt", "--edition", "2024", str(OUT)], check=True)
-    print(f"{OUT.relative_to(ROOT)}: {len(client)} client ids, {len(server)} server ids, {len(dynamic)} dynamic")
+    print(f"{OUT.relative_to(HERE)}: {len(client)} client ids, {len(server)} server ids, {len(dynamic)} dynamic")
 
 
 if __name__ == "__main__":

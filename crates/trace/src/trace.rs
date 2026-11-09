@@ -28,6 +28,9 @@ pub struct Trace {
     /// recorded before this existed have none.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub encrypted: Vec<String>,
+    /// Flash clients (`flash = true` in the scenario).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub flash: Vec<String>,
     pub steps: Vec<TraceStep>,
 }
 
@@ -322,6 +325,12 @@ pub fn calibrate(scenario: &Scenario, steps: &[Step], runs: &[Vec<StepOutput>]) 
             .filter(|b| b.encrypt)
             .map(|b| b.name.clone())
             .collect(),
+        flash: scenario
+            .bots
+            .iter()
+            .filter(|b| b.flash)
+            .map(|b| b.name.clone())
+            .collect(),
         steps: trace_steps,
     }
 }
@@ -477,6 +486,11 @@ impl Trace {
             .iter()
             .map(|b| self.encrypted.contains(b))
             .collect()
+    }
+
+    /// Per bot, whether it is a Flash client.
+    pub fn flash_flags(&self) -> Vec<bool> {
+        self.bots.iter().map(|b| self.flash.contains(b)).collect()
     }
 
     /// Steps to replay this trace.

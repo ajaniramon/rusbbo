@@ -9,9 +9,23 @@ use crate::messages::{Malformed, outgoing};
 use crate::session::Session;
 use crate::world::World;
 
-pub fn get_info(_: &World, session: &Arc<Session>, _: &mut ClientReader) -> Result<(), Malformed> {
-    let p = session.player.lock();
-    if let (true, Some(user)) = (p.logged_in, p.details.as_ref()) {
+pub fn get_info(
+    world: &World,
+    session: &Arc<Session>,
+    _: &mut ClientReader,
+) -> Result<(), Malformed> {
+    let mut p = session.player.lock();
+    if !p.logged_in {
+        return Ok(());
+    }
+    // Java: a Flash client has no GETAVAILABLEBADGES at login; its first GET_INFO does the
+    // badges and achievements instead.
+    if p.process_login_steps && session.is_flash() {
+        p.badges.refresh(session);
+        crate::game::achievements::process_achievements(world, session, &mut p, true);
+        p.process_login_steps = false;
+    }
+    if let Some(user) = p.details.as_ref() {
         session.send(outgoing::user::user_object(user));
     }
     Ok(())

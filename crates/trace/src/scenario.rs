@@ -8,6 +8,7 @@
 //! name = "a"
 //! ticket = "trace-sso-1"
 //! encrypt = true             # optional: also GENERATEKEY, then talk over the RC4 layer
+//! flash = true               # optional: a Flash client, on the game port + 2 (no HELLO)
 //!
 //! [[steps]]
 //! bot = "a"
@@ -69,6 +70,9 @@ pub struct BotDef {
     /// goes over the encrypted transport, like the real Shockwave client.
     #[serde(default)]
     pub encrypt: bool,
+    /// A Flash client: it connects to the Flash port (the game port + 2).
+    #[serde(default)]
+    pub flash: bool,
 }
 
 /// The private Diffie-Hellman key every encrypted bot uses. Fixed so that the `GENERATEKEY` body

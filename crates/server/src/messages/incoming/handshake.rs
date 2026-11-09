@@ -20,7 +20,7 @@ fn random_digits(len: usize) -> String {
 }
 
 pub fn init_crypto(
-    _: &World,
+    world: &World,
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
@@ -28,8 +28,16 @@ pub fn init_crypto(
     if p.logged_in {
         return Ok(());
     }
-    // TODO(flash): the Flash port answers with SESSION_PARAMETERS instead.
     let token = random_digits(24);
+    if session.is_flash() {
+        let settings = world.settings.read();
+        session.send(outgoing::handshake::session_parameters(
+            settings.bool("vouchers.enabled"),
+            settings.bool("profile.editing"),
+            settings.bool("tutorial.enabled"),
+        ));
+        return Ok(());
+    }
     session.send(outgoing::handshake::crypto_parameters(&token));
     p.crypto_token = Some(token);
     Ok(())
@@ -72,6 +80,11 @@ pub fn generate_key(
             return Ok(());
         }
     };
+    // Java: on the Flash port `registerHandler(RC4)` returns at once: the connection stays plain.
+    if session.is_flash() {
+        session.send(outgoing::handshake::secret_key(&dh.public_key()));
+        return Ok(());
+    }
     let crypto = match Crypto::server(&key, &token) {
         Ok(c) => c,
         Err(e) => {

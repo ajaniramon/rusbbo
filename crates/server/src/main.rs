@@ -36,6 +36,10 @@ struct Cli {
     /// Address for the Shockwave game port.
     #[arg(long, default_value = "127.0.0.1:12321")]
     bind: SocketAddr,
+    /// Address for the Flash client's game port (Java: the game port + 2). Defaults to the
+    /// Shockwave address with its port + 2.
+    #[arg(long, value_name = "ADDR")]
+    flash_bind: Option<SocketAddr>,
     /// Issue an SSO ticket at startup, after the startup reset: `<user_id>=<ticket>`. Repeatable.
     /// Stands in for the website until it exists; used by the trace harness.
     #[arg(long = "dev-ticket", value_name = "USER_ID=TICKET")]
@@ -151,8 +155,21 @@ async fn main() -> Result<()> {
             }
         });
     }
+    let flash_bind = cli.flash_bind.unwrap_or_else(|| {
+        let mut addr = cli.bind;
+        addr.set_port(addr.port().wrapping_add(2));
+        addr
+    });
+    {
+        let world = world.clone();
+        tokio::spawn(async move {
+            if let Err(e) = net::serve(world, flash_bind, true).await {
+                tracing::error!("Flash game port: {e:#}");
+            }
+        });
+    }
     tokio::select! {
-        result = net::serve(world.clone(), cli.bind) => result,
+        result = net::serve(world.clone(), cli.bind, false) => result,
         () = shutdown_signal() => {
             shutdown(&world).await;
             Ok(())

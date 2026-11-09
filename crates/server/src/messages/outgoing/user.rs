@@ -57,7 +57,12 @@ pub fn film(film: i32) -> Message {
 
 /// Java: `AVATAR_EFFECTS` for a Shockwave client. `duration` is the effect's length
 /// (`game::effects::duration`); the third number is how many effects share the id.
-pub fn avatar_effects(effects: &[Effect], duration: impl Fn(i32) -> i32, now: i64) -> Message {
+pub fn avatar_effects(
+    effects: &[Effect],
+    duration: impl Fn(i32) -> i32,
+    now: i64,
+    flash: bool,
+) -> Message {
     let mut body = ServerBody::new().int(effects.len() as i32);
     for effect in effects {
         let same_id = effects
@@ -69,11 +74,14 @@ pub fn avatar_effects(effects: &[Effect], duration: impl Fn(i32) -> i32, now: i6
         } else {
             0
         };
-        body = body
-            .int(effect.effect_id)
-            .int(duration(effect.effect_id))
-            .int(same_id as i32)
-            .int(if effect.activated { time_left } else { -1 });
+        body = body.int(effect.effect_id).int(duration(effect.effect_id));
+        // Java: a Flash client is told whether the effect is still to be activated.
+        body = if flash {
+            body.bool(!effect.activated)
+        } else {
+            body.int(same_id as i32)
+        };
+        body = body.int(if effect.activated { time_left } else { -1 });
     }
     Message::new(460, body.build())
 }
@@ -163,7 +171,7 @@ mod tests {
         );
         assert_eq!(credit_balance(1120).body, b"1120");
         assert_eq!(activity_points(0, PointAlert::NoSound).body, b"HH");
-        assert_eq!(avatar_effects(&[], |_| 0, 0).body, b"H");
+        assert_eq!(avatar_effects(&[], |_| 0, 0, false).body, b"H");
     }
 
     #[test]
@@ -176,7 +184,7 @@ mod tests {
         };
         let effects = [effect(1, false), effect(1, false), effect(2, false)];
         assert_eq!(
-            avatar_effects(&effects, |_| 3600, 1_000).body,
+            avatar_effects(&effects, |_| 3600, 1_000, false).body,
             b"KIXDNJMIXDNJMJXDNIM"
         );
         assert_eq!(

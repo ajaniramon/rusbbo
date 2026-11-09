@@ -92,6 +92,8 @@ struct Bot {
     stream: Option<TcpStream>,
     /// Talks over the encrypted transport once `GENERATEKEY` is answered.
     encrypted: bool,
+    /// A Flash client: connects to the game port + 2.
+    flash: bool,
     /// Sending half of the current connection's cipher; filled in by the reader thread when
     /// `SECRET_KEY` arrives.
     sealer: Arc<Mutex<Option<Sealer>>>,
@@ -126,6 +128,17 @@ fn substitute_game_id(body: &[u8], game_id: Option<&[u8]>) -> Vec<u8> {
     out
 }
 
+/// The Flash port of a game server: its port + 2 (Java's `getFlashPort`).
+fn flash_address(target: &str) -> Result<String> {
+    let (host, port) = target
+        .rsplit_once(':')
+        .with_context(|| format!("no port in {target}"))?;
+    let port: u16 = port
+        .parse()
+        .with_context(|| format!("bad port in {target}"))?;
+    Ok(format!("{host}:{}", port + 2))
+}
+
 pub struct Runner {
     target: String,
     /// The server's RCON port, for `rcon` steps.
@@ -136,17 +149,20 @@ pub struct Runner {
 }
 
 impl Runner {
-    /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport.
-    pub fn new(target: &str, rcon: &str, encrypted: &[bool]) -> Self {
+    /// One bot per entry of `encrypted`; `true` makes that bot use the encrypted transport, and
+    /// `flash` (same length) a Flash client.
+    pub fn new(target: &str, rcon: &str, encrypted: &[bool], flash: &[bool]) -> Self {
         let (tx, rx) = channel();
         Self {
             target: target.to_string(),
             rcon: rcon.to_string(),
             bots: encrypted
                 .iter()
-                .map(|&encrypted| Bot {
+                .enumerate()
+                .map(|(i, &encrypted)| Bot {
                     stream: None,
                     encrypted,
+                    flash: flash.get(i).copied().unwrap_or(false),
                     sealer: Arc::new(Mutex::new(None)),
                     game_id: None,
                 })
@@ -202,8 +218,13 @@ impl Runner {
         if self.bots[bot].stream.is_some() {
             bail!("bot already connected");
         }
-        let stream = TcpStream::connect(&self.target)
-            .with_context(|| format!("connecting to {}", self.target))?;
+        let address = if self.bots[bot].flash {
+            flash_address(&self.target)?
+        } else {
+            self.target.clone()
+        };
+        let stream =
+            TcpStream::connect(&address).with_context(|| format!("connecting to {address}"))?;
         stream.set_nodelay(true)?;
         let mut reader = stream.try_clone()?;
         let tx = self.tx.clone();

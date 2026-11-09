@@ -276,7 +276,20 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
         &p.effects,
         |id| crate::game::effects::duration(world, id),
         now(),
+        session.is_flash(),
     ));
+    // Java: a Flash client is told its home room (one that no longer exists is forgotten).
+    if session.is_flash() {
+        let mut home = user.home_room;
+        if home != 0 && !crate::game::navigator::room_exists(world, home as u32) {
+            home = 0;
+            if let Err(e) = world.store.update_user(user.id, |u| u.home_room = 0) {
+                error!(user = user.id, "saving the home room: {e}");
+            }
+            user.home_room = 0;
+        }
+        session.send(outgoing::flash::home_room(home));
+    }
 
     if settings.bool("welcome.message.enabled") {
         let text = settings
@@ -320,8 +333,23 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     }
 
     info!(user = user.id, name = %user.username, "logged in");
+    let (user_id, rank) = (user.id, user.rank);
     p.details = Some(user);
     club::count_member_days(world, &mut p);
+    if session.is_flash() {
+        let favourites: Vec<i32> = crate::game::navigator::favourite_rooms(world, user_id)
+            .into_iter()
+            .filter(|r| r.owner_id > 0)
+            .map(|r| r.id as i32)
+            .collect();
+        session.send(outgoing::flash::favourites(
+            crate::game::navigator::MAX_FAVOURITES as i32,
+            &favourites,
+        ));
+        if rank >= crate::game::commands::RANK_MODERATOR {
+            session.send(outgoing::flash::modtool());
+        }
+    }
     drop(p);
     drop(settings);
     // Tell the online friends (Java: Messenger.sendStatusUpdate). Locks other players, so ours

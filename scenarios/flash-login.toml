@@ -1,0 +1,39 @@
+name = "flash-login"
+description = "Flash clients on the Flash port: no HELLO, SESSION_PARAMETERS for INIT_CRYPTO, HOME_ROOM and FLASH_FAVOURITES at login (FLASH_MODTOOL for a moderator), AVATAR_EFFECTS in the Flash form, and the first GET_INFO doing the badges and achievements"
+
+# f = tracebot3 (effects, badges), m = tracemod (a moderator). SESSION_PARAMETERS comes from a
+# Java HashMap keyed by an enum (identity hashes): its order changes from run to run.
+
+[[bots]]
+name = "f"
+ticket = "trace-sso-3"
+flash = true
+
+[[bots]]
+name = "m"
+ticket = "trace-sso-22"
+flash = true
+
+[[steps]]
+bot = "f"
+macro = "login"
+header_only = ["SESSION_PARAMETERS"]
+
+[[steps]]
+bot = "f"
+send = "GET_INFO"
+settle_ms = 800
+
+[[steps]]
+bot = "f"
+send = "GET_INFO"
+note = "the login steps are done"
+
+[[steps]]
+bot = "f"
+send = "GETAVAILABLEBADGES"
+
+[[steps]]
+bot = "m"
+macro = "login"
+header_only = ["SESSION_PARAMETERS"]
