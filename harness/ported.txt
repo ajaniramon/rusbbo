@@ -69,6 +69,7 @@ public-room
 rcon-trade
 rcon-users
 recycler
+referrals
 rooftop-camera
 room-bots
 room-two-bots

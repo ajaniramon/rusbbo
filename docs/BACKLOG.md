@@ -12,7 +12,6 @@ oracle first, passing against it twice, then the port.
 
 | Feature | Tag | What is missing | Aeyra today |
 |---|---|---|---|
-| Referrals | `referred` | `users_referred` and its achievement | empty |
 | Seasonal catalogue | `seasonal` | With `seasonal.items` on, pages with `seasonal_start`/`seasonal_end` only show in their season | `seasonal.items` = false |
 | Collectables | `collectables` | Collectable pages list only the active collectable, its price and page layout follow it | 3 `catalogue_collectables` rows |
 | Room-hire teleporter | `room-hire` | `TeleportRoomHireInteractor` | no item definition uses it |

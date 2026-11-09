@@ -1,10 +1,8 @@
 //! Achievements (Java: `game/achievements`): the table of achievements, each player's progress and
 //! the progressions run when a client asks for its badges or answers a ping.
 //!
-//! Not ported yet, so they never progress here: `ACH_AvatarTags` (users_tags), `ACH_MGM`
-//! (users_referred, counted as 0) and `GL` (guides; nobody is a guide). The achievements that other
-//! packages advance (`ACH_Motto`, `ACH_RoomEntry`, respect, games...) have no progression because
-//! nothing calls them yet.
+//! The achievements that other packages advance (`ACH_Motto`, `ACH_RoomEntry`, respect, games...)
+//! are progressed where those packages call them.
 
 use std::collections::BTreeMap;
 
@@ -242,8 +240,17 @@ fn progression(
             }
             (progress >= info.progress_needed).then_some(progress)
         }
-        // TODO(referred): users_referred; nobody is referred, so the progress is 0.
-        AchievementType::Mgm => (p.achievements[index].progress != 0).then_some(0),
+        // Java: `ReferredDao.countReferred`, the users the player referred (Havana-Web's
+        // registration with `?referral=`), up to the level's requirement.
+        AchievementType::Mgm => {
+            let referred = world
+                .store
+                .records_where::<rusbbo_storage::Referral>(|r| r.user_id == details.id)
+                .map(|v| v.len())
+                .unwrap_or(0) as i32;
+            let progress = referred.min(info.progress_needed);
+            (progress != p.achievements[index].progress).then_some(progress)
+        }
         AchievementType::Guide => {
             let guided = p.statistics.int_value(stat::PLAYERS_GUIDED);
             (guided >= p.achievements[index].progress).then_some(guided)

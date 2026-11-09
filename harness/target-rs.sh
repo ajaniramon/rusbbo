@@ -96,12 +96,12 @@ case "${1:-}" in
     stop_server
     build_fixture
     cp "$FIXTURE" "$RUN_DIR/rusbbo.redb"
-    # The tickets oracle/tickets.sql gives back after Java's startup reset (the group, guide and club users 26-32
+    # The tickets oracle/tickets.sql gives back after Java's startup reset (the group, guide, club and referral users 26-33
     # are not in the web traces' data).
     TICKETS=()
     for id in 1 2 3 4 5 6 21 22 23 24; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
     if [[ -z "${TARGET_WEB_PORT:-}" ]]; then
-      for id in 26 27 28 29 30 31 32; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
+      for id in 26 27 28 29 30 31 32 33; do TICKETS+=(--dev-ticket "$id=trace-sso-$id"); done
     fi
     nohup "$WS_DIR/target/debug/rusbbo-server" --db "$RUN_DIR/rusbbo.redb" --bind "127.0.0.1:$PORT" --rcon "127.0.0.1:$RCON_PORT" "${WEB_ARGS[@]}" \
       --figuredata "${HAVANA_DIR:-$(cd "$WS_DIR/.." && pwd)/aeyra-havana}/tools/figuredata.xml" \

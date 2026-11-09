@@ -1,0 +1,45 @@
+name = "referrals"
+description = "ACH_MGM (AchievementMGM): a user who referred three others (users_referred) earns its levels one PONG at a time, up to the third"
+
+# r = greferrer (user 33, three referrals in oracle/seed.sql).
+
+[[bots]]
+name = "r"
+ticket = "trace-sso-33"
+
+[[steps]]
+bot = "r"
+macro = "login"
+
+[[steps]]
+bot = "r"
+send = "GET_POSSIBLE_ACHIEVEMENTS"
+
+[[steps]]
+bot = "r"
+send = "PONG"
+settle_ms = 600
+
+[[steps]]
+bot = "r"
+send = "PONG"
+settle_ms = 600
+
+[[steps]]
+bot = "r"
+send = "PONG"
+settle_ms = 600
+
+[[steps]]
+bot = "r"
+send = "PONG"
+settle_ms = 600
+note = "nothing more: the fourth level needs five"
+
+[[steps]]
+bot = "r"
+send = "GET_POSSIBLE_ACHIEVEMENTS"
+
+[[steps]]
+bot = "r"
+send = "GETAVAILABLEBADGES"

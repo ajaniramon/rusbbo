@@ -178,3 +178,14 @@ VALUES
    4102444800, 0);
 
 INSERT INTO users_statistics (user_id, has_tutorial, is_guidable, gifts_due) VALUES (32, 0, 0, 2);
+
+-- The referrals scenario (user 33; oracle/web-seed.sql removes it): three users it referred, as
+-- Havana-Web's registration with ?referral= records them (ACH_MGM counts them).
+INSERT INTO users (id, username, password, figure, sex, motto, email, credits, tickets, film, `rank`,
+                   last_online, created_at, sso_ticket, tutorial_finished, has_flash_warning)
+VALUES
+  (33, 'greferrer', '', 'hd-180-1.ch-210-66.lg-270-82.sh-290-91.hr-100-61', 'M', 'brings friends',
+   'greferrer@trace.local', 1000, 10, 10, 1, '2026-01-01 00:00:00', '2099-01-01 00:00:00', 'trace-sso-33', 1, 0);
+
+INSERT INTO users_statistics (user_id, has_tutorial, is_guidable) VALUES (33, 0, 0);
+INSERT INTO users_referred (user_id, referred_id) VALUES (33, 1), (33, 2), (33, 3);
