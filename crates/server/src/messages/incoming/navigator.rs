@@ -45,7 +45,7 @@ pub fn navigate(
 
     let Some(category) = u32::try_from(category_id)
         .ok()
-        .and_then(|id| world.room_categories.get(&id))
+        .and_then(|id| world.room_categories().get(&id).cloned())
     else {
         return Ok(());
     };
@@ -54,7 +54,7 @@ pub fn navigate(
     }
 
     let sub_categories = navigator::categories_by_parent(world, category.id as i32, viewer.rank);
-    let (current_visitors, max_visitors) = navigator::category_visitors(world, category);
+    let (current_visitors, max_visitors) = navigator::category_visitors(world, &category);
 
     let rows = if category.public_spaces {
         world.store.rooms_by_owner(0)
@@ -77,7 +77,7 @@ pub fn navigate(
     navigator::rating_sanity_check(world, &rooms);
 
     let subs: Vec<SubCategory> = sub_categories
-        .into_iter()
+        .iter()
         .map(|category| {
             let (current_visitors, max_visitors) = navigator::category_visitors(world, category);
             SubCategory {
@@ -90,7 +90,7 @@ pub fn navigate(
     // A composer that throws fails in Netty's encoder, which does not stop the handler.
     if let Some(msg) = out::nav_node_info(
         &viewer,
-        category,
+        &category,
         &rooms,
         hide_full,
         &subs,
@@ -211,7 +211,7 @@ pub fn get_user_flat_cats(
         .filter(|c| !c.is_node)
         .collect();
     categories.sort_by_key(|c| c.order_id);
-    session.send(out::user_flat_cats(&categories));
+    session.send(out::user_flat_cats(&categories.iter().collect::<Vec<_>>()));
     Ok(())
 }
 

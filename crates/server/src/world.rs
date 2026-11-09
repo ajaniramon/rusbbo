@@ -42,9 +42,9 @@ pub struct World {
     /// Loaded rooms (Java: `RoomManager.roomMap`). Never lock a room while holding this.
     rooms: Mutex<HashMap<u32, RoomRef>>,
     /// Room models by `model_id` (Java: `RoomModelManager`), loaded at startup.
-    pub room_models: HashMap<String, Arc<RoomModel>>,
+    room_models: RwLock<Arc<HashMap<String, Arc<RoomModel>>>>,
     /// Navigator categories by id (Java: `NavigatorManager`), loaded at startup.
-    pub room_categories: HashMap<u32, RoomCategory>,
+    room_categories: RwLock<Arc<HashMap<u32, RoomCategory>>>,
     /// Java: `WalkwaysManager`, loaded at startup.
     pub walkways: Vec<WalkwayEntrance>,
     /// Java: `WordfilterManager`, loaded at startup.
@@ -59,6 +59,10 @@ pub struct World {
     pub events: crate::game::events::EventsManager,
     /// Java: `ChatManager`'s queue of room chat for `room_chatlogs`.
     pub chat_log: crate::game::chatlog::ChatLogQueue,
+    /// Java: `AdManager`.
+    pub ads: crate::game::ads::AdManager,
+    /// Java: `EcotronManager`.
+    pub ecotron: crate::game::ecotron::EcotronManager,
     /// The games' arenas (Java keeps them out of `RoomManager`), by their keys.
     arenas: Mutex<HashMap<u32, RoomRef>>,
     next_arena_key: std::sync::atomic::AtomicU32,
@@ -66,19 +70,27 @@ pub struct World {
     self_ref: OnceLock<Weak<World>>,
 }
 
+fn load_room_models(store: &Store) -> Result<HashMap<String, Arc<RoomModel>>> {
+    Ok(store
+        .room_models()?
+        .iter()
+        .map(|m| (m.model_id.clone(), Arc::new(RoomModel::parse(m))))
+        .collect())
+}
+
+fn load_room_categories(store: &Store) -> Result<HashMap<u32, RoomCategory>> {
+    Ok(store
+        .room_categories()?
+        .into_iter()
+        .map(|c| (c.id, c))
+        .collect())
+}
+
 impl World {
     pub fn new(store: Store) -> Result<Self> {
         let settings = Settings::new(load_settings(&store)?);
-        let room_models = store
-            .room_models()?
-            .iter()
-            .map(|m| (m.model_id.clone(), Arc::new(RoomModel::parse(m))))
-            .collect();
-        let room_categories = store
-            .room_categories()?
-            .into_iter()
-            .map(|c| (c.id, c))
-            .collect();
+        let room_models = RwLock::new(Arc::new(load_room_models(&store)?));
+        let room_categories = RwLock::new(Arc::new(load_room_categories(&store)?));
         let walkways = walkways::parse(&store.walkways()?);
         let wordfilter = WordFilter::new(store.wordfilter()?);
         let items = ItemManager::load(&store)?;
@@ -105,10 +117,35 @@ impl World {
             games,
             events,
             chat_log: Default::default(),
+            ads: Default::default(),
+            ecotron: Default::default(),
             arenas: Mutex::new(HashMap::new()),
             next_arena_key: std::sync::atomic::AtomicU32::new(ARENA_KEY_BASE),
             self_ref: OnceLock::new(),
         })
+    }
+
+    /// The room models by name (Java: `RoomModelManager`).
+    pub fn room_models(&self) -> Arc<HashMap<String, Arc<RoomModel>>> {
+        self.room_models.read().clone()
+    }
+
+    /// The navigator's categories by id (Java: `NavigatorManager`).
+    pub fn room_categories(&self) -> Arc<HashMap<u32, RoomCategory>> {
+        self.room_categories.read().clone()
+    }
+
+    /// Java: `RoomModelManager.reset` (RCON `refreshroommodels`): loaded rooms keep the model
+    /// they were loaded with.
+    pub fn reload_room_models(&self) -> Result<()> {
+        *self.room_models.write() = Arc::new(load_room_models(&self.store)?);
+        Ok(())
+    }
+
+    /// Java: `NavigatorManager.reset` (RCON `refreshnavigator`).
+    pub fn reload_room_categories(&self) -> Result<()> {
+        *self.room_categories.write() = Arc::new(load_room_categories(&self.store)?);
+        Ok(())
     }
 
     /// Wraps the world in its `Arc` and remembers it for [`World::arc`].

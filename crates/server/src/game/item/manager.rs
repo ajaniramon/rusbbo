@@ -11,7 +11,7 @@ use super::Item;
 use super::base::ItemDefinition;
 
 pub struct ItemManager {
-    definitions: HashMap<u32, Arc<ItemDefinition>>,
+    definitions: parking_lot::RwLock<Arc<HashMap<u32, Arc<ItemDefinition>>>>,
     virtual_id_counter: AtomicI32,
 }
 
@@ -27,21 +27,30 @@ impl ItemManager {
             .filter_map(|r| ItemDefinition::new(r).map(|d| (d.record.id, Arc::new(d))))
             .collect();
         Self {
-            definitions,
+            definitions: parking_lot::RwLock::new(Arc::new(definitions)),
             virtual_id_counter: AtomicI32::new(0),
         }
+    }
+
+    /// Java: `ItemManager.reset` (RCON `refreshitemdefinitions`): the definitions read again.
+    /// Items already loaded keep the definition they were made with.
+    pub fn reload(&self, store: &Store) -> Result<()> {
+        let fresh = Self::new(store.item_definitions()?);
+        *self.definitions.write() = fresh.definitions.into_inner();
+        Ok(())
     }
 
     pub fn definition(&self, id: i32) -> Option<Arc<ItemDefinition>> {
         u32::try_from(id)
             .ok()
-            .and_then(|id| self.definitions.get(&id).cloned())
+            .and_then(|id| self.definitions.read().get(&id).cloned())
     }
 
     /// Java: `getDefinitionBySprite`. The sprites the server looks up (`present_gen*`) are
     /// unique, so the map's order does not matter.
     pub fn definition_by_sprite(&self, sprite: &str) -> Option<Arc<ItemDefinition>> {
         self.definitions
+            .read()
             .values()
             .find(|d| d.sprite() == sprite)
             .cloned()

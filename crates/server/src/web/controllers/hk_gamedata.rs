@@ -78,9 +78,10 @@ fn set_recommended(world: &World, id: u32, kind: &str, enabled: bool) -> anyhow:
     Ok(())
 }
 
-/// Java: `refreshRoom`: the room is unloaded (and the navigator refreshed).
+/// Java: `refreshRoom`: `RoomManager.removeRoom` and the navigator refreshed. The room manager
+/// is the website's own (Havana-Web runs in its own process), so the game's loaded room stays
+/// as it is: only the RCON message reaches the game.
 fn refresh_room(world: &World, _room_id: u32) {
-    // TODO(reload): RoomManager.removeRoom for a loaded room.
     refresh_navigator(world);
 }
 

@@ -3,6 +3,7 @@
 pub mod alerts;
 pub mod catalogue;
 pub mod club;
+pub mod ecotron;
 pub mod effects;
 pub mod events;
 pub mod games;

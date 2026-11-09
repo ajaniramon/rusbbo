@@ -143,6 +143,19 @@ impl CatalogueManager {
         self.data().items.iter().find(|i| i.id == id).cloned()
     }
 
+    /// Java: `getCatalogueBySprite(spriteId)`: the first item whose definition has that sprite id.
+    pub fn item_by_sprite_id(&self, sprite_id: i32) -> Option<CatalogueItem> {
+        self.data()
+            .items
+            .iter()
+            .find(|i| {
+                i.definition
+                    .as_ref()
+                    .is_some_and(|d| d.record.sprite_id == sprite_id)
+            })
+            .cloned()
+    }
+
     /// Java: `getCatalogueItem(String saleCode)`: the first item with that sale code.
     pub fn item_by_sale_code(&self, sale_code: &str) -> Option<CatalogueItem> {
         self.data()

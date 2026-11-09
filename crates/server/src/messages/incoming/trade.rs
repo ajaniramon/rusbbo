@@ -102,7 +102,7 @@ pub fn trade_open(
 fn allows_trading(world: &World, r: &Room) -> bool {
     u32::try_from(r.data.category)
         .ok()
-        .and_then(|id| world.room_categories.get(&id))
+        .and_then(|id| world.room_categories().get(&id).cloned())
         .is_some_and(|c| c.allow_trading)
 }
 

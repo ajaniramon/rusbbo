@@ -1,6 +1,7 @@
 //! Game logic (Java: `org.alexdev.havana.game`).
 
 pub mod achievements;
+pub mod ads;
 pub mod badges;
 pub mod bot;
 pub mod catalogue;
@@ -8,6 +9,7 @@ pub mod chatlog;
 pub mod club;
 pub mod commands;
 pub mod currency;
+pub mod ecotron;
 pub mod effects;
 pub mod events;
 pub mod figure;

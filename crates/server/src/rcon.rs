@@ -246,12 +246,38 @@ fn handle(world: &World, message: &RconMessage) {
             Ok(words) => world.wordfilter.reload(words),
             Err(e) => error!("reloading the word filter: {e}"),
         },
-        "refreshads"
-        | "refreshitemdefinitions"
-        | "refreshnavigator"
-        | "refreshroommodels"
-        | "refreshecotron"
-        | "refreshstats" => {}
+        "refreshads" => world.ads.reset(&world.store),
+        "refreshitemdefinitions" => {
+            // Java: ItemManager.reset, CatalogueManager.reset and CollectablesManager.reset (the
+            // collectables are read from the store when used).
+            if let Err(e) = world.items.reload(&world.store) {
+                error!("reloading the item definitions: {e}");
+            }
+            if let Err(e) = world.catalogue.reload(&world.store, &world.items) {
+                error!("reloading the catalogue: {e}");
+            }
+        }
+        "refreshnavigator" => {
+            if let Err(e) = world.reload_room_categories() {
+                error!("reloading the navigator: {e}");
+            }
+        }
+        "refreshroommodels" => {
+            if let Err(e) = world.reload_room_models() {
+                error!("reloading the room models: {e}");
+            }
+        }
+        "refreshecotron" => world.ecotron.reset(&world.store),
+        "refreshstats" => {
+            // Java: `getStatisticManager().reload()`.
+            if let Some(session) = online("userId") {
+                let mut p = session.player.lock();
+                if let Some(id) = p.user_id() {
+                    p.statistics =
+                        crate::game::statistics::PlayerStatistics::load(&world.store, id);
+                }
+            }
+        }
         "infobusdoorstatus" => {
             // Java: `get("doorStatus").equals("1")` throws without the value.
             let Some(status) = value("doorStatus") else {

@@ -1,0 +1,362 @@
+{
+  "format": 1,
+  "scenario": "recycler",
+  "description": "The Ecotron recycler: its status and prize table, RECYCLE_ITEMS with fewer than five items, with a repeated item, and with five recyclable items (an Ecotron box in the hand, ITEM_DELIVERED, the status again)",
+  "runs": 2,
+  "bots": [
+    "a"
+  ],
+  "steps": [
+    {
+      "bot": "a",
+      "action": "connect",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 0,
+              "name": "HELLO",
+              "body": "",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 206,
+      "name": "INIT_CRYPTO",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 277,
+              "name": "CRYPTO_PARAMETERS",
+              "body": "157518103575873250565154\u0002I",
+              "check": "mask",
+              "mask": "????????????????????????.."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 813,
+      "name": "UNIQUEID",
+      "body": "@Mtrace-machine",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 204,
+      "name": "SSO",
+      "body": "@Ktrace-sso-1",
+      "settle_ms": 1500,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 439,
+              "name": "UniqueIDMessageEvent",
+              "body": "#8F8E7E91362C4E0DAD52783D209F97A9\u0002",
+              "check": "mask",
+              "mask": ".????????????????????????????????."
+            },
+            {
+              "header": 2,
+              "name": "RIGHTS",
+              "body": "fuse_login\u0002fuse_trade\u0002fuse_buy_credits\u0002fuse_buy_credits_fuse_login\u0002fuse_room_queue_default\u0002",
+              "check": "exact"
+            },
+            {
+              "header": 3,
+              "name": "LOGIN",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 460,
+              "name": "AVATAR_EFFECTS",
+              "body": "H",
+              "check": "exact"
+            },
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1120",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 413,
+      "name": "GET_RECYCLER_STATUS",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 507,
+              "name": "RECYCLER_STATUS",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 412,
+      "name": "GET_RECYCLER_PRIZES",
+      "body": "",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 506,
+              "name": "RECYCLER_PRIZES",
+              "body": "QAQAXtGJs\u0002ZVFs\u0002Z\\kPAPrJs\u0002YVFs\u0002[\\kKPJKs\u0002ZRFs\u0002[RFs\u0002XSFJQASCs\u0002[QFs\u0002XRFs\u0002YRFi\u0002YPFi\u0002ZPFi\u0002[PFs\u0002XTFs\u0002YTFs\u0002ZTFs\u0002[TFs\u0002XUFs\u0002YUFs\u0002ZUFs\u0002[UFs\u0002XVFIHRAs\u0002XQFs\u0002YQFs\u0002ZQFs\u0002YSFs\u0002ZSFs\u0002[SF",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HPH@@H",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1119",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HPH@@H",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1118",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HPH@@H",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1117",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HPH@@H",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1116",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 100,
+      "name": "GRPC",
+      "body": "HPH@@H",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 6,
+              "name": "CREDIT_BALANCE",
+              "body": "1115",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 65,
+      "name": "GETSTRIP",
+      "body": "K",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "QAQAHS\u0002QAQJI0\u0002IIIM\u0002MPAIS\u0002PAQJI0\u0002IIIM\u0002MKJS\u0002KQJI0\u0002IIIM\u0002MJKS\u0002JQJI0\u0002IIIM\u0002MIPAS\u0002IQJI0\u0002IIIM\u0002MQA",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 414,
+      "name": "RECYCLE_ITEMS",
+      "body": "PAIJKPA",
+      "note": "fewer than five: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 414,
+      "name": "RECYCLE_ITEMS",
+      "body": "QAIJKPAPA",
+      "note": "a repeated item counts once: nothing",
+      "settle_ms": 300,
+      "received": {}
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 414,
+      "name": "RECYCLE_ITEMS",
+      "body": "RAIJKPA[yCQA",
+      "note": "five recyclable items (999 is not in the hand)",
+      "settle_ms": 800,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IRAHS\u0002RA[VFI\u0002HIIM\u0002MI",
+              "check": "exact"
+            },
+            {
+              "header": 67,
+              "name": "ITEM_DELIVERED",
+              "body": "",
+              "check": "exact"
+            },
+            {
+              "header": 507,
+              "name": "RECYCLER_STATUS",
+              "body": "I",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bot": "a",
+      "action": "send",
+      "header": 65,
+      "name": "GETSTRIP",
+      "body": "K",
+      "settle_ms": 300,
+      "received": {
+        "a": {
+          "ordered": true,
+          "closed": false,
+          "messages": [
+            {
+              "header": 140,
+              "name": "INVENTORY",
+              "body": "IRAHS\u0002RA[VFI\u0002HIIM\u0002MI",
+              "check": "exact"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

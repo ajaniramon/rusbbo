@@ -60,7 +60,7 @@ pub fn room_directory(
     let (visitors_now, visitors_max) = (visitors_now + game_now, visitors_max + game_max);
     let Some(category) = u32::try_from(category)
         .ok()
-        .and_then(|c| world.room_categories.get(&c))
+        .and_then(|c| world.room_categories().get(&c).cloned())
     else {
         // Java throws a NullPointerException here: the request is dropped.
         warn!(room = room.id, category, "room has no navigator category");
@@ -102,14 +102,36 @@ pub fn room_directory(
 /// doorbell and the password, then lets them in (`FLAT_LETIN`) for the `GOTOFLAT` that follows.
 /// Java: `GETINTEREST`: the client asks for a loading ad before it enters a room, and waits for
 /// the answer. Java shows one (`AdManager.getRandomLoadingAd`) one time in six when
-/// `room.intersitial.ads` is on and the user is not teleporting; otherwise, and always here until
-/// the ads are ported (`TODO(ads)`), there is none.
+/// `room.intersitial.ads` is on and the user is not teleporting; otherwise there is none.
 pub fn get_interest(
-    _: &World,
+    world: &World,
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    session.send(out::intersitial_data(None));
+    use rand::RngExt;
+    let (enabled, site_path) = {
+        let s = world.settings.read();
+        (
+            s.bool("room.intersitial.ads"),
+            s.string("site.path").to_string(),
+        )
+    };
+    let teleporting = current_room(world, session).is_some_and(|room| {
+        let r = room.lock();
+        r.entity_index(session.id)
+            .is_some_and(|i| r.entities[i].is_teleporting)
+    });
+    if !enabled || teleporting || rand::rng().random_range(0..6) != 5 {
+        session.send(out::intersitial_data(None));
+        return Ok(());
+    }
+    let ad = world
+        .ads
+        .random_loading_ad(&world.store)
+        .map(|ad| crate::game::ads::urls(&site_path, &ad));
+    session.send(out::intersitial_data(
+        ad.as_ref().map(|(i, u)| (i.as_str(), u.as_str())),
+    ));
     Ok(())
 }
 
@@ -257,13 +279,32 @@ pub fn get_room_ad(
     session: &Arc<Session>,
     _: &mut ClientReader,
 ) -> Result<(), Malformed> {
-    if current_room(world, session).is_none() {
+    let Some(room) = current_room(world, session) else {
         return Ok(());
+    };
+    let (room_id, public) = {
+        let r = room.lock();
+        (r.id(), r.is_public())
+    };
+    let (enabled, site_path) = {
+        let s = world.settings.read();
+        (s.bool("room.ads"), s.string("site.path").to_string())
+    };
+    let mut ad = None;
+    if public {
+        // Java: a room whose ads are all disabled throws (no ROOMAD).
+        let Ok(found) = world.ads.random_ad(&world.store, room_id as i32) else {
+            return Ok(());
+        };
+        ad = found.map(|a| crate::game::ads::urls(&site_path, &a));
     }
-    // TODO(ads): with `room.ads` on, public rooms show a random `rooms_ads` row
-    // (AdManager.getRandomAd). The setting is off by default, which always sends no ad.
+    if !enabled {
+        ad = None;
+    }
+    session.send(out::room_ad(
+        ad.as_ref().map(|(i, u)| (i.as_str(), u.as_str())),
+    ));
     // TODO(flash): Flash clients get the room contents here too.
-    session.send(out::room_ad(None));
     Ok(())
 }
 

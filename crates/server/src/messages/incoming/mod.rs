@@ -3,6 +3,7 @@
 pub mod badges;
 pub mod catalogue;
 pub mod club;
+mod ecotron;
 pub mod effects;
 pub mod events;
 pub mod games;
@@ -94,6 +95,9 @@ pub fn handler(header: u16) -> Option<Handler> {
         64 => rooms::g_stat,
         230 => rooms::get_group_badges,
         263 => rooms::get_user_tags,
+        412 => ecotron::get_recycler_prizes,
+        413 => ecotron::get_recycler_status,
+        414 => ecotron::recycle_items,
         231 => rooms::get_group_info,
         63 => rooms::g_items,
         66 => rooms::flat_prop_by_item,

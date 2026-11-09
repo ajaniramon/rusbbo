@@ -97,7 +97,7 @@ pub fn create_flat(
     let Some(model_type) = model.strip_prefix("model_") else {
         return Ok(());
     };
-    if !world.room_models.contains_key(&model) {
+    if !world.room_models().contains_key(&model) {
         return Ok(());
     }
     if !KIOSK_MODELS.contains(&model_type) && !special_layouts {
@@ -188,7 +188,7 @@ pub fn set_flat_cat(
     let mut category_id = reader.int().ok_or(Malformed)?;
     let Some(category) = u32::try_from(category_id)
         .ok()
-        .and_then(|id| world.room_categories.get(&id))
+        .and_then(|id| world.room_categories().get(&id).cloned())
     else {
         return Ok(());
     };
@@ -261,13 +261,13 @@ pub fn get_flat_info(
     };
     let data = room.lock().data.clone();
     let model_name = world
-        .room_models
+        .room_models()
         .get(&data.model)
         .map(|m| m.name.clone())
         .unwrap_or_default();
     let Some(category) = u32::try_from(data.category)
         .ok()
-        .and_then(|id| world.room_categories.get(&id))
+        .and_then(|id| world.room_categories().get(&id).cloned())
     else {
         // Java throws a NullPointerException (`getCategory().hasAllowTrading()`).
         return Ok(());

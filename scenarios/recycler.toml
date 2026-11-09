@@ -1,0 +1,80 @@
+name = "recycler"
+description = "The Ecotron recycler: its status and prize table, RECYCLE_ITEMS with fewer than five items, with a repeated item, and with five recyclable items (an Ecotron box in the hand, ITEM_DELIVERED, the status again)"
+
+# tracebot1 buys five Pet Food (catalogue item 32, recyclable, 1 credit each); their virtual ids
+# are 1-5 (the hand is empty and the server has just started).
+
+[[bots]]
+name = "a"
+ticket = "trace-sso-1"
+
+[[steps]]
+bot = "a"
+macro = "login"
+
+[[steps]]
+bot = "a"
+send = "GET_RECYCLER_STATUS"
+
+[[steps]]
+bot = "a"
+send = "GET_RECYCLER_PRIZES"
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 32, "", false]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 32, "", false]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 32, "", false]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 32, "", false]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "GRPC"
+args = [0, 32, "", false]
+settle_ms = 800
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]
+
+[[steps]]
+bot = "a"
+send = "RECYCLE_ITEMS"
+args = [4, 1, 2, 3, 4]
+note = "fewer than five: nothing"
+
+[[steps]]
+bot = "a"
+send = "RECYCLE_ITEMS"
+args = [5, 1, 2, 3, 4, 4]
+note = "a repeated item counts once: nothing"
+
+[[steps]]
+bot = "a"
+send = "RECYCLE_ITEMS"
+args = [6, 1, 2, 3, 4, 999, 5]
+settle_ms = 800
+note = "five recyclable items (999 is not in the hand)"
+
+[[steps]]
+bot = "a"
+send = "GETSTRIP"
+args = [3]

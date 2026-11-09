@@ -5,6 +5,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use rand::RngExt;
 use rusbbo_protocol::body::ClientReader;
 use tracing::error;
 
@@ -447,7 +448,7 @@ pub fn remove_item(
 
 /// Java: `PRESENTOPEN`: the owner opens a present. Ordinary furniture keeps the present's item
 /// (and virtual id) with the wrapped definition; the rest is bought anew and the present deleted.
-/// TODO(ecotron): `ECO_BOX` boxes and their `FLAG:` prizes.
+/// An Ecotron box holds a random prize of the recycler (or, flagged, a rainbow furni).
 pub fn present_open(
     world: &World,
     session: &Arc<Session>,
@@ -469,7 +470,43 @@ pub fn present_open(
     let Some(idx) = r.mapping.item_index(item_id) else {
         return Ok(());
     };
+    let eco_box = r.mapping.items[idx].has(Behaviour::EcoBox);
+    let flag = r.mapping.items[idx]
+        .custom_data
+        .strip_prefix("FLAG:")
+        .map(str::to_string);
+    if let (true, Some(flag)) = (eco_box, flag) {
+        let possible: &[&str] = match flag.as_str() {
+            "RAINBOW_FURNI" => &[
+                "table_plasto_sq_lm1",
+                "table_plasto_round_lm1",
+                "table_plasto_bigsq_lm1",
+                "table_plasto_4leg_lm1",
+                "chair_plasty_lm1",
+                "chair_plasto_lm1",
+            ],
+            _ => return Ok(()),
+        };
+        let code = possible[rand::rng().random_range(0..possible.len())];
+        if let Some(def) = world
+            .catalogue
+            .item_by_sale_code(code)
+            .and_then(|c| c.definition)
+        {
+            // Java: `getMapping().removeItem` (the flag stays in the custom data).
+            let Some(mut owned) = r.remove_flat_item(world, idx).to_owned() else {
+                return Ok(());
+            };
+            owned.record.definition_id = def.record.id;
+            owned.definition = def;
+            deliver_to_hand(world, session, &mut p, owned);
+            return Ok(());
+        }
+    }
     if !r.mapping.items[idx].has(Behaviour::Present) {
+        if eco_box {
+            open_eco_box(world, session, &mut p, &mut r, idx);
+        }
         return Ok(());
     }
     let data: Vec<String> = r.mapping.items[idx]
@@ -589,6 +626,67 @@ pub fn present_open(
     let hand = p.inventory.get_view(&world.store, "new");
     session.send(out_inventory::inventory(&hand));
     Ok(())
+}
+
+/// The end of opening a box: the item saved, `DELIVER_PRESENT`, into the hand, and the hand's
+/// newest page.
+fn deliver_to_hand(
+    world: &World,
+    session: &Arc<Session>,
+    p: &mut crate::game::player::Player,
+    owned: crate::game::item::Item,
+) {
+    if let Err(e) = world.store.update_item(&owned.record) {
+        error!(item = owned.record.id, "saving an opened box: {e}");
+    }
+    session.send(out_catalogue::deliver_present(
+        &owned.definition,
+        &owned.record.custom_data,
+    ));
+    p.inventory.add_item(owned);
+    let hand = p.inventory.get_view(&world.store, "new");
+    session.send(out_inventory::inventory(&hand));
+}
+
+/// Java: `PRESENTOPEN` on an Ecotron box: a prize level by chance (1 in 2000, 200, 40 or 5, or
+/// else the commonest), one of its rewards, and the first catalogue item with that sprite.
+fn open_eco_box(
+    world: &World,
+    session: &Arc<Session>,
+    p: &mut crate::game::player::Player,
+    r: &mut crate::game::room::Room,
+    idx: usize,
+) {
+    let mut rng = rand::rng();
+    let mut chance = 0;
+    for check in [2000, 200, 40, 5] {
+        if rng.random_range(1..=check) == check {
+            chance = check;
+            break;
+        }
+    }
+    let prizes = world.ecotron.rewards_by_chance(&world.store, chance);
+    if prizes.is_empty() {
+        return;
+    }
+    let reward = &prizes[rng.random_range(0..prizes.len())];
+    let Some(prize) = world.items.definition_by_sprite(&reward.sprite) else {
+        return;
+    };
+    let Some(def) = world
+        .catalogue
+        .item_by_sprite_id(prize.record.sprite_id)
+        .and_then(|c| c.definition)
+    else {
+        return;
+    };
+    let Some(mut owned) = r.remove_flat_item(world, idx).to_owned() else {
+        return;
+    };
+    owned.record.definition_id = def.record.id;
+    owned.record.custom_data = String::new();
+    owned.definition = def;
+    deliver_to_hand(world, session, p, owned);
 }
 
 /// Java: `RoomTradeManager.showTradeBanAlert`.

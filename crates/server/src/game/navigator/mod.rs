@@ -86,8 +86,8 @@ impl RoomEntry {
 /// Java: `NavigatorManager.categoryMap.values()`: a `HashMap<Integer, _>` filled in
 /// `order_id` order. Its iteration order (bucket by `hash & (capacity - 1)`, insertion order inside
 /// a bucket) decides how categories with the same `order_id` are listed.
-pub fn categories_in_map_order(world: &World) -> Vec<&RoomCategory> {
-    let mut list: Vec<&RoomCategory> = world.room_categories.values().collect();
+pub fn categories_in_map_order(world: &World) -> Vec<RoomCategory> {
+    let mut list: Vec<RoomCategory> = world.room_categories().values().cloned().collect();
     list.sort_by_key(|c| (c.order_id, c.id)); // the insertion order: ORDER BY order_id ASC
     let mut capacity = 16usize;
     while list.len() * 4 > capacity * 3 {
@@ -99,12 +99,12 @@ pub fn categories_in_map_order(world: &World) -> Vec<&RoomCategory> {
 }
 
 /// Java: `NavigatorManager.getCategoriesByParentId`.
-pub fn categories_by_parent(world: &World, parent_id: i32, rank: u8) -> Vec<&RoomCategory> {
+pub fn categories_by_parent(world: &World, parent_id: i32, rank: u8) -> Vec<RoomCategory> {
     let hide_empty = world
         .settings
         .read()
         .bool("navigator.hide.empty.public.categories");
-    let mut categories: Vec<&RoomCategory> = categories_in_map_order(world)
+    let mut categories: Vec<RoomCategory> = categories_in_map_order(world)
         .into_iter()
         .filter(|c| !(hide_empty && c.public_spaces && room_count(world, c) == 0))
         .filter(|c| c.minrole_access <= i32::from(rank))
@@ -178,7 +178,7 @@ pub fn replace_query_rooms(world: &World, rows: Vec<Room>) -> Vec<Room> {
 /// Java: what `RoomData.getVisitorsNow/getVisitorsMax` add for a game lobby: the players of its
 /// started games (see `GameManager::lobby_visitors`). Takes the games' lock: hold no room lock.
 pub fn game_visitors(world: &World, data: &Room) -> (i32, i32) {
-    match world.room_models.get(&data.model) {
+    match world.room_models().get(&data.model) {
         Some(model) => world.games.lobby_visitors(&model.trigger),
         None => (0, 0),
     }

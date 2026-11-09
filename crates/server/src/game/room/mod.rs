@@ -220,7 +220,7 @@ impl Room {
                 return None;
             }
         };
-        let Some(model) = world.room_models.get(&data.model).cloned() else {
+        let Some(model) = world.room_models().get(&data.model).cloned() else {
             warn!(room = id, model = %data.model, "room has no model");
             return None;
         };

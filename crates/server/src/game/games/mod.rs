@@ -422,7 +422,7 @@ impl GameManager {
                     .into_iter()
                     .find(|r| {
                         world
-                            .room_models
+                            .room_models()
                             .get(&r.model)
                             .is_some_and(|m| m.name == model || m.id == model)
                     })
