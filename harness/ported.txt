@@ -82,6 +82,7 @@ space-cafe
 staff-bot
 staff-commands
 staff-ops
+staff-rank
 text-latin1
 trade
 user-achievements
@@ -92,6 +93,7 @@ user-club-member
 user-effects
 user-ignore
 user-settings
+welcome-alert
 wobble-squabble
 wobble-squabble-queue
 wobble-squabble-tickets

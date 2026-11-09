@@ -4,8 +4,8 @@ description = "The staff chat commands: :help for an administrator, alerts (:ha,
 # Room 7 (ballroom, no NPCs). s = tracestaff (ADMINISTRATOR, instance 0), a = tracebot1
 # (instance 1), m = tracemod (MODERATOR, instance 2). tracebot2 stays offline (offline targets).
 # Commands are never chat: nobody looks, so no look timer. A command above the user's rank is
-# plain chat (and waits for the look timer): chat-commands covers it, here it would take s's part
-# past 60 s.
+# plain chat (and waits for the look timer): that is staff-rank, so that s stays well under
+# Java's 60 s PING.
 # Left out: :giftroom (random gift wrapping), :headrotate (a 200 ms timer), :copyroom;
 # :uptime, :usersonline, :shutdown and :reload catalogue/games are in staff-ops, :bot in
 # staff-bot.

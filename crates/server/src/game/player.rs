@@ -293,13 +293,14 @@ pub fn login(world: &World, session: &Arc<Session>, mut user: User) {
     }
 
     if settings.bool("welcome.message.enabled") {
-        let text = settings
-            .string("welcome.message.content")
-            .replace("%username%", &user.username);
+        let text = replace_alert_message(
+            &settings.string("welcome.message.content"),
+            &user.username,
+            session.is_flash(),
+        );
         session.send(outgoing::alerts::alert(&text));
     }
     crate::game::maintenance::tell_closing(session);
-    // TODO(alerts): the other placeholders of StringUtil.replaceAlertMessage.
 
     // Java: the guide checks (the first `GuideManager.getInstance()` starts its invite task).
     crate::game::guides::start(world);
@@ -399,4 +400,35 @@ pub fn dispose(world: &World, session: &Arc<Session>) {
     info!(user = user.id, "logged out");
     drop(p);
     messenger_manager::send_status_update(world, session);
+}
+
+/// Java: `StringUtil.replaceAlertMessage`: line breaks become `<br>` (`\r` for a Flash client,
+/// every `<br>` included) and `%username%` the player's name.
+pub fn replace_alert_message(message: &str, username: &str, flash: bool) -> String {
+    let mut text = message
+        .replace("\r\n", "<br>")
+        .replace('\r', "<br>")
+        .replace('\n', "<br>");
+    if flash {
+        text = text.replace("<br>", "\r");
+    }
+    text.replace("%username%", username)
+}
+
+#[cfg(test)]
+mod alert_tests {
+    use super::replace_alert_message;
+
+    #[test]
+    fn alert_message_like_java() {
+        let m = "Hello\r\n%username%,\rwelcome\nback<br>%username%";
+        assert_eq!(
+            replace_alert_message(m, "a", false),
+            "Hello<br>a,<br>welcome<br>back<br>a"
+        );
+        assert_eq!(
+            replace_alert_message(m, "a", true),
+            "Hello\ra,\rwelcome\rback\ra"
+        );
+    }
 }
